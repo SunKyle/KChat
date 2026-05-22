@@ -1,0 +1,134 @@
+package com.example.app.service;
+
+import com.example.app.client.OllamaClient;
+import com.example.app.dto.ChatRequest;
+import com.example.app.entity.Conversation;
+import com.example.app.entity.Message;
+import com.example.app.repository.ConversationRepository;
+import com.example.app.repository.MessageRepository;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@Service
+@RequiredArgsConstructor
+public class StreamingService {
+
+    private final OllamaClient ollamaClient;
+    private final MemoryService memoryService;
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    public SseEmitter streamResponse(ChatRequest request) {
+        SseEmitter emitter = new SseEmitter(300000L);
+        
+        emitter.onCompletion(() -> {
+            System.out.println("SSE emitter completed");
+        });
+        
+        emitter.onTimeout(() -> {
+            System.out.println("SSE emitter timeout");
+            emitter.complete();
+        });
+        
+        emitter.onError(e -> {
+            System.out.println("SSE emitter error: " + e.getMessage());
+        });
+
+        String conversationId = request.getConversationId();
+
+        if (conversationId == null || conversationId.isBlank()) {
+            conversationId = createNewConversationInternal();
+        }
+
+        final String finalConversationId = conversationId;
+        final String userMessage = request.getMessage();
+        final String aiMessageId = UUID.randomUUID().toString();
+
+        memoryService.updateMemoryWithUserMessage(finalConversationId, userMessage);
+        saveUserMessage(finalConversationId, userMessage);
+
+        executorService.execute(() -> {
+            StringBuilder fullResponse = new StringBuilder();
+            final boolean[] completed = { false };
+
+            try {
+                List<ChatMessage> context = memoryService.getMemoryContext(finalConversationId);
+                List<ChatMessage> messages = new ArrayList<>(context);
+                messages.add(UserMessage.from(userMessage));
+
+                ollamaClient.streamGenerate(messages, chunk -> {
+                    if (completed[0])
+                        return;
+                    try {
+                        fullResponse.append(chunk);
+                        emitter.send(SseEmitter.event().name("message")
+                                .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
+                    } catch (Exception e) {
+                        completed[0] = true;
+                    }
+                });
+
+                if (completed[0])
+                    return;
+
+                memoryService.updateMemoryWithAiMessage(finalConversationId, fullResponse.toString());
+                saveAiMessage(finalConversationId, aiMessageId, fullResponse.toString());
+
+                try {
+                    emitter.send(SseEmitter.event().name("done").data("{\"messageId\": \"" + aiMessageId + "\"}"));
+                } catch (Exception e) {
+                    return;
+                }
+
+                emitter.complete();
+
+            } catch (Exception e) {
+                if (!completed[0]) {
+                    try {
+                        emitter.completeWithError(e);
+                    } catch (Exception ignored) {}
+                }
+            }
+        });
+
+        return emitter;
+    }
+
+    private String createNewConversationInternal() {
+        String conversationId = UUID.randomUUID().toString();
+        Conversation conversation = Conversation.builder().id(conversationId).title("新对话").build();
+        conversationRepository.save(conversation);
+        return conversationId;
+    }
+
+    @Transactional
+    public void saveUserMessage(String conversationId, String userMessage) {
+        Message userMsg = Message.builder().id(UUID.randomUUID().toString()).conversationId(conversationId)
+                .content(userMessage).role("user").build();
+        messageRepository.save(userMsg);
+    }
+
+    @Transactional
+    public void saveAiMessage(String conversationId, String messageId, String content) {
+        Message aiMsg = Message.builder().id(messageId).conversationId(conversationId).content(content)
+                .role("assistant").build();
+        messageRepository.save(aiMsg);
+    }
+
+    private String escapeJson(String input) {
+        return input.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t",
+                "\\t");
+    }
+}
