@@ -7,11 +7,14 @@ interface ChatContextType {
   activeConversation: Conversation | null;
   messages: Message[];
   streamingState: StreamingState;
+  error: string | null;
+  isLoading: boolean;
   setActiveConversation: (conv: Conversation) => void;
   createConversation: () => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   loadMessages: (conversationId: string) => Promise<void>;
+  clearError: () => void;
 }
 
 type ChatAction =
@@ -24,13 +27,18 @@ type ChatAction =
   | { type: 'UPDATE_STREAMING_CONTENT'; payload: string }
   | { type: 'END_STREAMING'; payload: string }
   | { type: 'ADD_CONVERSATION'; payload: Conversation }
-  | { type: 'REMOVE_CONVERSATION'; payload: string };
+  | { type: 'REMOVE_CONVERSATION'; payload: string }
+  | { type: 'SET_ERROR'; payload: string }
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'SET_LOADING'; payload: boolean };
 
 interface ChatState {
   conversations: Conversation[];
   activeConversation: Conversation | null;
   messages: Message[];
   streamingState: StreamingState;
+  error: string | null;
+  isLoading: boolean;
 }
 
 const initialState: ChatState = {
@@ -42,6 +50,8 @@ const initialState: ChatState = {
     currentContent: '',
     messageId: null,
   },
+  error: null,
+  isLoading: false,
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -101,6 +111,15 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         messages: state.activeConversation?.id === action.payload ? [] : state.messages,
       };
     
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
+    
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+    
     default:
       return state;
   }
@@ -117,6 +136,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadConversations = async () => {
     try {
+      dispatch({ type: 'SET_LOADING', payload: true });
       const conversations = await api.conversations.list();
       dispatch({ type: 'SET_CONVERSATIONS', payload: conversations });
       
@@ -126,6 +146,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      dispatch({ type: 'SET_ERROR', payload: '加载会话失败，请稍后重试' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -152,7 +175,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_MESSAGES', payload: data.messages || [] });
     } catch (error) {
       console.error('Failed to load messages:', error);
+      dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' });
     }
+  }, []);
+
+  const clearError = useCallback(() => {
+    dispatch({ type: 'CLEAR_ERROR' });
   }, []);
 
   const sendMessage = useCallback(async (content: string) => {
@@ -222,11 +250,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         activeConversation: state.activeConversation,
         messages: state.messages,
         streamingState: state.streamingState,
+        error: state.error,
+        isLoading: state.isLoading,
         setActiveConversation,
         createConversation,
         deleteConversation,
         sendMessage,
         loadMessages,
+        clearError,
       }}
     >
       {children}
