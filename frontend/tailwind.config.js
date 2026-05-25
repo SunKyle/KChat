@@ -5,6 +5,20 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    fontFamily: {
+      sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+      mono: ['SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
+    },
+    fontSize: {
+      xs: ['11px', { lineHeight: '1.4' }],
+      sm: ['12px', { lineHeight: '1.5' }],
+      base: ['14px', { lineHeight: '1.5' }],
+      lg: ['15px', { lineHeight: '1.5' }],
+      xl: ['16px', { lineHeight: '1.5' }],
+      '2xl': ['18px', { lineHeight: '1.5' }],
+      '3xl': ['20px', { lineHeight: '1.4' }],
+      '4xl': ['24px', { lineHeight: '1.4' }],
+    },
     extend: {
       colors: {
         primary: {
@@ -32,7 +46,12 @@ export default {
           900: '#0f172a',
           950: '#020617',
         }
-      }
+      },
+      lineHeight: {
+        tight: '1.4',
+        normal: '1.5',
+        relaxed: '1.6',
+      },
     },
   },
   plugins: [],
