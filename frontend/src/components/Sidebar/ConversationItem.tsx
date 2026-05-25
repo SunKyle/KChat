@@ -125,7 +125,6 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
             {conversation.title}
           </p>
         )}
-        <p className="text-xs text-slate-500 truncate">{conversation.createdAt}</p>
       </div>
       
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
