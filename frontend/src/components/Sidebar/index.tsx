@@ -3,7 +3,7 @@ import { useChat } from '../../context/ChatContext';
 import { ConversationItem } from './ConversationItem';
 
 export function Sidebar() {
-  const { conversations, activeConversation, setActiveConversation, createConversation, deleteConversation } = useChat();
+  const { conversations, activeConversation, setActiveConversation, createConversation, deleteConversation, updateConversation } = useChat();
 
   return (
     <div className="w-72 bg-slate-800/50 border-r border-slate-700/50 flex flex-col h-full backdrop-blur-sm">
@@ -48,6 +48,7 @@ export function Sidebar() {
                 isActive={activeConversation?.id === conversation.id}
                 onClick={() => setActiveConversation(conversation)}
                 onDelete={() => deleteConversation(conversation.id)}
+                onUpdate={updateConversation}
               />
             ))}
           </div>

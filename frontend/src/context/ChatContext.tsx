@@ -12,6 +12,7 @@ interface ChatContextType {
   setActiveConversation: (conv: Conversation) => void;
   createConversation: () => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
+  updateConversation: (id: string, title: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   loadMessages: (conversationId: string) => Promise<void>;
   clearError: () => void;
@@ -28,6 +29,7 @@ type ChatAction =
   | { type: 'END_STREAMING'; payload: string }
   | { type: 'ADD_CONVERSATION'; payload: Conversation }
   | { type: 'REMOVE_CONVERSATION'; payload: string }
+  | { type: 'UPDATE_CONVERSATION_TITLE'; payload: { id: string; title: string } }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_LOADING'; payload: boolean };
@@ -111,6 +113,17 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         messages: state.activeConversation?.id === action.payload ? [] : state.messages,
       };
     
+    case 'UPDATE_CONVERSATION_TITLE':
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) =>
+          conv.id === action.payload.id ? { ...conv, title: action.payload.title } : conv
+        ),
+        activeConversation: state.activeConversation?.id === action.payload.id
+          ? { ...state.activeConversation, title: action.payload.title }
+          : state.activeConversation,
+      };
+    
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     
@@ -162,6 +175,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'ADD_CONVERSATION', payload: newConversation });
     dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation });
     dispatch({ type: 'SET_MESSAGES', payload: [] });
+  }, []);
+
+  const updateConversation = useCallback(async (id: string, title: string) => {
+    await api.conversations.update(id, title);
+    dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } });
   }, []);
 
   const deleteConversation = useCallback(async (id: string) => {
@@ -255,6 +273,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setActiveConversation,
         createConversation,
         deleteConversation,
+        updateConversation,
         sendMessage,
         loadMessages,
         clearError,

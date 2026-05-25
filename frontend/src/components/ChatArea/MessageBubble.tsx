@@ -6,9 +6,10 @@ import { useState, memo } from 'react';
 interface MessageBubbleProps {
   message: Message;
   onRegenerate?: () => void;
+  isThinking?: boolean;
 }
 
-export const MessageBubble = memo(function MessageBubble({ message, onRegenerate }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, onRegenerate, isThinking }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
 
@@ -55,15 +56,6 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
       </div>
 
       <div className={`flex-1 ${isUser ? 'text-right' : 'text-left'}`}>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-medium text-slate-400">
-            {isUser ? '你' : 'AI 助手'}
-          </span>
-          <span className="text-xs text-slate-500">
-            {formatTimestamp(message.timestamp)}
-          </span>
-        </div>
-
         <div
           className={`relative inline-block max-w-[85%] px-5 py-3 rounded-2xl shadow-md transition-shadow hover:shadow-lg ${
             isUser
@@ -71,9 +63,39 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
               : 'bg-slate-700/80 text-slate-100 rounded-bl-md backdrop-blur-sm'
           }`}
         >
-          <MarkdownRenderer content={message.content} />
+          {isThinking && !message.content ? (
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-2 h-2 rounded-full bg-primary-400" />
+                    <div className="absolute inset-0 w-2 h-2 rounded-full bg-primary-400 animate-thinking-ring" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span 
+                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0ms' }} 
+                />
+                <span 
+                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.2s' }} 
+                />
+                <span 
+                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.4s' }} 
+                />
+              </div>
+              <span className="text-slate-400 text-sm font-medium">
+                正在思考中
+              </span>
+            </div>
+          ) : (
+            <MarkdownRenderer content={message.content} />
+          )}
           
-          {!isUser && (
+          {!isUser && !isThinking && (
             <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
@@ -97,6 +119,11 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
               )}
             </div>
           )}
+        </div>
+        <div className={`flex mt-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <span className="text-xs text-slate-500 px-2">
+            {formatTimestamp(message.timestamp)}
+          </span>
         </div>
       </div>
     </div>

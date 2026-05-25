@@ -28,6 +28,15 @@ export const api = {
         method: 'DELETE',
       });
     },
+
+    update: async (id: string, title: string): Promise<Conversation> => {
+      const response = await fetch(`${BASE_URL}/conversations/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      return response.json();
+    },
   },
 
   chat: {

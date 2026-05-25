@@ -37,14 +37,14 @@ public class ChatController {
     @PostMapping("/conversations")
     public ResponseEntity<ConversationDTO> createConversation(@RequestBody(required = false) ConversationDTO request) {
         String title = request != null && request.getTitle() != null ? request.getTitle() : "新对话";
-        
+
         Conversation conversation = Conversation.builder()
                 .id(UUID.randomUUID().toString())
                 .title(title)
                 .build();
-        
+
         conversationRepository.save(conversation);
-        
+
         return ResponseEntity.ok(ConversationDTO.fromEntity(conversation));
     }
 
@@ -68,6 +68,20 @@ public class ChatController {
                     return ConversationDTO.fromEntity(conversation, messageDTOs);
                 })
                 .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/conversations/{id}")
+    public ResponseEntity<ConversationDTO> updateConversation(@PathVariable String id,
+            @RequestBody ConversationDTO request) {
+        return conversationRepository.findById(id)
+                .map(conversation -> {
+                    if (request.getTitle() != null && !request.getTitle().isEmpty()) {
+                        conversation.setTitle(request.getTitle());
+                    }
+                    Conversation updated = conversationRepository.save(conversation);
+                    return ResponseEntity.ok(ConversationDTO.fromEntity(updated));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

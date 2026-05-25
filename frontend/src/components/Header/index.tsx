@@ -1,16 +1,23 @@
-import { Bot, Settings, Wifi, WifiOff } from 'lucide-react';
+import { Settings, Wifi, WifiOff } from 'lucide-react';
+import { useChat } from '../../context/ChatContext';
 
 export function Header() {
+  const { activeConversation } = useChat();
   const isOnline = true;
 
   return (
-    <header className="h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4">
+    <header className="h-14 bg-slate-800/80 backdrop-blur-md border-b border-slate-700/50 flex items-center justify-between px-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
-          <Bot className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-lg font-semibold text-slate-100">KChat</h1>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-slate-400">
+            {activeConversation ? (
+              <h1 className="text-lg font-semibold text-slate-100 truncate max-w-md">
+                {activeConversation.title}
+              </h1>
+            ) : (
+              <h1 className="text-lg font-semibold text-slate-400">选择或创建对话</h1>
+            )}
+          </div>
         </div>
       </div>
 
