@@ -65,6 +65,9 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
         >
           {isThinking && !message.content ? (
             <div className="flex items-center gap-2.5 py-1">
+              <span className="text-slate-400 text-sm">
+                正在思考中
+              </span>
               <div className="flex items-center gap-1">
                 <span 
                   className="w-2 h-2 rounded-full bg-slate-400" 
@@ -79,9 +82,6 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.4s' }} 
                 />
               </div>
-              <span className="text-slate-400 text-sm">
-                正在思考中
-              </span>
             </div>
           ) : (
             <MarkdownRenderer content={message.content} />
