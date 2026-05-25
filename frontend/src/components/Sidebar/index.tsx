@@ -6,9 +6,10 @@ import { useState, useEffect, useRef } from 'react';
 interface SidebarProps {
   collapsed?: boolean;
   onToggle?: () => void;
+  onDeleteClick?: (id: string, title: string) => void;
 }
 
-export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle, onDeleteClick }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -30,7 +31,11 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       }
     };
   }, []);
-  const { conversations, activeConversation, setActiveConversation, createConversation, deleteConversation, updateConversation } = useChat();
+  const { conversations, activeConversation, setActiveConversation, createConversation, updateConversation } = useChat();
+
+  const handleDelete = (id: string, title: string) => {
+    onDeleteClick?.(id, title);
+  };
 
   return (
     <div className="bg-slate-800/30 border-r border-slate-700/30 flex flex-col h-full overflow-hidden">
@@ -108,7 +113,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 conversation={conversation}
                 isActive={activeConversation?.id === conversation.id}
                 onClick={() => setActiveConversation(conversation)}
-                onDelete={() => deleteConversation(conversation.id)}
+                onDelete={() => handleDelete(conversation.id, conversation.title)}
                 onUpdate={updateConversation}
                 collapsed={collapsed}
               />
