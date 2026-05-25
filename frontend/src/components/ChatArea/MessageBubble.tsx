@@ -1,4 +1,4 @@
-import { User, Bot, Copy, RotateCcw } from 'lucide-react';
+import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react';
 import type { Message } from '../../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useState, memo } from 'react';
@@ -94,36 +94,36 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
           ) : (
             <MarkdownRenderer content={message.content} />
           )}
+        </div>
+        <div className={`flex items-center gap-2 mt-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <span className="text-xs text-slate-500">
+            {formatTimestamp(message.timestamp)}
+          </span>
           
           {!isUser && !isThinking && (
-            <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
-                title="复制"
+                className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+                title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
-                  <span className="text-xs text-green-400">已复制</span>
+                  <Check className="w-3.5 h-3.5 text-green-400" />
                 ) : (
-                  <Copy className="w-4 h-4 text-slate-300" />
+                  <Copy className="w-3.5 h-3.5 text-slate-500 hover:text-slate-400" />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
                   title="重新生成"
                 >
-                  <RotateCcw className="w-4 h-4 text-slate-300" />
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-400" />
                 </button>
               )}
             </div>
           )}
-        </div>
-        <div className={`flex mt-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className="text-xs text-slate-500 px-2">
-            {formatTimestamp(message.timestamp)}
-          </span>
         </div>
       </div>
     </div>
