@@ -53,16 +53,17 @@ export const api = {
       request: ChatRequest,
       onMessage: (content: string) => void,
       onComplete: (messageId: string) => void,
-      onError: (error: Error) => void
+      onError: (error: Error) => void,
+      controller?: AbortController
     ): Promise<void> => {
       console.log('Starting SSE stream request...');
       console.log('Request URL:', `${BASE_URL}/chat/stream`);
       console.log('Request body:', JSON.stringify(request));
       try {
-        const controller = new AbortController();
+        const abortController = controller || new AbortController();
         const timeout = setTimeout(() => {
           console.warn('SSE request timeout, aborting');
-          controller.abort();
+          abortController.abort();
         }, 60000);
 
         console.log('About to fetch...');
@@ -76,7 +77,7 @@ export const api = {
           },
           body: JSON.stringify(request),
           credentials: 'same-origin',
-          signal: controller.signal,
+          signal: abortController.signal,
         });
 
         console.log('Fetch completed, status:', response.status);

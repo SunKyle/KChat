@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Send, X } from 'lucide-react';
+import { Send, Square, X } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 
 export function InputArea() {
   const [input, setInput] = useState('');
-  const { sendMessage, streamingState, activeConversation, createConversation } = useChat();
+  const { sendMessage, streamingState, activeConversation, createConversation, stopStreaming } = useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const charCount = input.length;
@@ -21,7 +21,11 @@ export function InputArea() {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (streamingState.isStreaming) {
+        stopStreaming();
+      } else {
+        handleSend();
+      }
     }
   };
 
@@ -51,7 +55,7 @@ export function InputArea() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={streamingState.isStreaming}
-              placeholder="输入消息..."
+              placeholder={streamingState.isStreaming ? "AI 正在思考或输出中..." : "输入消息..."}
               className="w-full resize-none bg-transparent px-5 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none min-h-[56px] max-h-[200px] overflow-y-auto text-base"
             />
           </div>
@@ -67,16 +71,19 @@ export function InputArea() {
               </button>
             )}
             <button
-              onClick={handleSend}
-              disabled={!input.trim() || streamingState.isStreaming || charCount > maxChars}
+              onClick={streamingState.isStreaming ? stopStreaming : handleSend}
+              disabled={!input.trim() && !streamingState.isStreaming}
               className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all ${
-                input.trim() && !streamingState.isStreaming && charCount <= maxChars
+                streamingState.isStreaming
+                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg active:scale-95 cursor-pointer'
+                  : input.trim() && charCount <= maxChars
                   ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg active:scale-95'
                   : 'bg-slate-600/50 text-slate-500 cursor-not-allowed'
               }`}
+              title={streamingState.isStreaming ? "中断回答" : "发送消息"}
             >
               {streamingState.isStreaming ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Square className="w-4 h-4" fill="currentColor" />
               ) : (
                 <Send className="w-4 h-4" />
               )}

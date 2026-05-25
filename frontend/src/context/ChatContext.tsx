@@ -14,6 +14,7 @@ interface ChatContextType {
   deleteConversation: (id: string) => Promise<void>;
   updateConversation: (id: string, title: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  stopStreaming: () => void;
   loadMessages: (conversationId: string) => Promise<void>;
   clearError: () => void;
 }
@@ -142,6 +143,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -201,8 +203,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'CLEAR_ERROR' });
   }, []);
 
+  const stopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      dispatch({ type: 'END_STREAMING', payload: 'stopped' });
+      console.log('Streaming stopped');
+    }
+  }, []);
+
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || !state.activeConversation) return;
+
+    stopStreaming();
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -233,6 +246,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     let streamingContent = '';
 
+    abortControllerRef.current = new AbortController();
+
     try {
       console.log('Starting message stream...');
       await api.chat.stream(
@@ -247,19 +262,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           console.log('Stream completed, messageId:', messageId);
           dispatch({ type: 'UPDATE_MESSAGE', payload: { id: tempMessageId, content: streamingContent } });
           dispatch({ type: 'END_STREAMING', payload: messageId });
+          abortControllerRef.current = null;
         },
         (error) => {
           console.error('Streaming error:', error);
           dispatch({ type: 'END_STREAMING', payload: tempMessageId });
-        }
+          abortControllerRef.current = null;
+        },
+        abortControllerRef.current
       );
 
       console.log('Message send completed');
     } catch (error) {
       console.error('Failed to send message:', error);
       dispatch({ type: 'END_STREAMING', payload: tempMessageId });
+      abortControllerRef.current = null;
     }
-  }, [state.activeConversation]);
+  }, [state.activeConversation, stopStreaming]);
 
   return (
     <ChatContext.Provider
@@ -275,6 +294,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         deleteConversation,
         updateConversation,
         sendMessage,
+        stopStreaming,
         loadMessages,
         clearError,
       }}

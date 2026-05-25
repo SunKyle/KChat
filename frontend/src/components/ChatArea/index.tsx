@@ -5,7 +5,7 @@ import { MessageBubble } from './MessageBubble';
 import { MessageSkeleton } from '../common/Skeleton';
 
 export function ChatArea() {
-  const { activeConversation, messages, streamingState, error, clearError, isLoading } = useChat();
+  const { activeConversation, messages, streamingState, error, clearError, isLoading, stopStreaming } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -159,6 +159,7 @@ export function ChatArea() {
                       <MessageBubble 
                         message={message} 
                         isThinking={isLastAssistantMessage}
+                        onStop={isLastAssistantMessage ? stopStreaming : undefined}
                       />
                     </div>
                   );
