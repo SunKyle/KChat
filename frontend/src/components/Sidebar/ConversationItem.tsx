@@ -59,7 +59,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
     return (
       <div 
         onClick={onClick}
-        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ${
+        className={`flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ${
           isActive 
             ? 'bg-primary-500/20' 
             : 'hover:bg-slate-700/30'
@@ -77,9 +77,6 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
             {conversation.title.charAt(0)}
           </span>
         </div>
-        {isActive && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-primary-500 rounded-r-full" />
-        )}
       </div>
     );
   }
@@ -169,10 +166,6 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
           </>
         )}
       </div>
-      
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary-500 rounded-r-full" />
-      )}
     </div>
   );
 }
