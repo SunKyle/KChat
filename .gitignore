@@ -1,0 +1,18 @@
+# Maven
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+
+# Frontend build
+dist/
