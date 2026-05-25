@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Check, X, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Check, X } from 'lucide-react';
 import type { Conversation } from '../../types';
 
 interface ConversationItemProps {
@@ -59,7 +59,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
     return (
       <div 
         onClick={onClick}
-        className={`flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ${
+        className={`flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer micro-transition ${
           isActive 
             ? 'bg-white/10' 
             : 'hover:bg-white/5'
@@ -67,7 +67,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
         title={conversation.title}
       >
         <div 
-          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
+          className={`w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
             isActive 
               ? 'bg-[#0EA5E9] text-white' 
               : 'bg-slate-600/60 text-slate-400'
@@ -85,17 +85,17 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
     <div 
       onClick={isEditing ? undefined : onClick} 
       onContextMenu={handleContextMenu} 
-      className={`group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
+      className={`group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer micro-transition ${
         isActive 
-          ? 'bg-white/10' 
+          ? 'bg-white/10 shadow-sm' 
           : 'hover:bg-white/5'
       }`}
     >
       <div 
-        className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
-          isActive 
-            ? 'bg-[#0EA5E9] text-white' 
-            : 'bg-slate-700 text-slate-400'
+        className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
+            isActive 
+              ? 'bg-[#0EA5E9] text-white' 
+              : 'bg-slate-700 text-slate-400'
         }`}
       >
         <span className="text-[10px] font-bold uppercase">
@@ -124,7 +124,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
         )}
       </div>
       
-      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 micro-transition">
         {isEditing ? (
           <>
             <button 
@@ -132,7 +132,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
                 e.stopPropagation();
                 handleSaveEdit();
               }} 
-              className="p-1 rounded hover:bg-white/10 transition-colors"
+              className="p-1 rounded hover:bg-white/10 micro-transition"
             >
               <Check className="w-3.5 h-3.5 text-green-400" />
             </button>
@@ -141,7 +141,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
                 e.stopPropagation();
                 handleCancelEdit();
               }} 
-              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded hover:bg-white/10 micro-transition"
             >
               <X className="w-3.5 h-3.5 text-red-400" />
             </button>
@@ -150,7 +150,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
           <>
             <button 
               onClick={handleStartEdit} 
-              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded hover:bg-white/10 micro-transition"
             >
               <Pencil className="w-3.5 h-3.5 text-slate-500" />
             </button>
@@ -159,7 +159,7 @@ export function ConversationItem({ conversation, isActive, onClick, onDelete, on
                 e.stopPropagation();
                 onDelete();
               }} 
-              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded hover:bg-white/10 micro-transition"
             >
               <Trash2 className="w-3.5 h-3.5 text-slate-500" />
             </button>

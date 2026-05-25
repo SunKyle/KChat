@@ -45,9 +45,15 @@ export function InputArea() {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-[800px] mx-auto relative">
-        <div className="flex items-end gap-2 bg-[#1E293B] backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-200 focus-within:border-sky-500/50 focus-within:ring-1 focus-within:ring-sky-500/20">
+    <div className="p-6 pb-10">
+      <div className="max-w-[800px] mx-auto relative group">
+        {/* 
+          极简优雅设计：
+          1. 移除粗重的阴影，改为细腻的 border 和 subtle-shadow
+          2. 增加背景透明度，强化玻璃感
+          3. 优化圆角，使其更接近 iOS 的连续曲率 (Continuous Corners)
+        */}
+        <div className={`flex items-end gap-2 bg-white/[0.03] backdrop-blur-2xl rounded-[24px] border border-white/10 micro-transition focus-within:border-sky-500/30 focus-within:bg-white/[0.05] transition-all duration-300`}>
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -55,8 +61,8 @@ export function InputArea() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={streamingState.isStreaming}
-              placeholder={streamingState.isStreaming ? "AI 正在思考中..." : "输入消息，Shift+Enter 换行..."}
-              className="w-full resize-none bg-transparent px-5 py-4 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[64px] max-h-[200px] overflow-y-auto text-base leading-relaxed"
+              placeholder={streamingState.isStreaming ? "AI 正在思考中..." : "输入消息..."}
+              className="w-full resize-none bg-transparent px-6 py-4 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[60px] max-h-[200px] overflow-y-auto text-base leading-relaxed"
             />
           </div>
           
@@ -64,7 +70,7 @@ export function InputArea() {
             {input && !streamingState.isStreaming && (
               <button
                 onClick={handleClear}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all"
+                className="p-2 rounded-full text-slate-500 hover:text-slate-300 hover:bg-white/5 micro-transition"
                 title="清空"
               >
                 <X className="w-4 h-4" />
@@ -73,17 +79,17 @@ export function InputArea() {
             <button
               onClick={streamingState.isStreaming ? stopStreaming : handleSend}
               disabled={!input.trim() && !streamingState.isStreaming}
-              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 ${
+              className={`flex items-center justify-center w-10 h-10 rounded-full micro-transition ${
                 streamingState.isStreaming
                   ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
                   : input.trim() && charCount <= maxChars
-                  ? 'bg-[#0EA5E9] text-white shadow-lg shadow-sky-500/20 hover:bg-sky-400 active:scale-95 cursor-pointer'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400 active:scale-95 cursor-pointer'
+                  : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
               }`}
               title={streamingState.isStreaming ? "中断回答" : "发送消息"}
             >
               {streamingState.isStreaming ? (
-                <Square className="w-4 h-4" fill="currentColor" />
+                <Square className="w-3.5 h-3.5" fill="currentColor" />
               ) : (
                 <Send className="w-4 h-4" />
               )}
@@ -91,10 +97,10 @@ export function InputArea() {
           </div>
         </div>
         
-        {/* 字数提示 - 极简设计 */}
+        {/* 极简字数统计：仅在有内容时以淡色显示，不遮挡视觉 */}
         {charCount > 0 && (
-          <div className="absolute -top-6 right-0 text-[10px] font-medium text-slate-500 uppercase tracking-tighter">
-            {charCount} / {maxChars}
+          <div className="absolute -top-6 right-0 text-[10px] font-medium text-slate-600 uppercase tracking-widest micro-transition">
+            {charCount} <span className="opacity-50">/</span> {maxChars}
           </div>
         )}
       </div>

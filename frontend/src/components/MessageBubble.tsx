@@ -45,7 +45,7 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
   return (
     <div className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
-        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition ${
+        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all micro-transition ${
           isUser 
             ? 'bg-slate-700 text-slate-300' 
             : 'bg-[#0EA5E9] text-white shadow-sm shadow-sky-500/20'

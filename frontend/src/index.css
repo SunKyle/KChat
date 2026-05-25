@@ -29,12 +29,8 @@
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slide-down {
@@ -49,15 +45,8 @@
 }
 
 @keyframes pulse-once {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
 @keyframes message-in {
@@ -72,71 +61,32 @@
 }
 
 @keyframes thinking-dot {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.4;
-  }
-  30% {
-    transform: translateY(-6px) scale(1.1);
-    opacity: 1;
-  }
+  0%, 60%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+  30% { transform: translateY(-6px) scale(1.1); opacity: 1; }
 }
 
 @keyframes thinking-wave {
-  0% {
-    transform: scaleX(0.5);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scaleX(0.5);
-    opacity: 0.3;
-  }
+  0% { transform: scaleX(0.5); opacity: 0.3; }
+  50% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(0.5); opacity: 0.3; }
 }
 
 @keyframes thinking-pulse-ring {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
-}
+.animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+.animate-slide-down { animation: slide-down 0.3s ease-out forwards; }
+.animate-pulse-once { animation: pulse-once 1.5s ease-in-out infinite; }
+.animate-message-in { animation: message-in 0.3s ease-out forwards; opacity: 0; }
+.animate-thinking-dot { animation: thinking-dot 1.4s ease-in-out infinite; }
+.animate-thinking-wave { animation: thinking-wave 1.2s ease-in-out infinite; }
+.animate-thinking-ring { animation: thinking-pulse-ring 1.5s ease-out infinite; }
 
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out forwards;
-}
-
-.animate-pulse-once {
-  animation: pulse-once 1.5s ease-in-out infinite;
-}
-
-.animate-message-in {
-  animation: message-in 0.3s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-thinking-dot {
-  animation: thinking-dot 1.4s ease-in-out infinite;
-}
-
-.animate-thinking-wave {
-  animation: thinking-wave 1.2s ease-in-out infinite;
-}
-
-.animate-thinking-ring {
-  animation: thinking-pulse-ring 1.5s ease-out infinite;
+/* 微动画增强 */
+.micro-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
@@ -149,9 +99,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 自定义滚动条 - 更加精致 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -159,13 +110,13 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 3px;
-  transition: background-color 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .scrollbar-auto-hide {
@@ -174,18 +125,8 @@ body {
 }
 
 .scrollbar-auto-hide:hover::-webkit-scrollbar-thumb,
-.scrollbar-auto-hide:active::-webkit-scrollbar-thumb,
-.scrollbar-auto-hide:focus::-webkit-scrollbar-thumb,
 .scrollbar-auto-hide.scrolling::-webkit-scrollbar-thumb {
-  background: #475569;
-}
-
-.scrollbar-auto-hide::-webkit-scrollbar-thumb {
-  background: transparent;
-}
-
-.scrollbar-auto-hide.scrolling {
-  scrollbar-color: #475569 transparent;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .markdown-body {
@@ -248,7 +189,7 @@ body {
   font-size: 85%;
   background-color: #1e293b;
   border-radius: 6px;
-  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 }
 
 .markdown-body pre {
