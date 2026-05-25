@@ -7,6 +7,8 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.output.Response;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,18 +30,29 @@ public class OllamaClient {
     private final OllamaConfig ollamaConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Retry(name = "ollamaRetry")
+    @CircuitBreaker(name = "ollamaCB")
     public String generate(List<ChatMessage> messages) {
         log.debug("Generating response using model: {}", ollamaConfig.getDefaultModel());
-        Response<AiMessage> response = chatLanguageModel.generate(messages);
-        return response.content().text();
+        try {
+            Response<AiMessage> response = chatLanguageModel.generate(messages);
+            return response.content().text();
+        } catch (Exception e) {
+            log.error("Ollama generate failed: {}", e.getMessage());
+            throw e;
+        }
     }
 
+    @Retry(name = "ollamaRetry")
+    @CircuitBreaker(name = "ollamaCB")
     public void streamGenerate(List<ChatMessage> messages, Consumer<String> callback) {
         log.debug("Streaming response using model: {}", ollamaConfig.getDefaultModel());
 
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/generate");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(30000);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("Accept", "application/json");
@@ -71,19 +84,19 @@ public class OllamaClient {
                     }
                 }
             }
-
             connection.disconnect();
 
         } catch (Exception e) {
-            log.error("Streaming error", e);
+            log.error("Streaming error: {}", e.getMessage());
+            throw new RuntimeException("AI model connection timeout or service unavailable", e);
         }
     }
 
     private String escapeJson(String input) {
-        return input.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+        return input.replace("\", "\\")
+                .replace("\"", "\\"")
+                .replace("\n", "\n")
+                .replace("\r", "\r")
+                .replace("\t", "\t");
     }
 }

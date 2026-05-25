@@ -152,16 +152,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const loadConversations = async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // LocalStorage Cache Implementation
+      const cached = localStorage.getItem('kchat_conversations');
+      if (cached) {
+        dispatch({ type: 'SET_CONVERSATIONS', payload: JSON.parse(cached) });
+      }
+
       const conversations = await api.conversations.list();
       dispatch({ type: 'SET_CONVERSATIONS', payload: conversations });
-      
-      if (conversations.length > 0 && !state.activeConversation) {
-        dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conversations[0] });
-        await loadMessages(conversations[0].id);
-      }
+      localStorage.setItem('kchat_conversations', JSON.stringify(conversations));
     } catch (error) {
       console.error('Failed to load conversations:', error);
-      dispatch({ type: 'SET_ERROR', payload: '加载会话失败，请稍后重试' });
+      dispatch({ type: 'SET_ERROR', payload: '加载对话列表失败' });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
@@ -173,20 +176,51 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const createConversation = useCallback(async () => {
-    const newConversation = await api.conversations.create('新对话');
-    dispatch({ type: 'ADD_CONVERSATION', payload: newConversation });
-    dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation });
-    dispatch({ type: 'SET_MESSAGES', payload: [] });
-  }, []);
+    try {
+      const newConversation = await api.conversations.create();
+      dispatch({ type: 'ADD_CONVERSATION', payload: newConversation });
+      localStorage.setItem('kchat_conversations', JSON.stringify([...state.conversations, newConversation].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())));
+      dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation });
+      dispatch({ type: 'SET_MESSAGES', payload: [] });
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      dispatch({ type: 'SET_ERROR', payload: '创建对话失败' });
+    }
+  }, [state.conversations]);
 
   const updateConversation = useCallback(async (id: string, title: string) => {
-    await api.conversations.update(id, title);
-    dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } });
+    try {
+      await api.conversations.update(id, title);
+      dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } });
+      
+      // Update Cache
+      const cached = localStorage.getItem('kchat_conversations');
+      if (cached) {
+        const conversations = JSON.parse(cached);
+        const updated = conversations.map((c: Conversation) => c.id === id ? { ...c, title } : c);
+        localStorage.setItem('kchat_conversations', JSON.stringify(updated));
+      }
+    } catch (error) {
+      console.error('Failed to update conversation:', error);
+    }
   }, []);
 
   const deleteConversation = useCallback(async (id: string) => {
-    await api.conversations.delete(id);
-    dispatch({ type: 'REMOVE_CONVERSATION', payload: id });
+    try {
+      await api.conversations.delete(id);
+      dispatch({ type: 'REMOVE_CONVERSATION', payload: id });
+      
+      // Update Cache
+      const cached = localStorage.getItem('kchat_conversations');
+      if (cached) {
+        const conversations = JSON.parse(cached);
+        const updated = conversations.filter((c: Conversation) => c.id !== id);
+        localStorage.setItem('kchat_conversations', JSON.stringify(updated));
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      dispatch({ type: 'SET_ERROR', payload: '删除对话失败' });
+    }
   }, []);
 
   const loadMessages = useCallback(async (conversationId: string) => {
@@ -208,7 +242,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
       dispatch({ type: 'END_STREAMING', payload: 'stopped' });
-      console.log('Streaming stopped');
     }
   }, []);
 
@@ -225,6 +258,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toISOString(),
     };
 
+    // Optimistic Update: Immediately add user message
     dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
     dispatch({ type: 'START_STREAMING' });
 
@@ -242,39 +276,37 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toISOString(),
     };
 
+    // Optimistic Update: Immediately add empty assistant bubble to show "typing"
     dispatch({ type: 'ADD_MESSAGE', payload: tempMessage });
 
     let streamingContent = '';
-
     abortControllerRef.current = new AbortController();
 
     try {
-      console.log('Starting message stream...');
       await api.chat.stream(
         request,
         (chunk) => {
           streamingContent += chunk;
-          console.log('Received chunk, total length:', streamingContent.length);
           dispatch({ type: 'UPDATE_STREAMING_CONTENT', payload: chunk });
           dispatch({ type: 'UPDATE_MESSAGE', payload: { id: tempMessageId, content: streamingContent } });
         },
         (messageId) => {
-          console.log('Stream completed, messageId:', messageId);
           dispatch({ type: 'UPDATE_MESSAGE', payload: { id: tempMessageId, content: streamingContent } });
           dispatch({ type: 'END_STREAMING', payload: messageId });
           abortControllerRef.current = null;
         },
         (error) => {
           console.error('Streaming error:', error);
+          dispatch({ type: 'SET_ERROR', payload: error });
           dispatch({ type: 'END_STREAMING', payload: tempMessageId });
           abortControllerRef.current = null;
         },
         abortControllerRef.current
       );
-
-      console.log('Message send completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send message:', error);
+      const errorMessage = error.response?.data?.message || '发送消息失败，请检查网络或模型状态';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
       dispatch({ type: 'END_STREAMING', payload: tempMessageId });
       abortControllerRef.current = null;
     }

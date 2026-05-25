@@ -1,29 +1,37 @@
-server:
-  port: 8080
-
 spring:
+  application:
+    name: kchat-backend
   datasource:
     url: jdbc:h2:mem:kchatdb
+    driverClassName: org.h2.Driver
     username: sa
-    password:
-    driver-class-name: org.h2.Driver
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    password: 
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
 ollama:
   base-url: http://localhost:11434
-  default-model: gemma3:4b
+  default-model: llama3
 
-logging:
-  level:
-    com.example.app: DEBUG
-    org.hibernate.SQL: DEBUG
+resilience4j:
+  retry:
+    instances:
+      ollamaRetry:
+        max-attempts: 3
+        wait-duration: 2s
+        retry-exceptions:
+          - java.io.IOException
+          - java.net.SocketTimeoutException
+          - java.lang.RuntimeException
+  circuitbreaker:
+    instances:
+      ollamaCB:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
