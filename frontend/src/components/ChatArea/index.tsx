@@ -11,6 +11,8 @@ export function ChatArea() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [prevConversationId, setPrevConversationId] = useState<string | null>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
   useEffect(() => {
     if (activeConversation && activeConversation.id !== prevConversationId) {
@@ -42,7 +44,23 @@ export function ChatArea() {
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShowScrollButton(!isNearBottom);
     }
+    
+    setIsScrolling(true);
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+    scrollTimeout = setTimeout(() => {
+      setIsScrolling(false);
+    }, 500);
   };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,7 +101,7 @@ export function ChatArea() {
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto scroll-smooth scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+        className={`flex-1 overflow-y-auto scroll-smooth scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
         <div className="h-full">
           {isLoading ? (

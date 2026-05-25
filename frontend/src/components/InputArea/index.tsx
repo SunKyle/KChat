@@ -41,9 +41,9 @@ export function InputArea() {
   };
 
   return (
-    <div className="border-t border-slate-700/50 bg-slate-800/50 backdrop-blur-sm p-4">
+    <div className="p-4 pb-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-end gap-2 bg-slate-700/30 rounded-2xl border border-slate-600/20 overflow-hidden">
+        <div className="flex items-end gap-2 bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-600/30 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)] overflow-hidden transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.25)]">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -52,7 +52,7 @@ export function InputArea() {
               onKeyDown={handleKeyDown}
               disabled={streamingState.isStreaming}
               placeholder="输入消息..."
-              className="w-full resize-none bg-transparent px-5 py-4 text-slate-100 placeholder-slate-500 focus:outline-none min-h-[60px] max-h-[200px] overflow-y-auto text-base"
+              className="w-full resize-none bg-transparent px-5 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none min-h-[56px] max-h-[200px] overflow-y-auto text-base"
             />
           </div>
           
@@ -60,10 +60,10 @@ export function InputArea() {
             {input && !streamingState.isStreaming && (
               <button
                 onClick={handleClear}
-                className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 transition-all"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-all"
                 title="清空"
               >
-                <X className="w-4.5 h-4.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
             <button
@@ -71,14 +71,14 @@ export function InputArea() {
               disabled={!input.trim() || streamingState.isStreaming || charCount > maxChars}
               className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all ${
                 input.trim() && !streamingState.isStreaming && charCount <= maxChars
-                  ? 'bg-primary-500 hover:bg-primary-600 text-white active:scale-95'
+                  ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg active:scale-95'
                   : 'bg-slate-600/50 text-slate-500 cursor-not-allowed'
               }`}
             >
               {streamingState.isStreaming ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <Send className="w-4.5 h-4.5" />
+                <Send className="w-4 h-4" />
               )}
             </button>
           </div>

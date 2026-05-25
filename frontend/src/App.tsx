@@ -25,7 +25,7 @@ function AppContent() {
         fixed lg:relative z-50 lg:z-auto h-full transition-all duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-16' : 'w-72'}`}>
+        <div className={`h-full transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-16' : 'w-72'}`}>
           <Sidebar collapsed={sidebarCollapsed} />
         </div>
       </div>

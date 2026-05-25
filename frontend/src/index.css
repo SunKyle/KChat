@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --font-family-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-family-mono: 'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
-  
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono:
+    'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+
   --font-size-xs: 11px;
   --font-size-sm: 12px;
   --font-size-base: 14px;
@@ -13,7 +16,7 @@
   --font-size-xl: 16px;
   --font-size-2xl: 18px;
   --font-size-3xl: 20px;
-  
+
   --line-height-tight: 1.4;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.6;
@@ -46,7 +49,8 @@
 }
 
 @keyframes pulse-once {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
     transform: scale(1);
   }
@@ -68,7 +72,9 @@
 }
 
 @keyframes thinking-dot {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0) scale(1);
     opacity: 0.4;
   }
@@ -149,16 +155,37 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: transparent;
   border-radius: 3px;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #475569;
+}
+
+.scrollbar-auto-hide {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scrollbar-auto-hide:hover::-webkit-scrollbar-thumb,
+.scrollbar-auto-hide:active::-webkit-scrollbar-thumb,
+.scrollbar-auto-hide:focus::-webkit-scrollbar-thumb,
+.scrollbar-auto-hide.scrolling::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.scrollbar-auto-hide::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollbar-auto-hide.scrolling {
+  scrollbar-color: #475569 transparent;
 }
 
 .markdown-body {

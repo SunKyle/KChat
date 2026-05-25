@@ -1,12 +1,34 @@
 import { Plus, MessageSquare, Bot } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { ConversationItem } from './ConversationItem';
+import { useState, useEffect, useRef } from 'react';
 
 interface SidebarProps {
   collapsed?: boolean;
 }
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const handleScroll = () => {
+    setIsScrolling(true);
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+    scrollTimeout = setTimeout(() => {
+      setIsScrolling(false);
+    }, 500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
+  }, []);
   const { conversations, activeConversation, setActiveConversation, createConversation, deleteConversation, updateConversation } = useChat();
 
   return (
@@ -34,7 +56,11 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto p-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
+      >
         {conversations.length === 0 ? (
           <div className={`text-center py-8 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}>
             <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-slate-700/30 flex items-center justify-center">
