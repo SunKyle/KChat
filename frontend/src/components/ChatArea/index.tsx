@@ -51,7 +51,7 @@ export function ChatArea() {
     }
     scrollTimeout = setTimeout(() => {
       setIsScrolling(false);
-    }, 500);
+    }, 2500);
   };
 
   useEffect(() => {

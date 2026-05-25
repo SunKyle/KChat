@@ -64,30 +64,22 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
           }`}
         >
           {isThinking && !message.content ? (
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center">
-                  <div className="relative">
-                    <div className="w-2 h-2 rounded-full bg-primary-400" />
-                    <div className="absolute inset-0 w-2 h-2 rounded-full bg-primary-400 animate-thinking-ring" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2.5 py-1">
+              <div className="flex items-center gap-1">
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  className="w-2 h-2 rounded-full bg-slate-400" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0ms' }} 
                 />
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  className="w-2 h-2 rounded-full bg-slate-400" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.2s' }} 
                 />
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-300" 
+                  className="w-2 h-2 rounded-full bg-slate-400" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.4s' }} 
                 />
               </div>
-              <span className="text-slate-400 text-sm font-medium">
+              <span className="text-slate-400 text-sm">
                 正在思考中
               </span>
             </div>

@@ -19,7 +19,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     }
     scrollTimeout = setTimeout(() => {
       setIsScrolling(false);
-    }, 500);
+    }, 2500);
   };
 
   useEffect(() => {
