@@ -1,13 +1,14 @@
-import { Plus, MessageSquare, Bot } from 'lucide-react';
+import { Plus, MessageSquare, Bot, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { ConversationItem } from './ConversationItem';
 import { useState, useEffect, useRef } from 'react';
 
 interface SidebarProps {
   collapsed?: boolean;
+  onToggle?: () => void;
 }
 
-export function Sidebar({ collapsed = false }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -34,15 +35,26 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   return (
     <div className="bg-slate-800/30 border-r border-slate-700/30 flex flex-col h-full overflow-hidden">
       <div className={`p-3 border-b border-slate-700/30 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className={`mb-3 ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-3'}`}>
-          <div className="w-9 h-9 rounded-lg bg-primary-500/90 flex items-center justify-center">
-            <Bot className="w-5 h-5 text-white" />
-          </div>
-          {!collapsed && (
-            <div>
-              <h1 className="text-base font-semibold text-white">KChat</h1>
-              <p className="text-xs text-slate-400">AI 对话</p>
+        <div className={`mb-3 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}>
+          <div className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}>
+            <div className="w-9 h-9 rounded-lg bg-primary-500/90 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
             </div>
+            {!collapsed && (
+              <div>
+                <h1 className="text-base font-semibold text-white">KChat</h1>
+                <p className="text-xs text-slate-400">AI 对话</p>
+              </div>
+            )}
+          </div>
+          {!collapsed && onToggle && (
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+              title="收起侧边栏"
+            >
+              <PanelLeftClose className="w-4 h-4 text-slate-400 hover:text-white transition-colors" />
+            </button>
           )}
         </div>
         
@@ -54,6 +66,16 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           <Plus className="w-4 h-4" />
           {!collapsed && <span>新对话</span>}
         </button>
+        
+        {collapsed && onToggle && (
+          <button
+            onClick={onToggle}
+            className="mt-2 p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+            title="展开侧边栏"
+          >
+            <PanelLeft className="w-4 h-4 text-slate-400 hover:text-white transition-colors" />
+          </button>
+        )}
       </div>
 
       <div 
