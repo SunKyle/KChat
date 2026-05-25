@@ -42,53 +42,58 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
   };
 
   return (
-    <div className={`flex gap-3 p-4 max-w-4xl mx-auto group ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-4 py-6 group ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
-        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
-          isUser ? 'bg-gradient-to-br from-primary-500 to-primary-600' : 'bg-gradient-to-br from-slate-600 to-slate-700'
+        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+          isUser 
+            ? 'bg-slate-700 text-slate-300' 
+            : 'bg-[#0EA5E9] text-white shadow-sm shadow-sky-500/20'
         }`}
       >
         {isUser ? (
-          <User className="w-5 h-5 text-white" />
+          <User className="w-4 h-4" />
         ) : (
-          <Bot className="w-5 h-5 text-white" />
+          <Bot className="w-4 h-4" />
         )}
       </div>
 
       <div className={`flex-1 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
-          className={`relative inline-block max-w-[85%] px-5 py-3 rounded-2xl shadow-md transition-shadow hover:shadow-lg ${
+          className={`relative inline-block max-w-full px-0 transition-all ${
             isUser
-              ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-br-md'
-              : 'bg-slate-700/80 text-slate-100 rounded-bl-md backdrop-blur-sm'
+              ? 'text-[#E5E7EB]'
+              : 'bg-transparent text-[#E5E7EB]'
           }`}
         >
           {isThinking && !message.content ? (
-            <div className="flex items-center gap-2.5 py-1">
-              <span className="text-slate-400 text-sm">
-                正在思考中
+            <div className="flex items-center gap-2 py-1">
+              <span className="text-slate-500 text-sm font-medium">
+                AI 正在思考
               </span>
               <div className="flex items-center gap-1">
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-400" 
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0ms' }} 
                 />
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-400" 
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.2s' }} 
                 />
                 <span 
-                  className="w-2 h-2 rounded-full bg-slate-400" 
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
                   style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.4s' }} 
                 />
               </div>
             </div>
           ) : (
-            <MarkdownRenderer content={message.content} />
+            <div className="leading-relaxed">
+              <MarkdownRenderer content={message.content} />
+            </div>
           )}
         </div>
-        <div className={`flex items-center gap-2 mt-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className="text-xs text-slate-500">
+        
+        <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <span className="text-[10px] font-medium text-slate-500 uppercase">
             {formatTimestamp(message.timestamp)}
           </span>
           
@@ -96,22 +101,21 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+                className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
                 title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
                   <Check className="w-3.5 h-3.5 text-green-400" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-slate-500 hover:text-slate-400" />
+                  <Copy className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
-                  title="重新生成"
+                  className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-400" />
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
                 </button>
               )}
             </div>

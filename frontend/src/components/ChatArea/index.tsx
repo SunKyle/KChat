@@ -68,10 +68,10 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-900">
-        <div className="text-center text-slate-500 animate-fade-in">
+      <div className="flex-1 flex items-center justify-center bg-[#0F172A]">
+        <div className="text-center text-slate-500 animate-fade-in px-4">
           <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <h2 className="text-xl font-medium mb-2">选择或创建对话</h2>
+          <h2 className="text-xl font-medium mb-2 text-[#E5E7EB]">选择或创建对话</h2>
           <p>从左侧列表选择一个对话，或创建新对话开始聊天</p>
         </div>
       </div>
@@ -79,10 +79,10 @@ export function ChatArea() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-900 min-h-0 relative">
+    <div className="flex-1 flex flex-col bg-[#0F172A] min-h-0 relative">
       {error && (
         <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-3 animate-slide-down">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="max-w-[800px] mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-2 text-red-400">
               <AlertCircle className="w-5 h-5" />
               <span>{error}</span>
@@ -105,17 +105,17 @@ export function ChatArea() {
       >
         <div className="h-full">
           {isLoading ? (
-            <div className="space-y-4 p-6">
+            <div className="max-w-[800px] mx-auto p-6 space-y-4">
               <MessageSkeleton />
               <MessageSkeleton />
               <MessageSkeleton />
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-8">
-              <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-primary-500/20 to-slate-700/20 flex items-center justify-center animate-pulse-once">
-                <MessageSquare className="w-12 h-12 text-primary-400" />
+              <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-sky-500/20 to-slate-700/20 flex items-center justify-center animate-pulse-once">
+                <MessageSquare className="w-12 h-12 text-sky-400" />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-200 mb-3">
+              <h2 className="text-2xl font-semibold text-[#E5E7EB] mb-3">
                 开始新对话
               </h2>
               <p className="text-slate-400 mb-8 text-center max-w-md">
@@ -124,19 +124,19 @@ export function ChatArea() {
               <div className="flex flex-wrap gap-2 justify-center">
                 <button 
                   onClick={() => {/* 发送示例问题 */}}
-                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-primary-500/50 hover:shadow-md hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-sky-500/50 hover:shadow-md hover:shadow-sky-500/10"
                 >
                   帮我写代码
                 </button>
                 <button 
                   onClick={() => {/* 发送示例问题 */}}
-                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-primary-500/50 hover:shadow-md hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-sky-500/50 hover:shadow-md hover:shadow-sky-500/10"
                 >
                   解释概念
                 </button>
                 <button 
                   onClick={() => {/* 发送示例问题 */}}
-                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-primary-500/50 hover:shadow-md hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm transition-all duration-200 border border-slate-700 hover:border-sky-500/50 hover:shadow-md hover:shadow-sky-500/10"
                 >
                   回答问题
                 </button>
@@ -144,7 +144,7 @@ export function ChatArea() {
             </div>
           ) : (
             <div className="py-4">
-              <div className={`transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}>
+              <div className={`max-w-[800px] mx-auto px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}>
                 {messages.map((message, index) => {
                   const isLastAssistantMessage = message.role === 'assistant' && 
                     index === messages.length - 1 && 

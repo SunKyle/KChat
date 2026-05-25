@@ -45,9 +45,9 @@ export function InputArea() {
   };
 
   return (
-    <div className="p-4 pb-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-end gap-2 bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-600/30 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)] overflow-hidden transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.25)]">
+    <div className="p-6">
+      <div className="max-w-[800px] mx-auto relative">
+        <div className="flex items-end gap-2 bg-[#1E293B] backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-200 focus-within:border-sky-500/50 focus-within:ring-1 focus-within:ring-sky-500/20">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -55,16 +55,16 @@ export function InputArea() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={streamingState.isStreaming}
-              placeholder={streamingState.isStreaming ? "AI 正在思考或输出中..." : "输入消息..."}
-              className="w-full resize-none bg-transparent px-5 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none min-h-[56px] max-h-[200px] overflow-y-auto text-base"
+              placeholder={streamingState.isStreaming ? "AI 正在思考中..." : "输入消息，Shift+Enter 换行..."}
+              className="w-full resize-none bg-transparent px-5 py-4 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[64px] max-h-[200px] overflow-y-auto text-base leading-relaxed"
             />
           </div>
           
-          <div className="flex items-center gap-1.5 p-2 pr-3">
+          <div className="flex items-center gap-2 p-3">
             {input && !streamingState.isStreaming && (
               <button
                 onClick={handleClear}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-all"
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all"
                 title="清空"
               >
                 <X className="w-4 h-4" />
@@ -73,12 +73,12 @@ export function InputArea() {
             <button
               onClick={streamingState.isStreaming ? stopStreaming : handleSend}
               disabled={!input.trim() && !streamingState.isStreaming}
-              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all ${
+              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 ${
                 streamingState.isStreaming
-                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg active:scale-95 cursor-pointer'
+                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
                   : input.trim() && charCount <= maxChars
-                  ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg active:scale-95'
-                  : 'bg-slate-600/50 text-slate-500 cursor-not-allowed'
+                  ? 'bg-[#0EA5E9] text-white shadow-lg shadow-sky-500/20 hover:bg-sky-400 active:scale-95 cursor-pointer'
+                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
               title={streamingState.isStreaming ? "中断回答" : "发送消息"}
             >
@@ -90,6 +90,13 @@ export function InputArea() {
             </button>
           </div>
         </div>
+        
+        {/* 字数提示 - 极简设计 */}
+        {charCount > 0 && (
+          <div className="absolute -top-6 right-0 text-[10px] font-medium text-slate-500 uppercase tracking-tighter">
+            {charCount} / {maxChars}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ function AppContent() {
 
   return (
     <>
-      <div className="flex h-screen bg-slate-900 overflow-hidden">
+      <div className="flex h-screen bg-[#0F172A] overflow-hidden text-[#E5E7EB]">
         {/* 移动端侧边栏遮罩 */}
         {sidebarOpen && (
           <div 
@@ -55,7 +55,7 @@ function AppContent() {
         {/* 移动端菜单按钮 */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed top-4 left-4 z-30 p-2 rounded-lg bg-slate-800 lg:hidden shadow-lg hover:bg-slate-700 transition-colors"
+          className="fixed top-4 left-4 z-30 p-2 rounded-lg bg-[#111827] lg:hidden shadow-lg hover:bg-slate-700 transition-colors"
         >
           {sidebarOpen ? (
             <X className="w-5 h-5 text-white" />
@@ -64,7 +64,7 @@ function AppContent() {
           )}
         </button>
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           <Header />
           <ChatArea />
           <InputArea />
