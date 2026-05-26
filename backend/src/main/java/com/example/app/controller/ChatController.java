@@ -1,5 +1,6 @@
 package com.example.app.controller;
 
+import com.example.app.client.OllamaClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.ConversationDTO;
@@ -33,6 +34,7 @@ public class ChatController {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final MemoryService memoryService;
+    private final OllamaClient ollamaClient;
 
     @PostMapping("/conversations")
     public ResponseEntity<ConversationDTO> createConversation(@RequestBody(required = false) ConversationDTO request) {
@@ -104,5 +106,11 @@ public class ChatController {
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamMessage(@Valid @RequestBody ChatRequest request) {
         return streamingService.streamResponse(request);
+    }
+
+    @GetMapping("/models")
+    public ResponseEntity<List<String>> listModels() {
+        List<String> models = ollamaClient.listModels();
+        return ResponseEntity.ok(models);
     }
 }

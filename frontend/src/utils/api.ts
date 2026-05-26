@@ -3,6 +3,16 @@ import type { Conversation, Message, ChatRequest, ChatResponse } from '../types'
 const BASE_URL = 'http://localhost:8080/api';
 
 export const api = {
+  models: {
+    list: async (): Promise<string[]> => {
+      const response = await fetch(`${BASE_URL}/models`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch models');
+      }
+      return response.json();
+    },
+  },
+
   conversations: {
     list: async (): Promise<Conversation[]> => {
       const response = await fetch(`${BASE_URL}/conversations`);

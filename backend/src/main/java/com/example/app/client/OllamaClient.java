@@ -111,6 +111,42 @@ public class OllamaClient {
         streamGenerate(messages, callback, null);
     }
 
+    @Retry(name = "ollamaRetry")
+    @CircuitBreaker(name = "ollamaCB")
+    public List<String> listModels() {
+        log.debug("Fetching available models from Ollama");
+        try {
+            URL url = new URL(ollamaConfig.getBaseUrl() + "/api/tags");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(10000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+
+                JsonNode root = objectMapper.readTree(response.toString());
+                JsonNode models = root.get("models");
+                if (models != null && models.isArray()) {
+                    return java.util.stream.StreamSupport.stream(models.spliterator(), false)
+                            .map(node -> node.has("name") ? node.get("name").asText() : "")
+                            .filter(name -> !name.isEmpty())
+                            .toList();
+                }
+            }
+            connection.disconnect();
+        } catch (Exception e) {
+            log.error("Failed to fetch models: {}", e.getMessage());
+        }
+        return List.of();
+    }
+
     private String escapeJson(String input) {
         return input.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
