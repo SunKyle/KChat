@@ -38,3 +38,14 @@ export interface InputState {
   value: string;
   isFocused: boolean;
 }
+
+export interface ModelConfig {
+  id: number;
+  name: string;
+  modelId: string;
+  baseUrl: string;
+  apiKey: string;
+  type: string;
+  enabled: boolean;
+  createdAt: string;
+}

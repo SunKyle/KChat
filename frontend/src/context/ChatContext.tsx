@@ -221,11 +221,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadModels = async () => {
     try {
-      const models = await api.models.list()
-      if (models.length > 0) {
-        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: models })
-        if (!models.includes(state.currentModel)) {
-          dispatch({ type: 'SET_CURRENT_MODEL', payload: models[0] })
+      const [ollamaModels, customConfigs] = await Promise.all([
+        api.models.list(),
+        api.modelConfigs.list(),
+      ])
+
+      const customModels = customConfigs
+        .filter((config) => config.enabled)
+        .map((config) => `${config.name}:${config.modelId}`)
+
+      const allModels = [...ollamaModels, ...customModels]
+
+      if (allModels.length > 0) {
+        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
+        if (!allModels.includes(state.currentModel)) {
+          dispatch({ type: 'SET_CURRENT_MODEL', payload: allModels[0] })
         }
       }
     } catch (error) {

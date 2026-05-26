@@ -4,15 +4,25 @@ import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
 import { Header } from './components/Header';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { ModelSettings } from './components/Settings/ModelSettings';
+import { useState, useEffect } from 'react';
+import { Menu, X, X as XIcon } from 'lucide-react';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
+  const [showModelSettings, setShowModelSettings] = useState(false);
   
   const { deleteConversation, activeConversation } = useChat();
+
+  useEffect(() => {
+    const handleOpenModelSettings = () => {
+      setShowModelSettings(true);
+    };
+    window.addEventListener('open-model-settings', handleOpenModelSettings);
+    return () => window.removeEventListener('open-model-settings', handleOpenModelSettings);
+  }, []);
   
   const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-72';
 
@@ -81,6 +91,22 @@ function AppContent() {
         onCancel={() => setDeleteConfirm(null)}
         type="danger"
       />
+
+      {/* 模型设置页面 */}
+      {showModelSettings && (
+        <div className="fixed inset-0 bg-[#0F172A] z-50 overflow-y-auto">
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <h1 className="text-xl font-semibold text-[#E5E7EB]">模型设置</h1>
+            <button
+              onClick={() => setShowModelSettings(false)}
+              className="p-2 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <ModelSettings />
+        </div>
+      )}
     </>
   );
 }

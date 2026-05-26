@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   ChevronDown,
   Check,
+  Plus,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
@@ -13,7 +14,9 @@ export function Header() {
   const { activeConversation, currentModel, availableModels, setCurrentModel } =
     useChat()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const settingsRef = useRef<HTMLButtonElement>(null)
   const isOnline = true
 
   const handleDropdownToggle = () => {
@@ -29,10 +32,27 @@ export function Header() {
       ) {
         setIsModelDropdownOpen(false)
       }
+      if (
+        isSettingsOpen &&
+        settingsRef.current &&
+        !settingsRef.current.contains(e.target as Node)
+      ) {
+        setIsSettingsOpen(false)
+      }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [isModelDropdownOpen])
+  }, [isModelDropdownOpen, isSettingsOpen])
+
+  const handleSettingsToggle = () => {
+    setIsSettingsOpen(!isSettingsOpen)
+  }
+
+  const handleAddModel = () => {
+    setIsSettingsOpen(false)
+    const event = new CustomEvent('open-model-settings')
+    window.dispatchEvent(event)
+  }
 
   return (
     <header className="h-16 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 relative z-40">
@@ -118,9 +138,31 @@ export function Header() {
             )}
           </div>
 
-          <button className="p-2 rounded-lg hover:bg-white/5 micro-transition text-slate-500 hover:text-slate-300">
-            <Settings className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <button
+              ref={settingsRef}
+              onClick={handleSettingsToggle}
+              className="p-2 rounded-lg hover:bg-white/5 micro-transition text-slate-500 hover:text-slate-300"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+
+            {isSettingsOpen && (
+              <div className="absolute top-full right-0 w-48 mt-1 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+                <button
+                  onClick={handleAddModel}
+                  className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>添加自定义模型</span>
+                </button>
+                <div className="border-t border-white/10" />
+                <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-white/5 transition-colors text-slate-300">
+                  系统设置
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

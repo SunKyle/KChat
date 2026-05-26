@@ -23,7 +23,6 @@ public class ModelConfigDTO {
     @NotBlank(message = "API地址不能为空")
     private String baseUrl;
 
-    @NotBlank(message = "API Key不能为空")
     private String apiKey;
 
     private Boolean enabled;

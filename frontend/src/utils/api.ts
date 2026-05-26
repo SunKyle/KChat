@@ -1,4 +1,4 @@
-import type { Conversation, Message, ChatRequest, ChatResponse } from '../types';
+import type { Conversation, Message, ChatRequest, ChatResponse, ModelConfig } from '../types';
 
 const BASE_URL = 'http://localhost:8080/api';
 
@@ -10,6 +10,57 @@ export const api = {
         throw new Error('Failed to fetch models');
       }
       return response.json();
+    },
+  },
+
+  modelConfigs: {
+    list: async (): Promise<ModelConfig[]> => {
+      const response = await fetch(`${BASE_URL}/model-configs`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch model configs');
+      }
+      return response.json();
+    },
+
+    get: async (id: number): Promise<ModelConfig> => {
+      const response = await fetch(`${BASE_URL}/model-configs/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch model config');
+      }
+      return response.json();
+    },
+
+    create: async (config: Omit<ModelConfig, 'id'>): Promise<ModelConfig> => {
+      const response = await fetch(`${BASE_URL}/model-configs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create model config');
+      }
+      return response.json();
+    },
+
+    update: async (id: number, config: Partial<ModelConfig>): Promise<ModelConfig> => {
+      const response = await fetch(`${BASE_URL}/model-configs/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update model config');
+      }
+      return response.json();
+    },
+
+    delete: async (id: number): Promise<void> => {
+      const response = await fetch(`${BASE_URL}/model-configs/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete model config');
+      }
     },
   },
 

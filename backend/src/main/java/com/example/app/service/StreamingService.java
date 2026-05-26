@@ -1,16 +1,20 @@
 package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
+import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.entity.Conversation;
 import com.example.app.entity.Message;
+import com.example.app.entity.ModelConfig;
 import com.example.app.repository.ConversationRepository;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -23,9 +27,12 @@ import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StreamingService {
 
     private final OllamaClient ollamaClient;
+    private final OpenAICompatibleClient openAICompatibleClient;
+    private final ModelConfigService modelConfigService;
     private final MemoryService memoryService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
@@ -70,6 +77,21 @@ public class StreamingService {
             final boolean[] completed = { false };
 
             try {
+                ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
+
+                if (customConfig != null) {
+                    log.info("Using custom model config: {}", customConfig.getName());
+                    String actualModelId = model.substring(customConfig.getName().length() + 1);
+                    openAICompatibleClient.streamChatCompletion(
+                            actualModelId,
+                            customConfig.getBaseUrl(),
+                            customConfig.getApiKey(),
+                            userMessage,
+                            emitter
+                    );
+                    return;
+                }
+
                 List<ChatMessage> context = memoryService.getMemoryContext(finalConversationId);
                 List<ChatMessage> messages = new ArrayList<>(context);
                 messages.add(UserMessage.from(userMessage));
