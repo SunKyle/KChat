@@ -141,7 +141,7 @@ export function InputArea() {
           </div>
 
           {/* 下半部分：工具栏 */}
-          <div className="flex items-center justify-between px-4 pt-0.5 pb-1">
+          <div className="flex items-center justify-between px-4 pt-0 pb-1">
             {/* 左侧：功能按钮 */}
             <div className="flex items-center gap-3">
               {/* 附件按钮 */}

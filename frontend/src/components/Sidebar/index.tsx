@@ -113,7 +113,7 @@ export function Sidebar({
               className="p-1.5 rounded-md hover:bg-white/5 transition-colors text-slate-500 hover:text-slate-300"
               title="收起侧边栏"
             >
-              <PanelLeftClose className="w-4 h-4" />
+              <PanelLeftClose className="w-5 h-5" />
             </button>
           )}
         </div>
