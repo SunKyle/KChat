@@ -59,6 +59,8 @@ public class StreamingService {
         memoryService.updateMemoryWithUserMessage(finalConversationId, userMessage);
         saveUserMessage(finalConversationId, userMessage);
 
+        final String model = request.getModel();
+        
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
             final boolean[] completed = { false };
@@ -78,7 +80,7 @@ public class StreamingService {
                     } catch (Exception e) {
                         completed[0] = true;
                     }
-                });
+                }, model);
 
                 if (completed[0])
                     return;

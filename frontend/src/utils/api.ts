@@ -59,6 +59,7 @@ export const api = {
       console.log('Starting SSE stream request...');
       console.log('Request URL:', `${BASE_URL}/chat/stream`);
       console.log('Request body:', JSON.stringify(request));
+      console.log('Model:', request.model);
       try {
         const abortController = controller || new AbortController();
         const timeout = setTimeout(() => {

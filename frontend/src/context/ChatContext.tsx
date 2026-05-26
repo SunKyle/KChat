@@ -9,6 +9,8 @@ interface ChatContextType {
   streamingState: StreamingState;
   error: string | null;
   isLoading: boolean;
+  currentModel: string;
+  availableModels: string[];
   setActiveConversation: (conv: Conversation) => void;
   createConversation: () => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
@@ -17,6 +19,7 @@ interface ChatContextType {
   stopStreaming: () => void;
   loadMessages: (conversationId: string) => Promise<void>;
   clearError: () => void;
+  setCurrentModel: (model: string) => void;
 }
 
 type ChatAction =
@@ -33,7 +36,9 @@ type ChatAction =
   | { type: 'UPDATE_CONVERSATION_TITLE'; payload: { id: string; title: string } }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_CURRENT_MODEL'; payload: string }
+  | { type: 'SET_AVAILABLE_MODELS'; payload: string[] };
 
 interface ChatState {
   conversations: Conversation[];
@@ -42,6 +47,8 @@ interface ChatState {
   streamingState: StreamingState;
   error: string | null;
   isLoading: boolean;
+  currentModel: string;
+  availableModels: string[];
 }
 
 const initialState: ChatState = {
@@ -55,6 +62,8 @@ const initialState: ChatState = {
   },
   error: null,
   isLoading: false,
+  currentModel: 'llama3',
+  availableModels: ['llama3', 'mistral', 'phi', 'gemma', 'qwen'],
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -133,6 +142,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+    
+    case 'SET_CURRENT_MODEL':
+      return { ...state, currentModel: action.payload };
+    
+    case 'SET_AVAILABLE_MODELS':
+      return { ...state, availableModels: action.payload };
     
     default:
       return state;
@@ -265,6 +280,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const request: ChatRequest = {
       conversationId: state.activeConversation.id,
       message: content.trim(),
+      model: state.currentModel,
     };
 
     const tempMessageId = crypto.randomUUID();
@@ -297,7 +313,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         },
         (error) => {
           console.error('Streaming error:', error);
-          dispatch({ type: 'SET_ERROR', payload: error });
+          dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : String(error) });
           dispatch({ type: 'END_STREAMING', payload: tempMessageId });
           abortControllerRef.current = null;
         },
@@ -312,6 +328,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.activeConversation, stopStreaming]);
 
+  const setCurrentModel = useCallback((model: string) => {
+    dispatch({ type: 'SET_CURRENT_MODEL', payload: model });
+  }, []);
+
   return (
     <ChatContext.Provider
       value={{
@@ -321,6 +341,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         streamingState: state.streamingState,
         error: state.error,
         isLoading: state.isLoading,
+        currentModel: state.currentModel,
+        availableModels: state.availableModels,
         setActiveConversation,
         createConversation,
         deleteConversation,
@@ -329,6 +351,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         stopStreaming,
         loadMessages,
         clearError,
+        setCurrentModel,
       }}
     >
       {children}

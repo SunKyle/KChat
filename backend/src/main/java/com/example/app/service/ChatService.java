@@ -35,13 +35,14 @@ public class ChatService {
         }
 
         String userMessage = request.getMessage();
+        String model = request.getModel();
 
         List<ChatMessage> context = memoryService.getMemoryContext(conversationId);
 
         List<ChatMessage> messages = new ArrayList<>(context);
         messages.add(UserMessage.from(userMessage));
 
-        String aiResponse = ollamaClient.generate(messages);
+        String aiResponse = ollamaClient.generate(messages, model);
 
         memoryService.updateMemory(conversationId, userMessage, aiResponse);
 
