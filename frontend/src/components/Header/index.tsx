@@ -13,18 +13,10 @@ export function Header() {
   const { activeConversation, currentModel, availableModels, setCurrentModel } =
     useChat()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
   const buttonRef = useRef<HTMLButtonElement>(null)
   const isOnline = true
 
   const handleDropdownToggle = () => {
-    if (!isModelDropdownOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect()
-      setDropdownPosition({
-        top: rect.bottom + 4,
-        left: rect.left,
-      })
-    }
     setIsModelDropdownOpen(!isModelDropdownOpen)
   }
 
@@ -43,7 +35,7 @@ export function Header() {
   }, [isModelDropdownOpen])
 
   return (
-    <header className="h-16 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6">
+    <header className="h-16 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 relative z-40">
       <div className="flex items-center gap-6">
         {activeConversation ? (
           <div className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 micro-transition hover:bg-white/10 cursor-default">
@@ -61,7 +53,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden md:block">
+        <div className="hidden md:block relative">
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
@@ -75,13 +67,7 @@ export function Header() {
           </button>
 
           {isModelDropdownOpen && (
-            <div
-              className="fixed w-40 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl z-[100] overflow-hidden"
-              style={{
-                top: dropdownPosition.top,
-                left: dropdownPosition.left,
-              }}
-            >
+            <div className="absolute top-full left-0 w-44 mt-1 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
               {availableModels.map((model) => (
                 <button
                   key={model}
