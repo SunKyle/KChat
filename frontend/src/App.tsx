@@ -12,7 +12,7 @@ function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   
-  const { deleteConversation } = useChat();
+  const { deleteConversation, activeConversation } = useChat();
   
   const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-72';
 
@@ -67,7 +67,7 @@ function AppContent() {
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <Header />
           <ChatArea />
-          <InputArea />
+          {activeConversation && <InputArea />}
         </div>
       </div>
 
