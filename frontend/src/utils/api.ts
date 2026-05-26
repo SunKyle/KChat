@@ -13,6 +13,30 @@ export const api = {
     },
   },
 
+  images: {
+    upload: async (file: File): Promise<{ url: string }> => {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await fetch(`${BASE_URL}/images/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      return response.json();
+    },
+
+    delete: async (filename: string): Promise<void> => {
+      const response = await fetch(`${BASE_URL}/images/${filename}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete image');
+      }
+    },
+  },
+
   conversations: {
     list: async (): Promise<Conversation[]> => {
       const response = await fetch(`${BASE_URL}/conversations`);

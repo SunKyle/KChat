@@ -319,8 +319,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim() || !state.activeConversation) return
+    async (content: string, imageUrls: string[] = []) => {
+      if (
+        (!content.trim() && imageUrls.length === 0) ||
+        !state.activeConversation
+      )
+        return
 
       stopStreaming()
 
@@ -330,6 +334,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         content: content.trim(),
         role: 'user',
         timestamp: new Date().toISOString(),
+        images: imageUrls.length > 0 ? imageUrls : undefined,
       }
 
       // Optimistic Update: Immediately add user message
@@ -338,8 +343,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       const request: ChatRequest = {
         conversationId: state.activeConversation.id,
-        message: content.trim(),
+        message: content.trim() || '分析图片',
         model: state.currentModel,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       }
 
       const tempMessageId = crypto.randomUUID()

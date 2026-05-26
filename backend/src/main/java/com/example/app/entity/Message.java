@@ -32,6 +32,9 @@ public class Message {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
 
+    @Column(columnDefinition = "TEXT")
+    private String images;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

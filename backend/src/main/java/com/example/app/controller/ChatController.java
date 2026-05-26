@@ -104,7 +104,7 @@ public class ChatController {
     }
 
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamMessage(@Valid @RequestBody ChatRequest request) {
+    public SseEmitter streamMessage(@RequestBody ChatRequest request) {
         return streamingService.streamResponse(request);
     }
 

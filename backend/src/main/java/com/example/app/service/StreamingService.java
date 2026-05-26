@@ -6,6 +6,8 @@ import com.example.app.entity.Conversation;
 import com.example.app.entity.Message;
 import com.example.app.repository.ConversationRepository;
 import com.example.app.repository.MessageRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class StreamingService {
     private final MemoryService memoryService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -55,9 +58,10 @@ public class StreamingService {
         final String finalConversationId = conversationId;
         final String userMessage = request.getMessage();
         final String aiMessageId = UUID.randomUUID().toString();
+        final List<String> imageUrls = request.getImageUrls();
 
         memoryService.updateMemoryWithUserMessage(finalConversationId, userMessage);
-        saveUserMessage(finalConversationId, userMessage);
+        saveUserMessage(finalConversationId, userMessage, imageUrls);
 
         final String model = request.getModel();
         
@@ -70,17 +74,33 @@ public class StreamingService {
                 List<ChatMessage> messages = new ArrayList<>(context);
                 messages.add(UserMessage.from(userMessage));
 
-                ollamaClient.streamGenerate(messages, chunk -> {
-                    if (completed[0])
-                        return;
-                    try {
-                        fullResponse.append(chunk);
-                        emitter.send(SseEmitter.event().name("message")
-                                .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
-                    } catch (Exception e) {
-                        completed[0] = true;
-                    }
-                }, model);
+                boolean hasImages = imageUrls != null && !imageUrls.isEmpty();
+
+                if (hasImages) {
+                    ollamaClient.streamGenerateWithImages(messages, imageUrls, chunk -> {
+                        if (completed[0])
+                            return;
+                        try {
+                            fullResponse.append(chunk);
+                            emitter.send(SseEmitter.event().name("message")
+                                    .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
+                        } catch (Exception e) {
+                            completed[0] = true;
+                        }
+                    }, model);
+                } else {
+                    ollamaClient.streamGenerate(messages, chunk -> {
+                        if (completed[0])
+                            return;
+                        try {
+                            fullResponse.append(chunk);
+                            emitter.send(SseEmitter.event().name("message")
+                                    .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
+                        } catch (Exception e) {
+                            completed[0] = true;
+                        }
+                    }, model);
+                }
 
                 if (completed[0])
                     return;
@@ -116,9 +136,17 @@ public class StreamingService {
     }
 
     @Transactional
-    public void saveUserMessage(String conversationId, String userMessage) {
+    public void saveUserMessage(String conversationId, String userMessage, List<String> imageUrls) {
+        String imagesJson = null;
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            try {
+                imagesJson = objectMapper.writeValueAsString(imageUrls);
+            } catch (JsonProcessingException e) {
+                imagesJson = null;
+            }
+        }
         Message userMsg = Message.builder().id(UUID.randomUUID().toString()).conversationId(conversationId)
-                .content(userMessage).role("user").build();
+                .content(userMessage).role("user").images(imagesJson).build();
         messageRepository.save(userMsg);
     }
 

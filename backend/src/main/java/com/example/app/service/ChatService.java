@@ -7,6 +7,8 @@ import com.example.app.entity.Conversation;
 import com.example.app.entity.Message;
 import com.example.app.repository.ConversationRepository;
 import com.example.app.repository.MessageRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ChatService {
     private final MemoryService memoryService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
     public ChatResponse generateResponse(ChatRequest request) {
@@ -46,7 +49,7 @@ public class ChatService {
 
         memoryService.updateMemory(conversationId, userMessage, aiResponse);
 
-        saveMessages(conversationId, userMessage, aiResponse);
+        saveMessages(conversationId, userMessage, aiResponse, request.getImageUrls());
 
         return ChatResponse.builder()
                 .messageId(UUID.randomUUID().toString())
@@ -68,12 +71,22 @@ public class ChatService {
     }
 
     @Transactional
-    public void saveMessages(String conversationId, String userMessage, String aiResponse) {
+    public void saveMessages(String conversationId, String userMessage, String aiResponse, List<String> imageUrls) {
+        String imagesJson = null;
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            try {
+                imagesJson = objectMapper.writeValueAsString(imageUrls);
+            } catch (JsonProcessingException e) {
+                imagesJson = null;
+            }
+        }
+
         Message userMsg = Message.builder()
                 .id(UUID.randomUUID().toString())
                 .conversationId(conversationId)
                 .content(userMessage)
                 .role("user")
+                .images(imagesJson)
                 .build();
 
         Message aiMsg = Message.builder()
@@ -89,5 +102,39 @@ public class ChatService {
         conversationRepository.findById(conversationId).ifPresent(conversation -> {
             conversationRepository.save(conversation);
         });
+    }
+
+    @Transactional
+    public void saveUserMessage(String conversationId, String content, List<String> imageUrls) {
+        String imagesJson = null;
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            try {
+                imagesJson = objectMapper.writeValueAsString(imageUrls);
+            } catch (JsonProcessingException e) {
+                imagesJson = null;
+            }
+        }
+
+        Message userMsg = Message.builder()
+                .id(UUID.randomUUID().toString())
+                .conversationId(conversationId)
+                .content(content)
+                .role("user")
+                .images(imagesJson)
+                .build();
+
+        messageRepository.save(userMsg);
+    }
+
+    @Transactional
+    public void saveAssistantMessage(String conversationId, String content) {
+        Message aiMsg = Message.builder()
+                .id(UUID.randomUUID().toString())
+                .conversationId(conversationId)
+                .content(content)
+                .role("assistant")
+                .build();
+
+        messageRepository.save(aiMsg);
     }
 }

@@ -13,6 +13,7 @@ interface MessageBubbleProps {
 export const MessageBubble = memo(function MessageBubble({ message, onRegenerate, isThinking, onStop }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -40,6 +41,10 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
     } catch (err) {
       console.error('复制失败:', err);
     }
+  };
+
+  const handleImageLoad = (imageUrl: string) => {
+    setImageLoaded(prev => ({ ...prev, [imageUrl]: true }));
   };
 
   return (
@@ -88,6 +93,27 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
             </div>
           ) : (
             <div className="leading-relaxed">
+              {message.images && message.images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {message.images.map((imageUrl, index) => (
+                    <div key={index} className="relative rounded-lg overflow-hidden max-w-xs">
+                      {!imageLoaded[imageUrl] && (
+                        <div className="absolute inset-0 bg-slate-700/30 flex items-center justify-center z-10">
+                          <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                      <img
+                        src={imageUrl}
+                        alt={`Image ${index + 1}`}
+                        className={`max-h-64 object-contain rounded-lg transition-opacity ${
+                          imageLoaded[imageUrl] ? 'opacity-100' : 'opacity-50'
+                        }`}
+                        onLoad={() => handleImageLoad(imageUrl)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <MarkdownRenderer content={message.content} />
             </div>
           )}

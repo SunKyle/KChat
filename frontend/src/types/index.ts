@@ -11,12 +11,14 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: string;
+  images?: string[];
 }
 
 export interface ChatRequest {
   conversationId?: string;
   message: string;
   model?: string;
+  imageUrls?: string[];
 }
 
 export interface ChatResponse {
