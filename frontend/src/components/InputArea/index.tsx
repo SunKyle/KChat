@@ -126,7 +126,7 @@ export function InputArea() {
           className={`flex flex-col bg-white/[0.03] backdrop-blur-2xl rounded-[12px] border border-white/10 micro-transition focus-within:border-sky-500/30 focus-within:bg-white/[0.05] transition-all duration-300`}
         >
           {/* 上半部分：文本输入区域 */}
-          <div className="p-4">
+          <div className="px-4 py-2">
             <textarea
               ref={textareaRef}
               value={input}
@@ -136,28 +136,28 @@ export function InputArea() {
               placeholder={
                 streamingState.isStreaming ? 'AI 正在思考中...' : '输入消息...'
               }
-              className="w-full resize-none bg-transparent px-0 py-2 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[60px] max-h-[200px] overflow-y-auto text-base leading-relaxed"
+              className="w-full resize-none bg-transparent px-0 py-1 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[40px] max-h-[200px] overflow-y-auto text-sm leading-relaxed"
             />
           </div>
 
           {/* 下半部分：工具栏 */}
-          <div className="flex items-center justify-between px-4 pb-3">
+          <div className="flex items-center justify-between px-4 pt-0.5 pb-1">
             {/* 左侧：功能按钮 */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {/* 附件按钮 */}
               <button
-                className="p-2 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
+                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
                 title="上传文件"
               >
-                <Paperclip className="w-5 h-5" />
+                <Paperclip className="w-4 h-4" />
               </button>
 
               {/* 代码按钮 */}
               <button
-                className="p-2 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
+                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
                 title="插入代码"
               >
-                <Code className="w-5 h-5" />
+                <Code className="w-4 h-4" />
               </button>
 
               {/* 图片上传按钮 */}
@@ -181,7 +181,7 @@ export function InputArea() {
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
                 }
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-1.5 rounded-lg transition-colors ${
                   uploading ||
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
@@ -190,12 +190,12 @@ export function InputArea() {
                 }`}
                 title="上传图片"
               >
-                <Image className="w-5 h-5" />
+                <Image className="w-4 h-4" />
               </button>
             </div>
 
             {/* 右侧：提示文字和发送按钮 */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               {/* 键盘提示 */}
               <span className="text-xs text-slate-600">
                 Shift + Enter 换行, Enter 发送
@@ -207,7 +207,7 @@ export function InputArea() {
                   streamingState.isStreaming ? stopStreaming : handleSend
                 }
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`flex items-center justify-center w-10 h-10 rounded-lg micro-transition ${
+                className={`flex items-center justify-center p-1.5 rounded-lg micro-transition ${
                   streamingState.isStreaming
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
                     : hasContent && charCount <= maxChars
@@ -217,7 +217,7 @@ export function InputArea() {
                 title={streamingState.isStreaming ? '中断回答' : '发送消息'}
               >
                 {streamingState.isStreaming ? (
-                  <Square className="w-4 h-4" fill="currentColor" />
+                  <Square className="w-3.5 h-3.5" fill="currentColor" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
