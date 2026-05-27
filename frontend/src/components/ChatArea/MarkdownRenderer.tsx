@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import { CodeBlock } from './CodeBlock';
 import { useState } from 'react';
-import { ZoomIn, X } from 'lucide-react';
+import { ZoomIn, X, Download } from 'lucide-react';
 
 interface MarkdownRendererProps {
   content: string;
@@ -15,6 +15,24 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     setImageLoaded(prev => ({ ...prev, [src]: true }));
   };
 
+  const handleDownload = async (src: string, filename?: string) => {
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `generated-image-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(src, '_blank');
+    }
+  };
+
   return (
     <>
       {expandedImage && (
@@ -22,12 +40,27 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setExpandedImage(null)}
         >
-          <button
-            className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-            onClick={() => setExpandedImage(null)}
-          >
-            <X className="w-6 h-6 text-white" />
-          </button>
+          <div className="absolute top-4 right-4 flex gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(expandedImage);
+              }}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              title="下载图片"
+            >
+              <Download className="w-6 h-6 text-white" />
+            </button>
+            <button
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpandedImage(null);
+              }}
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+          </div>
           <img
             src={expandedImage}
             alt="Expanded"
@@ -54,6 +87,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             },
             img: ({ src, alt }) => {
               if (!src) return null;
+              const filename = src.split('/').pop() || 'generated-image.png';
               return (
                 <div className="relative group my-4 inline-block">
                   {!imageLoaded[src] && (
@@ -70,7 +104,17 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                     onLoad={() => handleImageLoad(src)}
                     onClick={() => setExpandedImage(src)}
                   />
-                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(src, filename);
+                      }}
+                      className="p-1.5 bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur-sm transition-colors"
+                      title="下载图片"
+                    >
+                      <Download className="w-4 h-4 text-white" />
+                    </button>
                     <div className="p-1.5 bg-black/60 rounded-lg backdrop-blur-sm">
                       <ZoomIn className="w-4 h-4 text-white" />
                     </div>
