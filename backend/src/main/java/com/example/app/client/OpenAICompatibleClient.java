@@ -1,6 +1,5 @@
 package com.example.app.client;
 
-import com.example.app.entity.ModelConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -219,19 +218,82 @@ public class OpenAICompatibleClient {
     private String extractContent(String jsonData) {
         try {
             JsonNode node = objectMapper.readTree(jsonData);
+
             JsonNode choices = node.get("choices");
             if (choices != null && choices.isArray() && choices.size() > 0) {
                 JsonNode choice = choices.get(0);
                 JsonNode delta = choice.get("delta");
+
                 if (delta != null) {
                     JsonNode content = delta.get("content");
                     if (content != null && !content.isNull()) {
                         return content.asText();
                     }
+
+                    JsonNode toolCalls = delta.get("tool_calls");
+                    if (toolCalls != null && toolCalls.isArray() && toolCalls.size() > 0) {
+                        return extractImageFromToolCall(toolCalls);
+                    }
+                }
+
+                JsonNode message = choice.get("message");
+                if (message != null) {
+                    JsonNode toolCalls = message.get("tool_calls");
+                    if (toolCalls != null && toolCalls.isArray() && toolCalls.size() > 0) {
+                        return extractImageFromToolCall(toolCalls);
+                    }
+                }
+            }
+
+            JsonNode data = node.get("data");
+            if (data != null && data.isArray() && data.size() > 0) {
+                return extractImageFromData(data);
+            }
+
+        } catch (Exception e) {
+            log.debug("Failed to extract content from JSON: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String extractImageFromToolCall(JsonNode toolCalls) {
+        try {
+            for (JsonNode toolCall : toolCalls) {
+                JsonNode function = toolCall.get("function");
+                if (function != null) {
+                    String name = function.get("name").asText();
+                    if ("generate_image".equals(name) || "dall-e".equals(name)) {
+                        JsonNode args = function.get("arguments");
+                        if (args != null) {
+                            JsonNode imageUrl = args.get("image_url");
+                            if (imageUrl != null && !imageUrl.isNull()) {
+                                return "![Generated Image](" + imageUrl.asText() + ")";
+                            }
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
-            log.debug("Failed to extract content from JSON: {}", e.getMessage());
+            log.debug("Failed to extract image from tool call: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String extractImageFromData(JsonNode data) {
+        try {
+            JsonNode firstItem = data.get(0);
+            if (firstItem != null) {
+                JsonNode b64Json = firstItem.get("b64_json");
+                if (b64Json != null && !b64Json.isNull()) {
+                    return "data:image/png;base64," + b64Json.asText();
+                }
+                JsonNode url = firstItem.get("url");
+                if (url != null && !url.isNull()) {
+                    return "![Generated Image](" + url.asText() + ")";
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to extract image from data: {}", e.getMessage());
         }
         return null;
     }
