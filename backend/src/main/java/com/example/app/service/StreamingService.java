@@ -3,9 +3,8 @@ package com.example.app.service;
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
-import com.example.app.entity.Conversation;
 import com.example.app.entity.ModelConfig;
-import com.example.app.repository.ConversationRepository;
+import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,7 @@ public class StreamingService {
     private final ModelConfigService modelConfigService;
     private final MemoryService memoryService;
     private final MessagePersistenceService messagePersistenceService;
-    private final ConversationRepository conversationRepository;
+    private final ConversationService conversationService;
     private final ExecutorService executorService;
 
     public SseEmitter streamResponse(ChatRequest request) {
@@ -50,7 +49,7 @@ public class StreamingService {
         String conversationId = request.getConversationId();
 
         if (conversationId == null || conversationId.isBlank()) {
-            conversationId = createNewConversationInternal();
+            conversationId = conversationService.createConversation("新对话").getId();
         }
 
         final String finalConversationId = conversationId;
@@ -95,8 +94,7 @@ public class StreamingService {
                         try {
                             fullResponse.append(chunk);
                             emitter.send(SseEmitter.event().name("message")
-                                    .data("{\"content\": \"" + chunk.replace("\\", "\\\\").replace("\"", "\\\"")
-                                            .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + "\"}"));
+                                    .data("{\"content\": \"" + JsonUtils.escapeJson(chunk) + "\"}"));
                         } catch (Exception e) {
                             completed[0] = true;
                         }
@@ -108,8 +106,7 @@ public class StreamingService {
                         try {
                             fullResponse.append(chunk);
                             emitter.send(SseEmitter.event().name("message")
-                                    .data("{\"content\": \"" + chunk.replace("\\", "\\\\").replace("\"", "\\\"")
-                                            .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + "\"}"));
+                                    .data("{\"content\": \"" + JsonUtils.escapeJson(chunk) + "\"}"));
                         } catch (Exception e) {
                             completed[0] = true;
                         }
@@ -141,12 +138,5 @@ public class StreamingService {
         });
 
         return emitter;
-    }
-
-    private String createNewConversationInternal() {
-        String conversationId = UUID.randomUUID().toString();
-        Conversation conversation = Conversation.builder().id(conversationId).title("新对话").build();
-        conversationRepository.save(conversation);
-        return conversationId;
     }
 }

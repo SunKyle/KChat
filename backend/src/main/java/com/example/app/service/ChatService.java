@@ -3,8 +3,6 @@ package com.example.app.service;
 import com.example.app.client.OllamaClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
-import com.example.app.entity.Conversation;
-import com.example.app.repository.ConversationRepository;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +22,14 @@ public class ChatService {
     private final OllamaClient ollamaClient;
     private final MemoryService memoryService;
     private final MessagePersistenceService messagePersistenceService;
-    private final ConversationRepository conversationRepository;
+    private final ConversationService conversationService;
 
     @Transactional
     public ChatResponse generateResponse(ChatRequest request) {
         String conversationId = request.getConversationId();
 
         if (conversationId == null || conversationId.isBlank()) {
-            conversationId = createNewConversation();
+            conversationId = conversationService.createConversation("新对话").getId();
         }
 
         String userMessage = request.getMessage();
@@ -54,16 +52,5 @@ public class ChatService {
                 .role("assistant")
                 .conversationId(conversationId)
                 .build();
-    }
-
-    @Transactional
-    public String createNewConversation() {
-        String conversationId = UUID.randomUUID().toString();
-        Conversation conversation = Conversation.builder()
-                .id(conversationId)
-                .title("新对话")
-                .build();
-        conversationRepository.save(conversation);
-        return conversationId;
     }
 }
