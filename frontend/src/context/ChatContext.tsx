@@ -222,6 +222,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     await loadModels()
   }, [loadModels])
 
+  const stopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+      dispatch({ type: 'END_STREAMING', payload: 'stopped' })
+    }
+  }, [])
+
   useEffect(() => {
     loadConversations()
     loadModels()
@@ -255,6 +263,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const createConversation = useCallback(async () => {
     try {
+      stopStreaming()
       const newConversation = await api.conversations.create()
       dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
       localStorage.setItem(
@@ -272,7 +281,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to create conversation:', error)
       dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
     }
-  }, [state.conversations])
+  }, [state.conversations, stopStreaming])
 
   const updateConversation = useCallback(async (id: string, title: string) => {
     try {
@@ -323,14 +332,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' })
-  }, [])
-
-  const stopStreaming = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-      dispatch({ type: 'END_STREAMING', payload: 'stopped' })
-    }
   }, [])
 
   const sendMessage = useCallback(
