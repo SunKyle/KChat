@@ -79,4 +79,5 @@ public class ChatController {
         List<String> models = ollamaClient.listModels();
         return ResponseEntity.ok(models);
     }
+
 }
