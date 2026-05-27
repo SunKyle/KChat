@@ -4,26 +4,19 @@ import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.entity.Conversation;
-import com.example.app.entity.Message;
 import com.example.app.entity.ModelConfig;
 import com.example.app.repository.ConversationRepository;
-import com.example.app.repository.MessageRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,24 +27,22 @@ public class StreamingService {
     private final OpenAICompatibleClient openAICompatibleClient;
     private final ModelConfigService modelConfigService;
     private final MemoryService memoryService;
+    private final MessagePersistenceService messagePersistenceService;
     private final ConversationRepository conversationRepository;
-    private final MessageRepository messageRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService executorService;
 
     public SseEmitter streamResponse(ChatRequest request) {
         SseEmitter emitter = new SseEmitter(300000L);
-        
+
         emitter.onCompletion(() -> {
             System.out.println("SSE emitter completed");
         });
-        
+
         emitter.onTimeout(() -> {
             System.out.println("SSE emitter timeout");
             emitter.complete();
         });
-        
+
         emitter.onError(e -> {
             System.out.println("SSE emitter error: " + e.getMessage());
         });
@@ -68,10 +59,10 @@ public class StreamingService {
         final List<String> imageUrls = request.getImageUrls();
 
         memoryService.updateMemoryWithUserMessage(finalConversationId, userMessage);
-        saveUserMessage(finalConversationId, userMessage, imageUrls);
+        messagePersistenceService.saveUserMessage(finalConversationId, userMessage, imageUrls);
 
         final String model = request.getModel();
-        
+
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
             final boolean[] completed = { false };
@@ -87,8 +78,7 @@ public class StreamingService {
                             customConfig.getBaseUrl(),
                             customConfig.getApiKey(),
                             userMessage,
-                            emitter
-                    );
+                            emitter);
                     return;
                 }
 
@@ -105,7 +95,8 @@ public class StreamingService {
                         try {
                             fullResponse.append(chunk);
                             emitter.send(SseEmitter.event().name("message")
-                                    .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
+                                    .data("{\"content\": \"" + chunk.replace("\\", "\\\\").replace("\"", "\\\"")
+                                            .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + "\"}"));
                         } catch (Exception e) {
                             completed[0] = true;
                         }
@@ -117,7 +108,8 @@ public class StreamingService {
                         try {
                             fullResponse.append(chunk);
                             emitter.send(SseEmitter.event().name("message")
-                                    .data("{\"content\": \"" + escapeJson(chunk) + "\"}"));
+                                    .data("{\"content\": \"" + chunk.replace("\\", "\\\\").replace("\"", "\\\"")
+                                            .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + "\"}"));
                         } catch (Exception e) {
                             completed[0] = true;
                         }
@@ -128,7 +120,7 @@ public class StreamingService {
                     return;
 
                 memoryService.updateMemoryWithAiMessage(finalConversationId, fullResponse.toString());
-                saveAiMessage(finalConversationId, aiMessageId, fullResponse.toString());
+                messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId, fullResponse.toString());
 
                 try {
                     emitter.send(SseEmitter.event().name("done").data("{\"messageId\": \"" + aiMessageId + "\"}"));
@@ -142,7 +134,8 @@ public class StreamingService {
                 if (!completed[0]) {
                     try {
                         emitter.completeWithError(e);
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
             }
         });
@@ -155,32 +148,5 @@ public class StreamingService {
         Conversation conversation = Conversation.builder().id(conversationId).title("新对话").build();
         conversationRepository.save(conversation);
         return conversationId;
-    }
-
-    @Transactional
-    public void saveUserMessage(String conversationId, String userMessage, List<String> imageUrls) {
-        String imagesJson = null;
-        if (imageUrls != null && !imageUrls.isEmpty()) {
-            try {
-                imagesJson = objectMapper.writeValueAsString(imageUrls);
-            } catch (JsonProcessingException e) {
-                imagesJson = null;
-            }
-        }
-        Message userMsg = Message.builder().id(UUID.randomUUID().toString()).conversationId(conversationId)
-                .content(userMessage).role("user").images(imagesJson).build();
-        messageRepository.save(userMsg);
-    }
-
-    @Transactional
-    public void saveAiMessage(String conversationId, String messageId, String content) {
-        Message aiMsg = Message.builder().id(messageId).conversationId(conversationId).content(content)
-                .role("assistant").build();
-        messageRepository.save(aiMsg);
-    }
-
-    private String escapeJson(String input) {
-        return input.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t",
-                "\\t");
     }
 }

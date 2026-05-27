@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,6 +31,7 @@ public class OllamaClient {
     private final ChatLanguageModel chatLanguageModel;
     private final OllamaConfig ollamaConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
@@ -36,15 +39,16 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
         log.debug("Generating response using model: {}", targetModel);
         try {
-            dev.langchain4j.model.ollama.OllamaChatModel modelInstance = dev.langchain4j.model.ollama.OllamaChatModel
-                    .builder()
-                    .baseUrl(ollamaConfig.getBaseUrl())
-                    .modelName(targetModel)
-                    .build();
+            dev.langchain4j.model.ollama.OllamaChatModel modelInstance = modelCache.computeIfAbsent(targetModel,
+                    key -> dev.langchain4j.model.ollama.OllamaChatModel.builder()
+                            .baseUrl(ollamaConfig.getBaseUrl())
+                            .modelName(key)
+                            .build());
             Response<AiMessage> response = modelInstance.generate(messages);
             return response.content().text();
         } catch (Exception e) {
             log.error("Ollama generate failed: {}", e.getMessage());
+            modelCache.remove(targetModel);
             throw e;
         }
     }
@@ -77,13 +81,15 @@ public class OllamaClient {
                 promptBuilder.append(message.text()).append("\n");
             }
 
-            String jsonInput = "{\"model\": \"" + targetModel + "\", \"prompt\": \""
-                    + escapeJson(promptBuilder.toString()) + "\", \"stream\": true}";
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", targetModel);
+            requestBody.put("prompt", promptBuilder.toString());
+            requestBody.put("stream", true);
 
-            connection.getOutputStream().write(jsonInput.getBytes(StandardCharsets.UTF_8));
+            connection.getOutputStream().write(objectMapper.writeValueAsBytes(requestBody));
 
             try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(connection.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     try {
@@ -146,26 +152,21 @@ public class OllamaClient {
                 }
             }
 
-            StringBuilder jsonBuilder = new StringBuilder();
-            jsonBuilder.append("{\"model\": \"").append(targetModel).append("\", ");
-            jsonBuilder.append("\"prompt\": \"").append(escapeJson(promptBuilder.toString())).append("\", ");
-            jsonBuilder.append("\"stream\": true");
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", targetModel);
+            requestBody.put("prompt", promptBuilder.toString());
+            requestBody.put("stream", true);
 
             if (!base64Images.isEmpty()) {
-                jsonBuilder.append(", \"images\": [");
-                for (int i = 0; i < base64Images.size(); i++) {
-                    if (i > 0)
-                        jsonBuilder.append(", ");
-                    jsonBuilder.append("\"").append(base64Images.get(i)).append("\"");
-                }
-                jsonBuilder.append("]");
+                ArrayNode imagesArray = objectMapper.createArrayNode();
+                base64Images.forEach(imagesArray::add);
+                requestBody.set("images", imagesArray);
             }
-            jsonBuilder.append("}");
 
-            connection.getOutputStream().write(jsonBuilder.toString().getBytes(StandardCharsets.UTF_8));
+            connection.getOutputStream().write(objectMapper.writeValueAsBytes(requestBody));
 
             try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(connection.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     try {
@@ -243,11 +244,17 @@ public class OllamaClient {
         return List.of();
     }
 
-    private String escapeJson(String input) {
-        return input.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+    public void clearModelCache() {
+        modelCache.clear();
+        log.info("Model cache cleared");
+    }
+
+    public void removeFromCache(String modelName) {
+        modelCache.remove(modelName);
+        log.debug("Removed model from cache: {}", modelName);
+    }
+
+    public int getCacheSize() {
+        return modelCache.size();
     }
 }
