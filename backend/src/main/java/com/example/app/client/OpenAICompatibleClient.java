@@ -3,6 +3,7 @@ package com.example.app.client;
 import com.example.app.entity.ModelConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -32,15 +33,21 @@ public class OpenAICompatibleClient {
                 .build();
 
         try {
-            JsonNode requestBody = objectMapper.createObjectNode()
-                    .put("model", modelId)
-                    .put("prompt", prompt)
-                    .put("stream", true)
-                    .put("max_tokens", 4096)
-                    .put("temperature", 0.7);
+            JsonNode messages = objectMapper.createArrayNode()
+                    .add(objectMapper.createObjectNode()
+                            .put("role", "user")
+                            .put("content", prompt));
 
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", modelId);
+            requestBody.set("messages", messages);
+            requestBody.put("stream", true);
+            requestBody.put("max_tokens", 4096);
+            requestBody.put("temperature", 0.7);
+
+            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
             RequestBody body = RequestBody.create(
-                    objectMapper.writeValueAsString(requestBody),
+                    requestBodyStr,
                     MediaType.parse("application/json"));
 
             Request request = new Request.Builder()
@@ -51,6 +58,7 @@ public class OpenAICompatibleClient {
                     .build();
 
             log.info("Sending request to: {}", baseUrl);
+            log.info("Request body: {}", requestBodyStr);
 
             Call call = client.newCall(request);
             emitter.onCompletion(() -> call.cancel());
@@ -68,9 +76,11 @@ public class OpenAICompatibleClient {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (!response.isSuccessful()) {
+                        String errorBody = response.body() != null ? response.body().string() : "No response body";
+                        log.error("API request failed with code {}: {}", response.code(), errorBody);
                         try {
                             emitter.completeWithError(new RuntimeException(
-                                    "API request failed: " + response.code()));
+                                    "API request failed: " + response.code() + ". Details: " + errorBody));
                         } catch (Exception ex) {
                             log.error("Failed to send error to client", ex);
                         }
