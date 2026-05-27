@@ -31,6 +31,7 @@ interface ChatContextType {
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
   setCurrentModel: (model: string) => void
+  refreshModels: () => Promise<void>
 }
 
 type ChatAction =
@@ -193,33 +194,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    loadConversations()
-    loadModels()
-  }, [])
-
-  const loadConversations = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true })
-
-      // LocalStorage Cache Implementation
-      const cached = localStorage.getItem('kchat_conversations')
-      if (cached) {
-        dispatch({ type: 'SET_CONVERSATIONS', payload: JSON.parse(cached) })
-      }
-
-      const conversations = await api.conversations.list()
-      dispatch({ type: 'SET_CONVERSATIONS', payload: conversations })
-      localStorage.setItem('kchat_conversations', JSON.stringify(conversations))
-    } catch (error) {
-      console.error('Failed to load conversations:', error)
-      dispatch({ type: 'SET_ERROR', payload: '加载对话列表失败' })
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
-    }
-  }
-
-  const loadModels = async () => {
+  const loadModels = useCallback(async () => {
     try {
       const [ollamaModels, customConfigs] = await Promise.all([
         api.models.list(),
@@ -240,6 +215,36 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load models:', error)
+    }
+  }, [state.currentModel])
+
+  const refreshModels = useCallback(async () => {
+    await loadModels()
+  }, [loadModels])
+
+  useEffect(() => {
+    loadConversations()
+    loadModels()
+  }, [loadModels])
+
+  const loadConversations = async () => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true })
+
+      // LocalStorage Cache Implementation
+      const cached = localStorage.getItem('kchat_conversations')
+      if (cached) {
+        dispatch({ type: 'SET_CONVERSATIONS', payload: JSON.parse(cached) })
+      }
+
+      const conversations = await api.conversations.list()
+      dispatch({ type: 'SET_CONVERSATIONS', payload: conversations })
+      localStorage.setItem('kchat_conversations', JSON.stringify(conversations))
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+      dispatch({ type: 'SET_ERROR', payload: '加载对话列表失败' })
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
   }
 
@@ -439,6 +444,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         loadMessages,
         clearError,
         setCurrentModel,
+        refreshModels,
       }}
     >
       {children}

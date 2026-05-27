@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, Check } from 'lucide-react'
 import { api } from '../../utils/api'
 import type { ModelConfig } from '../../types'
+import { useChat } from '../../context/ChatContext'
 
 export function ModelSettings() {
+  const { refreshModels } = useChat()
   const [configs, setConfigs] = useState<ModelConfig[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -65,6 +67,7 @@ export function ModelSettings() {
       }
       setShowAddModal(false)
       loadConfigs()
+      await refreshModels()
     } catch (error) {
       console.error('Failed to save model config:', error)
       const errorMessage =
@@ -78,6 +81,7 @@ export function ModelSettings() {
     try {
       await api.modelConfigs.delete(id)
       loadConfigs()
+      await refreshModels()
     } catch (error) {
       console.error('Failed to delete model config:', error)
       alert('删除失败')
