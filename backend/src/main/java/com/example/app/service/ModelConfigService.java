@@ -35,12 +35,12 @@ public class ModelConfigService {
 
     @Transactional
     public ModelConfig createConfig(ModelConfigDTO dto) {
-        if (modelConfigRepository.existsByName(dto.getName())) {
-            throw new IllegalArgumentException("名称已存在: " + dto.getName());
-        }
-
         if (dto.getApiKey() == null || dto.getApiKey().isEmpty()) {
             throw new IllegalArgumentException("API Key不能为空");
+        }
+
+        if (modelConfigRepository.existsByNameAndModelId(dto.getName(), dto.getModelId())) {
+            throw new IllegalArgumentException("名称和模型ID组合已存在");
         }
 
         ModelConfig config = ModelConfig.builder()
@@ -59,8 +59,8 @@ public class ModelConfigService {
     public ModelConfig updateConfig(Long id, ModelConfigDTO dto) {
         ModelConfig config = getConfigById(id);
 
-        if (modelConfigRepository.existsByNameAndIdNot(dto.getName(), id)) {
-            throw new IllegalArgumentException("名称已存在: " + dto.getName());
+        if (modelConfigRepository.existsByNameAndModelIdAndIdNot(dto.getName(), dto.getModelId(), id)) {
+            throw new IllegalArgumentException("名称和模型ID组合已存在");
         }
 
         config.setName(dto.getName());

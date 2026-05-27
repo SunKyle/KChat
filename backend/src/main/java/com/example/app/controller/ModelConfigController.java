@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/model-configs")
+@RequestMapping({ "/api/model-configs", "/api/models/configs" })
 @RequiredArgsConstructor
 public class ModelConfigController {
 

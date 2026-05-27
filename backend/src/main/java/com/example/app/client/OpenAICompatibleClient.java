@@ -22,6 +22,148 @@ public class OpenAICompatibleClient {
 
     private final ObjectMapper objectMapper;
 
+    public boolean isImageModel(String modelId) {
+        return modelId.toLowerCase().contains("dall-e") ||
+                modelId.toLowerCase().contains("image") ||
+                modelId.toLowerCase().contains("sdxl") ||
+                modelId.toLowerCase().contains("stable-diffusion");
+    }
+
+    private String buildFullUrl(String baseUrl, String endpoint) {
+        // 如果 baseUrl 已经包含了完整的端点路径（如 /v1/chat/completions），直接返回；否则拼接
+        String normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+
+        // 检查是否已经包含了类似的端点路径
+        if (normalizedBaseUrl.contains("/v1/chat/completions") ||
+                normalizedBaseUrl.contains("/v1/images/generations")) {
+            return baseUrl;
+        }
+
+        // 否则拼接端点
+        return normalizedBaseUrl + endpoint;
+    }
+
+    public void generateImage(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String prompt,
+            SseEmitter emitter,
+            Consumer<String> onComplete) {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        try {
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", modelId);
+            requestBody.put("prompt", prompt);
+            requestBody.put("n", 1);
+            requestBody.put("size", "1024x1024");
+            requestBody.put("response_format", "url");
+
+            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
+            RequestBody body = RequestBody.create(
+                    requestBodyStr,
+                    MediaType.parse("application/json"));
+
+            String fullUrl = buildFullUrl(baseUrl, "/v1/images/generations");
+
+            Request request = new Request.Builder()
+                    .url(fullUrl)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .post(body)
+                    .build();
+
+            log.info("=== Starting image generation request ===");
+            log.info("Model ID: {}", modelId);
+            log.info("URL: {}", fullUrl);
+            log.info("Prompt length: {} characters", prompt.length());
+
+            Call call = client.newCall(request);
+            emitter.onCompletion(() -> call.cancel());
+
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    try {
+                        emitter.completeWithError(e);
+                    } catch (Exception ex) {
+                        log.error("Failed to send error to client", ex);
+                    }
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        String errorBody = response.body() != null ? response.body().string() : "No response body";
+                        log.error("Image generation failed with code {}: {}", response.code(), errorBody);
+                        try {
+                            emitter.completeWithError(new RuntimeException(
+                                    "Image generation failed: " + response.code() + ". Details: " + errorBody));
+                        } catch (Exception ex) {
+                            log.error("Failed to send error to client", ex);
+                        }
+                        return;
+                    }
+
+                    try (ResponseBody responseBody = response.body()) {
+                        if (responseBody == null) {
+                            emitter.complete();
+                            return;
+                        }
+
+                        String responseBodyStr = responseBody.string();
+                        log.info("Image generation response: {}", responseBodyStr);
+
+                        JsonNode node = objectMapper.readTree(responseBodyStr);
+                        JsonNode data = node.get("data");
+                        if (data != null && data.isArray() && data.size() > 0) {
+                            JsonNode firstItem = data.get(0);
+                            String imageUrl = null;
+
+                            if (firstItem.has("url")) {
+                                imageUrl = firstItem.get("url").asText();
+                            } else if (firstItem.has("b64_json")) {
+                                imageUrl = "data:image/png;base64," + firstItem.get("b64_json").asText();
+                            }
+
+                            if (imageUrl != null) {
+                                String markdownImage = "![Generated Image](" + imageUrl + ")";
+                                emitter.send(SseEmitter.event()
+                                        .name("message")
+                                        .data("{\"content\": \"" + escapeJson(markdownImage) + "\"}"));
+                                if (onComplete != null) {
+                                    onComplete.accept(markdownImage);
+                                }
+                            }
+                        }
+
+                        emitter.complete();
+                    } catch (Exception e) {
+                        log.error("Failed to process image generation response", e);
+                        try {
+                            emitter.completeWithError(e);
+                        } catch (Exception ex) {
+                            log.error("Failed to send error to client", ex);
+                        }
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            log.error("Failed to start image generation", e);
+            try {
+                emitter.completeWithError(e);
+            } catch (Exception ex) {
+                log.error("Failed to send error to client", ex);
+            }
+        }
+    }
+
     public void streamChatCompletion(
             String modelId,
             String baseUrl,
@@ -78,8 +220,10 @@ public class OpenAICompatibleClient {
                     requestBodyStr,
                     MediaType.parse("application/json"));
 
+            String fullUrl = buildFullUrl(baseUrl, "/v1/chat/completions");
+
             Request request = new Request.Builder()
-                    .url(baseUrl)
+                    .url(fullUrl)
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .header("Accept", "text/event-stream")
@@ -91,6 +235,7 @@ public class OpenAICompatibleClient {
             log.info("=== Starting OpenAI compatible request ===");
             log.info("Model ID: {}", modelId);
             log.info("Base URL: {}", baseUrl);
+            log.info("Full URL: {}", fullUrl);
             log.info("API Key: {}", apiKey != null && !apiKey.isEmpty() ? "***" : "null/empty");
             log.info("Prompt length: {} characters", prompt.length());
             log.info("Request body: {}", requestBodyStr);

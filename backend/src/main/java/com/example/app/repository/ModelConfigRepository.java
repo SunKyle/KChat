@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> {
     List<ModelConfig> findByEnabledTrue();
-    boolean existsByName(String name);
-    boolean existsByNameAndIdNot(String name, Long id);
+    boolean existsByNameAndModelId(String name, String modelId);
+    boolean existsByNameAndModelIdAndIdNot(String name, String modelId, Long id);
 }

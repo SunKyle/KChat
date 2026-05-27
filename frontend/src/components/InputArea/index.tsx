@@ -17,6 +17,7 @@ export function InputArea() {
   } = useChat()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const generalFileInputRef = useRef<HTMLInputElement>(null)
 
   const charCount = input.length
   const maxChars = 2000
@@ -58,6 +59,33 @@ export function InputArea() {
         setUploadingImages([...newImages])
       } catch (error) {
         console.error('Failed to upload image:', error)
+      }
+    }
+
+    setUploading(false)
+    e.target.value = ''
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || uploadingImages.length >= maxImages) return
+
+    setUploading(true)
+    const newImages: string[] = [...uploadingImages]
+
+    for (const file of Array.from(files)) {
+      if (newImages.length >= maxImages) break
+      if (!file.type.startsWith('image/')) {
+        console.log('Non-image file:', file.name)
+        continue
+      }
+
+      try {
+        const result = await api.images.upload(file)
+        newImages.push(result.url)
+        setUploadingImages([...newImages])
+      } catch (error) {
+        console.error('Failed to upload file:', error)
       }
     }
 
@@ -144,29 +172,13 @@ export function InputArea() {
           <div className="flex items-center justify-between px-4 pt-0 pb-1">
             {/* 左侧：功能按钮 */}
             <div className="flex items-center gap-3">
-              {/* 附件按钮 */}
-              <button
-                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
-                title="上传文件"
-              >
-                <Paperclip className="w-4 h-4" />
-              </button>
-
-              {/* 代码按钮 */}
-              <button
-                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
-                title="插入代码"
-              >
-                <Code className="w-4 h-4" />
-              </button>
-
-              {/* 图片上传按钮 */}
+              {/* 上传文件按钮（包括图片） */}
               <input
-                ref={fileInputRef}
+                ref={generalFileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.txt,.pdf,.doc,.docx"
                 multiple
-                onChange={handleImageUpload}
+                onChange={handleFileUpload}
                 disabled={
                   uploading ||
                   streamingState.isStreaming ||
@@ -175,7 +187,7 @@ export function InputArea() {
                 className="hidden"
               />
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => generalFileInputRef.current?.click()}
                 disabled={
                   uploading ||
                   streamingState.isStreaming ||
@@ -188,7 +200,29 @@ export function InputArea() {
                     ? 'text-slate-600 cursor-not-allowed'
                     : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 cursor-pointer'
                 }`}
-                title="上传图片"
+                title="上传文件（包括图片）"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+
+              {/* 代码按钮 */}
+              <button
+                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
+                title="插入代码"
+              >
+                <Code className="w-4 h-4" />
+              </button>
+
+              {/* 生成图片按钮 */}
+              <button
+                onClick={() => setInput('生成图片：')}
+                disabled={streamingState.isStreaming}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  streamingState.isStreaming
+                    ? 'text-slate-600 cursor-not-allowed'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 cursor-pointer'
+                }`}
+                title="生成图片"
               >
                 <Image className="w-4 h-4" />
               </button>

@@ -75,26 +75,48 @@ public class StreamingService {
                     try {
                         String actualModelId = model.substring(customConfig.getName().length() + 1);
 
-                        openAICompatibleClient.streamChatCompletion(
-                                actualModelId,
-                                customConfig.getBaseUrl(),
-                                customConfig.getApiKey(),
-                                userMessage,
-                                imageUrls,
-                                emitter,
-                                chunk -> fullResponse.append(chunk),
-                                () -> {
-                                    try {
-                                        memoryService.updateMemoryWithAiMessage(finalConversationId,
-                                                fullResponse.toString());
-                                        messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId,
-                                                fullResponse.toString());
-                                        emitter.send(SseEmitter.event().name("done")
-                                                .data("{\"messageId\": \"" + aiMessageId + "\"}"));
-                                    } catch (Exception e) {
-                                        log.error("Failed to finalize custom model response", e);
-                                    }
-                                });
+                        if (openAICompatibleClient.isImageModel(actualModelId)) {
+                            log.info("Detected image generation model: {}", actualModelId);
+
+                            openAICompatibleClient.generateImage(
+                                    actualModelId,
+                                    customConfig.getBaseUrl(),
+                                    customConfig.getApiKey(),
+                                    userMessage,
+                                    emitter,
+                                    imageContent -> {
+                                        try {
+                                            memoryService.updateMemoryWithAiMessage(finalConversationId, imageContent);
+                                            messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId,
+                                                    imageContent);
+                                            emitter.send(SseEmitter.event().name("done")
+                                                    .data("{\"messageId\": \"" + aiMessageId + "\"}"));
+                                        } catch (Exception e) {
+                                            log.error("Failed to finalize image generation response", e);
+                                        }
+                                    });
+                        } else {
+                            openAICompatibleClient.streamChatCompletion(
+                                    actualModelId,
+                                    customConfig.getBaseUrl(),
+                                    customConfig.getApiKey(),
+                                    userMessage,
+                                    imageUrls,
+                                    emitter,
+                                    chunk -> fullResponse.append(chunk),
+                                    () -> {
+                                        try {
+                                            memoryService.updateMemoryWithAiMessage(finalConversationId,
+                                                    fullResponse.toString());
+                                            messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId,
+                                                    fullResponse.toString());
+                                            emitter.send(SseEmitter.event().name("done")
+                                                    .data("{\"messageId\": \"" + aiMessageId + "\"}"));
+                                        } catch (Exception e) {
+                                            log.error("Failed to finalize custom model response", e);
+                                        }
+                                    });
+                        }
                     } catch (StringIndexOutOfBoundsException e) {
                         log.error("Invalid model ID format: {}", model, e);
                         emitter.completeWithError(new RuntimeException("无效的模型ID格式: " + model));
