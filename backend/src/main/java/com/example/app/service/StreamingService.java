@@ -71,13 +71,41 @@ public class StreamingService {
 
                 if (customConfig != null) {
                     log.info("Using custom model config: {}", customConfig.getName());
-                    String actualModelId = model.substring(customConfig.getName().length() + 1);
-                    openAICompatibleClient.streamChatCompletion(
-                            actualModelId,
-                            customConfig.getBaseUrl(),
-                            customConfig.getApiKey(),
-                            userMessage,
-                            emitter);
+
+                    try {
+                        String actualModelId = model.substring(customConfig.getName().length() + 1);
+
+                        openAICompatibleClient.streamChatCompletion(
+                                actualModelId,
+                                customConfig.getBaseUrl(),
+                                customConfig.getApiKey(),
+                                userMessage,
+                                emitter,
+                                chunk -> fullResponse.append(chunk),
+                                () -> {
+                                    try {
+                                        memoryService.updateMemoryWithAiMessage(finalConversationId,
+                                                fullResponse.toString());
+                                        messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId,
+                                                fullResponse.toString());
+                                        emitter.send(SseEmitter.event().name("done")
+                                                .data("{\"messageId\": \"" + aiMessageId + "\"}"));
+                                    } catch (Exception e) {
+                                        log.error("Failed to finalize custom model response", e);
+                                    }
+                                });
+                    } catch (StringIndexOutOfBoundsException e) {
+                        log.error("Invalid model ID format: {}", model, e);
+                        emitter.completeWithError(new RuntimeException("无效的模型ID格式: " + model));
+                    } catch (Exception e) {
+                        log.error("Failed to process custom model request", e);
+                        if (!completed[0]) {
+                            try {
+                                emitter.completeWithError(e);
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
                     return;
                 }
 

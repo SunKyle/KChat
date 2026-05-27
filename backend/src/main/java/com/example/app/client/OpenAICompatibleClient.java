@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,9 @@ public class OpenAICompatibleClient {
             String baseUrl,
             String apiKey,
             String prompt,
-            SseEmitter emitter) {
+            SseEmitter emitter,
+            Consumer<String> onChunk,
+            Runnable onComplete) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(5, TimeUnit.MINUTES)
@@ -57,7 +60,11 @@ public class OpenAICompatibleClient {
                     .post(body)
                     .build();
 
-            log.info("Sending request to: {}", baseUrl);
+            log.info("=== Starting OpenAI compatible request ===");
+            log.info("Model ID: {}", modelId);
+            log.info("Base URL: {}", baseUrl);
+            log.info("API Key: {}", apiKey != null && !apiKey.isEmpty() ? "***" : "null/empty");
+            log.info("Prompt length: {} characters", prompt.length());
             log.info("Request body: {}", requestBodyStr);
 
             Call call = client.newCall(request);
@@ -97,30 +104,68 @@ public class OpenAICompatibleClient {
                         int bytesRead;
                         StringBuilder jsonBuffer = new StringBuilder();
 
+                        StringBuilder contentBuilder = new StringBuilder();
+
                         while ((bytesRead = responseBody.byteStream().read(buffer)) != -1) {
                             String chunk = new String(buffer, 0, bytesRead);
                             String[] lines = chunk.split("\n");
 
+                            boolean isHtmlResponse = false;
+
                             for (String line : lines) {
                                 if (line.trim().isEmpty())
                                     continue;
+
+                                if (line.trim().startsWith("<!DOCTYPE") || line.trim().startsWith("<html")) {
+                                    isHtmlResponse = true;
+                                    log.error("API returned HTML instead of JSON! Base URL may be incorrect.");
+                                    break;
+                                }
+
                                 if (line.startsWith("data: ")) {
                                     String data = line.substring(6);
+                                    log.info("Received streaming data: {}",
+                                            data.length() > 50 ? data.substring(0, 50) + "..." : data);
                                     if (data.equals("[DONE]")) {
+                                        log.info("Received [DONE], total content length: {}", contentBuilder.length());
+                                        onComplete.run();
                                         emitter.complete();
                                         return;
                                     }
                                     try {
-                                        emitter.send(SseEmitter.event()
-                                                .name("message")
-                                                .data(data));
+                                        String content = extractContent(data);
+                                        log.info("Extracted content: '{}'", content);
+                                        if (content != null && !content.isEmpty()) {
+                                            contentBuilder.append(content);
+                                            onChunk.accept(content);
+                                            emitter.send(SseEmitter.event()
+                                                    .name("message")
+                                                    .data("{\"content\": \"" + escapeJson(content) + "\"}"));
+                                            log.info("Sent message event with content length: {}", content.length());
+                                        } else if (content == null) {
+                                            log.info("Content is null for data: {}",
+                                                    data.length() > 100 ? data.substring(0, 100) + "..." : data);
+                                        } else {
+                                            log.info("Content is empty for data: {}",
+                                                    data.length() > 100 ? data.substring(0, 100) + "..." : data);
+                                        }
                                     } catch (Exception e) {
-                                        log.error("Failed to send SSE event", e);
+                                        log.error("Failed to send SSE event for data '{}': {}", data, e.getMessage());
                                         return;
                                     }
+                                } else {
+                                    log.info("Non-data line received: {}",
+                                            line.length() > 50 ? line.substring(0, 50) + "..." : line);
                                 }
                             }
+
+                            if (isHtmlResponse) {
+                                log.error("API returned HTML response. Please check your baseUrl configuration.");
+                                emitter.completeWithError(new RuntimeException("API返回了HTML页面，请检查baseUrl配置是否正确。"));
+                                return;
+                            }
                         }
+                        onComplete.run();
                         emitter.complete();
                     } catch (Exception e) {
                         try {
@@ -140,5 +185,35 @@ public class OpenAICompatibleClient {
                 log.error("Failed to send error to client", ex);
             }
         }
+    }
+
+    private String extractContent(String jsonData) {
+        try {
+            JsonNode node = objectMapper.readTree(jsonData);
+            JsonNode choices = node.get("choices");
+            if (choices != null && choices.isArray() && choices.size() > 0) {
+                JsonNode choice = choices.get(0);
+                JsonNode delta = choice.get("delta");
+                if (delta != null) {
+                    JsonNode content = delta.get("content");
+                    if (content != null && !content.isNull()) {
+                        return content.asText();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to extract content from JSON: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String escapeJson(String input) {
+        if (input == null)
+            return "";
+        return input.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }
