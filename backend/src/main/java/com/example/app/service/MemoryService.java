@@ -1,6 +1,6 @@
 package com.example.app.service;
 
-import com.example.app.memory.LongTermMemory;
+import com.example.app.memory.LongTermMemoryManager;
 import com.example.app.memory.ShortTermMemory;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -16,11 +16,15 @@ import java.util.List;
 public class MemoryService {
 
     private final ShortTermMemory shortTermMemory;
-    private final LongTermMemory longTermMemory;
+    private final LongTermMemoryManager longTermMemoryManager;
 
     public List<ChatMessage> getMemoryContext(String conversationId) {
         ChatMemory memory = shortTermMemory.getMemory(conversationId);
         return memory.messages();
+    }
+
+    public List<String> getLongTermMemoryContext(String userId) {
+        return longTermMemoryManager.retrieve(userId);
     }
 
     public void updateMemoryWithUserMessage(String conversationId, String content) {
@@ -39,12 +43,20 @@ public class MemoryService {
         memory.add(AiMessage.from(aiMessage));
     }
 
+    public void storeLongTermMemory(String userId, String content) {
+        longTermMemoryManager.store(userId, content);
+    }
+
     public void clearMemory(String conversationId) {
         shortTermMemory.clearMemory(conversationId);
     }
 
     public void clearAllMemory() {
         shortTermMemory.clearAll();
-        longTermMemory.clear();
+    }
+
+    public void clearAllMemory(String userId) {
+        shortTermMemory.clearAll();
+        longTermMemoryManager.clear(userId);
     }
 }

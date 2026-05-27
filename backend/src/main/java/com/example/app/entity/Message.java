@@ -35,6 +35,13 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String images;
 
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    private String imageUrls;
+
+    @Column(name = "token_count")
+    @Builder.Default
+    private Integer tokenCount = 0;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

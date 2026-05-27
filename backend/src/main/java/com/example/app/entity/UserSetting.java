@@ -1,3 +1,4 @@
+
 package com.example.app.entity;
 
 import jakarta.persistence.*;
@@ -9,31 +10,39 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "conversation")
+@Table(name = "user_setting")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Conversation {
+public class UserSetting {
 
     @Id
     @Column(length = 36)
     private String id;
 
-    @Column(name = "user_id", nullable = false, length = 36)
-    @Builder.Default
-    private String userId = "default";
+    @Column(name = "user_id", nullable = false, length = 36, unique = true)
+    private String userId;
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column(name = "model_id", length = 255)
+    @Column(length = 20)
     @Builder.Default
-    private String modelId = "llama3";
+    private String theme = "light";
 
-    @Column(name = "token_usage")
+    @Column(name = "memory_enable")
     @Builder.Default
-    private Integer tokenUsage = 0;
+    private Boolean memoryEnable = true;
+
+    @Column(name = "default_model", length = 255)
+    @Builder.Default
+    private String defaultModel = "llama3";
+
+    @Column(name = "context_size")
+    @Builder.Default
+    private Integer contextSize = 10;
+
+    @Column(name = "auto_title")
+    @Builder.Default
+    private Boolean autoTitle = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

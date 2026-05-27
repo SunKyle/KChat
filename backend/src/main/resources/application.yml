@@ -2,15 +2,28 @@ spring:
   application:
     name: kchat-backend
   datasource:
-    url: jdbc:h2:mem:kchatdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: 
+    url: jdbc:mysql://localhost:3306/kchatdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: sxk1997sxk
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000ms
+      enabled: true
 
 ollama:
   base-url: http://localhost:11434

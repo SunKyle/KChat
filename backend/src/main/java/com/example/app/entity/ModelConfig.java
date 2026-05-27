@@ -20,6 +20,10 @@ public class ModelConfig {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", length = 36)
+    @Builder.Default
+    private String userId = "default";
+
     @Column(nullable = false)
     private String name;
 
