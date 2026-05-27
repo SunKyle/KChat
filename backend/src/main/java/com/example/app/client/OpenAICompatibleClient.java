@@ -57,6 +57,9 @@ public class OpenAICompatibleClient {
                     .url(baseUrl)
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
+                    .header("Accept", "text/event-stream")
+                    .header("Cache-Control", "no-cache")
+                    .header("Connection", "keep-alive")
                     .post(body)
                     .build();
 
