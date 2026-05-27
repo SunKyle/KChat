@@ -386,6 +386,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   )
 
   const loadMessages = useCallback(async (conversationId: string) => {
+    const streamingState = state.streamingStates[conversationId]
+    if (streamingState?.isStreaming) {
+      return
+    }
+
     try {
       const data = await api.conversations.get(conversationId)
       dispatch({ type: 'SET_MESSAGES', payload: data.messages || [] })
