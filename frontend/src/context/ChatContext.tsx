@@ -34,6 +34,8 @@ interface ChatContextType {
   setCurrentModel: (model: string) => void
   refreshModels: () => Promise<void>
   getStreamingState: (conversationId: string) => StreamingState
+  getHasNewReply: (conversationId: string) => boolean
+  resetNewReply: (conversationId: string) => void
 }
 
 type ChatAction =
@@ -51,6 +53,8 @@ type ChatAction =
       type: 'END_STREAMING'
       payload: { conversationId: string; messageId: string }
     }
+  | { type: 'SET_NEW_REPLY'; payload: string }
+  | { type: 'RESET_NEW_REPLY'; payload: string }
   | { type: 'ADD_CONVERSATION'; payload: Conversation }
   | { type: 'REMOVE_CONVERSATION'; payload: string }
   | {
@@ -68,6 +72,7 @@ interface ChatState {
   activeConversation: Conversation | null
   messages: Message[]
   streamingStates: Record<string, StreamingState>
+  newReplies: Record<string, boolean>
   error: string | null
   isLoading: boolean
   currentModel: string
@@ -79,6 +84,7 @@ const initialState: ChatState = {
   activeConversation: null,
   messages: [],
   streamingStates: {},
+  newReplies: {},
   error: null,
   isLoading: false,
   currentModel: 'llama3',
@@ -153,6 +159,27 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             messageId: action.payload.messageId,
           },
         },
+        newReplies: {
+          ...state.newReplies,
+          [action.payload.conversationId]: true,
+        },
+      }
+
+    case 'SET_NEW_REPLY':
+      return {
+        ...state,
+        newReplies: {
+          ...state.newReplies,
+          [action.payload]: true,
+        },
+      }
+
+    case 'RESET_NEW_REPLY':
+      const newNewReplies = { ...state.newReplies }
+      delete newNewReplies[action.payload]
+      return {
+        ...state,
+        newReplies: newNewReplies,
       }
 
     case 'ADD_CONVERSATION':
@@ -487,6 +514,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [state.streamingStates],
   )
 
+  const getHasNewReply = useCallback(
+    (conversationId: string): boolean => {
+      return state.newReplies[conversationId] || false
+    },
+    [state.newReplies],
+  )
+
+  const resetNewReply = useCallback((conversationId: string) => {
+    dispatch({ type: 'RESET_NEW_REPLY', payload: conversationId })
+  }, [])
+
   const streamingState = state.activeConversation
     ? state.streamingStates[state.activeConversation.id] ||
       initialState.streamingStates['']
@@ -518,6 +556,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setCurrentModel,
         refreshModels,
         getStreamingState,
+        getHasNewReply,
+        resetNewReply,
       }}
     >
       {children}

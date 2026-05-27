@@ -49,6 +49,8 @@ export function Sidebar({
     createConversation,
     updateConversation,
     getStreamingState,
+    getHasNewReply,
+    resetNewReply,
   } = useChat()
 
   const handleDelete = (id: string, title: string) => {
@@ -179,7 +181,11 @@ export function Sidebar({
                     conversation={conversation}
                     isActive={activeConversation?.id === conversation.id}
                     isStreaming={getStreamingState(conversation.id).isStreaming}
-                    onClick={() => setActiveConversation(conversation)}
+                    hasNewReply={getHasNewReply(conversation.id)}
+                    onClick={() => {
+                      resetNewReply(conversation.id)
+                      setActiveConversation(conversation)
+                    }}
                     onDelete={() =>
                       handleDelete(conversation.id, conversation.title)
                     }
