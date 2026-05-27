@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useEffect,
   useCallback,
+  useRef,
 } from 'react'
 import type {
   Conversation,
@@ -27,11 +28,12 @@ interface ChatContextType {
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
-  stopStreaming: () => void
+  stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
   setCurrentModel: (model: string) => void
   refreshModels: () => Promise<void>
+  getStreamingState: (conversationId: string) => StreamingState
 }
 
 type ChatAction =
@@ -40,9 +42,15 @@ type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'ADD_MESSAGE'; payload: Message }
   | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string } }
-  | { type: 'START_STREAMING' }
-  | { type: 'UPDATE_STREAMING_CONTENT'; payload: string }
-  | { type: 'END_STREAMING'; payload: string }
+  | { type: 'START_STREAMING'; payload: { conversationId: string } }
+  | {
+      type: 'UPDATE_STREAMING_CONTENT'
+      payload: { conversationId: string; content: string }
+    }
+  | {
+      type: 'END_STREAMING'
+      payload: { conversationId: string; messageId: string }
+    }
   | { type: 'ADD_CONVERSATION'; payload: Conversation }
   | { type: 'REMOVE_CONVERSATION'; payload: string }
   | {
@@ -59,7 +67,7 @@ interface ChatState {
   conversations: Conversation[]
   activeConversation: Conversation | null
   messages: Message[]
-  streamingState: StreamingState
+  streamingStates: Record<string, StreamingState>
   error: string | null
   isLoading: boolean
   currentModel: string
@@ -70,11 +78,7 @@ const initialState: ChatState = {
   conversations: [],
   activeConversation: null,
   messages: [],
-  streamingState: {
-    isStreaming: false,
-    currentContent: '',
-    messageId: null,
-  },
+  streamingStates: {},
   error: null,
   isLoading: false,
   currentModel: 'llama3',
@@ -108,29 +112,46 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'START_STREAMING':
       return {
         ...state,
-        streamingState: {
-          isStreaming: true,
-          currentContent: '',
-          messageId: null,
+        streamingStates: {
+          ...state.streamingStates,
+          [action.payload.conversationId]: {
+            isStreaming: true,
+            currentContent: '',
+            messageId: null,
+          },
         },
       }
 
     case 'UPDATE_STREAMING_CONTENT':
+      const currentStreaming = state.streamingStates[
+        action.payload.conversationId
+      ] || {
+        isStreaming: false,
+        currentContent: '',
+        messageId: null,
+      }
       return {
         ...state,
-        streamingState: {
-          ...state.streamingState,
-          currentContent: state.streamingState.currentContent + action.payload,
+        streamingStates: {
+          ...state.streamingStates,
+          [action.payload.conversationId]: {
+            ...currentStreaming,
+            currentContent:
+              currentStreaming.currentContent + action.payload.content,
+          },
         },
       }
 
     case 'END_STREAMING':
       return {
         ...state,
-        streamingState: {
-          isStreaming: false,
-          currentContent: '',
-          messageId: action.payload,
+        streamingStates: {
+          ...state.streamingStates,
+          [action.payload.conversationId]: {
+            isStreaming: false,
+            currentContent: '',
+            messageId: action.payload.messageId,
+          },
         },
       }
 
@@ -141,6 +162,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       }
 
     case 'REMOVE_CONVERSATION':
+      const newStreamingStates = { ...state.streamingStates }
+      delete newStreamingStates[action.payload]
       return {
         ...state,
         conversations: state.conversations.filter(
@@ -152,6 +175,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             : state.activeConversation,
         messages:
           state.activeConversation?.id === action.payload ? [] : state.messages,
+        streamingStates: newStreamingStates,
       }
 
     case 'UPDATE_CONVERSATION_TITLE':
@@ -192,7 +216,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState)
-  const abortControllerRef = React.useRef<AbortController | null>(null)
+  const abortControllersRef = useRef<Record<string, AbortController | null>>({})
 
   const loadModels = useCallback(async () => {
     try {
@@ -222,11 +246,25 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     await loadModels()
   }, [loadModels])
 
-  const stopStreaming = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-      dispatch({ type: 'END_STREAMING', payload: 'stopped' })
+  const stopStreaming = useCallback((conversationId?: string) => {
+    if (conversationId) {
+      const controller = abortControllersRef.current[conversationId]
+      if (controller) {
+        controller.abort()
+        abortControllersRef.current[conversationId] = null
+        dispatch({
+          type: 'END_STREAMING',
+          payload: { conversationId, messageId: 'stopped' },
+        })
+      }
+    } else {
+      Object.keys(abortControllersRef.current).forEach((id) => {
+        const controller = abortControllersRef.current[id]
+        if (controller) {
+          controller.abort()
+          abortControllersRef.current[id] = null
+        }
+      })
     }
   }, [])
 
@@ -239,7 +277,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
 
-      // LocalStorage Cache Implementation
       const cached = localStorage.getItem('kchat_conversations')
       if (cached) {
         dispatch({ type: 'SET_CONVERSATIONS', payload: JSON.parse(cached) })
@@ -263,7 +300,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const createConversation = useCallback(async () => {
     try {
-      stopStreaming()
       const newConversation = await api.conversations.create()
       dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
       localStorage.setItem(
@@ -281,14 +317,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to create conversation:', error)
       dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
     }
-  }, [state.conversations, stopStreaming])
+  }, [state.conversations])
 
   const updateConversation = useCallback(async (id: string, title: string) => {
     try {
       await api.conversations.update(id, title)
       dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } })
 
-      // Update Cache
       const cached = localStorage.getItem('kchat_conversations')
       if (cached) {
         const conversations = JSON.parse(cached)
@@ -302,23 +337,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const deleteConversation = useCallback(async (id: string) => {
-    try {
-      await api.conversations.delete(id)
-      dispatch({ type: 'REMOVE_CONVERSATION', payload: id })
+  const deleteConversation = useCallback(
+    async (id: string) => {
+      try {
+        stopStreaming(id)
+        await api.conversations.delete(id)
+        dispatch({ type: 'REMOVE_CONVERSATION', payload: id })
 
-      // Update Cache
-      const cached = localStorage.getItem('kchat_conversations')
-      if (cached) {
-        const conversations = JSON.parse(cached)
-        const updated = conversations.filter((c: Conversation) => c.id !== id)
-        localStorage.setItem('kchat_conversations', JSON.stringify(updated))
+        const cached = localStorage.getItem('kchat_conversations')
+        if (cached) {
+          const conversations = JSON.parse(cached)
+          const updated = conversations.filter((c: Conversation) => c.id !== id)
+          localStorage.setItem('kchat_conversations', JSON.stringify(updated))
+        }
+      } catch (error) {
+        console.error('Failed to delete conversation:', error)
+        dispatch({ type: 'SET_ERROR', payload: '删除对话失败' })
       }
-    } catch (error) {
-      console.error('Failed to delete conversation:', error)
-      dispatch({ type: 'SET_ERROR', payload: '删除对话失败' })
-    }
-  }, [])
+    },
+    [stopStreaming],
+  )
 
   const loadMessages = useCallback(async (conversationId: string) => {
     try {
@@ -342,23 +380,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       )
         return
 
-      stopStreaming()
+      const conversationId = state.activeConversation.id
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
-        conversationId: state.activeConversation.id,
+        conversationId,
         content: content.trim(),
         role: 'user',
         timestamp: new Date().toISOString(),
         images: imageUrls.length > 0 ? imageUrls : undefined,
       }
 
-      // Optimistic Update: Immediately add user message
       dispatch({ type: 'ADD_MESSAGE', payload: userMessage })
-      dispatch({ type: 'START_STREAMING' })
+      dispatch({ type: 'START_STREAMING', payload: { conversationId } })
 
       const request: ChatRequest = {
-        conversationId: state.activeConversation.id,
+        conversationId,
         message: content.trim() || '分析图片',
         model: state.currentModel,
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
@@ -367,24 +404,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const tempMessageId = crypto.randomUUID()
       const tempMessage: Message = {
         id: tempMessageId,
-        conversationId: state.activeConversation.id,
+        conversationId,
         content: '',
         role: 'assistant',
         timestamp: new Date().toISOString(),
       }
 
-      // Optimistic Update: Immediately add empty assistant bubble to show "typing"
       dispatch({ type: 'ADD_MESSAGE', payload: tempMessage })
 
       let streamingContent = ''
-      abortControllerRef.current = new AbortController()
+      const abortController = new AbortController()
+      abortControllersRef.current[conversationId] = abortController
 
       try {
         await api.chat.stream(
           request,
           (chunk) => {
             streamingContent += chunk
-            dispatch({ type: 'UPDATE_STREAMING_CONTENT', payload: chunk })
+            dispatch({
+              type: 'UPDATE_STREAMING_CONTENT',
+              payload: { conversationId, content: chunk },
+            })
             dispatch({
               type: 'UPDATE_MESSAGE',
               payload: { id: tempMessageId, content: streamingContent },
@@ -395,8 +435,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               type: 'UPDATE_MESSAGE',
               payload: { id: tempMessageId, content: streamingContent },
             })
-            dispatch({ type: 'END_STREAMING', payload: messageId })
-            abortControllerRef.current = null
+            dispatch({
+              type: 'END_STREAMING',
+              payload: { conversationId, messageId },
+            })
+            abortControllersRef.current[conversationId] = null
           },
           (error) => {
             console.error('Streaming error:', error)
@@ -404,26 +447,50 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               type: 'SET_ERROR',
               payload: error instanceof Error ? error.message : String(error),
             })
-            dispatch({ type: 'END_STREAMING', payload: tempMessageId })
-            abortControllerRef.current = null
+            dispatch({
+              type: 'END_STREAMING',
+              payload: { conversationId, messageId: tempMessageId },
+            })
+            abortControllersRef.current[conversationId] = null
           },
-          abortControllerRef.current,
+          abortController,
         )
       } catch (error: any) {
         console.error('Failed to send message:', error)
         const errorMessage =
           error.response?.data?.message || '发送消息失败，请检查网络或模型状态'
         dispatch({ type: 'SET_ERROR', payload: errorMessage })
-        dispatch({ type: 'END_STREAMING', payload: tempMessageId })
-        abortControllerRef.current = null
+        dispatch({
+          type: 'END_STREAMING',
+          payload: { conversationId, messageId: tempMessageId },
+        })
+        abortControllersRef.current[conversationId] = null
       }
     },
-    [state.activeConversation, stopStreaming, state.currentModel],
+    [state.activeConversation, state.currentModel],
   )
 
   const setCurrentModel = useCallback((model: string) => {
     dispatch({ type: 'SET_CURRENT_MODEL', payload: model })
   }, [])
+
+  const getStreamingState = useCallback(
+    (conversationId: string): StreamingState => {
+      return (
+        state.streamingStates[conversationId] || {
+          isStreaming: false,
+          currentContent: '',
+          messageId: null,
+        }
+      )
+    },
+    [state.streamingStates],
+  )
+
+  const streamingState = state.activeConversation
+    ? state.streamingStates[state.activeConversation.id] ||
+      initialState.streamingStates['']
+    : initialState.streamingStates['']
 
   return (
     <ChatContext.Provider
@@ -431,7 +498,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         conversations: state.conversations,
         activeConversation: state.activeConversation,
         messages: state.messages,
-        streamingState: state.streamingState,
+        streamingState: streamingState || {
+          isStreaming: false,
+          currentContent: '',
+          messageId: null,
+        },
         error: state.error,
         isLoading: state.isLoading,
         currentModel: state.currentModel,
@@ -446,6 +517,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         clearError,
         setCurrentModel,
         refreshModels,
+        getStreamingState,
       }}
     >
       {children}
