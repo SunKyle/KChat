@@ -3,6 +3,7 @@ package com.example.app.client;
 import com.example.app.entity.ModelConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -26,6 +28,7 @@ public class OpenAICompatibleClient {
             String baseUrl,
             String apiKey,
             String prompt,
+            List<String> imageUrls,
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
@@ -36,10 +39,33 @@ public class OpenAICompatibleClient {
                 .build();
 
         try {
-            JsonNode messages = objectMapper.createArrayNode()
-                    .add(objectMapper.createObjectNode()
-                            .put("role", "user")
-                            .put("content", prompt));
+            ArrayNode contentArray = objectMapper.createArrayNode();
+            contentArray.add(objectMapper.createObjectNode()
+                    .put("type", "text")
+                    .put("text", prompt));
+
+            if (imageUrls != null && !imageUrls.isEmpty()) {
+                for (String imageUrl : imageUrls) {
+                    ObjectNode imageNode = objectMapper.createObjectNode();
+                    imageNode.put("type", "image_url");
+                    ObjectNode urlNode = objectMapper.createObjectNode();
+
+                    String processedUrl = imageUrl;
+                    if (isLocalUrl(imageUrl)) {
+                        processedUrl = convertLocalUrlToBase64(imageUrl);
+                        log.info("Converted local image to base64, length: {}", processedUrl.length());
+                    }
+                    urlNode.put("url", processedUrl);
+                    imageNode.set("image_url", urlNode);
+                    contentArray.add(imageNode);
+                }
+            }
+
+            ObjectNode messageNode = objectMapper.createObjectNode();
+            messageNode.put("role", "user");
+            messageNode.set("content", contentArray);
+
+            JsonNode messages = objectMapper.createArrayNode().add(messageNode);
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", modelId);
@@ -218,5 +244,37 @@ public class OpenAICompatibleClient {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    private boolean isLocalUrl(String url) {
+        if (url == null)
+            return false;
+        return url.startsWith("http://localhost") ||
+                url.startsWith("http://127.0.0.1") ||
+                url.startsWith("http://0.0.0.0") ||
+                url.contains("localhost") ||
+                url.contains("127.0.0.1");
+    }
+
+    private String convertLocalUrlToBase64(String url) {
+        try {
+            java.net.URL localUrl = new java.net.URL(url);
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) localUrl.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            try (java.io.InputStream is = connection.getInputStream()) {
+                byte[] bytes = is.readAllBytes();
+                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                String contentType = connection.getContentType();
+                if (contentType == null) {
+                    contentType = "image/jpeg";
+                }
+                return "data:" + contentType + ";base64," + base64;
+            }
+        } catch (Exception e) {
+            log.error("Failed to convert local URL to base64: {}", e.getMessage());
+            return url;
+        }
     }
 }

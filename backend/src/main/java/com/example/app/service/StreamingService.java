@@ -80,6 +80,7 @@ public class StreamingService {
                                 customConfig.getBaseUrl(),
                                 customConfig.getApiKey(),
                                 userMessage,
+                                imageUrls,
                                 emitter,
                                 chunk -> fullResponse.append(chunk),
                                 () -> {
