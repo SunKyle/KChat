@@ -71,6 +71,7 @@ interface ChatState {
   conversations: Conversation[]
   activeConversation: Conversation | null
   messages: Message[]
+  messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
   newReplies: Record<string, boolean>
   error: string | null
@@ -83,6 +84,7 @@ const initialState: ChatState = {
   conversations: [],
   activeConversation: null,
   messages: [],
+  messagesByConversation: {},
   streamingStates: {},
   newReplies: {},
   error: null,
@@ -99,21 +101,52 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SET_ACTIVE_CONVERSATION':
       return { ...state, activeConversation: action.payload }
 
-    case 'SET_MESSAGES':
+    case 'SET_MESSAGES': {
+      if (state.activeConversation) {
+        return {
+          ...state,
+          messages: action.payload,
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [state.activeConversation.id]: action.payload,
+          },
+        }
+      }
       return { ...state, messages: action.payload }
+    }
 
-    case 'ADD_MESSAGE':
-      return { ...state, messages: [...state.messages, action.payload] }
-
-    case 'UPDATE_MESSAGE':
+    case 'ADD_MESSAGE': {
+      const newMessages = [...state.messages, action.payload]
       return {
         ...state,
-        messages: state.messages.map((msg) =>
-          msg.id === action.payload.id
-            ? { ...msg, content: action.payload.content }
-            : msg,
-        ),
+        messages: newMessages,
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [action.payload.conversationId]: newMessages,
+        },
       }
+    }
+
+    case 'UPDATE_MESSAGE': {
+      const updatedMessages = state.messages.map((msg) =>
+        msg.id === action.payload.id
+          ? { ...msg, content: action.payload.content }
+          : msg,
+      )
+      const conversationId = state.messages.find(
+        (msg) => msg.id === action.payload.id,
+      )?.conversationId
+      return {
+        ...state,
+        messages: updatedMessages,
+        messagesByConversation: conversationId
+          ? {
+              ...state.messagesByConversation,
+              [conversationId]: updatedMessages,
+            }
+          : state.messagesByConversation,
+      }
+    }
 
     case 'START_STREAMING':
       return {
@@ -322,8 +355,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveConversation = useCallback(async (conv: Conversation) => {
     dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conv })
-    await loadMessages(conv.id)
-  }, [])
+    
+    const cachedMessages = state.messagesByConversation[conv.id]
+    const streamingState = state.streamingStates[conv.id]
+    
+    if (streamingState?.isStreaming && cachedMessages) {
+      dispatch({ type: 'SET_MESSAGES', payload: cachedMessages })
+    } else {
+      await loadMessages(conv.id)
+    }
+  }, [state.messagesByConversation, state.streamingStates])
 
   const createConversation = useCallback(async () => {
     try {
