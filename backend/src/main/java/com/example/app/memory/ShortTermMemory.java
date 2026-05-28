@@ -1,13 +1,17 @@
 package com.example.app.memory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ShortTermMemory {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
 
     private final Map<String, ChatMemory> memoryMap = new ConcurrentHashMap<>();
 
@@ -27,18 +32,28 @@ public class ShortTermMemory {
     public ChatMemory getMemory(String conversationId) {
         try {
             String key = REDIS_KEY_PREFIX + conversationId;
-            Object cached = redisTemplate.opsForValue().get(key);
-            if (cached != null) {
-                log.debug("Loaded memory from Redis for conversation: {}", conversationId);
-            }
+            String json = stringRedisTemplate.opsForValue().get(key);
+            
             ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
-            if (cached instanceof List) {
-                var messages = (List<dev.langchain4j.data.message.ChatMessage>) cached;
-                for (var msg : messages) {
-                    memory.add(msg);
+            
+            if (json != null && !json.isEmpty()) {
+                try {
+                    List<ChatMessage> messages = objectMapper.readValue(json,
+                            new TypeReference<List<ChatMessage>>() {});
+                    if (messages != null && !messages.isEmpty()) {
+                        for (ChatMessage msg : messages) {
+                            memory.add(msg);
+                        }
+                        log.debug("Loaded {} messages from Redis for conversation: {}", 
+                                messages.size(), conversationId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to deserialize memory from Redis for conversation {}: {}", 
+                            conversationId, e.getMessage());
                 }
             }
-            return new RedisBackedChatMemory(memory, redisTemplate, key, conversationId);
+            
+            return new RedisBackedChatMemory(memory, stringRedisTemplate, objectMapper, key, conversationId);
         } catch (Exception e) {
             log.warn("Redis unavailable, falling back to in-memory storage: {}", e.getMessage());
             return memoryMap.computeIfAbsent(conversationId, id -> MessageWindowChatMemory.withMaxMessages(20));
@@ -49,7 +64,7 @@ public class ShortTermMemory {
         memoryMap.remove(conversationId);
         try {
             String key = REDIS_KEY_PREFIX + conversationId;
-            redisTemplate.delete(key);
+            stringRedisTemplate.delete(key);
         } catch (Exception e) {
             log.debug("Failed to clear memory from Redis: {}", e.getMessage());
         }
@@ -58,9 +73,9 @@ public class ShortTermMemory {
     public void clearAll() {
         memoryMap.clear();
         try {
-            var keys = redisTemplate.keys(REDIS_KEY_PREFIX + "*");
+            var keys = stringRedisTemplate.keys(REDIS_KEY_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
-                redisTemplate.delete(keys);
+                stringRedisTemplate.delete(keys);
             }
         } catch (Exception e) {
             log.debug("Failed to clear all memory from Redis: {}", e.getMessage());
@@ -70,26 +85,28 @@ public class ShortTermMemory {
     private static class RedisBackedChatMemory implements ChatMemory {
 
         private final ChatMemory delegate;
-        private final RedisTemplate<String, Object> redisTemplate;
+        private final StringRedisTemplate redisTemplate;
+        private final ObjectMapper objectMapper;
         private final String key;
         private final String conversationId;
 
-        public RedisBackedChatMemory(ChatMemory delegate, RedisTemplate<String, Object> redisTemplate,
-                String key, String conversationId) {
+        public RedisBackedChatMemory(ChatMemory delegate, StringRedisTemplate redisTemplate,
+                ObjectMapper objectMapper, String key, String conversationId) {
             this.delegate = delegate;
             this.redisTemplate = redisTemplate;
+            this.objectMapper = objectMapper;
             this.key = key;
             this.conversationId = conversationId;
         }
 
         @Override
-        public void add(dev.langchain4j.data.message.ChatMessage message) {
+        public void add(ChatMessage message) {
             delegate.add(message);
             persist();
         }
 
         @Override
-        public List<dev.langchain4j.data.message.ChatMessage> messages() {
+        public List<ChatMessage> messages() {
             return delegate.messages();
         }
 
@@ -110,7 +127,9 @@ public class ShortTermMemory {
 
         private void persist() {
             try {
-                redisTemplate.opsForValue().set(key, delegate.messages(), EXPIRATION);
+                List<ChatMessage> messages = delegate.messages();
+                String json = objectMapper.writeValueAsString(messages);
+                redisTemplate.opsForValue().set(key, json, EXPIRATION);
             } catch (Exception e) {
                 log.debug("Failed to persist memory to Redis: {}", e.getMessage());
             }
