@@ -30,6 +30,22 @@ export const api = {
       return response.json();
     },
 
+    listByType: async (type: string): Promise<ModelConfig[]> => {
+      const response = await fetch(`${BASE_URL}/model-configs/by-type/${type}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch model configs by type');
+      }
+      return response.json();
+    },
+
+    getTypes: async (): Promise<string[]> => {
+      const response = await fetch(`${BASE_URL}/model-configs/types`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch provider types');
+      }
+      return response.json();
+    },
+
     create: async (config: Omit<ModelConfig, 'id'>): Promise<ModelConfig> => {
       const response = await fetch(`${BASE_URL}/model-configs`, {
         method: 'POST',

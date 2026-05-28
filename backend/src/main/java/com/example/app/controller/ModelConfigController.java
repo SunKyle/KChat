@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -30,6 +31,24 @@ public class ModelConfigController {
     @GetMapping("/{id}")
     public ResponseEntity<ModelConfig> getConfigById(@PathVariable Long id) {
         return ResponseEntity.ok(modelConfigService.getConfigById(id));
+    }
+
+    @GetMapping("/types")
+    public ResponseEntity<List<String>> getAllTypes() {
+        List<String> types = Arrays.stream(ModelConfig.ModelType.values())
+                .map(Enum::name)
+                .toList();
+        return ResponseEntity.ok(types);
+    }
+
+    @GetMapping("/by-type/{type}")
+    public ResponseEntity<List<ModelConfig>> getConfigsByType(@PathVariable String type) {
+        try {
+            ModelConfig.ModelType modelType = ModelConfig.ModelType.valueOf(type.toUpperCase());
+            return ResponseEntity.ok(modelConfigService.getConfigsByType(modelType));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping

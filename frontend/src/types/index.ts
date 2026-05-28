@@ -39,13 +39,32 @@ export interface InputState {
   isFocused: boolean;
 }
 
+export type ProviderType = 'OPENAI' | 'OPENAI_COMPATIBLE' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'AZURE' | 'CUSTOM';
+
 export interface ModelConfig {
   id: number;
   name: string;
   modelId: string;
   baseUrl: string;
   apiKey: string;
-  type: string;
+  type: ProviderType;
   enabled: boolean;
   createdAt: string;
 }
+
+export interface ProviderInfo {
+  type: ProviderType;
+  displayName: string;
+  icon: string;
+  color: string;
+  defaultBaseUrl?: string;
+}
+
+export const PROVIDERS: ProviderInfo[] = [
+  { type: 'OPENAI', displayName: 'OpenAI', icon: '⚡', color: 'bg-emerald-500', defaultBaseUrl: 'https://api.openai.com' },
+  { type: 'ANTHROPIC', displayName: 'Anthropic', icon: '🌐', color: 'bg-amber-500', defaultBaseUrl: 'https://api.anthropic.com' },
+  { type: 'GOOGLE', displayName: 'Google', icon: '🔷', color: 'bg-blue-500', defaultBaseUrl: 'https://generativelanguage.googleapis.com' },
+  { type: 'OLLAMA', displayName: 'Ollama', icon: '🦙', color: 'bg-purple-500', defaultBaseUrl: 'http://localhost:11434' },
+  { type: 'AZURE', displayName: 'Azure OpenAI', icon: '☁️', color: 'bg-sky-500', defaultBaseUrl: 'https://your-resource.openai.azure.com' },
+  { type: 'CUSTOM', displayName: '自定义', icon: '⚙️', color: 'bg-gray-500' },
+];

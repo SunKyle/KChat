@@ -49,6 +49,22 @@ public class ModelConfig {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum ModelType {
-        OPENAI_COMPATIBLE
+        OPENAI_COMPATIBLE("OpenAI"),
+        OPENAI("OpenAI"),
+        ANTHROPIC("Anthropic"),
+        GOOGLE("Google"),
+        OLLAMA("Ollama"),
+        AZURE("Azure OpenAI"),
+        CUSTOM("自定义");
+
+        private final String displayName;
+
+        ModelType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

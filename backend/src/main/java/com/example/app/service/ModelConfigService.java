@@ -43,16 +43,53 @@ public class ModelConfigService {
             throw new IllegalArgumentException("名称和模型ID组合已存在");
         }
 
+        ModelConfig.ModelType type = parseModelType(dto.getType());
+
         ModelConfig config = ModelConfig.builder()
                 .name(dto.getName())
                 .modelId(dto.getModelId())
                 .baseUrl(dto.getBaseUrl())
                 .apiKey(dto.getApiKey())
-                .type(ModelConfig.ModelType.OPENAI_COMPATIBLE)
+                .type(type)
                 .enabled(dto.getEnabled() != null ? dto.getEnabled() : true)
                 .build();
 
         return modelConfigRepository.save(config);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModelConfig> getConfigsByType(ModelConfig.ModelType type) {
+        return modelConfigRepository.findByType(type);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModelConfig> getEnabledConfigsByType(ModelConfig.ModelType type) {
+        return modelConfigRepository.findByTypeAndEnabledTrue(type);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModelConfig> getAllEnabledConfigsGrouped() {
+        return modelConfigRepository.findByEnabledTrueOrderByType();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModelConfig.ModelType> getAllTypes() {
+        return java.util.Arrays.asList(ModelConfig.ModelType.values());
+    }
+
+    private ModelConfig.ModelType parseModelType(String type) {
+        if (type == null || type.isEmpty()) {
+            return ModelConfig.ModelType.OPENAI;
+        }
+        // 向后兼容：OPENAI_COMPATIBLE 映射为 OPENAI
+        if ("OPENAI_COMPATIBLE".equalsIgnoreCase(type)) {
+            return ModelConfig.ModelType.OPENAI;
+        }
+        try {
+            return ModelConfig.ModelType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ModelConfig.ModelType.CUSTOM;
+        }
     }
 
     @Transactional
@@ -68,6 +105,9 @@ public class ModelConfigService {
         config.setBaseUrl(dto.getBaseUrl());
         if (dto.getApiKey() != null && !dto.getApiKey().isEmpty()) {
             config.setApiKey(dto.getApiKey());
+        }
+        if (dto.getType() != null && !dto.getType().isEmpty()) {
+            config.setType(parseModelType(dto.getType()));
         }
         if (dto.getEnabled() != null) {
             config.setEnabled(dto.getEnabled());

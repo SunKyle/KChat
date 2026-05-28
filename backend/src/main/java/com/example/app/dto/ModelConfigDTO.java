@@ -25,5 +25,7 @@ public class ModelConfigDTO {
 
     private String apiKey;
 
+    private String type;
+
     private Boolean enabled;
 }

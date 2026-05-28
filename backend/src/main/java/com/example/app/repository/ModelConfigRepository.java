@@ -11,4 +11,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     List<ModelConfig> findByEnabledTrue();
     boolean existsByNameAndModelId(String name, String modelId);
     boolean existsByNameAndModelIdAndIdNot(String name, String modelId, Long id);
+    List<ModelConfig> findByType(ModelConfig.ModelType type);
+    List<ModelConfig> findByTypeAndEnabledTrue(ModelConfig.ModelType type);
+    List<ModelConfig> findByEnabledTrueOrderByType();
 }
