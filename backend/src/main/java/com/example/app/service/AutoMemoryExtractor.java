@@ -10,103 +10,65 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 自动记忆提取服务类
- * 负责在满足条件时自动从对话中提取和保存记忆
+ * 自动化记忆提取服务。
+ * 将非结构化的对话历史转化为结构化的长期记忆事实。
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AutoMemoryExtractor {
 
-
-    // 依赖注入的组件：
-    private final MemoryExtractor memoryExtractor;      // 记忆提取器
-    private final MemoryService memoryService;         // 记忆服务
-    private final ConversationMessageCounter messageCounter;  // 对话消息计数器
-    private final MemoryExtractorConfig config;        // 记忆提取配置
+    private final MemoryExtractor memoryExtractor;
+    private final MemoryService memoryService;
+    private final ConversationMessageCounter messageCounter;
+    private final MemoryExtractorConfig config;
 
     /**
-     * 尝试提取对话中的记忆
-     *
-     * @param conversationId 对话ID
-     * @param userId         用户ID
-     * @return 成功提取并保存的记忆数量
+     * 尝试提取记忆。
+     * <p>
+     * 设计考量：
+     * 1. 避免频繁调用 LLM 造成成本浪费 $\rightarrow$ 通过 messageCounter 实现基于消息数量的阈值触发。
+     * 2. 降低响应延迟 $\rightarrow$ 建议调用方在异步线程中执行此方法。
      */
     public int tryExtract(String conversationId, String userId) {
-        log.info("[AutoMemoryExtractor] tryExtract called - conversation: {}, userId: {}", conversationId, userId);
-
-        // 检查记忆提取器是否启用
-        if (!config.isEnabled()) {
-            log.info("[AutoMemoryExtractor] Extractor is disabled");
+        if (!config.isEnabled() || !config.isAutoExtractEnabled()) {
             return 0;
         }
 
-        // 检查自动提取功能是否启用
-        if (!config.isAutoExtractEnabled()) {
-            log.info("[AutoMemoryExtractor] Auto-extract is disabled");
-            return 0;
-        }
-
-        // 增加消息计数并检查是否达到阈值
+        // 使用原子计数器/缓存计数器记录当前会话消息数，达到阈值后才触发 LLM 分析
         int messageCount = messageCounter.increment(conversationId);
-        log.info("[AutoMemoryExtractor] Message count: {}, threshold: {}", messageCount, config.getMessageThreshold());
 
-        // 如果消息数量达到阈值，执行提取
         if (messageCount >= config.getMessageThreshold()) {
-            log.info("[AutoMemoryExtractor] Threshold reached, triggering extraction");
             messageCounter.reset(conversationId);
-            int saved = extractAndSave(conversationId, userId);
-            log.info("[AutoMemoryExtractor] Extraction completed, saved {} memories", saved);
-            return saved;
+            return extractAndSave(conversationId, userId);
         }
 
-        log.info("[AutoMemoryExtractor] Threshold not reached, skipping extraction");
         return 0;
     }
 
     /**
-     * 提取并保存对话中的记忆
-     *
-     * @param conversationId 对话ID
-     * @param userId         用户ID
-     * @return 成功保存的记忆数量
+     * 记忆提取核心逻辑。
+     * 流程：获取上下文 $\rightarrow$ LLM 总结事实 $\rightarrow$ 向量化存储。
      */
     public int extractAndSave(String conversationId, String userId) {
         try {
-            // 获取对话上下文并提取记忆
             List<ChatMessage> messages = memoryService.getMemoryContext(conversationId);
-            int saved = memoryExtractor.extractAndSave(conversationId, messages, userId);
-
-            // 记录提取结果
-            if (saved > 0) {
-                log.info("Auto-extracted {} memories for conversation {} (user: {})",
-                        saved, conversationId, userId);
-            }
-
-            return saved;
+            return memoryExtractor.extractAndSave(conversationId, messages, userId);
         } catch (Exception e) {
-            // 异常处理
-            log.error("Failed to auto-extract memory for conversation {}: {}",
-                    conversationId, e.getMessage());
+            log.error("Critical failure during memory extraction for user {}: {}", userId, e.getMessage());
             return 0;
         }
     }
 
     /**
-     * 定时任务：检查空闲的对话
-     * 每分钟执行一次
+     * 定时扫描空闲对话。
+     * 业务目的：对于长时间未活跃但未达到阈值的对话，在用户离开后补齐记忆提取，防止知识丢失。
      */
     @Scheduled(fixedDelay = 60000)
     public void checkIdleConversations() {
-        // 检查功能是否启用
         if (!config.isEnabled()) {
             return;
         }
-
-        // 计算空闲超时阈值
-        long idleThreshold = config.getIdleTimeoutMinutes() * 60 * 1000;
-        long now = System.currentTimeMillis();
-
-        log.debug("Checking for idle conversations...");
+        // TODO: 实现空闲对话检索逻辑
     }
 }
