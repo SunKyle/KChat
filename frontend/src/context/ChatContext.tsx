@@ -353,18 +353,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const setActiveConversation = useCallback(async (conv: Conversation) => {
-    dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conv })
-    
-    const cachedMessages = state.messagesByConversation[conv.id]
-    const streamingState = state.streamingStates[conv.id]
-    
-    if (streamingState?.isStreaming && cachedMessages) {
-      dispatch({ type: 'SET_MESSAGES', payload: cachedMessages })
-    } else {
-      await loadMessages(conv.id)
-    }
-  }, [state.messagesByConversation, state.streamingStates])
+  const setActiveConversation = useCallback(
+    async (conv: Conversation) => {
+      dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conv })
+
+      const cachedMessages = state.messagesByConversation[conv.id]
+      const streamingState = state.streamingStates[conv.id]
+
+      if (streamingState?.isStreaming && cachedMessages) {
+        dispatch({ type: 'SET_MESSAGES', payload: cachedMessages })
+      } else {
+        await loadMessages(conv.id)
+      }
+    },
+    [state.messagesByConversation, state.streamingStates],
+  )
 
   const createConversation = useCallback(async () => {
     try {
@@ -472,6 +475,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         message: content.trim() || '分析图片',
         model: state.currentModel,
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+        userId: 'default',
       }
 
       const tempMessageId = crypto.randomUUID()

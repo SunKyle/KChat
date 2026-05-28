@@ -20,4 +20,6 @@ public class ChatRequest {
     private String model;
 
     private List<String> imageUrls;
+    
+    private String userId;
 }

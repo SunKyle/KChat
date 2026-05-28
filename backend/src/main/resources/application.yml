@@ -58,6 +58,13 @@ memory:
   long-term:
     enabled: true
     max-recall: 5
-    min-importance: 4
-    similarity-threshold: 0.5
+    min-importance: 3
+    similarity-threshold: 0.3
     vector-dimension: 384
+  extractor:
+    enabled: true
+    message-threshold: 1
+    min-confidence: 30
+    min-importance: 3
+    idle-timeout-minutes: 10
+    auto-extract-enabled: true

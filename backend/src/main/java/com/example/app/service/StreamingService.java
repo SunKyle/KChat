@@ -3,10 +3,11 @@ package com.example.app.service;
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
+import com.example.app.dto.MemoryDTO;
 import com.example.app.entity.ModelConfig;
 import com.example.app.util.JsonUtils;
+import com.example.app.util.PromptAssembler;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ public class StreamingService {
     private final MessagePersistenceService messagePersistenceService;
     private final ConversationService conversationService;
     private final ExecutorService executorService;
+    private final PromptAssembler promptAssembler;
+    private final AutoMemoryExtractor autoMemoryExtractor;
 
     public SseEmitter streamResponse(ChatRequest request) {
         SseEmitter emitter = new SseEmitter(300000L);
@@ -56,11 +59,15 @@ public class StreamingService {
         final String userMessage = request.getMessage();
         final String aiMessageId = UUID.randomUUID().toString();
         final List<String> imageUrls = request.getImageUrls();
+        final String userId = request.getUserId() != null ? request.getUserId() : "default";
 
         memoryService.updateMemoryWithUserMessage(finalConversationId, userMessage);
         messagePersistenceService.saveUserMessage(finalConversationId, userMessage, imageUrls);
 
         final String model = request.getModel();
+
+        final List<MemoryDTO> longTermMemory = memoryService.recallLongTermMemory(userId, userMessage, 5);
+        log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
 
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
@@ -132,9 +139,8 @@ public class StreamingService {
                     return;
                 }
 
-                List<ChatMessage> context = memoryService.getMemoryContext(finalConversationId);
-                List<ChatMessage> messages = new ArrayList<>(context);
-                messages.add(UserMessage.from(userMessage));
+                List<ChatMessage> shortTermMemory = memoryService.getMemoryContext(finalConversationId);
+                List<ChatMessage> messages = promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage);
 
                 boolean hasImages = imageUrls != null && !imageUrls.isEmpty();
 
@@ -169,6 +175,8 @@ public class StreamingService {
 
                 memoryService.updateMemoryWithAiMessage(finalConversationId, fullResponse.toString());
                 messagePersistenceService.saveAiMessage(finalConversationId, aiMessageId, fullResponse.toString());
+
+                autoMemoryExtractor.tryExtract(finalConversationId, userId);
 
                 try {
                     emitter.send(SseEmitter.event().name("done").data("{\"messageId\": \"" + aiMessageId + "\"}"));

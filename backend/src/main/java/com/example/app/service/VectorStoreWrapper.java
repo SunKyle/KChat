@@ -26,16 +26,20 @@ public class VectorStoreWrapper {
 
     public void add(String userId, String content, Long memoryId) {
         try {
+            log.info("[Embedding] Generating embedding for memory {} (user: {})", memoryId, userId);
             Embedding embedding = embeddingModel.embed(content).content();
+            float[] vector = embedding.vector();
+            log.info("[Embedding] Generated embedding with dimension: {}", vector.length);
+
             String key = KEY_PREFIX + userId + ":" + memoryId;
             String indexKey = INDEX_KEY + userId;
 
-            redisTemplate.opsForValue().set(key, embedding.vector());
+            redisTemplate.opsForValue().set(key, vector);
             redisTemplate.opsForSet().add(indexKey, memoryId.toString());
 
-            log.debug("Added embedding for memory {} (user: {})", memoryId, userId);
+            log.info("[Embedding] Added embedding for memory {} (user: {})", memoryId, userId);
         } catch (Exception e) {
-            log.warn("Failed to add embedding to vector store: {}", e.getMessage());
+            log.error("[Embedding] Failed to add embedding: {}", e.getMessage(), e);
         }
     }
 
@@ -56,15 +60,22 @@ public class VectorStoreWrapper {
 
     public List<Long> search(String userId, String query, int topK) {
         try {
+            log.info("[Memory Retrieve] Searching vector store - userId: {}, query: '{}', topK: {}",
+                    userId, query, topK);
+
             Embedding queryEmbedding = embeddingModel.embed(query).content();
             float[] queryVector = queryEmbedding.vector();
+            log.info("[Memory Retrieve] Generated query embedding with dimension: {}", queryVector.length);
 
             String indexKey = INDEX_KEY + userId;
             Set<Object> memoryIdSet = redisTemplate.opsForSet().members(indexKey);
 
             if (memoryIdSet == null || memoryIdSet.isEmpty()) {
+                log.info("[Memory Retrieve] No memories found in index for user: {}", userId);
                 return new ArrayList<>();
             }
+
+            log.info("[Memory Retrieve] Found {} memories in index for user: {}", memoryIdSet.size(), userId);
 
             List<ScoredMemory> scoredMemories = new ArrayList<>();
             for (Object obj : memoryIdSet) {
@@ -76,22 +87,27 @@ public class VectorStoreWrapper {
                     if (vectorObj instanceof float[]) {
                         float[] vector = (float[]) vectorObj;
                         double similarity = cosineSimilarity(queryVector, vector);
+                        log.debug("[Memory Retrieve] Memory {} similarity: {}", memoryId, similarity);
                         if (similarity >= vectorStoreConfig.getSimilarityThreshold()) {
                             scoredMemories.add(new ScoredMemory(memoryId, similarity));
                         }
                     }
                 } catch (NumberFormatException e) {
-                    log.warn("Invalid memory ID format: {}", obj);
+                    log.warn("[Memory Retrieve] Invalid memory ID format: {}", obj);
                 }
             }
 
             scoredMemories.sort((a, b) -> Double.compare(b.similarity(), a.similarity()));
-            return scoredMemories.stream()
+            List<Long> results = scoredMemories.stream()
                     .limit(topK)
                     .map(ScoredMemory::memoryId)
                     .toList();
+
+            log.info("[Memory Retrieve] Found {} matching memories (threshold: {})",
+                    results.size(), vectorStoreConfig.getSimilarityThreshold());
+            return results;
         } catch (Exception e) {
-            log.warn("Failed to search vector store: {}", e.getMessage());
+            log.error("[Memory Retrieve] Failed to search vector store: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
@@ -153,7 +169,8 @@ public class VectorStoreWrapper {
     }
 
     public record MemoryEmbeddingPair(Long memoryId, String content) {
-}
+    }
 
-private record ScoredMemory(Long memoryId, double similarity) {}
+    private record ScoredMemory(Long memoryId, double similarity) {
+    }
 }

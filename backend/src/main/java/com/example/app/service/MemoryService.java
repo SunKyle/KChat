@@ -25,16 +25,35 @@ public class MemoryService {
     private final LongTermMemoryService longTermMemoryService;
 
     public List<ChatMessage> getMemoryContext(String conversationId) {
+        log.info("[Memory Retrieve] Getting short-term memory for conversation: {}", conversationId);
         ChatMemory memory = shortTermMemory.getMemory(conversationId);
-        return memory.messages();
+        List<ChatMessage> messages = memory.messages();
+        log.info("[Memory Retrieve] Found {} short-term memory messages for conversation: {}",
+                messages.size(), conversationId);
+        return messages;
     }
 
     public List<String> getLongTermMemoryContext(String userId) {
-        return longTermMemoryManager.retrieve(userId);
+        log.info("[Memory Retrieve] Getting long-term memory for user: {}", userId);
+        List<String> memories = longTermMemoryManager.retrieve(userId);
+        log.info("[Memory Retrieve] Found {} long-term memory items for user: {}",
+                memories.size(), userId);
+        return memories;
     }
 
     public List<MemoryDTO> recallLongTermMemory(String userId, String query, int topK) {
-        return longTermMemoryService.recall(userId, query, topK);
+        log.info("[Memory Retrieve] Recalling long-term memory for user: {}, query: '{}', topK: {}",
+                userId, query, topK);
+        List<MemoryDTO> memories = longTermMemoryService.recall(userId, query, topK);
+        log.info("[Memory Retrieve] Recalled {} long-term memories for user: {}",
+                memories.size(), userId);
+        if (!memories.isEmpty()) {
+            for (MemoryDTO m : memories) {
+                log.info("[Memory Retrieve] - [{}] {} (importance: {})",
+                        m.getType(), m.getContent(), m.getImportance());
+            }
+        }
+        return memories;
     }
 
     public List<MemoryDTO> recallLongTermMemory(String userId, String query, int topK, List<String> types) {
@@ -50,13 +69,17 @@ public class MemoryService {
     }
 
     public MemoryDTO saveLongTermMemory(String userId, String content, MemoryType type, Integer importance) {
+        log.info("[Memory Store] Saving long-term memory - userId: {}, type: {}, importance: {}, content: '{}'",
+                userId, type, importance, content);
         MemoryDTO dto = MemoryDTO.builder()
                 .userId(userId)
                 .content(content)
                 .type(type.name())
                 .importance(importance != null ? importance : 5)
                 .build();
-        return longTermMemoryService.save(dto);
+        MemoryDTO saved = longTermMemoryService.save(dto);
+        log.info("[Memory Store] Saved long-term memory - id: {}", saved.getId());
+        return saved;
     }
 
     public void updateMemoryWithUserMessage(String conversationId, String content) {

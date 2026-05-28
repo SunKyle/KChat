@@ -37,7 +37,6 @@ public class OllamaClient {
     @CircuitBreaker(name = "ollamaCB")
     public String generate(List<ChatMessage> messages, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
-        log.debug("Generating response using model: {}", targetModel);
         try {
             dev.langchain4j.model.ollama.OllamaChatModel modelInstance = modelCache.computeIfAbsent(targetModel,
                     key -> dev.langchain4j.model.ollama.OllamaChatModel.builder()
@@ -63,7 +62,6 @@ public class OllamaClient {
     @CircuitBreaker(name = "ollamaCB")
     public void streamGenerate(List<ChatMessage> messages, Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
-        log.debug("Streaming response using model: {}", targetModel);
 
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/generate");
@@ -76,14 +74,16 @@ public class OllamaClient {
             connection.setDoOutput(true);
             connection.setChunkedStreamingMode(0);
 
-            StringBuilder promptBuilder = new StringBuilder();
-            for (ChatMessage message : messages) {
-                promptBuilder.append(message.text()).append("\n");
-            }
+            String prompt = buildPrompt(messages);
+            
+            log.info("=== Final Prompt ===");
+            log.info("Model: {}", targetModel);
+            log.info("Prompt:\n{}", prompt);
+            log.info("=== End Prompt ===");
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", targetModel);
-            requestBody.put("prompt", promptBuilder.toString());
+            requestBody.put("prompt", prompt);
             requestBody.put("stream", true);
 
             connection.getOutputStream().write(objectMapper.writeValueAsBytes(requestBody));
@@ -98,8 +98,7 @@ public class OllamaClient {
                         if (!response.isEmpty()) {
                             callback.accept(response);
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to parse streaming response: {}", line);
+                    } catch (Exception ignored) {
                     }
                 }
             }
@@ -122,7 +121,6 @@ public class OllamaClient {
     public void streamGenerateWithImages(List<ChatMessage> messages, List<String> imageUrls,
             Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
-        log.debug("Streaming multimodal response using model: {}", targetModel);
 
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/generate");
@@ -135,26 +133,31 @@ public class OllamaClient {
             connection.setDoOutput(true);
             connection.setChunkedStreamingMode(0);
 
-            StringBuilder promptBuilder = new StringBuilder();
-            for (ChatMessage message : messages) {
-                promptBuilder.append(message.text()).append("\n");
-            }
+            String prompt = buildPrompt(messages);
+            
+            log.info("=== Final Prompt (with images) ===");
+            log.info("Model: {}", targetModel);
+            log.info("Prompt:\n{}", prompt);
+            log.info("Image count: {}", imageUrls != null ? imageUrls.size() : 0);
+            log.info("=== End Prompt ===");
 
             List<String> base64Images = new java.util.ArrayList<>();
-            for (String imageUrl : imageUrls) {
-                try {
-                    String base64Image = imageUrlToBase64(imageUrl);
-                    if (!base64Image.isEmpty()) {
-                        base64Images.add(base64Image);
+            if (imageUrls != null) {
+                for (String imageUrl : imageUrls) {
+                    try {
+                        String base64Image = imageUrlToBase64(imageUrl);
+                        if (!base64Image.isEmpty()) {
+                            base64Images.add(base64Image);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to convert image: {}", imageUrl);
                     }
-                } catch (Exception e) {
-                    log.warn("Failed to convert image to base64: {}", imageUrl, e);
                 }
             }
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", targetModel);
-            requestBody.put("prompt", promptBuilder.toString());
+            requestBody.put("prompt", prompt);
             requestBody.put("stream", true);
 
             if (!base64Images.isEmpty()) {
@@ -175,8 +178,7 @@ public class OllamaClient {
                         if (!response.isEmpty()) {
                             callback.accept(response);
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to parse streaming response: {}", line);
+                    } catch (Exception ignored) {
                     }
                 }
             }
@@ -186,6 +188,28 @@ public class OllamaClient {
             log.error("Multimodal streaming error: {}", e.getMessage());
             throw new RuntimeException("AI model connection timeout or service unavailable", e);
         }
+    }
+
+    private String buildPrompt(List<ChatMessage> messages) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("""
+                You are a helpful assistant. The following is a conversation history. Please respond to the user's latest question based on the provided context.
+
+                """);
+
+        for (ChatMessage message : messages) {
+            if (message instanceof dev.langchain4j.data.message.SystemMessage) {
+                promptBuilder.append("System: ").append(message.text()).append("\n");
+            } else if (message instanceof dev.langchain4j.data.message.UserMessage) {
+                promptBuilder.append("User: ").append(message.text()).append("\n");
+            } else if (message instanceof dev.langchain4j.data.message.AiMessage) {
+                promptBuilder.append("Assistant: ").append(message.text()).append("\n");
+            } else {
+                promptBuilder.append(message.text()).append("\n");
+            }
+        }
+        promptBuilder.append("\nAssistant: ");
+        return promptBuilder.toString();
     }
 
     private String imageUrlToBase64(String imageUrl) throws IOException {
@@ -211,7 +235,6 @@ public class OllamaClient {
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public List<String> listModels() {
-        log.debug("Fetching available models from Ollama");
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/tags");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -251,7 +274,6 @@ public class OllamaClient {
 
     public void removeFromCache(String modelName) {
         modelCache.remove(modelName);
-        log.debug("Removed model from cache: {}", modelName);
     }
 
     public int getCacheSize() {

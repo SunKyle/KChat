@@ -19,6 +19,7 @@ export interface ChatRequest {
   message: string;
   model?: string;
   imageUrls?: string[];
+  userId?: string;
 }
 
 export interface ChatResponse {

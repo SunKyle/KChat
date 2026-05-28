@@ -2,8 +2,7 @@ package com.example.app.memory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.data.message.ChatMessage;import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +29,16 @@ public class ShortTermMemory {
     private static final Duration EXPIRATION = Duration.ofHours(24);
 
     public ChatMemory getMemory(String conversationId) {
+        log.info("[ShortTermMemory] Getting memory for conversation: {}", conversationId);
+        
+        // 优先从内存缓存获取
+        ChatMemory cachedMemory = memoryMap.get(conversationId);
+        if (cachedMemory != null) {
+            log.info("[ShortTermMemory] Found cached memory for conversation: {}", conversationId);
+            return cachedMemory;
+        }
+
+        // 从Redis加载
         try {
             String key = REDIS_KEY_PREFIX + conversationId;
             String json = stringRedisTemplate.opsForValue().get(key);
@@ -44,18 +53,24 @@ public class ShortTermMemory {
                         for (ChatMessage msg : messages) {
                             memory.add(msg);
                         }
-                        log.debug("Loaded {} messages from Redis for conversation: {}", 
+                        log.info("[ShortTermMemory] Loaded {} messages from Redis for conversation: {}", 
                                 messages.size(), conversationId);
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to deserialize memory from Redis for conversation {}: {}", 
+                    log.warn("[ShortTermMemory] Failed to deserialize memory from Redis for conversation {}: {}", 
                             conversationId, e.getMessage());
                 }
             }
             
-            return new RedisBackedChatMemory(memory, stringRedisTemplate, objectMapper, key, conversationId);
+            // 创建包装类，自动持久化
+            RedisBackedChatMemory backedMemory = new RedisBackedChatMemory(memory, stringRedisTemplate, objectMapper, key, conversationId);
+            
+            // 存入内存缓存
+            memoryMap.put(conversationId, backedMemory);
+            
+            return backedMemory;
         } catch (Exception e) {
-            log.warn("Redis unavailable, falling back to in-memory storage: {}", e.getMessage());
+            log.warn("[ShortTermMemory] Redis unavailable, falling back to in-memory storage: {}", e.getMessage());
             return memoryMap.computeIfAbsent(conversationId, id -> MessageWindowChatMemory.withMaxMessages(20));
         }
     }
@@ -66,7 +81,7 @@ public class ShortTermMemory {
             String key = REDIS_KEY_PREFIX + conversationId;
             stringRedisTemplate.delete(key);
         } catch (Exception e) {
-            log.debug("Failed to clear memory from Redis: {}", e.getMessage());
+            log.debug("[ShortTermMemory] Failed to clear memory from Redis: {}", e.getMessage());
         }
     }
 
@@ -78,7 +93,7 @@ public class ShortTermMemory {
                 stringRedisTemplate.delete(keys);
             }
         } catch (Exception e) {
-            log.debug("Failed to clear all memory from Redis: {}", e.getMessage());
+            log.debug("[ShortTermMemory] Failed to clear all memory from Redis: {}", e.getMessage());
         }
     }
 
@@ -116,7 +131,7 @@ public class ShortTermMemory {
             try {
                 redisTemplate.delete(key);
             } catch (Exception e) {
-                log.debug("Failed to clear Redis memory: {}", e.getMessage());
+                log.debug("[ShortTermMemory] Failed to clear Redis memory: {}", e.getMessage());
             }
         }
 
@@ -130,8 +145,10 @@ public class ShortTermMemory {
                 List<ChatMessage> messages = delegate.messages();
                 String json = objectMapper.writeValueAsString(messages);
                 redisTemplate.opsForValue().set(key, json, EXPIRATION);
+                log.debug("[ShortTermMemory] Persisted {} messages to Redis for conversation: {}", 
+                        messages.size(), conversationId);
             } catch (Exception e) {
-                log.debug("Failed to persist memory to Redis: {}", e.getMessage());
+                log.debug("[ShortTermMemory] Failed to persist memory to Redis: {}", e.getMessage());
             }
         }
     }
