@@ -1,6 +1,7 @@
 package com.example.app.memory;
 
 import com.example.app.entity.LongTermMemory;
+import com.example.app.entity.LongTermMemory.MemoryType;
 import com.example.app.repository.LongTermMemoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -18,12 +18,21 @@ public class LongTermMemoryManager {
     private final LongTermMemoryRepository repository;
 
     public void store(String userId, String content) {
-        store(userId, content, "default");
+        store(userId, content, MemoryType.KNOWLEDGE);
     }
 
     public void store(String userId, String content, String type) {
+        MemoryType memoryType;
+        try {
+            memoryType = MemoryType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            memoryType = MemoryType.KNOWLEDGE;
+        }
+        store(userId, content, memoryType);
+    }
+
+    public void store(String userId, String content, MemoryType type) {
         LongTermMemory memory = LongTermMemory.builder()
-                .id(UUID.randomUUID().toString())
                 .userId(userId)
                 .content(content)
                 .type(type)
@@ -42,7 +51,13 @@ public class LongTermMemoryManager {
     }
 
     public List<String> retrieve(String userId, String type) {
-        List<LongTermMemory> memories = repository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type);
+        MemoryType memoryType;
+        try {
+            memoryType = MemoryType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
+        List<LongTermMemory> memories = repository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, memoryType);
         List<String> contents = new ArrayList<>();
         for (LongTermMemory memory : memories) {
             contents.add(memory.getContent());
@@ -50,7 +65,7 @@ public class LongTermMemoryManager {
         return contents;
     }
 
-    public void delete(String memoryId) {
+    public void delete(Long memoryId) {
         repository.deleteById(memoryId);
         log.debug("Deleted long-term memory: {}", memoryId);
     }

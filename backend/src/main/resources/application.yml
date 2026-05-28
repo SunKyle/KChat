@@ -53,3 +53,11 @@ resilience4j:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
+
+memory:
+  long-term:
+    enabled: true
+    max-recall: 5
+    min-importance: 4
+    similarity-threshold: 0.5
+    vector-dimension: 384
