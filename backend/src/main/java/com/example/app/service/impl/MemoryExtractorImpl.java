@@ -2,7 +2,6 @@ package com.example.app.service.impl;
 
 import com.example.app.config.MemoryExtractorConfig;
 import com.example.app.dto.MemoryDTO;
-import com.example.app.entity.LongTermMemory.MemoryType;
 import com.example.app.service.LongTermMemoryService;
 import com.example.app.service.MemoryExtractor;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,16 +18,34 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 记忆提取服务实现类，用于从对话中提取重要信息并保存为长期记忆
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MemoryExtractorImpl implements MemoryExtractor {
 
+    /**
+     * 聊天语言模型，用于AI对话处理
+     */
     private final ChatLanguageModel chatLanguageModel;
+    /**
+     * 长期记忆服务，用于保存和管理记忆
+     */
     private final LongTermMemoryService longTermMemoryService;
+    /**
+     * 对象映射器，用于JSON处理
+     */
     private final ObjectMapper objectMapper;
+    /**
+     * 记忆提取配置，包含提取规则和阈值设置
+     */
     private final MemoryExtractorConfig config;
 
+    /**
+     * 记忆提取的提示词模板，定义了提取规则和输出格式
+     */
     private static final String EXTRACTION_PROMPT = """
             你是一个记忆提取专家。请从以下对话中提取值得长期记忆的重要信息。
 
@@ -57,6 +74,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
             }
             """;
 
+    /**
+     * 从消息列表中提取记忆
+     *
+     * @param messages 聊天消息列表
+     * @return 提取的记忆结果列表
+     */
     @Override
     public List<MemoryExtractionResult> extract(List<ChatMessage> messages) {
         if (messages == null || messages.isEmpty()) {
@@ -79,6 +102,14 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         }
     }
 
+    /**
+     * 提取并保存记忆
+     *
+     * @param conversationId 对话ID
+     * @param messages       聊天消息列表
+     * @param userId         用户ID
+     * @return 保存的记忆数量
+     */
     @Override
     public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId) {
         log.info("[Memory Extract] Starting memory extraction - conversation: {}, user: {}, message count: {}",
@@ -147,6 +178,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         return toSave.size();
     }
 
+    /**
+     * 格式化对话内容
+     *
+     * @param messages 聊天消息列表
+     * @return 格式化后的对话文本
+     */
     private String formatConversation(List<ChatMessage> messages) {
         StringBuilder sb = new StringBuilder();
         for (ChatMessage message : messages) {
@@ -156,6 +193,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         return sb.toString();
     }
 
+    /**
+     * 解析提取结果
+     *
+     * @param response LLM返回的响应
+     * @return 解析后的记忆结果列表
+     */
     private List<MemoryExtractionResult> parseExtractionResult(String response) {
         try {
             String jsonContent = extractJson(response);
@@ -183,6 +226,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         }
     }
 
+    /**
+     * 从响应中提取JSON内容
+     *
+     * @param response LLM返回的响应
+     * @return JSON字符串
+     */
     private String extractJson(String response) {
         int start = response.indexOf("{");
         int end = response.lastIndexOf("}");
@@ -194,6 +243,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         return response.substring(start, end + 1);
     }
 
+    /**
+     * 解析单个记忆项
+     *
+     * @param item 记忆项的Map表示
+     * @return 记忆结果对象
+     */
     private MemoryExtractionResult parseMemoryItem(Map<String, Object> item) {
         try {
             String content = (String) item.get("content");
@@ -217,6 +272,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         }
     }
 
+    /**
+     * 备用提取方法，当LLM提取失败时使用规则提取
+     *
+     * @param messages 聊天消息列表
+     * @return 提取的记忆结果列表
+     */
     private List<MemoryExtractionResult> extractFallback(List<ChatMessage> messages) {
         List<MemoryExtractionResult> results = new ArrayList<>();
 
@@ -233,6 +294,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         return results;
     }
 
+    /**
+     * 从文本中提取记忆
+     *
+     * @param text 输入文本
+     * @return 提取的记忆结果列表
+     */
     private List<MemoryExtractionResult> extractFromText(String text) {
         List<MemoryExtractionResult> results = new ArrayList<>();
 
@@ -262,6 +329,12 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         return results;
     }
 
+    /**
+     * 规范化记忆内容
+     *
+     * @param content 原始内容
+     * @return 规范化后的内容
+     */
     private String normalizeContent(String content) {
         return content.trim().toLowerCase().replaceAll("\\s+", " ");
     }

@@ -13,27 +13,39 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * 流式响应服务类，用于处理和流式返回AI模型的响应
+ * 该服务负责管理对话、内存、消息持久化，并与不同的AI客户端集成
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class StreamingService {
 
-    private final OllamaClient ollamaClient;
-    private final OpenAICompatibleClient openAICompatibleClient;
-    private final ModelConfigService modelConfigService;
-    private final MemoryService memoryService;
-    private final MessagePersistenceService messagePersistenceService;
-    private final ConversationService conversationService;
-    private final ExecutorService executorService;
-    private final PromptAssembler promptAssembler;
-    private final AutoMemoryExtractor autoMemoryExtractor;
 
+    // 注入所需的客户端和服务
+    private final OllamaClient ollamaClient;  // Ollama AI客户端
+    private final OpenAICompatibleClient openAICompatibleClient;  // OpenAI兼容客户端
+    private final ModelConfigService modelConfigService;  // 模型配置服务
+    private final MemoryService memoryService;  // 内存管理服务
+    private final MessagePersistenceService messagePersistenceService;  // 消息持久化服务
+    private final ConversationService conversationService;  // 对话管理服务
+    private final ExecutorService executorService;  // 线程池执行服务
+    private final PromptAssembler promptAssembler;  // 提示词组装服务
+    private final AutoMemoryExtractor autoMemoryExtractor;  // 自动记忆提取服务
+
+    /**
+     * 流式处理聊天请求并返回SSE响应
+     *
+     * @param request 包含用户消息、对话ID、模型等信息的聊天请求
+     * @return SseEmitter 用于流式发送响应的发射器
+     */
     public SseEmitter streamResponse(ChatRequest request) {
+        // 记录请求开始时间
         long startTime = System.currentTimeMillis();
         SseEmitter emitter = new SseEmitter(300000L);
 
@@ -84,7 +96,7 @@ public class StreamingService {
 
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
-            final boolean[] completed = { false };
+            final boolean[] completed = {false};
 
             try {
                 long llmStartTime = System.currentTimeMillis();
