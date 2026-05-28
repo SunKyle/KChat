@@ -61,10 +61,10 @@ export interface ProviderInfo {
 }
 
 export const PROVIDERS: ProviderInfo[] = [
-  { type: 'OPENAI', displayName: 'OpenAI', icon: '⚡', color: 'bg-emerald-500', defaultBaseUrl: 'https://api.openai.com' },
-  { type: 'ANTHROPIC', displayName: 'Anthropic', icon: '🌐', color: 'bg-amber-500', defaultBaseUrl: 'https://api.anthropic.com' },
-  { type: 'GOOGLE', displayName: 'Google', icon: '🔷', color: 'bg-blue-500', defaultBaseUrl: 'https://generativelanguage.googleapis.com' },
-  { type: 'OLLAMA', displayName: 'Ollama', icon: '🦙', color: 'bg-purple-500', defaultBaseUrl: 'http://localhost:11434' },
-  { type: 'AZURE', displayName: 'Azure OpenAI', icon: '☁️', color: 'bg-sky-500', defaultBaseUrl: 'https://your-resource.openai.azure.com' },
-  { type: 'CUSTOM', displayName: '自定义', icon: '⚙️', color: 'bg-gray-500' },
+  { type: 'OPENAI', displayName: 'OpenAI', icon: '🧠', color: 'bg-green-500', defaultBaseUrl: 'https://api.openai.com' },
+  { type: 'ANTHROPIC', displayName: 'Anthropic', icon: '🔮', color: 'bg-yellow-500', defaultBaseUrl: 'https://api.anthropic.com' },
+  { type: 'GOOGLE', displayName: 'Google', icon: '🌐', color: 'bg-blue-600', defaultBaseUrl: 'https://generativelanguage.googleapis.com' },
+  { type: 'OLLAMA', displayName: 'Ollama', icon: '🦙', color: 'bg-purple-600', defaultBaseUrl: 'http://localhost:11434' },
+  { type: 'AZURE', displayName: 'Azure OpenAI', icon: '☁️', color: 'bg-blue-500', defaultBaseUrl: 'https://your-resource.openai.azure.com' },
+  { type: 'CUSTOM', displayName: '自定义', icon: '🔧', color: 'bg-gray-600' },
 ];
