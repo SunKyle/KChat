@@ -5,6 +5,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -82,18 +83,83 @@ public class VectorStoreWrapper {
                 try {
                     Long memoryId = Long.parseLong(obj.toString());
                     String key = KEY_PREFIX + userId + ":" + memoryId;
-                    Object vectorObj = redisTemplate.opsForValue().get(key);
+                    Object vectorObj = null;
 
+                    try {
+                        vectorObj = redisTemplate.opsForValue().get(key);
+                    } catch (Exception e) {
+                        log.warn("[Memory Retrieve] Failed to deserialize embedding for memory {}: {}",
+                                memoryId, e.getMessage());
+                        log.warn("[Memory Retrieve] Trying string-based retrieval for memory {}", memoryId);
+                        vectorObj = redisTemplate.execute((RedisCallback<String>) connection -> {
+                            byte[] value = connection.get(key.getBytes());
+                            return value != null ? new String(value) : null;
+                        });
+                    }
+
+                    if (vectorObj == null) {
+                        log.warn("[Memory Retrieve] Embedding not found for memory {} (user: {})", memoryId, userId);
+                        redisTemplate.opsForSet().remove(indexKey, memoryId.toString());
+                        continue;
+                    }
+
+                    float[] vector = null;
                     if (vectorObj instanceof float[]) {
-                        float[] vector = (float[]) vectorObj;
-                        double similarity = cosineSimilarity(queryVector, vector);
-                        log.debug("[Memory Retrieve] Memory {} similarity: {}", memoryId, similarity);
-                        if (similarity >= vectorStoreConfig.getSimilarityThreshold()) {
-                            scoredMemories.add(new ScoredMemory(memoryId, similarity));
+                        vector = (float[]) vectorObj;
+                    } else if (vectorObj instanceof double[]) {
+                        double[] doubleVector = (double[]) vectorObj;
+                        vector = new float[doubleVector.length];
+                        for (int i = 0; i < doubleVector.length; i++) {
+                            vector[i] = (float) doubleVector[i];
                         }
+                    } else if (vectorObj instanceof List<?>) {
+                        List<?> list = (List<?>) vectorObj;
+                        vector = new float[list.size()];
+                        boolean valid = true;
+                        for (int i = 0; i < list.size(); i++) {
+                            Object item = list.get(i);
+                            if (item instanceof Number) {
+                                vector[i] = ((Number) item).floatValue();
+                            } else {
+                                log.warn("[Memory Retrieve] Invalid element type in vector for memory {}: {}",
+                                        memoryId, item.getClass().getName());
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (!valid) {
+                            redisTemplate.delete(key);
+                            redisTemplate.opsForSet().remove(indexKey, memoryId.toString());
+                            continue;
+                        }
+                    } else if (vectorObj instanceof String) {
+                        String jsonString = (String) vectorObj;
+                        try {
+                            vector = parseJsonArray(jsonString);
+                        } catch (Exception e) {
+                            log.warn("[Memory Retrieve] Failed to parse JSON string for memory {}: {}",
+                                    memoryId, e.getMessage());
+                            redisTemplate.delete(key);
+                            redisTemplate.opsForSet().remove(indexKey, memoryId.toString());
+                            continue;
+                        }
+                    } else {
+                        log.warn("[Memory Retrieve] Unsupported vector type for memory {}: {}",
+                                memoryId, vectorObj.getClass().getName());
+                        redisTemplate.delete(key);
+                        redisTemplate.opsForSet().remove(indexKey, memoryId.toString());
+                        continue;
+                    }
+
+                    double similarity = cosineSimilarity(queryVector, vector);
+                    log.debug("[Memory Retrieve] Memory {} similarity: {}", memoryId, similarity);
+                    if (similarity >= vectorStoreConfig.getSimilarityThreshold()) {
+                        scoredMemories.add(new ScoredMemory(memoryId, similarity));
                     }
                 } catch (NumberFormatException e) {
                     log.warn("[Memory Retrieve] Invalid memory ID format: {}", obj);
+                } catch (Exception e) {
+                    log.warn("[Memory Retrieve] Failed to process memory embedding: {}", e.getMessage());
                 }
             }
 
@@ -129,6 +195,23 @@ public class VectorStoreWrapper {
         if (normA == 0 || normB == 0)
             return 0.0;
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    private float[] parseJsonArray(String jsonString) {
+        String clean = jsonString.trim();
+        if (clean.startsWith("[")) {
+            clean = clean.substring(1);
+        }
+        if (clean.endsWith("]")) {
+            clean = clean.substring(0, clean.length() - 1);
+        }
+
+        String[] parts = clean.split(",");
+        float[] result = new float[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            result[i] = Float.parseFloat(parts[i].trim());
+        }
+        return result;
     }
 
     public void remove(String userId, Long memoryId) {

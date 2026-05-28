@@ -68,3 +68,13 @@ memory:
     min-importance: 3
     idle-timeout-minutes: 10
     auto-extract-enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.example.app: DEBUG
+    com.example.app.service: DEBUG
+    com.example.app.controller: DEBUG
+    org.hibernate.SQL: WARN
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'

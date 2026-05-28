@@ -205,7 +205,8 @@ public class MemoryExtractorImpl implements MemoryExtractor {
                     ? ((Number) item.get("confidence")).doubleValue()
                     : 0.5;
 
-            if (content == null || type == null) {
+            if (content == null || content.trim().isEmpty() || type == null) {
+                log.warn("[Memory Extract] Skipping memory item with empty content");
                 return null;
             }
 

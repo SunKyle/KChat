@@ -22,6 +22,7 @@ public class LongTermMemoryService {
 
     private final LongTermMemoryRepository repository;
     private final VectorStoreWrapper vectorStoreWrapper;
+    private final com.example.app.config.VectorStoreConfig vectorStoreConfig;
 
     @Transactional
     public MemoryDTO save(MemoryDTO dto) {
@@ -33,12 +34,12 @@ public class LongTermMemoryService {
                 .build();
 
         entity = repository.save(entity);
-        
+
         vectorStoreWrapper.add(dto.getUserId(), dto.getContent(), entity.getId());
-        
-        log.info("Saved long-term memory: id={}, userId={}, type={}", 
+
+        log.info("Saved long-term memory: id={}, userId={}, type={}",
                 entity.getId(), entity.getUserId(), entity.getType());
-        
+
         return MemoryDTO.fromEntity(entity);
     }
 
@@ -99,14 +100,17 @@ public class LongTermMemoryService {
     @Transactional(readOnly = true)
     public List<MemoryDTO> recall(String userId, String query, int topK) {
         List<Long> memoryIds = vectorStoreWrapper.search(userId, query, topK);
-        
+
         if (memoryIds.isEmpty()) {
             return new ArrayList<>();
         }
 
+        int minImportance = vectorStoreConfig.getMinImportance();
+        log.info("[Memory Recall] Using min importance threshold: {}", minImportance);
+
         return repository.findAllById(memoryIds).stream()
                 .filter(m -> m.getUserId().equals(userId))
-                .filter(m -> m.getImportance() >= 4)
+                .filter(m -> m.getImportance() >= minImportance)
                 .map(MemoryDTO::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -114,7 +118,7 @@ public class LongTermMemoryService {
     @Transactional(readOnly = true)
     public List<MemoryDTO> recall(String userId, String query, int topK, List<String> types) {
         List<MemoryDTO> allResults = recall(userId, query, topK);
-        
+
         if (types == null || types.isEmpty()) {
             return allResults;
         }

@@ -22,6 +22,9 @@ public class VectorStoreConfig {
     @Value("${memory.long-term.similarity-threshold:0.5}")
     private double similarityThreshold;
 
+    @Value("${memory.long-term.min-importance:3}")
+    private int minImportance;
+
     @Bean
     public EmbeddingModel embeddingModel() {
         return new EmbeddingModel() {
@@ -48,9 +51,13 @@ public class VectorStoreConfig {
 
     public double getSimilarityThreshold() {
         return similarityThreshold;
-}
+    }
 
-public int getVectorDimension() {
+    public int getVectorDimension() {
         return vectorDimension;
+    }
+
+    public int getMinImportance() {
+        return minImportance;
     }
 }
