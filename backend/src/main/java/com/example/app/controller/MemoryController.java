@@ -3,6 +3,7 @@ package com.example.app.controller;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.MemoryRecallRequest;
 import com.example.app.entity.LongTermMemory.MemoryType;
+import com.example.app.service.LongTermMemoryService;
 import com.example.app.service.MemoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class MemoryController {
 
     private final MemoryService memoryService;
+    private final LongTermMemoryService longTermMemoryService;
 
     @GetMapping
     public ResponseEntity<List<MemoryDTO>> getMemories(@RequestParam String userId) {
@@ -39,13 +41,11 @@ public class MemoryController {
 }
 
 @GetMapping("/{id}")
-    public ResponseEntity<MemoryDTO> getMemoryById(@PathVariable Long id) {
-        return memoryService.getAllLongTermMemory("").stream()
-                .filter(m -> m.getId().equals(id))
-                .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+public ResponseEntity<MemoryDTO> getMemoryById(@PathVariable Long id) {
+    return longTermMemoryService.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
 
     @PostMapping
     public ResponseEntity<MemoryDTO> createMemory(@RequestBody MemoryDTO request) {

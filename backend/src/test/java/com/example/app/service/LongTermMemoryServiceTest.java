@@ -3,6 +3,7 @@ package com.example.app.service;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.entity.LongTermMemory;
 import com.example.app.entity.LongTermMemory.MemoryType;
+import com.example.app.memory.VectorStoreWrapper;
 import com.example.app.repository.LongTermMemoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,11 +1,11 @@
 package com.example.app.controller;
 
-import com.example.app.client.OllamaClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.ConversationDTO;
 import com.example.app.service.ChatService;
 import com.example.app.service.ConversationService;
+import com.example.app.service.ModelConfigService;
 import com.example.app.service.StreamingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ChatController {
     private final ChatService chatService;
     private final StreamingService streamingService;
     private final ConversationService conversationService;
-    private final OllamaClient ollamaClient;
+    private final ModelConfigService modelConfigService;
 
     /**
      * 创建新对话
@@ -128,7 +128,7 @@ public class ChatController {
      */
     @GetMapping("/models")
     public ResponseEntity<List<String>> listModels() {
-        List<String> models = ollamaClient.listModels();
+        List<String> models = modelConfigService.listModels();
         return ResponseEntity.ok(models);
     }
 

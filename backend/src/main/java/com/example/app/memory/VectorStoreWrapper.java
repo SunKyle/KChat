@@ -1,4 +1,4 @@
-package com.example.app.service;
+package com.example.app.memory;
 
 import com.example.app.config.VectorStoreConfig;
 import dev.langchain4j.data.embedding.Embedding;

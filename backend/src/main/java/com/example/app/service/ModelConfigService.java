@@ -1,5 +1,6 @@
 package com.example.app.service;
 
+import com.example.app.client.OllamaClient;
 import com.example.app.dto.ModelConfigDTO;
 import com.example.app.entity.ModelConfig;
 import com.example.app.repository.ModelConfigRepository;
@@ -8,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +19,7 @@ import java.util.List;
 public class ModelConfigService {
 
     private final ModelConfigRepository modelConfigRepository;
+    private final OllamaClient ollamaClient;
 
     @Transactional(readOnly = true)
     public List<ModelConfig> getAllEnabledConfigs() {
@@ -75,6 +79,20 @@ public class ModelConfigService {
     @Transactional(readOnly = true)
     public List<ModelConfig.ModelType> getAllTypes() {
         return java.util.Arrays.asList(ModelConfig.ModelType.values());
+    }
+
+    public List<String> listModels() {
+        List<String> models = new ArrayList<>();
+
+        List<String> ollamaModels = ollamaClient.listModels();
+        models.addAll(ollamaModels);
+
+        List<ModelConfig> enabledConfigs = modelConfigRepository.findByEnabledTrue();
+        for (ModelConfig config : enabledConfigs) {
+            models.add(config.getName() + ":" + config.getModelId());
+        }
+
+        return models;
     }
 
     private ModelConfig.ModelType parseModelType(String type) {

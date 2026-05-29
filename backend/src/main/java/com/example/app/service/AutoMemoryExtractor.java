@@ -23,7 +23,7 @@ import java.util.List;
 public class AutoMemoryExtractor {
 
     private final MemoryExtractor memoryExtractor;
-    private final MemoryService memoryService;
+    private final ShortTermMemoryService shortTermMemoryService;
     private final ConversationMessageCounter messageCounter;
     private final MemoryExtractorConfig config;
 
@@ -35,7 +35,7 @@ public class AutoMemoryExtractor {
      * 2. 降低响应延迟：建议调用方在异步线程中执行此方法
      *
      * @param conversationId 对话 ID
-     * @param userId 用户 ID
+     * @param userId         用户 ID
      * @return 提取的记忆数量，未触发提取返回 0
      */
     public int tryExtract(String conversationId, String userId) {
@@ -63,12 +63,12 @@ public class AutoMemoryExtractor {
      * - 记录错误日志便于排查
      *
      * @param conversationId 对话 ID
-     * @param userId 用户 ID
+     * @param userId         用户 ID
      * @return 保存的记忆数量
      */
     public int extractAndSave(String conversationId, String userId) {
         try {
-            List<ChatMessage> messages = memoryService.getMemoryContext(conversationId);
+            List<ChatMessage> messages = shortTermMemoryService.getMemoryContext(conversationId);
             return memoryExtractor.extractAndSave(conversationId, messages, userId);
         } catch (Exception e) {
             log.error("Critical failure during memory extraction for user {}: {}", userId, e.getMessage());
