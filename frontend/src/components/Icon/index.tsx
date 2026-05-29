@@ -1,5 +1,14 @@
-import * as Icons from 'lucide-react';
-import { createContext, useContext, forwardRef } from 'react';
+import {
+  Menu, X, ChevronDown, PanelLeftClose, PanelLeft,
+  Plus, Edit2, Trash2, Save, Copy, Download,
+  Search, Star, Filter, Database, Code, Image, Paperclip,
+  Check, AlertCircle, Sparkles, ZoomIn,
+  MessageSquare, MessageCircle, Send, Bot, User,
+  ArrowDown, RotateCcw, BookOpen, FileText, CheckCircle, Heart, Lightbulb,
+  Cpu, BrainCircuit, Pencil, Square
+} from 'lucide-react';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 
 export interface IconTheme {
   size: number;
@@ -9,7 +18,7 @@ export interface IconTheme {
 
 export interface IconProviderProps {
   theme?: Partial<IconTheme>;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const defaultTheme: IconTheme = {
@@ -29,43 +38,47 @@ export function IconProvider({ theme, children }: IconProviderProps) {
   );
 }
 
-export type IconName = keyof typeof Icons;
+const IconMap: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string; style?: React.CSSProperties }>> = {
+  Menu, X, ChevronDown, PanelLeftClose, PanelLeft,
+  Plus, Edit2, Trash2, Save, Copy, Download,
+  Search, Star, Filter, Database, Code, Image, Paperclip,
+  Check, AlertCircle, Sparkles, ZoomIn,
+  MessageSquare, MessageCircle, Send, Bot, User,
+  ArrowDown, RotateCcw, BookOpen, FileText, CheckCircle, Heart, Lightbulb,
+  Cpu, BrainCircuit, Pencil, Square
+};
 
-export interface IconProps extends React.SVGProps<SVGSVGElement> {
+export type IconName = keyof typeof IconMap;
+
+export interface IconProps {
   name: IconName;
   size?: number;
   strokeWidth?: number;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export const Icon = forwardRef<SVGSVGElement, IconProps>(
-  ({ name, size, strokeWidth, className, style, ...props }, ref) => {
-    const theme = useContext(IconThemeContext);
-    const IconComponent = Icons[name];
-    
-    if (!IconComponent) {
-      console.warn(`Icon "${name}" not found in lucide-react`);
-      return null;
-    }
-
-    const computedSize = size ?? theme.size;
-    const computedStrokeWidth = strokeWidth ?? theme.strokeWidth;
-
-    return (
-      <IconComponent
-        ref={ref}
-        size={computedSize}
-        strokeWidth={computedStrokeWidth}
-        className={className}
-        style={{
-          color: theme.color,
-          ...style,
-        }}
-        {...props}
-      />
-    );
+export function Icon({ name, size, strokeWidth, className, style }: IconProps) {
+  const theme = useContext(IconThemeContext);
+  const IconComponent = IconMap[name];
+  
+  if (!IconComponent) {
+    console.warn(`Icon "${name}" not found`);
+    return null;
   }
-);
 
-Icon.displayName = 'Icon';
+  const computedSize = size ?? theme.size;
+  const computedStrokeWidth = strokeWidth ?? theme.strokeWidth;
 
-export { Icons };
+  return (
+    <IconComponent
+      size={computedSize}
+      strokeWidth={computedStrokeWidth}
+      className={className}
+      style={{
+        color: theme.color,
+        ...style,
+      }}
+    />
+  );
+}
