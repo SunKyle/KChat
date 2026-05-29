@@ -6,7 +6,7 @@ import {
   PanelLeft,
   BookOpen,
   Settings,
-  ChevronDown,
+  User,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { ConversationItem } from './ConversationItem'
@@ -211,25 +211,27 @@ export function Sidebar({
       </div>
 
       <div
-        className={`p-4 border-t border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
+        className={`p-3 border-t border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
         <div className="relative w-full">
           <button
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className={`w-full flex items-center gap-3 ${collapsed ? 'justify-center' : ''} hover:bg-white/5 rounded-lg p-1 -m-1 transition-colors`}
+            className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} hover:bg-white/5 rounded-lg p-1 -m-1 transition-colors`}
           >
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0" />
+            <div className="w-7 h-7 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center">
+              <User className="w-4 h-4 text-slate-400" />
+            </div>
             {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-slate-300 truncate">
+              <div className="flex-1 min-w-0 space-y-0.5 text-left">
+                <p className="text-xs font-medium text-slate-300 truncate leading-tight">
                   Sun Xiaokai
                 </p>
-                <p className="text-[10px] text-slate-500 truncate">
+                <p className="text-[10px] text-slate-500 truncate leading-tight">
                   Premium Plan
                 </p>
               </div>
             )}
-            {!collapsed && <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />}
+            
           </button>
 
           {isUserMenuOpen && (
