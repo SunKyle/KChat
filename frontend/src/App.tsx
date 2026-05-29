@@ -112,19 +112,32 @@ function AppContent() {
         type="danger"
       />
 
-      {/* 模型设置页面 */}
+      {/* 模型设置弹窗 */}
       {showModelSettings && (
-        <div className="fixed inset-0 bg-[#0F172A] z-50 overflow-y-auto">
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <h1 className="text-xl font-semibold text-[#E5E7EB]">模型设置</h1>
-            <button
-              onClick={() => setShowModelSettings(false)}
-              className="p-2 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <XIcon className="w-5 h-5" />
-            </button>
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowModelSettings(false)}
+        >
+          <div
+            className="w-full max-w-4xl max-h-[90vh] bg-[#1E293B] rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+                <span className="w-1 h-6 bg-purple-500 rounded-full" />
+                添加自定义模型
+              </h2>
+              <button
+                onClick={() => setShowModelSettings(false)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <XIcon className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <ModelSettings />
+            </div>
           </div>
-          <ModelSettings />
         </div>
       )}
 
