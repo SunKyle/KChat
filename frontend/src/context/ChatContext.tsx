@@ -286,16 +286,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadModels = useCallback(async () => {
     try {
-      const [ollamaModels, customConfigs] = await Promise.all([
-        api.models.list(),
-        api.modelConfigs.list(),
-      ])
-
-      const customModels = customConfigs
-        .filter((config) => config.enabled)
-        .map((config) => `${config.name}:${config.modelId}`)
-
-      const allModels = [...ollamaModels, ...customModels]
+      const allModels = await api.models.list()
 
       if (allModels.length > 0) {
         dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
