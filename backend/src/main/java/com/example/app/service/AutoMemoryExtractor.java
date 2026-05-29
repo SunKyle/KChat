@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 自动化记忆提取服务。
- * 将非结构化的对话历史转化为结构化的长期记忆事实。
+ * 自动化记忆提取服务
+ *
+ * 核心职责：
+ * - 将非结构化的对话历史转化为结构化的长期记忆事实
+ * - 通过阈值控制平衡提取质量和 LLM 调用成本
+ * - 支持定时补提空闲对话的记忆
  */
 @Service
 @RequiredArgsConstructor
@@ -24,18 +28,21 @@ public class AutoMemoryExtractor {
     private final MemoryExtractorConfig config;
 
     /**
-     * 尝试提取记忆。
-     * <p>
-     * 设计考量：
-     * 1. 避免频繁调用 LLM 造成成本浪费 $\rightarrow$ 通过 messageCounter 实现基于消息数量的阈值触发。
-     * 2. 降低响应延迟 $\rightarrow$ 建议调用方在异步线程中执行此方法。
+     * 尝试提取记忆
+     *
+     * 设计考虑：
+     * 1. 避免频繁调用 LLM 造成成本浪费：通过 messageCounter 实现基于消息数量的阈值触发
+     * 2. 降低响应延迟：建议调用方在异步线程中执行此方法
+     *
+     * @param conversationId 对话 ID
+     * @param userId 用户 ID
+     * @return 提取的记忆数量，未触发提取返回 0
      */
     public int tryExtract(String conversationId, String userId) {
         if (!config.isEnabled() || !config.isAutoExtractEnabled()) {
             return 0;
         }
 
-        // 使用原子计数器/缓存计数器记录当前会话消息数，达到阈值后才触发 LLM 分析
         int messageCount = messageCounter.increment(conversationId);
 
         if (messageCount >= config.getMessageThreshold()) {
@@ -47,8 +54,17 @@ public class AutoMemoryExtractor {
     }
 
     /**
-     * 记忆提取核心逻辑。
-     * 流程：获取上下文 $\rightarrow$ LLM 总结事实 $\rightarrow$ 向量化存储。
+     * 记忆提取核心逻辑
+     *
+     * 流程：获取上下文 -> LLM 总结事实 -> 去重和筛选 -> 向量化存储
+     *
+     * 异常处理：
+     * - 捕获所有异常，保证不影响主对话流程
+     * - 记录错误日志便于排查
+     *
+     * @param conversationId 对话 ID
+     * @param userId 用户 ID
+     * @return 保存的记忆数量
      */
     public int extractAndSave(String conversationId, String userId) {
         try {
@@ -61,14 +77,20 @@ public class AutoMemoryExtractor {
     }
 
     /**
-     * 定时扫描空闲对话。
-     * 业务目的：对于长时间未活跃但未达到阈值的对话，在用户离开后补齐记忆提取，防止知识丢失。
+     * 定时扫描空闲对话
+     *
+     * 业务目的：
+     * 对于长时间未活跃但未达到阈值的对话，在用户离开后补齐记忆提取，防止知识丢失
+     *
+     * TODO: 实现空闲对话检索逻辑
+     * 技术债务：
+     * - 当前为占位实现，未实际执行任何操作
+     * - 需要实现：1. 查询空闲超过 idleTimeoutMinutes 的对话；2. 触发记忆提取
      */
     @Scheduled(fixedDelay = 60000)
     public void checkIdleConversations() {
         if (!config.isEnabled()) {
             return;
         }
-        // TODO: 实现空闲对话检索逻辑
     }
 }

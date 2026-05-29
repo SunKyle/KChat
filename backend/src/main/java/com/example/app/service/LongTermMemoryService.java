@@ -15,6 +15,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 长期记忆服务
+ *
+ * 核心职责：
+ * - 管理用户长期记忆的 CRUD 操作
+ * - 维护向量索引与数据库的一致性
+ * - 支持语义召回和类型过滤
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,6 +32,16 @@ public class LongTermMemoryService {
     private final VectorStoreWrapper vectorStoreWrapper;
     private final com.example.app.config.VectorStoreConfig vectorStoreConfig;
 
+    /**
+     * 保存单个记忆
+     *
+     * 事务一致性：
+     * - 数据库保存和向量索引添加在同一事务中
+     * - 任一失败都会回滚，保证数据一致性
+     *
+     * @param dto 记忆 DTO
+     * @return 保存后的记忆 DTO
+     */
     @Transactional
     public MemoryDTO save(MemoryDTO dto) {
         LongTermMemory entity = LongTermMemory.builder()
@@ -43,6 +61,19 @@ public class LongTermMemoryService {
         return MemoryDTO.fromEntity(entity);
     }
 
+    /**
+     * 批量保存记忆
+     *
+     * 性能优化：
+     * - 使用 saveAll 批量插入数据库
+     * - 使用 addBatch 批量添加向量索引
+     *
+     * 注意：
+     * - 假设所有记忆属于同一用户，取第一条的 userId 用于向量索引
+     *
+     * @param dtos 记忆 DTO 列表
+     * @return 保存后的记忆 DTO 列表
+     */
     @Transactional
     public List<MemoryDTO> saveAll(List<MemoryDTO> dtos) {
         List<LongTermMemory> entities = dtos.stream()
@@ -84,6 +115,16 @@ public class LongTermMemoryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 按用户和类型查找记忆
+     *
+     * 异常处理：
+     * - 无效的 type 字符串会被忽略，返回空列表
+     *
+     * @param userId 用户 ID
+     * @param type 记忆类型字符串
+     * @return 记忆列表
+     */
     @Transactional(readOnly = true)
     public List<MemoryDTO> findByUserIdAndType(String userId, String type) {
         try {
@@ -97,6 +138,19 @@ public class LongTermMemoryService {
         }
     }
 
+    /**
+     * 语义召回记忆
+     *
+     * 召回策略：
+     * 1. 基于向量相似度检索 topK 个记忆
+     * 2. 过滤非当前用户的记忆（防止数据泄漏）
+     * 3. 应用重要性阈值过滤低质量记忆
+     *
+     * @param userId 用户 ID
+     * @param query 查询文本
+     * @param topK 返回数量上限
+     * @return 相关记忆列表
+     */
     @Transactional(readOnly = true)
     public List<MemoryDTO> recall(String userId, String query, int topK) {
         List<Long> memoryIds = vectorStoreWrapper.search(userId, query, topK);
@@ -115,6 +169,15 @@ public class LongTermMemoryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 语义召回记忆（带类型过滤）
+     *
+     * @param userId 用户 ID
+     * @param query 查询文本
+     * @param topK 返回数量上限
+     * @param types 记忆类型白名单
+     * @return 相关记忆列表
+     */
     @Transactional(readOnly = true)
     public List<MemoryDTO> recall(String userId, String query, int topK, List<String> types) {
         List<MemoryDTO> allResults = recall(userId, query, topK);
@@ -139,6 +202,14 @@ public class LongTermMemoryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 删除记忆
+     *
+     * 一致性保证：
+     * - 同时删除数据库记录和向量索引
+     *
+     * @param id 记忆 ID
+     */
     @Transactional
     public void deleteById(Long id) {
         Optional<LongTermMemory> memory = repository.findById(id);
@@ -150,6 +221,15 @@ public class LongTermMemoryService {
         }
     }
 
+    /**
+     * 清理过期记忆
+     *
+     * 技术债务：
+     * - 仅清理数据库，向量索引中的过期数据未同步清理
+     * - 可能导致向量召回返回已过期的记忆 ID
+     *
+     * @return 删除的记忆数量
+     */
     @Transactional
     public int cleanExpired() {
         int deleted = repository.deleteByExpiresAtBefore(LocalDateTime.now());
