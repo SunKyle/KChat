@@ -29,8 +29,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LongTermMemoryService {
 
+    /**
+     * 长期记忆数据访问层
+     */
     private final LongTermMemoryRepository repository;
+
+    /**
+     * 向量存储封装器，负责向量索引的管理
+     */
     private final VectorStoreWrapper vectorStoreWrapper;
+
+    /**
+     * 向量存储配置，包含相似度阈值、最小重要性等参数
+     */
     private final com.example.app.config.VectorStoreConfig vectorStoreConfig;
 
     /**
@@ -123,7 +134,7 @@ public class LongTermMemoryService {
      * - 无效的 type 字符串会被忽略，返回空列表
      *
      * @param userId 用户 ID
-     * @param type 记忆类型字符串
+     * @param type   记忆类型字符串
      * @return 记忆列表
      */
     @Transactional(readOnly = true)
@@ -148,8 +159,8 @@ public class LongTermMemoryService {
      * 3. 应用重要性阈值过滤低质量记忆
      *
      * @param userId 用户 ID
-     * @param query 查询文本
-     * @param topK 返回数量上限
+     * @param query  查询文本
+     * @param topK   返回数量上限
      * @return 相关记忆列表
      */
     @Transactional(readOnly = true)
@@ -174,9 +185,9 @@ public class LongTermMemoryService {
      * 语义召回记忆（带类型过滤）
      *
      * @param userId 用户 ID
-     * @param query 查询文本
-     * @param topK 返回数量上限
-     * @param types 记忆类型白名单
+     * @param query  查询文本
+     * @param topK   返回数量上限
+     * @param types  记忆类型白名单
      * @return 相关记忆列表
      */
     @Transactional(readOnly = true)
@@ -255,5 +266,50 @@ public class LongTermMemoryService {
     @Transactional(readOnly = true)
     public int countByUserId(String userId) {
         return repository.countByUserId(userId);
+    }
+
+    public void store(String userId, String content) {
+        store(userId, content, MemoryType.KNOWLEDGE);
+    }
+
+    public void store(String userId, String content, String type) {
+        MemoryType memoryType;
+        try {
+            memoryType = MemoryType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            memoryType = MemoryType.KNOWLEDGE;
+        }
+        store(userId, content, memoryType);
+    }
+
+    public void store(String userId, String content, MemoryType type) {
+        LongTermMemory memory = LongTermMemory.builder()
+                .userId(userId)
+                .content(content)
+                .type(type)
+                .build();
+        repository.save(memory);
+        vectorStoreWrapper.add(userId, content, memory.getId());
+        log.debug("Stored long-term memory for user: {}", userId);
+    }
+
+    public List<String> retrieve(String userId) {
+        List<LongTermMemory> memories = repository.findByUserIdOrderByCreatedAtDesc(userId);
+        return memories.stream()
+                .map(LongTermMemory::getContent)
+                .toList();
+    }
+
+    public List<String> retrieve(String userId, String type) {
+        MemoryType memoryType;
+        try {
+            memoryType = MemoryType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
+        List<LongTermMemory> memories = repository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, memoryType);
+        return memories.stream()
+                .map(LongTermMemory::getContent)
+                .toList();
     }
 }

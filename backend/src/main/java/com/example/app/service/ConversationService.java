@@ -1,4 +1,3 @@
-
 package com.example.app.service;
 
 import com.example.app.dto.ConversationDTO;
@@ -16,15 +15,47 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * 对话服务，负责对话的 CRUD 操作
+ * 
+ * <功能说明>
+ * - 核心职责：管理对话的创建、查询、更新、删除
+ * - 设计模式：标准服务模式，封装数据访问逻辑
+ * - 依赖关系：依赖 ConversationRepository、MessageRepository、ShortTermMemoryService
+ * 
+ * <使用场景>
+ * - 创建新对话
+ * - 获取对话列表
+ * - 获取对话详情（包含消息）
+ * - 更新对话标题
+ * - 删除对话（级联删除消息和记忆）
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ConversationService {
 
+    /**
+     * 对话数据访问层
+     */
     private final ConversationRepository conversationRepository;
-    private final MessageRepository messageRepository;
-    private final MemoryService memoryService;
 
+    /**
+     * 消息数据访问层
+     */
+    private final MessageRepository messageRepository;
+
+    /**
+     * 短期记忆服务，用于删除对话时清理记忆
+     */
+    private final ShortTermMemoryService shortTermMemoryService;
+
+    /**
+     * 创建新对话
+     * 
+     * @param title 对话标题，为空时使用默认值"新对话"
+     * @return 创建的对话 DTO
+     */
     @Transactional
     public ConversationDTO createConversation(String title) {
         String conversationId = UUID.randomUUID().toString();
@@ -37,6 +68,11 @@ public class ConversationService {
         return ConversationDTO.fromEntity(conversation);
     }
 
+    /**
+     * 获取对话列表，按更新时间降序排列
+     * 
+     * @return 对话列表
+     */
     @Transactional(readOnly = true)
     public List<ConversationDTO> listConversations() {
         return conversationRepository.findAllByOrderByUpdatedAtDesc().stream()
@@ -44,6 +80,12 @@ public class ConversationService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 获取单个对话详情，包含消息列表
+     * 
+     * @param id 对话 ID
+     * @return 对话详情，包含消息列表；如果不存在返回 null
+     */
     @Transactional(readOnly = true)
     public ConversationDTO getConversation(String id) {
         return conversationRepository.findById(id)
@@ -57,6 +99,13 @@ public class ConversationService {
                 .orElse(null);
     }
 
+    /**
+     * 更新对话标题
+     * 
+     * @param id 对话 ID
+     * @param title 新标题
+     * @return 更新后的对话；如果不存在返回 null
+     */
     @Transactional
     public ConversationDTO updateConversation(String id, String title) {
         return conversationRepository.findById(id)
@@ -71,18 +120,35 @@ public class ConversationService {
                 .orElse(null);
     }
 
+    /**
+     * 删除对话
+     * 
+     * 级联操作：
+     * 1. 删除对话记录
+     * 2. 删除关联的消息记录
+     * 3. 清理短期记忆
+     * 
+     * @param id 对话 ID
+     * @return 删除成功返回 true，不存在返回 false
+     */
     @Transactional
     public boolean deleteConversation(String id) {
         if (conversationRepository.existsById(id)) {
             conversationRepository.deleteById(id);
             messageRepository.deleteByConversationId(id);
-            memoryService.clearMemory(id);
+            shortTermMemoryService.clearMemory(id);
             log.info("Deleted conversation: {}", id);
             return true;
         }
         return false;
     }
 
+    /**
+     * 检查对话是否存在
+     * 
+     * @param id 对话 ID
+     * @return 存在返回 true，不存在返回 false
+     */
     @Transactional(readOnly = true)
     public boolean existsById(String id) {
         return conversationRepository.existsById(id);

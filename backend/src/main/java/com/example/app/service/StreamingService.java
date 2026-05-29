@@ -16,19 +16,73 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * 流式响应服务，负责处理 SSE 流式消息传输
+ * 
+ * <功能说明>
+ * - 核心职责：处理流式聊天请求，支持 Ollama 本地模型和自定义模型
+ * - 设计模式：异步处理模式，使用 ExecutorService 异步处理请求
+ * - 依赖关系：依赖 OllamaClient、OpenAICompatibleClient、ModelConfigService、ChatWorkflowService、MessagePersistenceService、AutoMemoryExtractor、ExecutorService
+ * 
+ * <支持的模型类型>
+ * - Ollama 本地模型：通过 OllamaClient 调用
+ * - 自定义模型：通过 OpenAICompatibleClient 调用，支持文本和图像生成
+ * 
+ * <执行流程>
+ * 1. 创建 SSE Emitter
+ * 2. 获取/创建对话 ID
+ * 3. 更新短期记忆和保存用户消息
+ * 4. 召回长期记忆
+ * 5. 异步调用 LLM 生成响应
+ * 6. 流式推送响应片段
+ * 7. 完成后更新记忆和持久化消息
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class StreamingService {
 
+    /**
+     * Ollama 客户端，用于调用本地 LLM 模型
+     */
     private final OllamaClient ollamaClient;
+
+    /**
+     * OpenAI 兼容客户端，用于调用自定义模型
+     */
     private final OpenAICompatibleClient openAICompatibleClient;
+
+    /**
+     * 模型配置服务，用于查询自定义模型配置
+     */
     private final ModelConfigService modelConfigService;
+
+    /**
+     * 聊天流程编排服务，负责记忆管理和消息组装
+     */
     private final ChatWorkflowService chatWorkflowService;
+
+    /**
+     * 消息持久化服务，负责消息保存
+     */
     private final MessagePersistenceService messagePersistenceService;
+
+    /**
+     * 异步执行器，用于异步处理流式请求
+     */
     private final ExecutorService executorService;
+
+    /**
+     * 自动记忆提取器，对话完成后自动提取记忆
+     */
     private final AutoMemoryExtractor autoMemoryExtractor;
 
+    /**
+     * 处理流式聊天请求
+     * 
+     * @param request 聊天请求
+     * @return SSE Emitter，用于流式推送响应
+     */
     public SseEmitter streamResponse(ChatRequest request) {
         long startTime = System.currentTimeMillis();
         SseEmitter emitter = new SseEmitter(300000L);
@@ -47,7 +101,7 @@ public class StreamingService {
         final List<String> imageUrls = request.getImageUrls();
         final String userId = request.getUserId() != null ? request.getUserId() : "default";
         final String model = request.getModel();
-
+        log.info("===================================================================================== ");
         log.info("[STREAM] ===== Start Processing Request ===== ");
         log.info("[STREAM] Conversation: {}, User: {}, Model: {}", conversationId, userId, model);
         log.info("[STREAM] User message length: {} chars", userMessage.length());
@@ -104,6 +158,22 @@ public class StreamingService {
         return emitter;
     }
 
+    /**
+     * 处理自定义模型请求
+     * 
+     * @param config 模型配置
+     * @param modelId 模型 ID
+     * @param userMessage 用户消息
+     * @param imageUrls 图片 URL 列表
+     * @param emitter SSE Emitter
+     * @param conversationId 对话 ID
+     * @param aiMessageId AI 消息 ID
+     * @param userId 用户 ID
+     * @param fullResponse 完整响应内容
+     * @param completed 完成标志
+     * @param llmStartTime LLM 开始时间
+     * @param startTime 请求开始时间
+     */
     private void handleCustomModel(ModelConfig config, String modelId, String userMessage,
             List<String> imageUrls, SseEmitter emitter, String conversationId, String aiMessageId,
             String userId, StringBuilder fullResponse, boolean[] completed, long llmStartTime, long startTime) {
@@ -138,6 +208,16 @@ public class StreamingService {
         }
     }
 
+    /**
+     * 流式传输 Ollama 响应
+     * 
+     * @param messages 消息列表
+     * @param imageUrls 图片 URL 列表
+     * @param model 模型名称
+     * @param emitter SSE Emitter
+     * @param fullResponse 完整响应内容
+     * @param completed 完成标志
+     */
     private void streamOllamaResponse(List<ChatMessage> messages, List<String> imageUrls,
             String model, SseEmitter emitter, StringBuilder fullResponse, boolean[] completed) {
 
@@ -170,6 +250,17 @@ public class StreamingService {
         }
     }
 
+    /**
+     * 完成文本响应处理
+     * 
+     * @param conversationId 对话 ID
+     * @param content 响应内容
+     * @param aiMessageId AI 消息 ID
+     * @param userId 用户 ID
+     * @param emitter SSE Emitter
+     * @param llmStartTime LLM 开始时间
+     * @param startTime 请求开始时间
+     */
     private void finalizeResponse(String conversationId, String content, String aiMessageId,
             String userId, SseEmitter emitter, long llmStartTime, long startTime) {
         try {
@@ -196,6 +287,16 @@ public class StreamingService {
         }
     }
 
+    /**
+     * 完成图像响应处理
+     * 
+     * @param conversationId 对话 ID
+     * @param imageContent 图像内容（Base64 编码）
+     * @param aiMessageId AI 消息 ID
+     * @param emitter SSE Emitter
+     * @param llmStartTime LLM 开始时间
+     * @param startTime 请求开始时间
+     */
     private void finalizeImageResponse(String conversationId, String imageContent, String aiMessageId,
             SseEmitter emitter, long llmStartTime, long startTime) {
         try {

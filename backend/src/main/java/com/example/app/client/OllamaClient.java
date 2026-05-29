@@ -3,6 +3,8 @@ package com.example.app.client;
 import com.example.app.config.OllamaConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
@@ -13,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,6 +32,7 @@ public class OllamaClient {
     private final OllamaConfig ollamaConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final HttpStreamingTemplate httpStreamingTemplate;
 
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
@@ -64,18 +65,8 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
 
         try {
-            URL url = new URL(ollamaConfig.getBaseUrl() + "/api/generate");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(30000);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setDoOutput(true);
-            connection.setChunkedStreamingMode(0);
-
             String prompt = buildPrompt(messages);
-            
+
             log.info("=== Final Prompt ===");
             log.info("Model: {}", targetModel);
             log.info("Prompt:\n{}", prompt);
@@ -86,23 +77,10 @@ public class OllamaClient {
             requestBody.put("prompt", prompt);
             requestBody.put("stream", true);
 
-            connection.getOutputStream().write(objectMapper.writeValueAsBytes(requestBody));
-
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    try {
-                        JsonNode node = objectMapper.readTree(line);
-                        String response = node.has("response") ? node.get("response").asText() : "";
-                        if (!response.isEmpty()) {
-                            callback.accept(response);
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-            connection.disconnect();
+            httpStreamingTemplate.streamJsonResponse(
+                    ollamaConfig.getBaseUrl() + "/api/generate",
+                    objectMapper.writeValueAsString(requestBody),
+                    callback);
 
         } catch (Exception e) {
             log.error("Streaming error: {}", e.getMessage());
@@ -123,18 +101,8 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
 
         try {
-            URL url = new URL(ollamaConfig.getBaseUrl() + "/api/generate");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(30000);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setDoOutput(true);
-            connection.setChunkedStreamingMode(0);
-
             String prompt = buildPrompt(messages);
-            
+
             log.info("=== Final Prompt (with images) ===");
             log.info("Model: {}", targetModel);
             log.info("Prompt:\n{}", prompt);
@@ -166,23 +134,10 @@ public class OllamaClient {
                 requestBody.set("images", imagesArray);
             }
 
-            connection.getOutputStream().write(objectMapper.writeValueAsBytes(requestBody));
-
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    try {
-                        JsonNode node = objectMapper.readTree(line);
-                        String response = node.has("response") ? node.get("response").asText() : "";
-                        if (!response.isEmpty()) {
-                            callback.accept(response);
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-            connection.disconnect();
+            httpStreamingTemplate.streamJsonResponse(
+                    ollamaConfig.getBaseUrl() + "/api/generate",
+                    objectMapper.writeValueAsString(requestBody),
+                    callback);
 
         } catch (Exception e) {
             log.error("Multimodal streaming error: {}", e.getMessage());
@@ -192,10 +147,11 @@ public class OllamaClient {
 
     private String buildPrompt(List<ChatMessage> messages) {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("""
-                You are a helpful assistant. The following is a conversation history. Please respond to the user's latest question based on the provided context.
+        promptBuilder
+                .append("""
+                        You are a helpful assistant. The following is a conversation history. Please respond to the user's latest question based on the provided context.
 
-                """);
+                        """);
 
         for (ChatMessage message : messages) {
             if (message instanceof dev.langchain4j.data.message.SystemMessage) {
