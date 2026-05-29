@@ -277,6 +277,12 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined)
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const abortControllersRef = useRef<Record<string, AbortController | null>>({})
+  const initializedRef = useRef(false)
+  const stateRef = useRef(state)
+
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   const loadModels = useCallback(async () => {
     try {
@@ -293,14 +299,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (allModels.length > 0) {
         dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
-        if (!allModels.includes(state.currentModel)) {
+        if (!allModels.includes(stateRef.current.currentModel)) {
           dispatch({ type: 'SET_CURRENT_MODEL', payload: allModels[0] })
         }
       }
     } catch (error) {
       console.error('Failed to load models:', error)
     }
-  }, [state.currentModel])
+  }, [])
 
   const refreshModels = useCallback(async () => {
     await loadModels()
@@ -329,9 +335,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    loadConversations()
-    loadModels()
-  }, [loadModels])
+    if (!initializedRef.current) {
+      initializedRef.current = true
+      loadConversations()
+      loadModels()
+    }
+  }, [])
 
   const loadConversations = async () => {
     try {
