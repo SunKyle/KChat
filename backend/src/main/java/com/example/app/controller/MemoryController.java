@@ -63,7 +63,7 @@ public class MemoryController {
      * 按类型获取用户记忆
      * 
      * @param userId 用户 ID
-     * @param type 记忆类型
+     * @param type   记忆类型
      * @return 记忆列表
      */
     @GetMapping("/type/{type}")
@@ -152,6 +152,26 @@ public class MemoryController {
         return ResponseEntity.ok(Map.of(
                 "memories", memories,
                 "count", memories.size()));
+    }
+
+    /**
+     * 更新记忆
+     * 
+     * @param id 记忆 ID
+     * @param request 更新的记忆数据
+     * @return 更新后的记忆
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<MemoryDTO> updateMemory(
+            @PathVariable Long id,
+            @RequestBody MemoryDTO request) {
+        try {
+            MemoryDTO updated = longTermMemoryService.update(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            log.error("Failed to update memory: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**

@@ -43,6 +43,16 @@ export const memoryApi = {
     return response.json();
   },
 
+  update: async (id: number, memory: Partial<Omit<Memory, 'id' | 'createdAt'>>): Promise<Memory> => {
+    const response = await fetch(`${BASE_URL}/memories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(memory),
+    });
+    if (!response.ok) throw new Error('更新记忆失败');
+    return response.json();
+  },
+
   createBatch: async (memories: Omit<Memory, 'id' | 'createdAt'>[]): Promise<Memory[]> => {
     const response = await fetch(`${BASE_URL}/memories/batch`, {
       method: 'POST',

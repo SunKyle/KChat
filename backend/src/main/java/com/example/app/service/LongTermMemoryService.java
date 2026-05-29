@@ -256,6 +256,52 @@ public class LongTermMemoryService {
         log.info("Deleted all long-term memories for user {}", userId);
     }
 
+    /**
+     * 更新记忆
+     *
+     * 事务一致性：
+     * - 更新数据库记录
+     * - 更新向量索引
+     *
+     * @param id  记忆 ID
+     * @param dto 更新的记忆数据
+     * @return 更新后的记忆 DTO
+     */
+    @Transactional
+    public MemoryDTO update(Long id, MemoryDTO dto) {
+        Optional<LongTermMemory> optionalMemory = repository.findById(id);
+        if (optionalMemory.isEmpty()) {
+            throw new RuntimeException("Memory not found with id: " + id);
+        }
+
+        LongTermMemory entity = optionalMemory.get();
+
+        if (dto.getContent() != null) {
+            entity.setContent(dto.getContent());
+        }
+        if (dto.getType() != null) {
+            try {
+                entity.setType(MemoryType.valueOf(dto.getType().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid memory type: {}, using KNOWLEDGE as default", dto.getType());
+                entity.setType(MemoryType.KNOWLEDGE);
+            }
+        }
+        if (dto.getImportance() != null) {
+            entity.setImportance(dto.getImportance());
+        }
+
+        entity = repository.save(entity);
+
+        // 更新向量索引
+        vectorStoreWrapper.remove(entity.getUserId(), id);
+        vectorStoreWrapper.add(entity.getUserId(), entity.getContent(), entity.getId());
+
+        log.info("Updated long-term memory: id={}, userId={}", id, entity.getUserId());
+
+        return MemoryDTO.fromEntity(entity);
+    }
+
     @Transactional(readOnly = true)
     public List<MemoryDTO> findByUserIdAndMinImportance(String userId, Integer minImportance) {
         return repository.findByUserIdAndMinImportance(userId, minImportance).stream()

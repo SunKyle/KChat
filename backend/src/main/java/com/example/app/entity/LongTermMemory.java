@@ -77,6 +77,9 @@ public class LongTermMemory {
         TASK,
         KNOWLEDGE,
         RELATION,
-        EVENT
+        EVENT,
+        RULE,
+        FACT,
+        EXPERIENCE
     }
 }
