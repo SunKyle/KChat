@@ -142,8 +142,6 @@ export function Sidebar({
           {!collapsed && <span>新对话</span>}
         </button>
 
-        
-
         {collapsed && onToggle && (
           <button
             onClick={onToggle}
@@ -231,14 +229,14 @@ export function Sidebar({
                 </p>
               </div>
             )}
-            
           </button>
 
           {isUserMenuOpen && (
             <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
-                  onOpenMemory?.()
+                  const event = new CustomEvent('open-memory-panel')
+                  window.dispatchEvent(event)
                   setIsUserMenuOpen(false)
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
