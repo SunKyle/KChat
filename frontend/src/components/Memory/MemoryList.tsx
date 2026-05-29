@@ -1,6 +1,6 @@
-import { Edit2, Trash2, Star, AlertCircle } from 'lucide-react';
 import { MEMORY_TYPES } from '../../types';
 import type { Memory } from '../../types';
+import { Icon } from '../Icon';
 
 interface MemoryListProps {
   memories: Memory[];
@@ -49,12 +49,13 @@ export default function MemoryList({ memories, selectedMemories, onSelect, onEdi
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${typeInfo.color} text-white`}>
-                    {typeInfo.icon} {typeInfo.label}
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${typeInfo.color} text-white flex items-center gap-1`}>
+                    <Icon name={typeInfo.icon as any} size={12} />
+                    {typeInfo.label}
                   </span>
                   {memory.isRule && (
                     <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400">
-                      <AlertCircle className="w-3 h-3" />
+                      <Icon name="AlertCircle" size={12} />
                       规则
                     </span>
                   )}
@@ -71,11 +72,11 @@ export default function MemoryList({ memories, selectedMemories, onSelect, onEdi
                   <span>{formatDate(memory.createdAt)}</span>
                   <span className="flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
+                      <Icon
                         key={i}
-                        className={`w-3 h-3 ${
-                          i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'
-                        }`}
+                        name="Star"
+                        size={12}
+                        className={i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'}
                       />
                     ))}
                   </span>
@@ -88,14 +89,14 @@ export default function MemoryList({ memories, selectedMemories, onSelect, onEdi
                   className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
                   title="编辑"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Icon name="Edit2" size={16} />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDelete(memory.id); }}
                   className="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
                   title="删除"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Icon name="Trash2" size={16} />
                 </button>
               </div>
             </div>

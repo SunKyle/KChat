@@ -96,9 +96,9 @@ export interface MemoryTypeInfo {
 }
 
 export const MEMORY_TYPES: MemoryTypeInfo[] = [
-  { type: 'KNOWLEDGE', label: '知识库', color: 'bg-blue-500', icon: '📚' },
-  { type: 'RULE', label: '规则', color: 'bg-red-500', icon: '📋' },
-  { type: 'FACT', label: '事实', color: 'bg-green-500', icon: '✅' },
-  { type: 'PREFERENCE', label: '偏好', color: 'bg-purple-500', icon: '❤️' },
-  { type: 'EXPERIENCE', label: '经验', color: 'bg-orange-500', icon: '💡' },
+  { type: 'KNOWLEDGE', label: '知识库', color: 'bg-blue-500', icon: 'BookOpen' },
+  { type: 'RULE', label: '规则', color: 'bg-red-500', icon: 'FileText' },
+  { type: 'FACT', label: '事实', color: 'bg-green-500', icon: 'CheckCircle' },
+  { type: 'PREFERENCE', label: '偏好', color: 'bg-purple-500', icon: 'Heart' },
+  { type: 'EXPERIENCE', label: '经验', color: 'bg-orange-500', icon: 'Lightbulb' },
 ];

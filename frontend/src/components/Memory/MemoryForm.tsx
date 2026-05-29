@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Star, AlertCircle } from 'lucide-react';
 import { MEMORY_TYPES } from '../../types';
 import type { Memory, MemoryType } from '../../types';
+import { Icon } from '../Icon';
 
 interface MemoryFormProps {
   memory: Memory | null;
@@ -62,7 +62,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
             onClick={onCancel}
             className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
           >
-            <X className="w-5 h-5" />
+            <Icon name="X" size={20} />
           </button>
         </div>
 
@@ -98,7 +98,8 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
                       : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                   }`}
                 >
-                  {t.icon} {t.label}
+                  <Icon name={t.icon as any} size={14} />
+                  {t.label}
                 </button>
               ))}
             </div>
@@ -115,10 +116,10 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
                   onClick={() => setImportance(i + 1)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
-                  <Star
-                    className={`w-6 h-6 ${
-                      i < importance ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'
-                    }`}
+                  <Icon
+                    name="Star"
+                    size={24}
+                    className={i < importance ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'}
                   />
                 </button>
               ))}
@@ -137,7 +138,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
               className="w-4 h-4 rounded border-white/20 bg-slate-700"
             />
             <label htmlFor="isRule" className="flex items-center gap-2 text-sm text-slate-300">
-              <AlertCircle className="w-4 h-4 text-red-400" />
+              <Icon name="AlertCircle" size={16} className="text-red-400" />
               标记为规则
               <span className="text-xs text-slate-500">(AI 将优先遵循此记忆)</span>
             </label>
