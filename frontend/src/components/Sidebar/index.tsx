@@ -5,6 +5,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   BookOpen,
+  Settings,
+  ChevronDown,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { ConversationItem } from './ConversationItem'
@@ -26,6 +28,7 @@ export function Sidebar({
   onOpenChat,
 }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -139,18 +142,7 @@ export function Sidebar({
           {!collapsed && <span>新对话</span>}
         </button>
 
-        <button
-          onClick={onOpenMemory}
-          className={`flex items-center justify-center gap-2 mt-2 transition-all duration-200 font-medium text-sm ${
-            collapsed
-              ? 'w-10 h-10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200 rounded-full'
-              : 'w-full bg-slate-700 text-white hover:bg-slate-600 transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
-          }`}
-          title={collapsed ? '记忆管理' : undefined}
-        >
-          <BookOpen className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
-          {!collapsed && <span>记忆管理</span>}
-        </button>
+        
 
         {collapsed && onToggle && (
           <button
@@ -221,18 +213,48 @@ export function Sidebar({
       <div
         className={`p-4 border-t border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
-        <div
-          className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}
-        >
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0" />
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-slate-300 truncate">
-                Sun Xiaokai
-              </p>
-              <p className="text-[10px] text-slate-500 truncate">
-                Premium Plan
-              </p>
+        <div className="relative w-full">
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className={`w-full flex items-center gap-3 ${collapsed ? 'justify-center' : ''} hover:bg-white/5 rounded-lg p-1 -m-1 transition-colors`}
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0" />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-slate-300 truncate">
+                  Sun Xiaokai
+                </p>
+                <p className="text-[10px] text-slate-500 truncate">
+                  Premium Plan
+                </p>
+              </div>
+            )}
+            {!collapsed && <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />}
+          </button>
+
+          {isUserMenuOpen && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+              <button
+                onClick={() => {
+                  onOpenMemory?.()
+                  setIsUserMenuOpen(false)
+                }}
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>记忆管理</span>
+              </button>
+              <button
+                onClick={() => {
+                  const event = new CustomEvent('open-model-settings')
+                  window.dispatchEvent(event)
+                  setIsUserMenuOpen(false)
+                }}
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
+              >
+                <Settings className="w-4 h-4" />
+                <span>添加自定义模型</span>
+              </button>
             </div>
           )}
         </div>
