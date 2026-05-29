@@ -4,6 +4,7 @@ import {
   Bot,
   PanelLeftClose,
   PanelLeft,
+  BookOpen,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { ConversationItem } from './ConversationItem'
@@ -13,12 +14,16 @@ interface SidebarProps {
   collapsed?: boolean
   onToggle?: () => void
   onDeleteClick?: (id: string, title: string) => void
+  onOpenMemory?: () => void
+  onOpenChat?: () => void
 }
 
 export function Sidebar({
   collapsed = false,
   onToggle,
   onDeleteClick,
+  onOpenMemory,
+  onOpenChat,
 }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -134,6 +139,19 @@ export function Sidebar({
           {!collapsed && <span>新对话</span>}
         </button>
 
+        <button
+          onClick={onOpenMemory}
+          className={`flex items-center justify-center gap-2 mt-2 transition-all duration-200 font-medium text-sm ${
+            collapsed
+              ? 'w-10 h-10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200 rounded-full'
+              : 'w-full bg-slate-700 text-white hover:bg-slate-600 transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
+          }`}
+          title={collapsed ? '记忆管理' : undefined}
+        >
+          <BookOpen className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+          {!collapsed && <span>记忆管理</span>}
+        </button>
+
         {collapsed && onToggle && (
           <button
             onClick={onToggle}
@@ -185,6 +203,7 @@ export function Sidebar({
                     onClick={() => {
                       resetNewReply(conversation.id)
                       setActiveConversation(conversation)
+                      onOpenChat?.()
                     }}
                     onDelete={() =>
                       handleDelete(conversation.id, conversation.title)

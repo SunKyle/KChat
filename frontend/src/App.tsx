@@ -5,14 +5,18 @@ import { InputArea } from './components/InputArea';
 import { Header } from './components/Header';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ModelSettings } from './components/Settings/ModelSettings';
+import { MemoryPanel } from './components/Memory/MemoryPanel';
 import { useState, useEffect } from 'react';
 import { Menu, X, X as XIcon } from 'lucide-react';
+
+type ViewMode = 'chat' | 'memory';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   const [showModelSettings, setShowModelSettings] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('chat');
   
   const { deleteConversation, activeConversation } = useChat();
 
@@ -58,6 +62,8 @@ function AppContent() {
               collapsed={sidebarCollapsed} 
               onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
               onDeleteClick={handleDeleteClick}
+              onOpenMemory={() => setViewMode('memory')}
+              onOpenChat={() => setViewMode('chat')}
             />
           </div>
         </div>
@@ -75,9 +81,15 @@ function AppContent() {
         </button>
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <Header />
-          <ChatArea />
-          {activeConversation && <InputArea />}
+          {viewMode === 'chat' ? (
+            <>
+              <Header />
+              <ChatArea />
+              {activeConversation && <InputArea />}
+            </>
+          ) : (
+            <MemoryPanel />
+          )}
         </div>
       </div>
 

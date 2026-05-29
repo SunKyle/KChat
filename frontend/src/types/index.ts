@@ -69,3 +69,36 @@ export const PROVIDERS: ProviderInfo[] = [
   { type: 'AZURE', displayName: 'Azure OpenAI', icon: '☁️', color: 'bg-blue-500', defaultBaseUrl: 'https://your-resource.openai.azure.com' },
   { type: 'CUSTOM', displayName: '自定义', icon: '🔧', color: 'bg-gray-600' },
 ];
+
+export type MemoryType = 
+  | 'KNOWLEDGE'
+  | 'RULE'
+  | 'FACT'
+  | 'PREFERENCE'
+  | 'EXPERIENCE';
+
+export interface Memory {
+  id: number;
+  userId: string;
+  content: string;
+  type: MemoryType;
+  importance: number;
+  createdAt: string;
+  score?: number;
+  isRule?: boolean;
+}
+
+export interface MemoryTypeInfo {
+  type: MemoryType;
+  label: string;
+  color: string;
+  icon: string;
+}
+
+export const MEMORY_TYPES: MemoryTypeInfo[] = [
+  { type: 'KNOWLEDGE', label: '知识库', color: 'bg-blue-500', icon: '📚' },
+  { type: 'RULE', label: '规则', color: 'bg-red-500', icon: '📋' },
+  { type: 'FACT', label: '事实', color: 'bg-green-500', icon: '✅' },
+  { type: 'PREFERENCE', label: '偏好', color: 'bg-purple-500', icon: '❤️' },
+  { type: 'EXPERIENCE', label: '经验', color: 'bg-orange-500', icon: '💡' },
+];

@@ -1,0 +1,107 @@
+import { Edit2, Trash2, Star, AlertCircle } from 'lucide-react';
+import { MEMORY_TYPES } from '../../types';
+import type { Memory } from '../../types';
+
+interface MemoryListProps {
+  memories: Memory[];
+  selectedMemories: number[];
+  onSelect: (id: number) => void;
+  onEdit: (memory: Memory) => void;
+  onDelete: (id: number) => void;
+}
+
+export default function MemoryList({ memories, selectedMemories, onSelect, onEdit, onDelete }: MemoryListProps) {
+  const getTypeInfo = (type: string) => 
+    MEMORY_TYPES.find(t => t.type === type) || MEMORY_TYPES[0];
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      {memories.map(memory => {
+        const typeInfo = getTypeInfo(memory.type);
+        const isSelected = selectedMemories.includes(memory.id);
+
+        return (
+          <div
+            key={memory.id}
+            className={`p-4 rounded-lg border transition-all cursor-pointer group ${
+              isSelected 
+                ? 'border-blue-500 bg-blue-500/10' 
+                : 'border-white/10 bg-slate-800/50 hover:bg-slate-800'
+            }`}
+            onClick={() => onSelect(memory.id)}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={(e) => { e.stopPropagation(); onSelect(memory.id); }}
+                className="mt-1 rounded border-white/20 bg-slate-700"
+              />
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${typeInfo.color} text-white`}>
+                    {typeInfo.icon} {typeInfo.label}
+                  </span>
+                  {memory.isRule && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400">
+                      <AlertCircle className="w-3 h-3" />
+                      规则
+                    </span>
+                  )}
+                  {memory.score !== undefined && (
+                    <span className="text-xs text-slate-500">
+                      相似度: {(memory.score * 100).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+                <p className="text-white text-sm leading-relaxed line-clamp-3">
+                  {memory.content}
+                </p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                  <span>{formatDate(memory.createdAt)}</span>
+                  <span className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${
+                          i < memory.importance ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'
+                        }`}
+                      />
+                    ))}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(memory); }}
+                  className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                  title="编辑"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(memory.id); }}
+                  className="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                  title="删除"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
