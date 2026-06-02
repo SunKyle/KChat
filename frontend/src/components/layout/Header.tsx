@@ -40,7 +40,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className="h-16 theme-bg-primary/80 backdrop-blur-md border-b theme-border-secondary flex items-center justify-between px-6 relative z-40">
+    <header className="h-16 theme-bg-primary/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_4px_12px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15),0_16px_40px_rgba(0,0,0,0.1)] hover:theme-bg-primary hover:shadow-[0_6px_16px_rgba(0,0,0,0.25),0_12px_32px_rgba(0,0,0,0.18),0_20px_48px_rgba(0,0,0,0.12)] flex items-center justify-between px-6 relative z-40 mx-4 mt-3 transition-all duration-200 ease-out">
       <div className="flex items-center gap-6">
         {activeConversation ? (
           <div className="px-4 py-1.5 theme-bg-hover/50 rounded-full border theme-border-primary micro-transition hover:theme-bg-hover cursor-default">
@@ -81,7 +81,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
                     setIsModelDropdownOpen(false)
                   }}
                   className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:theme-bg-hover transition-colors ${
-                    model === currentModel ? 'theme-brand-primary' : 'theme-text-secondary'
+                    model === currentModel
+                      ? 'theme-brand-primary'
+                      : 'theme-text-secondary'
                   }`}
                 >
                   <span className="capitalize">{model}</span>
