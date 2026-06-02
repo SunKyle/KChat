@@ -4,12 +4,17 @@ import {
   BrainCircuit,
   ChevronDown,
   Check,
+  Settings,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
 import { ThemeToggle } from '../ui/ThemeToggle'
 
-export function Header() {
+interface HeaderProps {
+  onSettingsClick?: () => void
+}
+
+export function Header({ onSettingsClick }: HeaderProps) {
   const { activeConversation, currentModel, availableModels, setCurrentModel } =
     useChat()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
@@ -100,6 +105,15 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4 border-l theme-border-primary pl-5">
+          {onSettingsClick && (
+            <button
+              onClick={onSettingsClick}
+              className="p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-105 transition-all duration-200 theme-text-muted hover:theme-text-primary"
+              title="设置"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          )}
           <ThemeToggle />
           <div className="flex items-center gap-2">
             {isOnline ? (

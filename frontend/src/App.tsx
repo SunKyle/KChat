@@ -1,5 +1,6 @@
 import { ChatProvider, useChat } from './context/ChatContext'
 import { ModalProvider, useModal } from './context/ModalContext'
+import { UserProvider } from './context/UserContext'
 import { Sidebar } from './components/layout/Sidebar'
 import { ChatArea } from './components/ChatArea'
 import { InputArea } from './components/InputArea'
@@ -7,6 +8,7 @@ import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { ModelSettings } from './components/Settings/ModelSettings'
 import { MemoryPanel } from './components/Memory/MemoryPanel'
+import { UserSettings } from './components/Settings/UserSettings'
 import { Modal } from './components/ui/Modal'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
@@ -18,6 +20,7 @@ function AppContent() {
     id: string
     title: string
   } | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   const { deleteConversation, activeConversation } = useChat()
   const {
@@ -79,9 +82,17 @@ function AppContent() {
         </button>
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <Header />
-          <ChatArea />
-          {activeConversation && <InputArea />}
+          <Header onSettingsClick={() => setShowSettings(true)} />
+          {showSettings ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <UserSettings />
+            </div>
+          ) : (
+            <>
+              <ChatArea />
+              {activeConversation && <InputArea />}
+            </>
+          )}
         </div>
       </div>
 
@@ -125,10 +136,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ChatProvider>
-      <ModalProvider>
-        <AppContent />
-      </ModalProvider>
-    </ChatProvider>
+    <UserProvider>
+      <ChatProvider>
+        <ModalProvider>
+          <AppContent />
+        </ModalProvider>
+      </ChatProvider>
+    </UserProvider>
   )
 }
