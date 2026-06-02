@@ -288,14 +288,14 @@ export function ModelSettings() {
                           </button>
                           <button
                             onClick={() => handleOpenEditModal(config)}
-                            className="p-1.5 theme-text-muted/70 hover:theme-text-secondary hover:theme-bg-hover rounded-lg transition-colors"
+                            className="p-2 theme-text-muted/70 hover:theme-text-secondary hover:theme-bg-hover hover:scale-110 rounded-lg transition-all duration-200"
                             title="编辑"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(config.id, config.name)}
-                            className="p-1.5 theme-text-muted/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-2 theme-text-muted/70 hover:text-red-400 hover:bg-red-500/10 hover:scale-110 rounded-lg transition-all duration-200"
                             title="删除"
                           >
                             <Trash2 className="w-4 h-4" />

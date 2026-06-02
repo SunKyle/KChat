@@ -126,17 +126,17 @@ export function Sidebar({
         </div>
 
         <button
-          onClick={createConversation}
-          className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
-            collapsed
-              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary rounded-full'
-              : 'w-full bg-slate-200 text-dark-900 hover:bg-white transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
-          }`}
-          title={collapsed ? '新对话' : undefined}
-        >
-          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
-          {!collapsed && <span>新对话</span>}
-        </button>
+            onClick={createConversation}
+            className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
+              collapsed
+                ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full'
+                : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30'
+            }`}
+            title={collapsed ? '新对话' : undefined}
+          >
+            <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+            {!collapsed && <span>新对话</span>}
+          </button>
 
         {collapsed && onToggle && (
           <button

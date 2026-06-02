@@ -140,21 +140,21 @@ export const MessageBubble = memo(function MessageBubble({
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition">
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-md hover:theme-bg-hover/50 micro-transition"
+                className="p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200"
                 title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
-                  <Check className="w-3.5 h-3.5 text-green-400" />
+                  <Check className="w-4 h-4 text-green-400" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
+                  <Copy className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1.5 rounded-md hover:theme-bg-hover/50 micro-transition"
+                  className="p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
+                  <RotateCcw className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
                 </button>
               )}
             </div>

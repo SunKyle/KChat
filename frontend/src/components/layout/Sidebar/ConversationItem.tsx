@@ -157,40 +157,40 @@ export function ConversationItem({
                 e.stopPropagation()
                 handleSaveEdit()
               }}
-              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
+              className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="保存"
             >
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <Check className="w-4 h-4 text-emerald-400" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleCancelEdit()
               }}
-              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
+              className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="取消"
             >
-              <X className="w-3.5 h-3.5 text-red-400" />
+              <X className="w-4 h-4 text-red-400" />
             </button>
           </>
         ) : (
           <>
             <button
               onClick={handleStartEdit}
-              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
+              className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="编辑"
             >
-              <Pencil className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
+              <Pencil className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete()
               }}
-              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
+              className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="删除"
             >
-              <Trash2 className="w-3.5 h-3.5 theme-text-muted hover:text-red-400" />
+              <Trash2 className="w-4 h-4 theme-text-muted hover:text-red-400" />
             </button>
           </>
         )}

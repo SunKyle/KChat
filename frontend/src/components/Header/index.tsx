@@ -50,13 +50,13 @@ export function Header() {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className="flex items-center gap-2 px-4 py-2 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20 micro-transition hover:bg-sky-500/20 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20 hover:bg-sky-500/20 hover:scale-105 cursor-pointer transition-all duration-200"
           >
             <Cpu className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-tight">
               {currentModel}
             </span>
-            <ChevronDown className="w-3.5 h-3.5" />
+            <ChevronDown className="w-4 h-4" />
           </button>
 
           {isModelDropdownOpen && (

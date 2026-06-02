@@ -348,7 +348,7 @@ export function MemoryPanel() {
                         e.stopPropagation()
                         handleEdit(memory)
                       }}
-                      className="p-1.5 hover:theme-bg-hover rounded-lg theme-text-muted hover:theme-text-primary transition-colors"
+                      className="p-2 hover:theme-bg-hover rounded-lg theme-text-muted hover:theme-text-primary hover:scale-110 transition-all duration-200"
                       title="编辑"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -358,7 +358,7 @@ export function MemoryPanel() {
                         e.stopPropagation()
                         handleDelete(memory.id)
                       }}
-                      className="p-1.5 hover:bg-red-500/20 rounded-lg theme-text-muted hover:text-red-400 transition-colors"
+                      className="p-2 hover:bg-red-500/20 rounded-lg theme-text-muted hover:text-red-400 hover:scale-110 transition-all duration-200"
                       title="删除"
                     >
                       <Trash2 className="w-4 h-4" />

@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
-import { Send, Square, Image, Trash2, Paperclip, Code } from 'lucide-react'
+import {
+  Send,
+  Square,
+  Image,
+  Trash2,
+  Paperclip,
+  Code,
+  Loader2,
+} from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { api } from '../../utils/api'
 
@@ -107,9 +115,9 @@ export function InputArea() {
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center theme-bg-card/80 backdrop-blur-sm rounded-full hover:theme-bg-hover transition-colors"
+                  className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center theme-bg-card/80 backdrop-blur-sm rounded-full hover:theme-bg-hover hover:scale-110 transition-all duration-200"
                 >
-                  <Trash2 className="w-3 h-3 theme-text-primary" />
+                  <Trash2 className="w-4 h-4 theme-text-primary" />
                 </button>
               </div>
             ))}
@@ -158,21 +166,25 @@ export function InputArea() {
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
                 }
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`p-2 rounded-lg transition-all duration-200 ${
                   uploading ||
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
                     ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 cursor-pointer'
+                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 cursor-pointer'
                 }`}
                 title="上传文件（包括图片）"
               >
-                <Paperclip className="w-4 h-4" />
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Paperclip className="w-4 h-4" />
+                )}
               </button>
 
               {/* 代码按钮 */}
               <button
-                className="p-2 rounded-xl theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 transition-all duration-200"
+                className="p-2 rounded-lg theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 transition-all duration-200"
                 title="插入代码"
               >
                 <Code className="w-4 h-4" />
@@ -182,10 +194,10 @@ export function InputArea() {
               <button
                 onClick={() => setInput('生成图片：')}
                 disabled={streamingState.isStreaming}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`p-2 rounded-lg transition-all duration-200 ${
                   streamingState.isStreaming
                     ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 cursor-pointer'
+                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 cursor-pointer'
                 }`}
                 title="生成图片"
               >
@@ -210,7 +222,7 @@ export function InputArea() {
                   }
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`flex items-center justify-center p-2 rounded-xl micro-transition transition-all duration-200 ${
+                className={`flex items-center justify-center p-2 rounded-lg micro-transition transition-all duration-200 ${
                   streamingState.isStreaming
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:scale-105 cursor-pointer'
                     : hasContent && charCount <= maxChars
@@ -231,7 +243,10 @@ export function InputArea() {
 
         {/* 图片上传提示 */}
         {uploading && (
-          <div className="mt-2 text-xs theme-text-muted">正在上传图片...</div>
+          <div className="mt-2 text-xs theme-text-muted flex items-center gap-1">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            正在上传图片...
+          </div>
         )}
       </div>
     </div>
