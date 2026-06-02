@@ -27,7 +27,7 @@ interface ChatContextType {
   createConversation: () => Promise<void>
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
-  sendMessage: (content: string) => Promise<void>
+  sendMessage: (content: string, imageUrls?: string[]) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void

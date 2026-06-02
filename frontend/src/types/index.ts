@@ -50,7 +50,7 @@ export interface ModelConfig {
   apiKey: string;
   type: ProviderType;
   enabled: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface ProviderInfo {

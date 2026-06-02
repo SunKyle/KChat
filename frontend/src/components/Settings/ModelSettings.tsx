@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Save, X, Database, Copy } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Database, Copy } from 'lucide-react'
 import { api } from '../../utils/api'
 import type { ModelConfig, ProviderType } from '../../types'
 import { useChat } from '../../context/ChatContext'
@@ -11,7 +11,8 @@ export function ModelSettings() {
   const [isLoading, setIsLoading] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingConfig, setEditingConfig] = useState<ModelConfig | null>(null)
-  const [selectedProvider, setSelectedProvider] = useState<ProviderType>('OPENAI')
+  const [selectedProvider, setSelectedProvider] =
+    useState<ProviderType>('OPENAI')
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
 
@@ -34,7 +35,7 @@ export function ModelSettings() {
       const data = await api.modelConfigs.list()
       setConfigs(data)
     } catch (error) {
-        console.error('Failed to load model configs:', error)
+      console.error('Failed to load model configs:', error)
     } finally {
       setIsLoading(false)
     }
@@ -95,10 +96,10 @@ export function ModelSettings() {
         ...config,
         enabled: newEnabled,
       })
-      setConfigs(prev =>
-        prev.map(c =>
-          c.id === config.id ? { ...c, enabled: newEnabled } : c
-        )
+      setConfigs((prev) =>
+        prev.map((c) =>
+          c.id === config.id ? { ...c, enabled: newEnabled } : c,
+        ),
       )
       await refreshModels()
     } catch (error) {
@@ -162,17 +163,13 @@ export function ModelSettings() {
       grouped[provider.type] = []
     })
     configs.forEach((config) => {
-      const targetType = config.type === 'OPENAI_COMPATIBLE' ? 'OPENAI' : config.type
+      const targetType =
+        config.type === 'OPENAI_COMPATIBLE' ? 'OPENAI' : config.type
       if (grouped[targetType]) {
         grouped[targetType].push(config)
       }
     })
     return grouped
-  }
-
-  const getProviderInfo = (type: ProviderType) => {
-    let actualType = type === 'OPENAI_COMPATIBLE' ? 'OPENAI' : type
-    return PROVIDERS.find(p => p.type === actualType) || PROVIDERS[PROVIDERS.length - 1]
   }
 
   const groupedConfigs = groupConfigsByProvider()
@@ -208,7 +205,9 @@ export function ModelSettings() {
           <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
             <Database className="w-7 h-7 text-slate-600" />
           </div>
-          <h3 className="text-base font-medium text-[#E5E7EB] mb-1">暂无模型配置</h3>
+          <h3 className="text-base font-medium text-[#E5E7EB] mb-1">
+            暂无模型配置
+          </h3>
           <p className="text-slate-500 text-sm mb-5">添加你的第一个 AI 模型</p>
           <button
             onClick={handleOpenAddModal}
@@ -226,7 +225,9 @@ export function ModelSettings() {
             return (
               <div key={provider.type}>
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className={`w-7 h-7 rounded-lg ${provider.color} flex items-center justify-center text-white`}>
+                  <div
+                    className={`w-7 h-7 rounded-lg ${provider.color} flex items-center justify-center text-white`}
+                  >
                     <span className="text-sm">{provider.icon}</span>
                   </div>
                   <h3 className="text-sm font-medium text-slate-300">
@@ -238,7 +239,6 @@ export function ModelSettings() {
                 </div>
                 <div className="space-y-2">
                   {providerConfigs.map((config) => {
-                    const configProvider = getProviderInfo(config.type)
                     return (
                       <div
                         key={config.id}
@@ -253,7 +253,9 @@ export function ModelSettings() {
                               {config.modelId}
                             </p>
                             <button
-                              onClick={() => handleCopy(config.modelId, '模型 ID')}
+                              onClick={() =>
+                                handleCopy(config.modelId, '模型 ID')
+                              }
                               className="p-0.5 text-slate-600 hover:text-slate-400 rounded transition-colors"
                               title="复制模型 ID"
                             >
@@ -261,7 +263,7 @@ export function ModelSettings() {
                             </button>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handleToggleEnabled(config)}
@@ -272,7 +274,9 @@ export function ModelSettings() {
                           >
                             <span
                               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                config.enabled ? 'translate-x-6' : 'translate-x-1'
+                                config.enabled
+                                  ? 'translate-x-6'
+                                  : 'translate-x-1'
                               } ${updatingId === config.id ? 'animate-pulse' : ''}`}
                             />
                           </button>
@@ -323,25 +327,25 @@ export function ModelSettings() {
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {PROVIDERS.map((provider) => (
-                  <button
-                    key={provider.type}
-                    onClick={() => handleProviderChange(provider.type)}
-                    className={`flex items-center justify-start gap-2 p-2.5 rounded-lg border transition-all ${
-                      selectedProvider === provider.type
-                        ? 'border-sky-500 bg-sky-500/10'
-                        : 'border-white/5 hover:border-white/10 hover:bg-white/[0.02]'
-                    }`}
-                  >
-                    <span
-                      className={`w-6 h-6 rounded ${provider.color} flex items-center justify-center text-white text-xs flex-shrink-0`}
+                    <button
+                      key={provider.type}
+                      onClick={() => handleProviderChange(provider.type)}
+                      className={`flex items-center justify-start gap-2 p-2.5 rounded-lg border transition-all ${
+                        selectedProvider === provider.type
+                          ? 'border-sky-500 bg-sky-500/10'
+                          : 'border-white/5 hover:border-white/10 hover:bg-white/[0.02]'
+                      }`}
                     >
-                      {provider.icon}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {provider.displayName}
-                    </span>
-                  </button>
-                ))}
+                      <span
+                        className={`w-6 h-6 rounded ${provider.color} flex items-center justify-center text-white text-xs flex-shrink-0`}
+                      >
+                        {provider.icon}
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        {provider.displayName}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 

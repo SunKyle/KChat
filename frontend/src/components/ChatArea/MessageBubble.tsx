@@ -1,74 +1,74 @@
-import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react';
-import type { Message } from '../../types';
-import { MarkdownRenderer } from './MarkdownRenderer';
-import { useState, memo } from 'react';
+import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react'
+import type { Message } from '../../types'
+import { MarkdownRenderer } from './MarkdownRenderer'
+import { useState, memo } from 'react'
 
 interface MessageBubbleProps {
-  message: Message;
-  onRegenerate?: () => void;
-  isThinking?: boolean;
-  onStop?: () => void;
+  message: Message
+  onRegenerate?: () => void
+  isThinking?: boolean
+  onStop?: () => void
 }
 
-export const MessageBubble = memo(function MessageBubble({ message, onRegenerate, isThinking, onStop }: MessageBubbleProps) {
-  const isUser = message.role === 'user';
-  const [copied, setCopied] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  onRegenerate,
+  isThinking,
+}: MessageBubbleProps) {
+  const isUser = message.role === 'user'
+  const [copied, setCopied] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins} 分钟前`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} 小时前`;
-    
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+
+    if (diffMins < 1) return '刚刚'
+    if (diffMins < 60) return `${diffMins} 分钟前`
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} 小时前`
+
     return date.toLocaleString('zh-CN', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
-  };
+    })
+  }
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(message.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(message.content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('复制失败:', err);
+      console.error('复制失败:', err)
     }
-  };
+  }
 
   const handleImageLoad = (imageUrl: string) => {
-    setImageLoaded(prev => ({ ...prev, [imageUrl]: true }));
-  };
+    setImageLoaded((prev) => ({ ...prev, [imageUrl]: true }))
+  }
 
   return (
-    <div className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div
+      className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}
+    >
       <div
         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition ${
-          isUser 
-            ? 'bg-slate-700 text-slate-300' 
+          isUser
+            ? 'bg-slate-700 text-slate-300'
             : 'bg-[#0EA5E9] text-white shadow-sm shadow-sky-500/20'
         }`}
       >
-        {isUser ? (
-          <User className="w-4 h-4" />
-        ) : (
-          <Bot className="w-4 h-4" />
-        )}
+        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
           className={`relative inline-block max-w-[85%] transition-all ${
-            isUser
-              ? 'text-[#E5E7EB]'
-              : 'bg-transparent text-[#E5E7EB]'
+            isUser ? 'text-[#E5E7EB]' : 'bg-transparent text-[#E5E7EB]'
           }`}
         >
           {isThinking && !message.content ? (
@@ -77,17 +77,26 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
                 AI 正在思考
               </span>
               <div className="flex items-center gap-1">
-                <span 
-                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
-                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0ms' }} 
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500"
+                  style={{
+                    animation: 'thinking-dot 1.4s ease-in-out infinite',
+                    animationDelay: '0ms',
+                  }}
                 />
-                <span 
-                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
-                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.2s' }} 
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500"
+                  style={{
+                    animation: 'thinking-dot 1.4s ease-in-out infinite',
+                    animationDelay: '0.2s',
+                  }}
                 />
-                <span 
-                  className="w-1.5 h-1.5 rounded-full bg-slate-500" 
-                  style={{ animation: 'thinking-dot 1.4s ease-in-out infinite', animationDelay: '0.4s' }} 
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-slate-500"
+                  style={{
+                    animation: 'thinking-dot 1.4s ease-in-out infinite',
+                    animationDelay: '0.4s',
+                  }}
                 />
               </div>
             </div>
@@ -96,7 +105,10 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
               {message.images && message.images.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {message.images.map((imageUrl, index) => (
-                    <div key={index} className="relative rounded-lg overflow-hidden max-w-xs">
+                    <div
+                      key={index}
+                      className="relative rounded-lg overflow-hidden max-w-xs"
+                    >
                       {!imageLoaded[imageUrl] && (
                         <div className="absolute inset-0 bg-slate-700/30 flex items-center justify-center z-10">
                           <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -118,12 +130,14 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
             </div>
           )}
         </div>
-        
-        <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+
+        <div
+          className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}
+        >
           <span className="text-[10px] font-medium text-slate-500 uppercase">
             {formatTimestamp(message.timestamp)}
           </span>
-          
+
           {!isUser && !isThinking && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition">
               <button
@@ -142,7 +156,7 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
                   onClick={onRegenerate}
                   className="p-1.5 rounded-md hover:bg-white/5 micro-transition"
                 >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
                 </button>
               )}
             </div>
@@ -150,5 +164,5 @@ export const MessageBubble = memo(function MessageBubble({ message, onRegenerate
         </div>
       </div>
     </div>
-  );
-});
+  )
+})

@@ -1,13 +1,15 @@
 import { ChatProvider, useChat } from './context/ChatContext'
-import { Sidebar } from './components/Sidebar'
+import { ModalProvider, useModal } from './context/ModalContext'
+import { Sidebar } from './components/layout/Sidebar'
 import { ChatArea } from './components/ChatArea'
 import { InputArea } from './components/InputArea'
-import { Header } from './components/Header'
+import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { ModelSettings } from './components/Settings/ModelSettings'
 import { MemoryPanel } from './components/Memory/MemoryPanel'
-import { useState, useEffect } from 'react'
-import { Menu, X, X as XIcon } from 'lucide-react'
+import { Modal } from './components/ui/Modal'
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -16,25 +18,14 @@ function AppContent() {
     id: string
     title: string
   } | null>(null)
-  const [showModelSettings, setShowModelSettings] = useState(false)
-  const [showMemoryPanel, setShowMemoryPanel] = useState(false)
 
   const { deleteConversation, activeConversation } = useChat()
-
-  useEffect(() => {
-    const handleOpenModelSettings = () => {
-      setShowModelSettings(true)
-    }
-    const handleOpenMemory = () => {
-      setShowMemoryPanel(true)
-    }
-    window.addEventListener('open-model-settings', handleOpenModelSettings)
-    window.addEventListener('open-memory-panel', handleOpenMemory)
-    return () => {
-      window.removeEventListener('open-model-settings', handleOpenModelSettings)
-      window.removeEventListener('open-memory-panel', handleOpenMemory)
-    }
-  }, [])
+  const {
+    showModelSettings,
+    closeModelSettings,
+    showMemoryPanel,
+    closeMemoryPanel,
+  } = useModal()
 
   const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-72'
 
@@ -52,7 +43,6 @@ function AppContent() {
   return (
     <>
       <div className="flex h-screen bg-[#0F172A] overflow-hidden text-[#E5E7EB]">
-        {/* 移动端侧边栏遮罩 */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -60,7 +50,6 @@ function AppContent() {
           />
         )}
 
-        {/* 侧边栏 */}
         <div
           className={`
           fixed lg:relative z-50 lg:z-auto h-full transition-all duration-300 ease-in-out
@@ -78,7 +67,6 @@ function AppContent() {
           </div>
         </div>
 
-        {/* 移动端菜单按钮 */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="fixed top-4 left-4 z-30 p-2 rounded-lg bg-[#111827] lg:hidden shadow-lg hover:bg-slate-700 transition-colors"
@@ -112,63 +100,27 @@ function AppContent() {
         type="danger"
       />
 
-      {/* 模型设置弹窗 */}
-      {showModelSettings && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowModelSettings(false)}
-        >
-          <div
-            className="w-full max-w-4xl max-h-[90vh] bg-[#1E293B] rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                <span className="w-1 h-6 bg-purple-500 rounded-full" />
-                添加自定义模型
-              </h2>
-              <button
-                onClick={() => setShowModelSettings(false)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <XIcon className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <ModelSettings />
-            </div>
-          </div>
+      <Modal
+        isOpen={showModelSettings}
+        onClose={closeModelSettings}
+        title="添加自定义模型"
+        size="xl"
+      >
+        <div className="max-h-[70vh] overflow-y-auto">
+          <ModelSettings />
         </div>
-      )}
+      </Modal>
 
-      {/* 记忆管理弹窗 */}
-      {showMemoryPanel && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowMemoryPanel(false)}
-        >
-          <div
-            className="w-full max-w-3xl max-h-[85vh] bg-[#1E293B] rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                <span className="w-1 h-6 bg-blue-500 rounded-full" />
-                记忆管理
-              </h2>
-              <button
-                onClick={() => setShowMemoryPanel(false)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <XIcon className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <MemoryPanel onClose={() => setShowMemoryPanel(false)} />
-            </div>
-          </div>
+      <Modal
+        isOpen={showMemoryPanel}
+        onClose={closeMemoryPanel}
+        title="记忆管理"
+        size="lg"
+      >
+        <div className="max-h-[60vh] overflow-y-auto">
+          <MemoryPanel />
         </div>
-      )}
+      </Modal>
     </>
   )
 }
@@ -176,7 +128,9 @@ function AppContent() {
 export default function App() {
   return (
     <ChatProvider>
-      <AppContent />
+      <ModalProvider>
+        <AppContent />
+      </ModalProvider>
     </ChatProvider>
   )
 }

@@ -8,9 +8,10 @@ import {
   Settings,
   User,
 } from 'lucide-react'
-import { useChat } from '../../context/ChatContext'
+import { useChat } from '../../../context/ChatContext'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef } from 'react'
+import { useModal } from '../../../context/ModalContext'
 
 interface SidebarProps {
   collapsed?: boolean
@@ -27,6 +28,7 @@ export function Sidebar({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
+  const { openModelSettings, openMemoryPanel } = useModal()
 
   const handleScroll = () => {
     setIsScrolling(true)
@@ -61,7 +63,6 @@ export function Sidebar({
     onDeleteClick?.(id, title)
   }
 
-  // 对对话进行时间分组
   const groupConversations = () => {
     const groups: Record<string, any[]> = {}
     const now = new Date()
@@ -230,8 +231,7 @@ export function Sidebar({
             <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
-                  const event = new CustomEvent('open-memory-panel')
-                  window.dispatchEvent(event)
+                  openMemoryPanel()
                   setIsUserMenuOpen(false)
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
@@ -241,8 +241,7 @@ export function Sidebar({
               </button>
               <button
                 onClick={() => {
-                  const event = new CustomEvent('open-model-settings')
-                  window.dispatchEvent(event)
+                  openModelSettings()
                   setIsUserMenuOpen(false)
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"

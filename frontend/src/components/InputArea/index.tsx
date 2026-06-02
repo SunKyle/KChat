@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
-import { Send, Square, X, Image, Trash2, Paperclip, Code } from 'lucide-react'
+import { Send, Square, Image, Trash2, Paperclip, Code } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { api } from '../../utils/api'
 
@@ -16,7 +16,6 @@ export function InputArea() {
     stopStreaming,
   } = useChat()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
 
   const charCount = input.length
@@ -42,7 +41,7 @@ export function InputArea() {
     }
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || uploadingImages.length >= maxImages) return
 
@@ -59,33 +58,6 @@ export function InputArea() {
         setUploadingImages([...newImages])
       } catch (error) {
         console.error('Failed to upload image:', error)
-      }
-    }
-
-    setUploading(false)
-    e.target.value = ''
-  }
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || uploadingImages.length >= maxImages) return
-
-    setUploading(true)
-    const newImages: string[] = [...uploadingImages]
-
-    for (const file of Array.from(files)) {
-      if (newImages.length >= maxImages) break
-      if (!file.type.startsWith('image/')) {
-        console.log('Non-image file:', file.name)
-        continue
-      }
-
-      try {
-        const result = await api.images.upload(file)
-        newImages.push(result.url)
-        setUploadingImages([...newImages])
-      } catch (error) {
-        console.error('Failed to upload file:', error)
       }
     }
 
@@ -111,11 +83,6 @@ export function InputArea() {
     }
 
     sendMessage(input, uploadingImages)
-    setInput('')
-    setUploadingImages([])
-  }
-
-  const handleClear = () => {
     setInput('')
     setUploadingImages([])
   }
@@ -237,9 +204,13 @@ export function InputArea() {
 
               {/* 发送按钮 */}
               <button
-                onClick={
-                  streamingState.isStreaming ? stopStreaming : handleSend
-                }
+                onClick={() => {
+                  if (streamingState.isStreaming) {
+                    stopStreaming()
+                  } else {
+                    handleSend()
+                  }
+                }}
                 disabled={!hasContent && !streamingState.isStreaming}
                 className={`flex items-center justify-center p-1.5 rounded-lg micro-transition ${
                   streamingState.isStreaming

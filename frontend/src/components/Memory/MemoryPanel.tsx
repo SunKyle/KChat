@@ -8,17 +8,12 @@ import {
   CheckCircle,
   Heart,
   Lightbulb,
-  Star,
   Edit2,
   Search,
 } from 'lucide-react'
 import { memoryApi } from '../../utils/memoryApi'
 import { MEMORY_TYPES } from '../../types'
 import type { Memory, MemoryType } from '../../types'
-
-interface MemoryPanelProps {
-  onClose?: () => void
-}
 
 const typeIcons: Record<
   string,
@@ -43,7 +38,7 @@ const getTypeInfo = (type: string) => {
   return MEMORY_TYPES.find((t) => t.type === type)
 }
 
-export function MemoryPanel({ onClose }: MemoryPanelProps) {
+export function MemoryPanel() {
   const [memories, setMemories] = useState<Memory[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')

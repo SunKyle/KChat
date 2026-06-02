@@ -53,12 +53,6 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         }}
         showLineNumbers={true}
         wrapLines={true}
-        lineNumberStyle={{
-          minWidth: '3em',
-          paddingRight: '1em',
-          color: '#6e7681',
-          userSelect: 'none',
-        }}
       >
         {code}
       </SyntaxHighlighter>
