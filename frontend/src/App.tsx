@@ -1,17 +1,16 @@
 import { ChatProvider, useChat } from './context/ChatContext'
-import { ModalProvider, useModal } from './context/ModalContext'
+import { ModalProvider } from './context/ModalContext'
 import { UserProvider } from './context/UserContext'
 import { Sidebar } from './components/layout/Sidebar'
 import { ChatArea } from './components/ChatArea'
 import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
-import { ModelSettings } from './components/Settings/ModelSettings'
-import { MemoryPanel } from './components/Memory/MemoryPanel'
 import { UserSettings } from './components/Settings/UserSettings'
-import { Modal } from './components/ui/Modal'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Menu, X } from 'lucide-react'
+
+type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -21,14 +20,10 @@ function AppContent() {
     title: string
   } | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('profile')
+  const settingsRef = useRef<{ setActiveTab: (tab: SettingsTab) => void } | null>(null)
 
   const { deleteConversation, activeConversation } = useChat()
-  const {
-    showModelSettings,
-    closeModelSettings,
-    showMemoryPanel,
-    closeMemoryPanel,
-  } = useModal()
 
   const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-72'
 
@@ -42,6 +37,19 @@ function AppContent() {
       setDeleteConfirm(null)
     }
   }
+
+  // 监听打开设置事件
+  useEffect(() => {
+    const handleOpenSettings = (event: CustomEvent<{ tab: SettingsTab }>) => {
+      setSettingsTab(event.detail.tab)
+      setShowSettings(true)
+    }
+
+    window.addEventListener('open-settings', handleOpenSettings as EventListener)
+    return () => {
+      window.removeEventListener('open-settings', handleOpenSettings as EventListener)
+    }
+  }, [])
 
   return (
     <>
@@ -85,10 +93,13 @@ function AppContent() {
         <div
           className={`flex-1 flex flex-col overflow-hidden relative ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
-          <Header onSettingsClick={() => setShowSettings(true)} />
+          <Header onSettingsClick={() => { setSettingsTab('profile'); setShowSettings(true) }} />
           {showSettings ? (
             <div className="flex-1 overflow-y-auto p-6">
-              <UserSettings onClose={() => setShowSettings(false)} />
+              <UserSettings 
+                onClose={() => setShowSettings(false)} 
+                defaultTab={settingsTab}
+              />
             </div>
           ) : (
             <>
@@ -113,26 +124,6 @@ function AppContent() {
         onCancel={() => setDeleteConfirm(null)}
         type="danger"
       />
-
-      <Modal
-        isOpen={showModelSettings}
-        onClose={closeModelSettings}
-        title="添加自定义模型"
-        size="xl"
-        autoHeight
-      >
-        <ModelSettings />
-      </Modal>
-
-      <Modal
-        isOpen={showMemoryPanel}
-        onClose={closeMemoryPanel}
-        title="记忆管理"
-        size="lg"
-        autoHeight
-      >
-        <MemoryPanel />
-      </Modal>
     </>
   )
 }

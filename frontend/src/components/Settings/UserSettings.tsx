@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { User, Monitor, Lock, Key, Loader2, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Monitor, Lock, Key, Loader2, X, Brain, Database } from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
+import { ModelSettings } from './ModelSettings'
+import { MemoryPanel } from '../Memory/MemoryPanel'
 import { useUser } from '../../context/UserContext'
 
-type TabType = 'profile' | 'preferences' | 'privacy' | 'api'
+type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
 
 interface TabConfig {
   id: TabType
@@ -16,6 +18,7 @@ interface TabConfig {
 
 interface UserSettingsProps {
   onClose?: () => void
+  defaultTab?: TabType
 }
 
 const tabs: TabConfig[] = [
@@ -23,11 +26,18 @@ const tabs: TabConfig[] = [
   { id: 'preferences', label: '偏好设置', icon: Monitor },
   { id: 'privacy', label: '隐私安全', icon: Lock },
   { id: 'api', label: 'API 密钥', icon: Key },
+  { id: 'models', label: '模型管理', icon: Brain },
+  { id: 'memory', label: '记忆管理', icon: Database },
 ]
 
-export function UserSettings({ onClose }: UserSettingsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('profile')
+export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsProps) {
+  const [activeTab, setActiveTab] = useState<TabType>(defaultTab)
   const { isLoading, error } = useUser()
+
+  // 当 defaultTab 改变时更新 activeTab
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
 
   if (isLoading) {
     return (
@@ -55,6 +65,10 @@ export function UserSettings({ onClose }: UserSettingsProps) {
         return <Privacy />
       case 'api':
         return <APIKeys />
+      case 'models':
+        return <ModelSettings />
+      case 'memory':
+        return <MemoryPanel />
       default:
         return <ProfileInfo />
     }

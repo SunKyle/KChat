@@ -11,7 +11,6 @@ import {
 import { useChat } from '../../../context/ChatContext'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef } from 'react'
-import { useModal } from '../../../context/ModalContext'
 
 interface SidebarProps {
   collapsed?: boolean
@@ -28,7 +27,6 @@ export function Sidebar({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
-  const { openModelSettings, openMemoryPanel } = useModal()
 
   const handleScroll = () => {
     setIsScrolling(true)
@@ -227,7 +225,10 @@ export function Sidebar({
             <div className="absolute bottom-full left-0 right-0 mb-2 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
-                  openMemoryPanel()
+                  const event = new CustomEvent('open-settings', { 
+                    detail: { tab: 'memory' } 
+                  })
+                  window.dispatchEvent(event)
                   setIsUserMenuOpen(false)
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
@@ -237,7 +238,10 @@ export function Sidebar({
               </button>
               <button
                 onClick={() => {
-                  openModelSettings()
+                  const event = new CustomEvent('open-settings', { 
+                    detail: { tab: 'models' } 
+                  })
+                  window.dispatchEvent(event)
                   setIsUserMenuOpen(false)
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
