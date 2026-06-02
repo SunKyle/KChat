@@ -61,7 +61,7 @@ function AppContent() {
         `}
         >
           <div
-            className={`h-full backdrop-blur-xl theme-bg-sidebar/95 rounded-2xl shadow-2xl shadow-black/10 border theme-border-primary/50 overflow-hidden transition-all duration-300 ease-in-out ${sidebarWidth}`}
+            className={`h-full backdrop-blur-xl theme-bg-sidebar/95 rounded-2xl border theme-border-primary/50 overflow-hidden transition-all duration-300 ease-in-out ${sidebarWidth} shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_3px_10px_rgba(0,0,0,0.2),0_6px_20px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)]`}
           >
             <Sidebar
               collapsed={sidebarCollapsed}
