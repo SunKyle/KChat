@@ -42,7 +42,7 @@ function AppContent() {
 
   return (
     <>
-      <div className="flex h-screen bg-dark-900 overflow-hidden text-slate-200">
+      <div className="flex h-screen theme-bg-primary overflow-hidden theme-text-primary">
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"

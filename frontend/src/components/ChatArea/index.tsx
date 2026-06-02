@@ -78,20 +78,22 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-dark-900">
-        <div className="text-center text-slate-500 animate-fade-in px-4">
+      <div className="flex-1 flex items-center justify-center theme-bg-primary">
+        <div className="text-center theme-text-muted animate-fade-in px-4">
           <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <h2 className="text-xl font-medium mb-2 text-slate-200">
+          <h2 className="text-xl font-medium mb-2 theme-text-primary">
             选择或创建对话
           </h2>
-          <p>从左侧列表选择一个对话，或创建新对话开始聊天</p>
+          <p className="theme-text-secondary">
+            从左侧列表选择一个对话，或创建新对话开始聊天
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-dark-900 min-h-0 relative">
+    <div className="flex-1 flex flex-col theme-bg-primary min-h-0 relative">
       {error && (
         <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-3 animate-slide-down">
           <div className="max-w-[800px] mx-auto w-full flex items-center justify-between">

@@ -91,9 +91,8 @@ export function Sidebar({
   const grouped = groupConversations()
 
   return (
-    <div className="bg-dark-800 border-r border-white/5 flex flex-col h-full overflow-hidden">
-      <div
-        className={`p-4 border-b border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
+    <div className="theme-bg-sidebar border-r theme-border-secondary flex flex-col h-full overflow-hidden">
+      <div className={`p-4 border-b theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
         <div
           className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
@@ -106,7 +105,7 @@ export function Sidebar({
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-sm font-semibold text-slate-200 tracking-tight">
+                <h1 className="text-sm font-semibold theme-text-primary tracking-tight">
                   KChat
                 </h1>
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">

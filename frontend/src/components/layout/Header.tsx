@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 export function Header() {
   const { activeConversation, currentModel, availableModels, setCurrentModel } =
@@ -34,17 +35,17 @@ export function Header() {
   }, [isModelDropdownOpen])
 
   return (
-    <header className="h-16 bg-dark-900/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 relative z-40">
+    <header className="h-16 theme-bg-primary/80 backdrop-blur-md border-b theme-border-secondary flex items-center justify-between px-6 relative z-40">
       <div className="flex items-center gap-6">
         {activeConversation ? (
-          <div className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 micro-transition hover:bg-white/10 cursor-default">
-            <h1 className="text-sm font-medium text-slate-200 truncate max-w-lg transition-all">
+          <div className="px-4 py-1.5 theme-bg-hover/50 rounded-full border theme-border-primary micro-transition hover:theme-bg-hover cursor-default">
+            <h1 className="text-sm font-medium theme-text-primary truncate max-w-lg transition-all">
               {activeConversation.title}
             </h1>
           </div>
         ) : (
-          <div className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
-            <h1 className="text-sm font-medium text-slate-500">
+          <div className="px-4 py-1.5 theme-bg-hover/50 rounded-full border theme-border-primary">
+            <h1 className="text-sm font-medium theme-text-muted">
               选择或创建对话
             </h1>
           </div>
@@ -66,7 +67,7 @@ export function Header() {
           </button>
 
           {isModelDropdownOpen && (
-            <div className="absolute top-full left-0 w-44 mt-1 bg-dark-700 rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 w-44 mt-1 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50">
               {availableModels.map((model) => (
                 <button
                   key={model}
@@ -74,8 +75,8 @@ export function Header() {
                     setCurrentModel(model)
                     setIsModelDropdownOpen(false)
                   }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-white/5 transition-colors ${
-                    model === currentModel ? 'text-sky-400' : 'text-slate-300'
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:theme-bg-hover transition-colors ${
+                    model === currentModel ? 'theme-brand-primary' : 'theme-text-secondary'
                   }`}
                 >
                   <span className="capitalize">{model}</span>
@@ -85,13 +86,13 @@ export function Header() {
             </div>
           )}
         </div>
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-white/5 text-slate-400 rounded-lg border border-white/10 micro-transition">
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
           <Database className="w-4 h-4" />
           <span className="text-xs font-bold uppercase tracking-tight">
             8 / 10 <span className="opacity-50 text-[10px]">CTX</span>
           </span>
         </div>
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-white/5 text-slate-400 rounded-lg border border-white/10 micro-transition">
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
           <BrainCircuit className="w-4 h-4" />
           <span className="text-xs font-bold uppercase tracking-tight">
             记忆开启
@@ -99,6 +100,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4 border-l border-white/10 pl-5">
+          <ThemeToggle />
           <div className="flex items-center gap-2">
             {isOnline ? (
               <>
