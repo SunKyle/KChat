@@ -125,7 +125,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className="flex flex-col theme-bg-input backdrop-blur-xl rounded-2xl border theme-border-primary micro-transition shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08)] focus-within:border-primary-500/50 focus-within:theme-bg-hover/50 focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.25),0_8px_24px_rgba(0,0,0,0.15),0_16px_48px_rgba(0,0,0,0.1),0_1px_30px_rgba(14,165,233,0.1)] hover:border-primary-500/30 hover:bg-[var(--bg-hover)]/30 hover:shadow-[0_3px_10px_rgba(0,0,0,0.2),0_6px_20px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+        <div className="flex flex-col theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border theme-border-primary micro-transition shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08)] focus-within:border-primary-500/50 focus-within:theme-bg-sidebar focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.25),0_8px_24px_rgba(0,0,0,0.15),0_16px_48px_rgba(0,0,0,0.1),0_1px_30px_rgba(14,165,233,0.1)] hover:border-primary-500/30 hover:theme-bg-sidebar hover:shadow-[0_3px_10px_rgba(0,0,0,0.2),0_6px_20px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
           {/* 上半部分：文本输入区域 */}
           <div className="px-4 py-2">
             <textarea
