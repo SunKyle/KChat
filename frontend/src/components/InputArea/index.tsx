@@ -91,14 +91,14 @@ export function InputArea() {
 
   return (
     <div className="p-4 pb-6">
-      <div className="max-w-content mx-auto relative group">
+      <div className="max-w-3xl mx-auto relative group">
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {uploadingImages.map((imageUrl, index) => (
               <div
                 key={index}
-                className="relative w-16 h-16 rounded-lg overflow-hidden border theme-border-primary"
+                className="relative w-16 h-16 rounded-lg overflow-hidden border theme-border-primary hover:border-primary-500/50 transition-all duration-200"
               >
                 <img
                   src={imageUrl}
@@ -107,9 +107,9 @@ export function InputArea() {
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/60 rounded-full hover:bg-black/80 transition-colors"
+                  className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center theme-bg-card/80 backdrop-blur-sm rounded-full hover:theme-bg-hover transition-colors"
                 >
-                  <Trash2 className="w-3 h-3 text-white" />
+                  <Trash2 className="w-3 h-3 theme-text-primary" />
                 </button>
               </div>
             ))}
@@ -117,7 +117,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className="flex flex-col theme-bg-input backdrop-blur-2xl rounded-xl border theme-border-primary micro-transition focus-within:border-primary-500/30 focus-within:theme-bg-hover/50 transition-all duration-300">
+        <div className="flex flex-col theme-bg-input backdrop-blur-xl rounded-2xl border theme-border-primary micro-transition shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08)] focus-within:border-primary-500/50 focus-within:theme-bg-hover/50 focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.25),0_8px_24px_rgba(0,0,0,0.15),0_16px_48px_rgba(0,0,0,0.1),0_1px_30px_rgba(14,165,233,0.1)] hover:border-primary-500/30 hover:bg-[var(--bg-hover)]/30 hover:shadow-[0_3px_10px_rgba(0,0,0,0.2),0_6px_20px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
           {/* 上半部分：文本输入区域 */}
           <div className="px-4 py-2">
             <textarea
@@ -158,12 +158,12 @@ export function InputArea() {
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
                 }
-                className={`p-1.5 rounded-lg transition-colors ${
+                className={`p-2 rounded-xl transition-all duration-200 ${
                   uploading ||
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
                     ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 cursor-pointer'
+                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 cursor-pointer'
                 }`}
                 title="上传文件（包括图片）"
               >
@@ -172,7 +172,7 @@ export function InputArea() {
 
               {/* 代码按钮 */}
               <button
-                className="p-1.5 theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 rounded-lg transition-colors"
+                className="p-2 rounded-xl theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 transition-all duration-200"
                 title="插入代码"
               >
                 <Code className="w-4 h-4" />
@@ -182,10 +182,10 @@ export function InputArea() {
               <button
                 onClick={() => setInput('生成图片：')}
                 disabled={streamingState.isStreaming}
-                className={`p-1.5 rounded-lg transition-colors ${
+                className={`p-2 rounded-xl transition-all duration-200 ${
                   streamingState.isStreaming
                     ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 cursor-pointer'
+                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/60 hover:scale-105 hover:shadow-md hover:shadow-primary-500/10 cursor-pointer'
                 }`}
                 title="生成图片"
               >
@@ -210,17 +210,17 @@ export function InputArea() {
                   }
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`flex items-center justify-center p-1.5 rounded-lg micro-transition ${
+                className={`flex items-center justify-center p-2 rounded-xl micro-transition transition-all duration-200 ${
                   streamingState.isStreaming
-                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:scale-105 cursor-pointer'
                     : hasContent && charCount <= maxChars
-                      ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400 active:scale-95 cursor-pointer'
+                      ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 hover:bg-sky-400 hover:shadow-xl hover:shadow-sky-500/50 hover:scale-105 active:scale-95 cursor-pointer'
                       : 'theme-bg-hover/50 theme-text-muted/50 cursor-not-allowed'
                 }`}
                 title={streamingState.isStreaming ? '中断回答' : '发送消息'}
               >
                 {streamingState.isStreaming ? (
-                  <Square className="w-3.5 h-3.5" fill="currentColor" />
+                  <Square className="w-4 h-4" fill="currentColor" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
