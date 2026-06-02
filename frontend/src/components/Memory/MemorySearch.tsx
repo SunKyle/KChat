@@ -41,7 +41,7 @@ export default function MemorySearch({ value, onChange, onSearch }: MemorySearch
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="搜索记忆（支持语义搜索）..."
-        className="w-full pl-10 pr-10 py-2 bg-slate-800 text-white border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+        className="w-full pl-10 pr-10 py-2 theme-bg-input theme-text-primary border theme-border-primary rounded-lg focus:outline-none focus:border-[var(--accent-sky)] placeholder-theme-text-placeholder"
       />
       {value && (
         <button

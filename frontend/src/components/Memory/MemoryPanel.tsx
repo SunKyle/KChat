@@ -238,7 +238,7 @@ export function MemoryPanel() {
       <div className="space-y-0.5 flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <div className="flex items-center justify-center py-6">
-            <div className="w-5 h-5 border border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border theme-border-primary border-t-[var(--accent-sky)] rounded-full animate-spin"></div>
           </div>
         ) : filteredMemories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 theme-text-muted">

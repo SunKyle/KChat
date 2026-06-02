@@ -83,7 +83,7 @@ export function ConversationItem({
           }`}
         >
           {isStreaming ? (
-            <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
             <span className="text-xs font-medium">
               {conversation.title.charAt(0)}
@@ -114,7 +114,7 @@ export function ConversationItem({
           }`}
         >
           {isStreaming ? (
-            <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
             <span className="text-xs font-semibold">
               {conversation.title.charAt(0)}

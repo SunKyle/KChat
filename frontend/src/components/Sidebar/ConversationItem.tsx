@@ -83,7 +83,7 @@ export function ConversationItem({
           }`}
         >
           {isStreaming ? (
-            <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
             <span className="text-xs font-medium">
               {conversation.title.charAt(0)}
@@ -112,7 +112,7 @@ export function ConversationItem({
           }`}
         >
           {isStreaming ? (
-            <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
             <span className="text-xs font-semibold">
               {conversation.title.charAt(0)}
@@ -133,7 +133,7 @@ export function ConversationItem({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSaveEdit}
-            className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-sky-500/50"
+            className="w-full px-2 py-1 text-sm theme-bg-input border theme-border-primary rounded theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (

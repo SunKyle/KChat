@@ -90,9 +90,9 @@ export function Sidebar({
   const grouped = groupConversations()
 
   return (
-    <div className="bg-dark-800 border-r border-white/5 flex flex-col h-full overflow-hidden">
+    <div className="theme-bg-sidebar border-r theme-border-secondary flex flex-col h-full overflow-hidden">
       <div
-        className={`p-4 border-b border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
+        className={`p-4 border-b theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
         <div
           className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
@@ -204,7 +204,7 @@ export function Sidebar({
       </div>
 
       <div
-        className={`p-3 border-t border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
+        className={`p-3 border-t theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
         <div className="relative w-full">
           <button
