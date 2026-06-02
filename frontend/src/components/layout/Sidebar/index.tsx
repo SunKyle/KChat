@@ -24,7 +24,6 @@ export function Sidebar({
   onDeleteClick,
 }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false)
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -201,10 +200,9 @@ export function Sidebar({
       </div>
 
       <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className="relative w-full">
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} hover:theme-bg-hover rounded-lg p-1 -m-1 transition-colors`}
+        <div className="w-full">
+          <div
+            className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''}`}
           >
             <div className="w-7 h-7 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center">
               <User className="w-4 h-4 theme-text-secondary" />
@@ -219,38 +217,7 @@ export function Sidebar({
                 </p>
               </div>
             )}
-          </button>
-
-          {isUserMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50">
-              <button
-                onClick={() => {
-                  const event = new CustomEvent('open-settings', { 
-                    detail: { tab: 'memory' } 
-                  })
-                  window.dispatchEvent(event)
-                  setIsUserMenuOpen(false)
-                }}
-                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>记忆管理</span>
-              </button>
-              <button
-                onClick={() => {
-                  const event = new CustomEvent('open-settings', { 
-                    detail: { tab: 'models' } 
-                  })
-                  window.dispatchEvent(event)
-                  setIsUserMenuOpen(false)
-                }}
-                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
-              >
-                <Settings className="w-4 h-4" />
-                <span>添加自定义模型</span>
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
