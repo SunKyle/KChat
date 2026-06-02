@@ -56,15 +56,17 @@ export function Modal({
       onClick={onClose}
     >
       <div
-        className={`bg-slate-800 rounded-xl shadow-2xl w-full ${sizeClasses[size]} ${className} ${autoHeight ? 'max-h-[90vh] flex flex-col' : ''}`}
+        className={`theme-bg-card rounded-xl shadow-2xl w-full ${sizeClasses[size]} ${className} ${autoHeight ? 'max-h-[90vh] flex flex-col' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
-            <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <div className="flex items-center justify-between px-6 py-4 border-b theme-border-primary">
+            <h3 className="text-lg font-semibold theme-text-primary">
+              {title}
+            </h3>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
+              className="theme-text-muted hover:theme-text-primary transition-colors p-1 rounded-md hover:theme-bg-hover"
             >
               <svg
                 className="w-5 h-5"

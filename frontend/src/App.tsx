@@ -115,10 +115,9 @@ function AppContent() {
         onClose={closeMemoryPanel}
         title="记忆管理"
         size="lg"
+        autoHeight
       >
-        <div className="max-h-[60vh] overflow-y-auto h-full">
-          <MemoryPanel />
-        </div>
+        <MemoryPanel />
       </Modal>
     </>
   )

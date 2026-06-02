@@ -162,9 +162,9 @@ export function MemoryPanel() {
   const getTypeColor = (type: string) => typeColors[type] || 'theme-text-muted'
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full space-y-3 sm:space-y-4">
       {/* 搜索和操作栏 */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
           <input
