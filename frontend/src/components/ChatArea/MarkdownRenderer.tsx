@@ -1,50 +1,50 @@
-import ReactMarkdown from 'react-markdown';
-import { CodeBlock } from './CodeBlock';
-import { useState } from 'react';
-import { ZoomIn, X, Download } from 'lucide-react';
+import ReactMarkdown from 'react-markdown'
+import { CodeBlock } from './CodeBlock'
+import { useState } from 'react'
+import { ZoomIn, X, Download } from 'lucide-react'
 
 interface MarkdownRendererProps {
-  content: string;
+  content: string
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
-  const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
+  const [expandedImage, setExpandedImage] = useState<string | null>(null)
 
   const handleImageLoad = (src: string) => {
-    setImageLoaded(prev => ({ ...prev, [src]: true }));
-  };
+    setImageLoaded((prev) => ({ ...prev, [src]: true }))
+  }
 
   const handleDownload = async (src: string, filename?: string) => {
     try {
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename || `generated-image-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const response = await fetch(src)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename || `generated-image-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Download failed:', error);
-      window.open(src, '_blank');
+      console.error('Download failed:', error)
+      window.open(src, '_blank')
     }
-  };
+  }
 
   return (
     <>
       {expandedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setExpandedImage(null)}
         >
           <div className="absolute top-4 right-4 flex gap-2">
             <button
               onClick={(e) => {
-                e.stopPropagation();
-                handleDownload(expandedImage);
+                e.stopPropagation()
+                handleDownload(expandedImage)
               }}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title="下载图片"
@@ -54,8 +54,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             <button
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               onClick={(e) => {
-                e.stopPropagation();
-                setExpandedImage(null);
+                e.stopPropagation()
+                setExpandedImage(null)
               }}
             >
               <X className="w-6 h-6 text-white" />
@@ -72,22 +72,25 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       <div className="markdown-body text-sm leading-relaxed">
         <ReactMarkdown
           components={{
-            code({ node, inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || '');
+            code({ node: _node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '')
               return !inline && match ? (
-                <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
+                <CodeBlock
+                  code={String(children).replace(/\n$/, '')}
+                  language={match[1]}
+                />
               ) : (
-                <code 
-                  className="bg-slate-600/50 rounded px-1.5 py-0.5 text-sm font-mono text-primary-300" 
+                <code
+                  className="bg-slate-600/50 rounded px-1.5 py-0.5 text-sm font-mono text-primary-300"
                   {...props}
                 >
                   {children}
                 </code>
-              );
+              )
             },
             img: ({ src, alt }) => {
-              if (!src) return null;
-              const filename = src.split('/').pop() || 'generated-image.png';
+              if (!src) return null
+              const filename = src.split('/').pop() || 'generated-image.png'
               return (
                 <div className="relative group my-4 inline-block">
                   {!imageLoaded[src] && (
@@ -99,7 +102,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                     src={src}
                     alt={alt || 'Generated image'}
                     className={`max-w-full max-h-96 object-contain rounded-lg shadow-lg transition-all cursor-zoom-in ${
-                      imageLoaded[src] ? 'opacity-100 hover:shadow-xl hover:shadow-sky-500/10' : 'opacity-0'
+                      imageLoaded[src]
+                        ? 'opacity-100 hover:shadow-xl hover:shadow-sky-500/10'
+                        : 'opacity-0'
                     }`}
                     onLoad={() => handleImageLoad(src)}
                     onClick={() => setExpandedImage(src)}
@@ -107,8 +112,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                   <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(src, filename);
+                        e.stopPropagation()
+                        handleDownload(src, filename)
                       }}
                       className="p-1.5 bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur-sm transition-colors"
                       title="下载图片"
@@ -120,40 +125,83 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                     </div>
                   </div>
                 </div>
-              );
+              )
             },
-            h1: ({ children }) => <h1 className="text-2xl font-bold mt-4 mb-2 text-white">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-xl font-bold mt-3 mb-2 text-white">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-lg font-bold mt-2 mb-1 text-white">{children}</h3>,
-            p: ({ children }) => <p className="mb-3 last:mb-0 text-slate-200">{children}</p>,
-            ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1 text-slate-200">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1 text-slate-200">{children}</ol>,
-            li: ({ children }) => <li className="text-slate-200">{children}</li>,
+            h1: ({ children }) => (
+              <h1 className="text-2xl font-bold mt-4 mb-2 text-white">
+                {children}
+              </h1>
+            ),
+            h2: ({ children }) => (
+              <h2 className="text-xl font-bold mt-3 mb-2 text-white">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="text-lg font-bold mt-2 mb-1 text-white">
+                {children}
+              </h3>
+            ),
+            p: ({ children }) => (
+              <p className="mb-3 last:mb-0 text-slate-200">{children}</p>
+            ),
+            ul: ({ children }) => (
+              <ul className="list-disc list-inside mb-3 space-y-1 text-slate-200">
+                {children}
+              </ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="list-decimal list-inside mb-3 space-y-1 text-slate-200">
+                {children}
+              </ol>
+            ),
+            li: ({ children }) => (
+              <li className="text-slate-200">{children}</li>
+            ),
             blockquote: ({ children }) => (
               <blockquote className="border-l-4 border-primary-500 pl-4 my-3 italic text-slate-400">
                 {children}
               </blockquote>
             ),
             a: ({ href, children }) => (
-              <a href={href} className="text-primary-400 hover:text-primary-300 underline" target="_blank" rel="noopener noreferrer">
+              <a
+                href={href}
+                className="text-primary-400 hover:text-primary-300 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {children}
               </a>
             ),
-            strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
-            em: ({ children }) => <em className="italic text-slate-300">{children}</em>,
+            strong: ({ children }) => (
+              <strong className="font-bold text-white">{children}</strong>
+            ),
+            em: ({ children }) => (
+              <em className="italic text-slate-300">{children}</em>
+            ),
             hr: () => <hr className="border-slate-700 my-4" />,
             table: ({ children }) => (
               <div className="overflow-x-auto my-3">
-                <table className="min-w-full border border-slate-700">{children}</table>
+                <table className="min-w-full border border-slate-700">
+                  {children}
+                </table>
               </div>
             ),
-            th: ({ children }) => <th className="border border-slate-700 px-3 py-2 bg-slate-700 text-white">{children}</th>,
-            td: ({ children }) => <td className="border border-slate-700 px-3 py-2 text-slate-200">{children}</td>,
+            th: ({ children }) => (
+              <th className="border border-slate-700 px-3 py-2 bg-slate-700 text-white">
+                {children}
+              </th>
+            ),
+            td: ({ children }) => (
+              <td className="border border-slate-700 px-3 py-2 text-slate-200">
+                {children}
+              </td>
+            ),
           }}
         >
           {content}
         </ReactMarkdown>
       </div>
     </>
-  );
+  )
 }

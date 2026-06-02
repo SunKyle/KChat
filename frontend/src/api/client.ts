@@ -90,6 +90,7 @@ export async function requestStream<T>(
             const parsed = JSON.parse(line);
             onData(parsed);
           } catch {
+            // Ignore JSON parse errors for incomplete lines
           }
         }
       }
@@ -100,6 +101,7 @@ export async function requestStream<T>(
         const parsed = JSON.parse(buffer);
         onData(parsed);
       } catch {
+        // Ignore JSON parse errors for incomplete buffer
       }
     }
   } catch (error) {

@@ -312,7 +312,7 @@ export function MemoryPanel() {
                     <div className="min-w-0">
                       <h4
                         className={`text-sm font-medium truncate transition-colors ${
-                          isSelected ? 'text-white' : 'text-[#E5E7EB]'
+                          isSelected ? 'text-white' : 'text-slate-200'
                         }`}
                       >
                         {memory.content}
@@ -379,7 +379,7 @@ export function MemoryPanel() {
           }}
         >
           <div
-            className="w-full max-w-md bg-[#1E293B] rounded-xl border border-white/10 overflow-hidden"
+            className="w-full max-w-md bg-dark-700 rounded-xl border border-white/10 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -428,7 +428,7 @@ export function MemoryPanel() {
                   className="w-full h-24 px-3 py-2 bg-slate-800/50 border border-white/5 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-blue-500/50 resize-none"
                   maxLength={500}
                 />
-                <p className="text-[10px] text-slate-500 mt-1 text-right">
+                <p className="text-xs text-slate-500 mt-1 text-right">
                   {(editingMemory?.content || '').length}/500
                 </p>
               </div>

@@ -161,7 +161,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         },
       }
 
-    case 'UPDATE_STREAMING_CONTENT':
+    case 'UPDATE_STREAMING_CONTENT': {
       const currentStreaming = state.streamingStates[
         action.payload.conversationId
       ] || {
@@ -180,6 +180,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           },
         },
       }
+    }
 
     case 'END_STREAMING':
       return {
@@ -207,13 +208,14 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         },
       }
 
-    case 'RESET_NEW_REPLY':
+    case 'RESET_NEW_REPLY': {
       const newNewReplies = { ...state.newReplies }
       delete newNewReplies[action.payload]
       return {
         ...state,
         newReplies: newNewReplies,
       }
+    }
 
     case 'ADD_CONVERSATION':
       return {
@@ -221,7 +223,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         conversations: [action.payload, ...state.conversations],
       }
 
-    case 'REMOVE_CONVERSATION':
+    case 'REMOVE_CONVERSATION': {
       const newStreamingStates = { ...state.streamingStates }
       delete newStreamingStates[action.payload]
       return {
@@ -237,6 +239,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           state.activeConversation?.id === action.payload ? [] : state.messages,
         streamingStates: newStreamingStates,
       }
+    }
 
     case 'UPDATE_CONVERSATION_TITLE':
       return {

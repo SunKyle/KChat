@@ -71,6 +71,11 @@ export default {
       borderRadius: {
         '10': '10px',
       },
+      boxShadow: {
+        'brand': '0 4px 20px rgba(14, 165, 233, 0.15)',
+        'brand-lg': '0 8px 30px rgba(14, 165, 233, 0.2)',
+        'glow': '0 0 20px rgba(14, 165, 233, 0.3)',
+      },
     },
   },
   plugins: [],

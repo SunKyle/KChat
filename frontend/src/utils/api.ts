@@ -234,12 +234,12 @@ export const api = {
             if (value) {
               buffer += decoder.decode(value);
             }
-            while (processBuffer()) {}
+            while (processBuffer()) { /* Process all remaining buffer chunks */ }
             break;
           }
 
           buffer += decoder.decode(value, { stream: true });
-          while (processBuffer()) {}
+          while (processBuffer()) { /* Process all remaining buffer chunks */ }
         }
       } catch (error) {
         console.error('SSE stream error:', error);
