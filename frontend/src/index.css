@@ -20,6 +20,17 @@
   --line-height-tight: 1.4;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.6;
+
+  --color-bg-primary: #0f172a;
+  --color-bg-sidebar: #111827;
+  --color-bg-card: #1e293b;
+  --color-bg-hover: #334155;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-brand-primary: #0ea5e9;
+  --color-brand-success: #10b981;
+  --color-brand-danger: #ef4444;
 }
 
 * {
@@ -84,7 +95,6 @@
 .animate-thinking-wave { animation: thinking-wave 1.2s ease-in-out infinite; }
 .animate-thinking-ring { animation: thinking-pulse-ring 1.5s ease-out infinite; }
 
-/* 微动画增强 */
 .micro-transition {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -93,13 +103,12 @@ body {
   font-family: var(--font-family-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 自定义滚动条 - 更加精致 */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -111,7 +120,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  border-radius: 0.625rem;
   transition: background 0.2s ease;
 }
 
@@ -131,16 +140,16 @@ body {
 
 .markdown-body {
   font-family: inherit;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #e2e8f0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
 }
 
 .markdown-body h1 {
   font-size: 2em;
   font-weight: 600;
   padding-bottom: 0.3em;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--color-bg-hover);
   margin-top: 24px;
   margin-bottom: 16px;
 }
@@ -149,7 +158,7 @@ body {
   font-size: 1.5em;
   font-weight: 600;
   padding-bottom: 0.3em;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--color-bg-hover);
   margin-top: 24px;
   margin-bottom: 16px;
 }
@@ -179,7 +188,7 @@ body {
 
 .markdown-body blockquote {
   padding: 0 1em;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   border-left: 0.25em solid #475569;
   margin: 0 0 16px 0;
 }
@@ -187,8 +196,8 @@ body {
 .markdown-body code {
   padding: 0.2em 0.4em;
   font-size: 85%;
-  background-color: #1e293b;
-  border-radius: 6px;
+  background-color: var(--color-bg-card);
+  border-radius: 0.375rem;
   font-family: 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 }
 
@@ -197,8 +206,8 @@ body {
   overflow: auto;
   font-size: 85%;
   line-height: 1.45;
-  background-color: #1e293b;
-  border-radius: 6px;
+  background-color: var(--color-bg-card);
+  border-radius: 0.375rem;
   margin-bottom: 16px;
 }
 
@@ -221,6 +230,6 @@ body {
   height: 0.25em;
   padding: 0;
   margin: 24px 0;
-  background-color: #334155;
+  background-color: var(--color-bg-hover);
   border: 0;
 }

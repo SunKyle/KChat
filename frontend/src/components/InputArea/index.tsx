@@ -91,7 +91,7 @@ export function InputArea() {
 
   return (
     <div className="p-4 pb-6">
-      <div className="max-w-[800px] mx-auto relative group">
+      <div className="max-w-content mx-auto relative group">
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
@@ -118,7 +118,7 @@ export function InputArea() {
 
         {/* 输入框容器 */}
         <div
-          className={`flex flex-col bg-white/[0.03] backdrop-blur-2xl rounded-[12px] border border-white/10 micro-transition focus-within:border-sky-500/30 focus-within:bg-white/[0.05] transition-all duration-300`}
+          className="flex flex-col bg-white/[0.03] backdrop-blur-2xl rounded-xl border border-white/10 micro-transition focus-within:border-primary-500/30 focus-within:bg-white/[0.05] transition-all duration-300"
         >
           {/* 上半部分：文本输入区域 */}
           <div className="px-4 py-2">
@@ -131,7 +131,7 @@ export function InputArea() {
               placeholder={
                 streamingState.isStreaming ? 'AI 正在思考中...' : '输入消息...'
               }
-              className="w-full resize-none bg-transparent px-0 py-1 text-[#E5E7EB] placeholder-slate-500 focus:outline-none min-h-[40px] max-h-[200px] overflow-y-auto text-sm leading-relaxed"
+              className="w-full resize-none bg-transparent px-0 py-1 text-slate-200 placeholder-slate-500 focus:outline-none min-h-[40px] max-h-[200px] overflow-y-auto text-sm leading-relaxed"
             />
           </div>
 

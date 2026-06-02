@@ -59,7 +59,7 @@ export const MessageBubble = memo(function MessageBubble({
         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition ${
           isUser
             ? 'bg-slate-700 text-slate-300'
-            : 'bg-[#0EA5E9] text-white shadow-sm shadow-sky-500/20'
+            : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
         }`}
       >
         {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -68,7 +68,7 @@ export const MessageBubble = memo(function MessageBubble({
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
           className={`relative inline-block max-w-[85%] transition-all ${
-            isUser ? 'text-[#E5E7EB]' : 'bg-transparent text-[#E5E7EB]'
+            isUser ? 'text-slate-200' : 'bg-transparent text-slate-200'
           }`}
         >
           {isThinking && !message.content ? (

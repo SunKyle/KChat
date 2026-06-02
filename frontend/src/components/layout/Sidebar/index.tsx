@@ -91,7 +91,7 @@ export function Sidebar({
   const grouped = groupConversations()
 
   return (
-    <div className="bg-[#111827] border-r border-white/5 flex flex-col h-full overflow-hidden">
+    <div className="bg-dark-800 border-r border-white/5 flex flex-col h-full overflow-hidden">
       <div
         className={`p-4 border-b border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
@@ -101,12 +101,12 @@ export function Sidebar({
           <div
             className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}
           >
-            <div className="w-8 h-8 rounded-lg bg-[#0EA5E9] flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center shadow-sm">
               <Bot className="w-5 h-5 text-white" />
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-sm font-semibold text-[#E5E7EB] tracking-tight">
+                <h1 className="text-sm font-semibold text-slate-200 tracking-tight">
                   KChat
                 </h1>
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">
@@ -131,7 +131,7 @@ export function Sidebar({
           className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
             collapsed
               ? 'w-10 h-10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200 rounded-full'
-              : 'w-full bg-[#E5E7EB] text-[#111827] hover:bg-white transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
+              : 'w-full bg-slate-200 text-dark-800 hover:bg-white transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
           }`}
           title={collapsed ? '新对话' : undefined}
         >
@@ -228,7 +228,7 @@ export function Sidebar({
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-dark-700 rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
                   openMemoryPanel()

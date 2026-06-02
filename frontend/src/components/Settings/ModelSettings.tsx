@@ -178,12 +178,12 @@ export function ModelSettings() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-xl font-semibold text-[#E5E7EB]">模型配置</h2>
+          <h2 className="text-xl font-semibold text-slate-200">模型配置</h2>
           <p className="text-slate-500 text-sm mt-1">管理你的 AI 模型</p>
         </div>
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-400 text-white rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span className="text-sm font-medium">添加模型</span>
@@ -205,7 +205,7 @@ export function ModelSettings() {
           <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
             <Database className="w-7 h-7 text-slate-600" />
           </div>
-          <h3 className="text-base font-medium text-[#E5E7EB] mb-1">
+          <h3 className="text-base font-medium text-slate-200 mb-1">
             暂无模型配置
           </h3>
           <p className="text-slate-500 text-sm mb-5">添加你的第一个 AI 模型</p>
@@ -245,7 +245,7 @@ export function ModelSettings() {
                         className="group flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 hover:border-white/10 transition-colors"
                       >
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-sm font-medium text-[#E5E7EB] truncate">
+                          <h4 className="text-sm font-medium text-slate-200 truncate">
                             {config.name}
                           </h4>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -307,9 +307,9 @@ export function ModelSettings() {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1E293B] rounded-xl w-full max-w-lg border border-white/10">
+          <div className="bg-dark-700 rounded-xl w-full max-w-lg border border-white/10">
             <div className="flex items-center justify-between p-4 border-b border-white/5">
-              <h3 className="text-base font-semibold text-[#E5E7EB]">
+              <h3 className="text-base font-semibold text-slate-200">
                 {editingConfig ? '编辑模型' : '添加模型'}
               </h3>
               <button
@@ -358,7 +358,7 @@ export function ModelSettings() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/5 rounded-lg text-[#E5E7EB] text-sm focus:outline-none focus:border-sky-500/50 transition-colors"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/5 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-primary-500/50 transition-colors"
                   placeholder="我的模型"
                 />
               </div>

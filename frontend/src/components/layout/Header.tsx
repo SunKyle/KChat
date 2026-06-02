@@ -34,11 +34,11 @@ export function Header() {
   }, [isModelDropdownOpen])
 
   return (
-    <header className="h-16 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 relative z-40">
+    <header className="h-16 bg-dark-900/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 relative z-40">
       <div className="flex items-center gap-6">
         {activeConversation ? (
           <div className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 micro-transition hover:bg-white/10 cursor-default">
-            <h1 className="text-sm font-medium text-[#E5E7EB] truncate max-w-lg transition-all">
+            <h1 className="text-sm font-medium text-slate-200 truncate max-w-lg transition-all">
               {activeConversation.title}
             </h1>
           </div>
@@ -66,7 +66,7 @@ export function Header() {
           </button>
 
           {isModelDropdownOpen && (
-            <div className="absolute top-full left-0 w-44 mt-1 bg-[#1E293B] rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 w-44 mt-1 bg-dark-700 rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
               {availableModels.map((model) => (
                 <button
                   key={model}

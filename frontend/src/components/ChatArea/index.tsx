@@ -1,85 +1,97 @@
-import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, AlertCircle, ArrowDown, Sparkles } from 'lucide-react';
-import { useChat } from '../../context/ChatContext';
-import { MessageBubble } from './MessageBubble';
-import { MessageSkeleton } from '../common/Skeleton';
+import { useEffect, useRef, useState } from 'react'
+import { MessageCircle, AlertCircle, ArrowDown, Sparkles } from 'lucide-react'
+import { useChat } from '../../context/ChatContext'
+import { MessageBubble } from './MessageBubble'
+import { MessageSkeleton } from '../common/Skeleton'
 
 export function ChatArea() {
-  const { activeConversation, messages, streamingState, error, clearError, isLoading, stopStreaming } = useChat();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [prevConversationId, setPrevConversationId] = useState<string | null>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
-  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+  const {
+    activeConversation,
+    messages,
+    streamingState,
+    error,
+    clearError,
+    isLoading,
+    stopStreaming,
+  } = useChat()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [showScrollButton, setShowScrollButton] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [prevConversationId, setPrevConversationId] = useState<string | null>(
+    null,
+  )
+  const [isScrolling, setIsScrolling] = useState(false)
+  let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 
   useEffect(() => {
     if (activeConversation && activeConversation.id !== prevConversationId) {
-      setIsTransitioning(true);
+      setIsTransitioning(true)
       const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setPrevConversationId(activeConversation.id);
-      }, 300);
-      return () => clearTimeout(timer);
+        setIsTransitioning(false)
+        setPrevConversationId(activeConversation.id)
+      }, 300)
+      return () => clearTimeout(timer)
     }
-  }, [activeConversation, prevConversationId]);
+  }, [activeConversation, prevConversationId])
 
   useEffect(() => {
     if (!showScrollButton && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages, streamingState, showScrollButton]);
+  }, [messages, streamingState, showScrollButton])
 
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => clearError(), 5000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => clearError(), 5000)
+      return () => clearTimeout(timer)
     }
-  }, [error, clearError]);
+  }, [error, clearError])
 
   const handleScroll = () => {
     if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom);
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+      setShowScrollButton(!isNearBottom)
     }
-    
-    setIsScrolling(true);
+
+    setIsScrolling(true)
     if (scrollTimeout) {
-      clearTimeout(scrollTimeout);
+      clearTimeout(scrollTimeout)
     }
     scrollTimeout = setTimeout(() => {
-      setIsScrolling(false);
-    }, 2500);
-  };
+      setIsScrolling(false)
+    }, 2500)
+  }
 
   useEffect(() => {
     return () => {
       if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
+        clearTimeout(scrollTimeout)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   if (!activeConversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#0F172A]">
+      <div className="flex-1 flex items-center justify-center bg-dark-900">
         <div className="text-center text-slate-500 animate-fade-in px-4">
           <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <h2 className="text-xl font-medium mb-2 text-[#E5E7EB]">选择或创建对话</h2>
+          <h2 className="text-xl font-medium mb-2 text-slate-200">
+            选择或创建对话
+          </h2>
           <p>从左侧列表选择一个对话，或创建新对话开始聊天</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0F172A] min-h-0 relative">
+    <div className="flex-1 flex flex-col bg-dark-900 min-h-0 relative">
       {error && (
         <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-3 animate-slide-down">
           <div className="max-w-[800px] mx-auto w-full flex items-center justify-between">
@@ -98,7 +110,7 @@ export function ChatArea() {
         </div>
       )}
 
-      <div 
+      <div
         ref={containerRef}
         onScroll={handleScroll}
         className={`flex-1 overflow-y-auto scroll-smooth scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
@@ -115,28 +127,28 @@ export function ChatArea() {
               <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-sky-500/20 to-slate-700/20 flex items-center justify-center animate-pulse-once">
                 <Sparkles className="w-12 h-12 text-sky-400" />
               </div>
-              <h2 className="text-2xl font-semibold text-[#E5E7EB] mb-3">
+              <h2 className="text-2xl font-semibold text-slate-200 mb-3">
                 开始新对话
               </h2>
               <p className="text-slate-400 mb-8 text-center max-w-md">
                 你好！我是 AI 助手。有什么我可以帮助你的吗？
               </p>
               <div className="flex flex-wrap gap-3 justify-center">
-                <button 
+                <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-500/10"
+                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   帮我写代码
                 </button>
-                <button 
+                <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-500/10"
+                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   解释概念
                 </button>
-                <button 
+                <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-500/10"
+                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   回答问题
                 </button>
@@ -144,25 +156,30 @@ export function ChatArea() {
             </div>
           ) : (
             <div className="py-6">
-              <div className={`max-w-[800px] mx-auto w-full px-4 sm:px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}>
+              <div
+                className={`max-w-[800px] mx-auto w-full px-4 sm:px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
+              >
                 {messages.map((message, index) => {
-                  const isLastAssistantMessage = message.role === 'assistant' && 
-                    index === messages.length - 1 && 
-                    streamingState.isStreaming;
-                  
+                  const isLastAssistantMessage =
+                    message.role === 'assistant' &&
+                    index === messages.length - 1 &&
+                    streamingState.isStreaming
+
                   return (
-                    <div 
+                    <div
                       key={message.id}
                       className="animate-message-in"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <MessageBubble 
-                        message={message} 
+                      <MessageBubble
+                        message={message}
                         isThinking={isLastAssistantMessage}
-                        onStop={isLastAssistantMessage ? stopStreaming : undefined}
+                        onStop={
+                          isLastAssistantMessage ? stopStreaming : undefined
+                        }
                       />
                     </div>
-                  );
+                  )
                 })}
               </div>
               <div ref={messagesEndRef} />
@@ -181,5 +198,5 @@ export function ChatArea() {
         </button>
       )}
     </div>
-  );
+  )
 }

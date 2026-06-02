@@ -42,7 +42,7 @@ function AppContent() {
 
   return (
     <>
-      <div className="flex h-screen bg-[#0F172A] overflow-hidden text-[#E5E7EB]">
+      <div className="flex h-screen bg-dark-900 overflow-hidden text-slate-200">
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -69,7 +69,7 @@ function AppContent() {
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed top-4 left-4 z-30 p-2 rounded-lg bg-[#111827] lg:hidden shadow-lg hover:bg-slate-700 transition-colors"
+          className="fixed top-4 left-4 z-30 p-2 rounded-lg bg-dark-800 lg:hidden shadow-lg hover:bg-slate-700 transition-colors"
         >
           {sidebarOpen ? (
             <X className="w-5 h-5 text-white" />
