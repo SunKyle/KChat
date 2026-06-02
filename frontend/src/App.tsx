@@ -88,7 +88,7 @@ function AppContent() {
           <Header onSettingsClick={() => setShowSettings(true)} />
           {showSettings ? (
             <div className="flex-1 overflow-y-auto p-6">
-              <UserSettings />
+              <UserSettings onClose={() => setShowSettings(false)} />
             </div>
           ) : (
             <>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User, Monitor, Lock, Key, Loader2 } from 'lucide-react'
+import { User, Monitor, Lock, Key, Loader2, X } from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
@@ -14,6 +14,10 @@ interface TabConfig {
   icon: typeof User
 }
 
+interface UserSettingsProps {
+  onClose?: () => void
+}
+
 const tabs: TabConfig[] = [
   { id: 'profile', label: '基本信息', icon: User },
   { id: 'preferences', label: '偏好设置', icon: Monitor },
@@ -21,7 +25,7 @@ const tabs: TabConfig[] = [
   { id: 'api', label: 'API 密钥', icon: Key },
 ]
 
-export function UserSettings() {
+export function UserSettings({ onClose }: UserSettingsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('profile')
   const { isLoading, error } = useUser()
 
@@ -58,9 +62,20 @@ export function UserSettings() {
 
   return (
     <div className="min-h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold theme-text-primary mb-1">设置</h1>
-        <p className="text-sm theme-text-muted">管理您的账户和偏好设置</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold theme-text-primary mb-1">设置</h1>
+          <p className="text-sm theme-text-muted">管理您的账户和偏好设置</p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg theme-bg-card hover:theme-bg-hover transition-all duration-200 theme-text-muted hover:theme-text-primary"
+            title="返回对话"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
