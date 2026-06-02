@@ -125,7 +125,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className="flex flex-col theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_4px_12px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15),0_16px_40px_rgba(0,0,0,0.1)] focus-within:theme-bg-sidebar focus-within:shadow-[0_6px_16px_rgba(0,0,0,0.25),0_12px_32px_rgba(0,0,0,0.18),0_20px_48px_rgba(0,0,0,0.12)] hover:theme-bg-sidebar hover:shadow-[0_6px_16px_rgba(0,0,0,0.25),0_12px_32px_rgba(0,0,0,0.18),0_20px_48px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
+        <div className="flex flex-col theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] focus-within:theme-bg-sidebar focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
           {/* 上半部分：文本输入区域 */}
           <div className="px-4 py-2">
             <textarea
