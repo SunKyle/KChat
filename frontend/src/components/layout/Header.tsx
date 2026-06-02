@@ -57,7 +57,7 @@ export function Header() {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className="flex items-center gap-2 px-4 py-2 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20 micro-transition hover:bg-sky-500/20 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer"
           >
             <Cpu className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-tight">
@@ -99,20 +99,20 @@ export function Header() {
           </span>
         </div>
 
-        <div className="flex items-center gap-4 border-l border-white/10 pl-5">
+        <div className="flex items-center gap-4 border-l theme-border-primary pl-5">
           <ThemeToggle />
           <div className="flex items-center gap-2">
             {isOnline ? (
               <>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-tighter">
+                <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
                   Connected
                 </span>
               </>
             ) : (
               <>
                 <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-tighter">
+                <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
                   Offline
                 </span>
               </>

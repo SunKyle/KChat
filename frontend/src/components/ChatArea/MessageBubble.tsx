@@ -58,7 +58,7 @@ export const MessageBubble = memo(function MessageBubble({
       <div
         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition ${
           isUser
-            ? 'bg-slate-700 text-slate-300'
+            ? 'theme-bg-card theme-text-secondary'
             : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
         }`}
       >
@@ -132,7 +132,7 @@ export const MessageBubble = memo(function MessageBubble({
         <div
           className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}
         >
-          <span className="text-[10px] font-medium text-slate-500 uppercase">
+          <span className="text-[10px] font-medium theme-text-muted uppercase">
             {formatTimestamp(message.timestamp)}
           </span>
 
@@ -140,21 +140,21 @@ export const MessageBubble = memo(function MessageBubble({
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition">
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-md hover:bg-white/5 micro-transition"
+                className="p-1.5 rounded-md hover:theme-bg-hover/50 micro-transition"
                 title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
                   <Check className="w-3.5 h-3.5 text-green-400" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
+                  <Copy className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1.5 rounded-md hover:bg-white/5 micro-transition"
+                  className="p-1.5 rounded-md hover:theme-bg-hover/50 micro-transition"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
+                  <RotateCcw className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
                 </button>
               )}
             </div>

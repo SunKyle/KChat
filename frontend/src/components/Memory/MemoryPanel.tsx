@@ -162,7 +162,7 @@ export function MemoryPanel() {
   const getTypeColor = (type: string) => typeColors[type] || 'text-slate-400'
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {/* 搜索和操作栏 */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 relative">
@@ -235,7 +235,7 @@ export function MemoryPanel() {
       )}
 
       {/* 记忆列表 */}
-      <div className="space-y-0.5">
+      <div className="space-y-0.5 flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <div className="flex items-center justify-center py-6">
             <div className="w-5 h-5 border border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>

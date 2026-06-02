@@ -117,7 +117,7 @@ function AppContent() {
         title="记忆管理"
         size="lg"
       >
-        <div className="max-h-modal-sm overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto h-full">
           <MemoryPanel />
         </div>
       </Modal>

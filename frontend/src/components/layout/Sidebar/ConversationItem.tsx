@@ -71,7 +71,7 @@ export function ConversationItem({
       <div
         onClick={onClick}
         className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer micro-transition ${
-          isActive ? 'bg-white/10' : 'hover:bg-white/5'
+          isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/50'
         }`}
         title={conversation.title}
       >
@@ -79,7 +79,7 @@ export function ConversationItem({
           className={`relative w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
             isActive
               ? 'bg-[#0EA5E9] text-white'
-              : 'bg-slate-600/60 text-slate-400'
+              : 'theme-bg-card theme-text-secondary'
           }`}
         >
           {isStreaming ? (
@@ -102,13 +102,15 @@ export function ConversationItem({
       onClick={isEditing ? undefined : onClick}
       onContextMenu={handleContextMenu}
       className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer micro-transition ${
-        isActive ? 'bg-white/10 shadow-sm' : 'hover:bg-white/5'
+        isActive ? 'theme-bg-hover shadow-sm' : 'hover:theme-bg-hover/50'
       }`}
     >
       <div className="relative">
         <div
           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center micro-transition ${
-            isActive ? 'bg-[#0EA5E9] text-white' : 'bg-slate-700 text-slate-400'
+            isActive
+              ? 'bg-[#0EA5E9] text-white'
+              : 'theme-bg-card theme-text-secondary'
           }`}
         >
           {isStreaming ? (
@@ -133,13 +135,13 @@ export function ConversationItem({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSaveEdit}
-            className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-sky-500/50"
+            className="w-full px-2 py-1 text-sm theme-bg-input border theme-border-primary rounded theme-text-primary focus:outline-none focus:border-sky-500/50"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <p
             className={`text-sm font-medium truncate transition-colors duration-150 ${
-              isActive ? 'text-white' : 'text-slate-300'
+              isActive ? 'theme-text-primary' : 'theme-text-secondary'
             }`}
           >
             {conversation.title}
@@ -155,7 +157,7 @@ export function ConversationItem({
                 e.stopPropagation()
                 handleSaveEdit()
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
               title="保存"
             >
               <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -165,7 +167,7 @@ export function ConversationItem({
                 e.stopPropagation()
                 handleCancelEdit()
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
               title="取消"
             >
               <X className="w-3.5 h-3.5 text-red-400" />
@@ -175,20 +177,20 @@ export function ConversationItem({
           <>
             <button
               onClick={handleStartEdit}
-              className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
               title="编辑"
             >
-              <Pencil className="w-3.5 h-3.5 text-slate-400 hover:text-slate-300" />
+              <Pencil className="w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete()
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors"
               title="删除"
             >
-              <Trash2 className="w-3.5 h-3.5 text-slate-400 hover:text-red-400" />
+              <Trash2 className="w-3.5 h-3.5 theme-text-muted hover:text-red-400" />
             </button>
           </>
         )}

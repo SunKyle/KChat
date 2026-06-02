@@ -66,20 +66,20 @@ export const lightTheme: ThemeConfig = {
   colors: {
     bg: {
       primary: '#ffffff',
-      sidebar: '#f8fafc',
-      card: '#f1f5f9',
+      sidebar: '#f1f5f9',
+      card: '#f8fafc',
       hover: '#e2e8f0',
-      input: 'rgba(0, 0, 0, 0.03)',
+      input: 'rgba(0, 0, 0, 0.05)',
     },
     text: {
-      primary: '#1e293b',
-      secondary: '#64748b',
-      muted: '#94a3b8',
+      primary: '#0f172a',
+      secondary: '#475569',
+      muted: '#64748b',
       placeholder: '#94a3b8',
     },
     border: {
-      primary: 'rgba(0, 0, 0, 0.1)',
-      secondary: 'rgba(0, 0, 0, 0.05)',
+      primary: 'rgba(0, 0, 0, 0.12)',
+      secondary: 'rgba(0, 0, 0, 0.06)',
     },
     brand: {
       primary: '#0ea5e9',

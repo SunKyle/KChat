@@ -108,7 +108,7 @@ export function Sidebar({
                 <h1 className="text-sm font-semibold theme-text-primary tracking-tight">
                   KChat
                 </h1>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">
+                <p className="text-[10px] theme-text-muted uppercase tracking-wider font-medium">
                   Productivity AI
                 </p>
               </div>
@@ -117,7 +117,7 @@ export function Sidebar({
           {!collapsed && onToggle && (
             <button
               onClick={onToggle}
-              className="p-1.5 rounded-md hover:bg-white/5 transition-colors text-slate-500 hover:text-slate-300"
+              className="p-1.5 rounded-md hover:theme-bg-hover transition-colors theme-text-muted hover:theme-text-secondary"
               title="收起侧边栏"
             >
               <PanelLeftClose className="w-5 h-5" />
@@ -129,8 +129,8 @@ export function Sidebar({
           onClick={createConversation}
           className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
             collapsed
-              ? 'w-10 h-10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200 rounded-full'
-              : 'w-full bg-slate-200 text-dark-800 hover:bg-white transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
+              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary rounded-full'
+              : 'w-full bg-slate-200 text-dark-900 hover:bg-white transition-transform active:scale-[0.98] px-3 py-2 rounded-lg'
           }`}
           title={collapsed ? '新对话' : undefined}
         >
@@ -141,7 +141,7 @@ export function Sidebar({
         {collapsed && onToggle && (
           <button
             onClick={onToggle}
-            className="mt-3 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-slate-400 hover:text-slate-200"
+            className="mt-3 w-10 h-10 flex items-center justify-center rounded-full theme-bg-hover/50 hover:theme-bg-hover transition-all theme-text-secondary hover:theme-text-primary"
             title="展开侧边栏"
           >
             <PanelLeft className="w-5 h-5" />
@@ -158,15 +158,15 @@ export function Sidebar({
           <div
             className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
           >
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-slate-600" />
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full theme-bg-hover/50 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 theme-text-muted" />
             </div>
             {!collapsed && (
               <>
-                <p className="text-slate-400 text-sm mb-1 font-medium">
+                <p className="theme-text-secondary text-sm mb-1 font-medium">
                   暂无对话
                 </p>
-                <p className="text-xs text-slate-500">点击上方按钮开始</p>
+                <p className="text-xs theme-text-muted">点击上方按钮开始</p>
               </>
             )}
           </div>
@@ -175,7 +175,7 @@ export function Sidebar({
             {grouped.map(({ group, items }) => (
               <div key={group} className="space-y-1">
                 {!collapsed && (
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-2 px-2">
+                  <div className="text-[11px] font-semibold theme-text-muted uppercase tracking-widest mb-2 px-2">
                     {group}
                   </div>
                 )}
@@ -204,22 +204,22 @@ export function Sidebar({
       </div>
 
       <div
-        className={`p-3 border-t border-white/5 ${collapsed ? 'flex flex-col items-center' : ''}`}
+        className={`p-3 border-t theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
       >
         <div className="relative w-full">
           <button
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} hover:bg-white/5 rounded-lg p-1 -m-1 transition-colors`}
+            className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} hover:theme-bg-hover rounded-lg p-1 -m-1 transition-colors`}
           >
-            <div className="w-7 h-7 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center">
-              <User className="w-4 h-4 text-slate-400" />
+            <div className="w-7 h-7 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center">
+              <User className="w-4 h-4 theme-text-secondary" />
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0 space-y-0.5 text-left">
-                <p className="text-xs font-medium text-slate-300 truncate leading-tight">
+                <p className="text-xs font-medium theme-text-primary truncate leading-tight">
                   Sun Xiaokai
                 </p>
-                <p className="text-[10px] text-slate-500 truncate leading-tight">
+                <p className="text-[10px] theme-text-muted truncate leading-tight">
                   Premium Plan
                 </p>
               </div>
@@ -227,13 +227,13 @@ export function Sidebar({
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-dark-700 rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="absolute bottom-full left-0 right-0 mb-2 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
                   openMemoryPanel()
                   setIsUserMenuOpen(false)
                 }}
-                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
               >
                 <BookOpen className="w-4 h-4" />
                 <span>记忆管理</span>
@@ -243,7 +243,7 @@ export function Sidebar({
                   openModelSettings()
                   setIsUserMenuOpen(false)
                 }}
-                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-slate-300"
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:theme-bg-hover transition-colors theme-text-secondary"
               >
                 <Settings className="w-4 h-4" />
                 <span>添加自定义模型</span>
