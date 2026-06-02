@@ -108,8 +108,8 @@ export const MessageBubble = memo(function MessageBubble({
                       className="relative rounded-lg overflow-hidden max-w-xs"
                     >
                       {!imageLoaded[imageUrl] && (
-                        <div className="absolute inset-0 bg-slate-700/30 flex items-center justify-center z-10">
-                          <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                        <div className="absolute inset-0 theme-bg-hover/30 flex items-center justify-center z-10">
+                          <div className="w-6 h-6 border-2 theme-border-primary border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
                       <img

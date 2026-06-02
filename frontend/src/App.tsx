@@ -105,10 +105,9 @@ function AppContent() {
         onClose={closeModelSettings}
         title="添加自定义模型"
         size="xl"
+        autoHeight
       >
-        <div className="max-h-modal-md overflow-y-auto">
-          <ModelSettings />
-        </div>
+        <ModelSettings />
       </Modal>
 
       <Modal

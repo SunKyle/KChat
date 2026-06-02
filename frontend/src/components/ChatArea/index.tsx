@@ -129,28 +129,28 @@ export function ChatArea() {
               <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-sky-500/20 to-slate-700/20 flex items-center justify-center animate-pulse-once">
                 <Sparkles className="w-12 h-12 text-sky-400" />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-200 mb-3">
+              <h2 className="text-2xl font-semibold theme-text-primary mb-3">
                 开始新对话
               </h2>
-              <p className="text-slate-400 mb-8 text-center max-w-md">
+              <p className="theme-text-secondary mb-8 text-center max-w-md">
                 你好！我是 AI 助手。有什么我可以帮助你的吗？
               </p>
               <div className="flex flex-wrap gap-3 justify-center">
                 <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 theme-bg-card hover:theme-bg-hover text-theme-text-secondary rounded-xl text-sm micro-transition border theme-border-primary hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   帮我写代码
                 </button>
                 <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 theme-bg-card hover:theme-bg-hover text-theme-text-secondary rounded-xl text-sm micro-transition border theme-border-primary hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   解释概念
                 </button>
                 <button
                   onClick={() => {}}
-                  className="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 rounded-xl text-sm micro-transition border border-slate-700 hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
+                  className="px-4 py-2.5 theme-bg-card hover:theme-bg-hover text-theme-text-secondary rounded-xl text-sm micro-transition border theme-border-primary hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10"
                 >
                   回答问题
                 </button>
@@ -193,10 +193,10 @@ export function ChatArea() {
       {showScrollButton && messages.length > 0 && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-4 right-4 p-3 bg-slate-700 hover:bg-slate-600 rounded-full shadow-lg micro-transition hover:scale-110"
+          className="absolute bottom-4 right-4 p-3 theme-bg-card hover:theme-bg-hover rounded-full shadow-lg micro-transition hover:scale-110"
           title="滚动到底部"
         >
-          <ArrowDown className="w-5 h-5 text-slate-300" />
+          <ArrowDown className="w-5 h-5 theme-text-secondary" />
         </button>
       )}
     </div>

@@ -117,9 +117,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div
-          className="flex flex-col theme-bg-input backdrop-blur-2xl rounded-xl border theme-border-primary micro-transition focus-within:border-primary-500/30 focus-within:theme-bg-hover/50 transition-all duration-300"
-        >
+        <div className="flex flex-col theme-bg-input backdrop-blur-2xl rounded-xl border theme-border-primary micro-transition focus-within:border-primary-500/30 focus-within:theme-bg-hover/50 transition-all duration-300">
           {/* 上半部分：文本输入区域 */}
           <div className="px-4 py-2">
             <textarea
@@ -164,8 +162,8 @@ export function InputArea() {
                   uploading ||
                   streamingState.isStreaming ||
                   uploadingImages.length >= maxImages
-                    ? 'text-slate-600 cursor-not-allowed'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 cursor-pointer'
+                    ? 'theme-text-muted/50 cursor-not-allowed'
+                    : 'theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 cursor-pointer'
                 }`}
                 title="上传文件（包括图片）"
               >
@@ -174,7 +172,7 @@ export function InputArea() {
 
               {/* 代码按钮 */}
               <button
-                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
+                className="p-1.5 theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 rounded-lg transition-colors"
                 title="插入代码"
               >
                 <Code className="w-4 h-4" />
@@ -186,8 +184,8 @@ export function InputArea() {
                 disabled={streamingState.isStreaming}
                 className={`p-1.5 rounded-lg transition-colors ${
                   streamingState.isStreaming
-                    ? 'text-slate-600 cursor-not-allowed'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 cursor-pointer'
+                    ? 'theme-text-muted/50 cursor-not-allowed'
+                    : 'theme-text-muted hover:theme-text-secondary hover:theme-bg-hover/50 cursor-pointer'
                 }`}
                 title="生成图片"
               >
@@ -198,7 +196,7 @@ export function InputArea() {
             {/* 右侧：提示文字和发送按钮 */}
             <div className="flex items-center gap-2">
               {/* 键盘提示 */}
-              <span className="text-xs text-slate-600">
+              <span className="text-xs theme-text-muted/70">
                 Shift + Enter 换行, Enter 发送
               </span>
 
@@ -217,7 +215,7 @@ export function InputArea() {
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
                     : hasContent && charCount <= maxChars
                       ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400 active:scale-95 cursor-pointer'
-                      : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                      : 'theme-bg-hover/50 theme-text-muted/50 cursor-not-allowed'
                 }`}
                 title={streamingState.isStreaming ? '中断回答' : '发送消息'}
               >
