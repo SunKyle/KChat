@@ -8,53 +8,57 @@ import type {
   APIKey,
 } from '../types/user'
 
+// 默认用户ID
+const DEFAULT_USER_ID = 'default'
+
 export const userApi = {
-  getProfile: async (): Promise<UserProfile> => {
-    return request('/api/user/profile')
+  getProfile: async (userId: string = DEFAULT_USER_ID): Promise<UserProfile> => {
+    return request(`/user/profile?userId=${userId}`)
   },
 
-  updateProfile: async (data: UpdateProfileRequest): Promise<UserProfile> => {
-    return request('/api/user/profile', {
+  updateProfile: async (data: UpdateProfileRequest, userId: string = DEFAULT_USER_ID): Promise<UserProfile> => {
+    return request(`/user/profile?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   },
 
   updatePreferences: async (
-    data: UpdatePreferencesRequest
+    data: UpdatePreferencesRequest,
+    userId: string = DEFAULT_USER_ID
   ): Promise<UserProfile> => {
-    return request('/api/user/preferences', {
+    return request(`/user/preferences?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   },
 
-  updatePrivacy: async (data: UpdatePrivacyRequest): Promise<UserProfile> => {
-    return request('/api/user/privacy', {
+  updatePrivacy: async (data: UpdatePrivacyRequest, userId: string = DEFAULT_USER_ID): Promise<UserProfile> => {
+    return request(`/user/privacy?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   },
 
-  getAPIKeys: async (): Promise<APIKey[]> => {
-    return request('/api/user/api-keys')
+  getAPIKeys: async (userId: string = DEFAULT_USER_ID): Promise<APIKey[]> => {
+    return request(`/user/api-keys?userId=${userId}`)
   },
 
-  createAPIKey: async (data: CreateAPIKeyRequest): Promise<APIKey> => {
-    return request('/api/user/api-keys', {
+  createAPIKey: async (data: CreateAPIKeyRequest, userId: string = DEFAULT_USER_ID): Promise<APIKey> => {
+    return request(`/user/api-keys?userId=${userId}`, {
       method: 'POST',
       body: JSON.stringify(data),
     })
   },
 
-  deleteAPIKey: async (keyId: string): Promise<void> => {
-    return request(`/api/user/api-keys/${keyId}`, {
+  deleteAPIKey: async (keyId: string, userId: string = DEFAULT_USER_ID): Promise<void> => {
+    return request(`/user/api-keys/${keyId}?userId=${userId}`, {
       method: 'DELETE',
     })
   },
 
-  revokeDevice: async (deviceId: string): Promise<void> => {
-    return request(`/api/user/devices/${deviceId}`, {
+  revokeDevice: async (deviceId: string, userId: string = DEFAULT_USER_ID): Promise<void> => {
+    return request(`/user/devices/${deviceId}?userId=${userId}`, {
       method: 'DELETE',
     })
   },
