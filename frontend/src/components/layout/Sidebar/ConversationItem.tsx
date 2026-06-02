@@ -70,8 +70,10 @@ export function ConversationItem({
     return (
       <div
         onClick={onClick}
-        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer micro-transition ${
-          isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/50'
+        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
+          isActive
+            ? 'theme-bg-hover shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
+            : 'hover:theme-bg-hover/60 hover:shadow-[0_1px_4px_rgba(0,0,0,0.15)]'
         }`}
         title={conversation.title}
       >
@@ -101,8 +103,10 @@ export function ConversationItem({
     <div
       onClick={isEditing ? undefined : onClick}
       onContextMenu={handleContextMenu}
-      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer micro-transition ${
-        isActive ? 'theme-bg-hover shadow-sm' : 'hover:theme-bg-hover/50'
+      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
+        isActive
+          ? 'theme-bg-hover shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
+          : 'hover:theme-bg-hover/60 hover:shadow-[0_1px_4px_rgba(0,0,0,0.15)]'
       }`}
     >
       <div className="relative">

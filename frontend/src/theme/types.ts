@@ -46,10 +46,10 @@ export const darkTheme: ThemeConfig = {
   colors: {
     bg: {
       primary: '#0f172a',
-      sidebar: '#111827',
+      sidebar: '#2d3a4f',
       card: '#1e293b',
       hover: '#334155',
-      input: 'rgba(255, 255, 255, 0.03)',
+      input: 'rgba(255, 255, 255, 0.2)',
       overlay: 'rgba(0, 0, 0, 0.5)',
     },
     text: {
