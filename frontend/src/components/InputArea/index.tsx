@@ -98,7 +98,7 @@ export function InputArea() {
             {uploadingImages.map((imageUrl, index) => (
               <div
                 key={index}
-                className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10"
+                className="relative w-16 h-16 rounded-lg overflow-hidden border theme-border-primary"
               >
                 <img
                   src={imageUrl}
@@ -231,7 +231,7 @@ export function InputArea() {
 
         {/* 图片上传提示 */}
         {uploading && (
-          <div className="mt-2 text-xs text-slate-500">正在上传图片...</div>
+          <div className="mt-2 text-xs theme-text-muted">正在上传图片...</div>
         )}
       </div>
     </div>

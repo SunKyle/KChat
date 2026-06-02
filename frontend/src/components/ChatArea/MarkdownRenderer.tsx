@@ -37,7 +37,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     <>
       {expandedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 theme-bg-card/95 flex items-center justify-center p-4"
           onClick={() => setExpandedImage(null)}
         >
           <div className="absolute top-4 right-4 flex gap-2">
@@ -46,19 +46,19 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 e.stopPropagation()
                 handleDownload(expandedImage)
               }}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors"
               title="下载图片"
             >
-              <Download className="w-6 h-6 text-white" />
+              <Download className="w-6 h-6 theme-text-primary" />
             </button>
             <button
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors"
               onClick={(e) => {
                 e.stopPropagation()
                 setExpandedImage(null)
               }}
             >
-              <X className="w-6 h-6 text-white" />
+              <X className="w-6 h-6 theme-text-primary" />
             </button>
           </div>
           <img
@@ -94,7 +94,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               return (
                 <div className="relative group my-4 inline-block">
                   {!imageLoaded[src] && (
-                    <div className="absolute inset-0 bg-slate-700/30 flex items-center justify-center z-10 rounded-lg">
+                    <div className="absolute inset-0 theme-bg-hover/50 flex items-center justify-center z-10 rounded-lg">
                       <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
@@ -115,13 +115,13 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                         e.stopPropagation()
                         handleDownload(src, filename)
                       }}
-                      className="p-1.5 bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur-sm transition-colors"
+                      className="p-1.5 theme-bg-card/80 hover:theme-bg-card rounded-lg backdrop-blur-sm transition-colors"
                       title="下载图片"
                     >
-                      <Download className="w-4 h-4 text-white" />
+                      <Download className="w-4 h-4 theme-text-primary" />
                     </button>
-                    <div className="p-1.5 bg-black/60 rounded-lg backdrop-blur-sm">
-                      <ZoomIn className="w-4 h-4 text-white" />
+                    <div className="p-1.5 theme-bg-card/80 rounded-lg backdrop-blur-sm">
+                      <ZoomIn className="w-4 h-4 theme-text-primary" />
                     </div>
                   </div>
                 </div>

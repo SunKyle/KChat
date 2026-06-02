@@ -227,7 +227,7 @@ export function Sidebar({
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-dark-700 rounded-lg border border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="absolute bottom-full left-0 right-0 mb-2 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50">
               <button
                 onClick={() => {
                   const event = new CustomEvent('open-memory-panel')
