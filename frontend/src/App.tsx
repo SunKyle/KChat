@@ -48,19 +48,20 @@ function AppContent() {
       <div className="flex h-screen theme-bg-primary overflow-hidden theme-text-primary">
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 theme-bg-overlay z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
-        <div
+        <aside
           className={`
-          fixed lg:relative z-50 lg:z-auto h-full transition-all duration-300 ease-in-out
+          fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
+          lg:left-6 lg:top-6 lg:bottom-6
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         >
           <div
-            className={`h-full transition-all duration-300 ease-in-out ${sidebarWidth}`}
+            className={`h-full backdrop-blur-xl theme-bg-sidebar/95 rounded-2xl shadow-2xl shadow-black/10 border theme-border-primary/50 overflow-hidden transition-all duration-300 ease-in-out ${sidebarWidth}`}
           >
             <Sidebar
               collapsed={sidebarCollapsed}
@@ -68,7 +69,7 @@ function AppContent() {
               onDeleteClick={handleDeleteClick}
             />
           </div>
-        </div>
+        </aside>
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -81,7 +82,9 @@ function AppContent() {
           )}
         </button>
 
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div
+          className={`flex-1 flex flex-col overflow-hidden relative ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
+        >
           <Header onSettingsClick={() => setShowSettings(true)} />
           {showSettings ? (
             <div className="flex-1 overflow-y-auto p-6">

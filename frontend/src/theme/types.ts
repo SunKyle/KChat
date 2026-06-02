@@ -10,6 +10,7 @@ export interface ThemeConfig {
       card: string
       hover: string
       input: string
+      overlay: string
     }
     text: {
       primary: string
@@ -26,6 +27,15 @@ export interface ThemeConfig {
       success: string
       danger: string
       warning: string
+      info: string
+    }
+    accent: {
+      sky: string
+      emerald: string
+      amber: string
+      rose: string
+      purple: string
+      orange: string
     }
   }
 }
@@ -40,6 +50,7 @@ export const darkTheme: ThemeConfig = {
       card: '#1e293b',
       hover: '#334155',
       input: 'rgba(255, 255, 255, 0.03)',
+      overlay: 'rgba(0, 0, 0, 0.5)',
     },
     text: {
       primary: '#e5e7eb',
@@ -56,6 +67,15 @@ export const darkTheme: ThemeConfig = {
       success: '#10b981',
       danger: '#ef4444',
       warning: '#f59e0b',
+      info: '#3b82f6',
+    },
+    accent: {
+      sky: '#38bdf8',
+      emerald: '#34d399',
+      amber: '#fbbf24',
+      rose: '#fb7185',
+      purple: '#a78bfa',
+      orange: '#fb923c',
     },
   },
 }
@@ -70,6 +90,7 @@ export const lightTheme: ThemeConfig = {
       card: '#f8fafc',
       hover: '#e2e8f0',
       input: 'rgba(0, 0, 0, 0.05)',
+      overlay: 'rgba(0, 0, 0, 0.5)',
     },
     text: {
       primary: '#0f172a',
@@ -86,6 +107,15 @@ export const lightTheme: ThemeConfig = {
       success: '#10b981',
       danger: '#ef4444',
       warning: '#f59e0b',
+      info: '#3b82f6',
+    },
+    accent: {
+      sky: '#0ea5e9',
+      emerald: '#10b981',
+      amber: '#f59e0b',
+      rose: '#ef4444',
+      purple: '#8b5cf6',
+      orange: '#f97316',
     },
   },
 }

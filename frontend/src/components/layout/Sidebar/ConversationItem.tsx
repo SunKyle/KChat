@@ -78,7 +78,7 @@ export function ConversationItem({
         <div
           className={`relative w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
             isActive
-              ? 'bg-[#0EA5E9] text-white'
+              ? 'theme-brand-primary text-white'
               : 'theme-bg-card theme-text-secondary'
           }`}
         >
@@ -91,7 +91,7 @@ export function ConversationItem({
           )}
         </div>
         {hasNewReply && (
-          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-sm shadow-emerald-400/40" />
+          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 theme-bg-accent-emerald rounded-full shadow-sm shadow-[var(--accent-emerald)]/40" />
         )}
       </div>
     )
@@ -109,7 +109,7 @@ export function ConversationItem({
         <div
           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center micro-transition ${
             isActive
-              ? 'bg-[#0EA5E9] text-white'
+              ? 'theme-brand-primary text-white'
               : 'theme-bg-card theme-text-secondary'
           }`}
         >
@@ -122,7 +122,7 @@ export function ConversationItem({
           )}
         </div>
         {hasNewReply && (
-          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-sm shadow-emerald-400/40" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 theme-bg-accent-emerald rounded-full shadow-sm shadow-[var(--accent-emerald)]/40" />
         )}
       </div>
 
@@ -135,7 +135,7 @@ export function ConversationItem({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSaveEdit}
-            className="w-full px-2 py-1 text-sm theme-bg-input border theme-border-primary rounded theme-text-primary focus:outline-none focus:border-sky-500/50"
+            className="w-full px-2 py-1 text-sm theme-bg-input border theme-border-primary rounded theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -160,7 +160,7 @@ export function ConversationItem({
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="保存"
             >
-              <Check className="w-4 h-4 text-emerald-400" />
+              <Check className="w-4 h-4 theme-accent-emerald" />
             </button>
             <button
               onClick={(e) => {
@@ -170,7 +170,7 @@ export function ConversationItem({
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="取消"
             >
-              <X className="w-4 h-4 text-red-400" />
+              <X className="w-4 h-4 theme-brand-danger" />
             </button>
           </>
         ) : (
@@ -190,7 +190,7 @@ export function ConversationItem({
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
               title="删除"
             >
-              <Trash2 className="w-4 h-4 theme-text-muted hover:text-red-400" />
+              <Trash2 className="w-4 h-4 theme-text-muted hover:theme-brand-danger" />
             </button>
           </>
         )}

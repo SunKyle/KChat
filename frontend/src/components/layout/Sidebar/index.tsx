@@ -91,16 +91,15 @@ export function Sidebar({
   const grouped = groupConversations()
 
   return (
-    <div className="theme-bg-sidebar border-r theme-border-secondary flex flex-col h-full overflow-hidden">
-      <div className={`p-4 border-b theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
-      >
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className={`p-4 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div
           className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
         >
           <div
             className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}
           >
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm">
               <Bot className="w-5 h-5 text-white" />
             </div>
             {!collapsed && (
@@ -126,17 +125,17 @@ export function Sidebar({
         </div>
 
         <button
-            onClick={createConversation}
-            className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
-              collapsed
-                ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full'
-                : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30'
-            }`}
-            title={collapsed ? '新对话' : undefined}
-          >
-            <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
-            {!collapsed && <span>新对话</span>}
-          </button>
+          onClick={createConversation}
+          className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
+            collapsed
+              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full'
+              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30'
+          }`}
+          title={collapsed ? '新对话' : undefined}
+        >
+          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+          {!collapsed && <span>新对话</span>}
+        </button>
 
         {collapsed && onToggle && (
           <button
@@ -152,7 +151,7 @@ export function Sidebar({
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto py-4 px-3 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
+        className={`flex-1 overflow-y-auto py-3 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
         {conversations.length === 0 ? (
           <div
@@ -203,9 +202,7 @@ export function Sidebar({
         )}
       </div>
 
-      <div
-        className={`p-3 border-t theme-border-secondary ${collapsed ? 'flex flex-col items-center' : ''}`}
-      >
+      <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="relative w-full">
           <button
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

@@ -118,14 +118,14 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <div className="flex items-center gap-2">
             {isOnline ? (
               <>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-2 h-2 rounded-full theme-bg-accent-emerald animate-pulse" />
                 <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
                   Connected
                 </span>
               </>
             ) : (
               <>
-                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <div className="w-2 h-2 rounded-full theme-bg-brand-danger" />
                 <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
                   Offline
                 </span>

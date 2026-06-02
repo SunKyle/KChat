@@ -94,7 +94,7 @@ export function ProfileInfo() {
               <User className="w-10 h-10 theme-text-muted" />
             )}
           </div>
-          <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-sky-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-sky-400 transition-colors">
+          <label className="absolute -bottom-1 -right-1 w-7 h-7 theme-bg-accent-sky rounded-full flex items-center justify-center cursor-pointer hover:bg-[var(--accent-sky)]/80 transition-colors">
             <Camera className="w-4 h-4 text-white" />
             <input
               type="file"
@@ -105,7 +105,7 @@ export function ProfileInfo() {
             />
           </label>
           {avatarUploading && (
-            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+            <div className="absolute inset-0 theme-bg-overlay rounded-full flex items-center justify-center">
               <Loader2 className="w-6 h-6 text-white animate-spin" />
             </div>
           )}
@@ -126,7 +126,7 @@ export function ProfileInfo() {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg hover:bg-sky-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-1.5 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -172,12 +172,12 @@ export function ProfileInfo() {
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, nickname: e.target.value }))}
               disabled={!editing}
               className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.nickname ? 'border-red-500/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-sky-500/50 disabled:opacity-60`}
+                errors.nickname ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
+              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60`}
               placeholder="请输入昵称"
             />
             {errors.nickname && (
-              <p className="mt-1 text-xs text-red-400">{errors.nickname}</p>
+              <p className="mt-1 text-xs theme-brand-danger">{errors.nickname}</p>
             )}
           </div>
 
@@ -191,12 +191,12 @@ export function ProfileInfo() {
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, email: e.target.value }))}
               disabled={!editing}
               className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.email ? 'border-red-500/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-sky-500/50 disabled:opacity-60`}
+                errors.email ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
+              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60`}
               placeholder="请输入邮箱"
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-400">{errors.email}</p>
+              <p className="mt-1 text-xs theme-brand-danger">{errors.email}</p>
             )}
           </div>
 
@@ -210,12 +210,12 @@ export function ProfileInfo() {
               disabled={!editing}
               rows={3}
               className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.bio ? 'border-red-500/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-sky-500/50 disabled:opacity-60 resize-none`}
+                errors.bio ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
+              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60 resize-none`}
               placeholder="介绍一下你自己..."
             />
             {errors.bio && (
-              <p className="mt-1 text-xs text-red-400">{errors.bio}</p>
+              <p className="mt-1 text-xs theme-brand-danger">{errors.bio}</p>
             )}
           </div>
         </div>
