@@ -68,6 +68,10 @@ export default {
         'content': '800px',
         'modal': '600px',
       },
+      maxHeight: {
+        'modal-sm': '60vh',
+        'modal-md': '70vh',
+      },
       borderRadius: {
         '10': '10px',
       },

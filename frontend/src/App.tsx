@@ -106,7 +106,7 @@ function AppContent() {
         title="添加自定义模型"
         size="xl"
       >
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-modal-md overflow-y-auto">
           <ModelSettings />
         </div>
       </Modal>
@@ -117,7 +117,7 @@ function AppContent() {
         title="记忆管理"
         size="lg"
       >
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="max-h-modal-sm overflow-y-auto">
           <MemoryPanel />
         </div>
       </Modal>
