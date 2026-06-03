@@ -51,6 +51,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setIsLoading(true)
       setError(null)
       const data = await userApi.getProfile()
+      console.log('[UserContext] Profile fetched:', data)
       setProfile(data)
     } catch (err) {
       console.error('Failed to fetch profile:', err)
@@ -69,6 +70,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setError(null)
       const updated = await userApi.updateProfile(data)
+      console.log('[UserContext] Profile updated:', updated)
       setProfile(updated)
     } catch (err) {
       console.error('Failed to update profile:', err)

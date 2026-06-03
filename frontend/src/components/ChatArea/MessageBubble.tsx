@@ -2,6 +2,7 @@ import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react'
 import type { Message } from '../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { useState, memo } from 'react'
+import { useUser } from '../../context/UserContext'
 
 interface MessageBubbleProps {
   message: Message
@@ -18,6 +19,7 @@ export const MessageBubble = memo(function MessageBubble({
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
+  const { profile } = useUser()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -56,13 +58,25 @@ export const MessageBubble = memo(function MessageBubble({
       className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}
     >
       <div
-        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition ${
+        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition overflow-hidden ${
           isUser
             ? 'theme-bg-card theme-text-secondary'
             : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
         }`}
       >
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+        {isUser ? (
+          profile?.avatar ? (
+            <img
+              src={profile.avatar}
+              alt="User Avatar"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <User className="w-4 h-4" />
+          )
+        ) : (
+          <Bot className="w-4 h-4" />
+        )}
       </div>
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>

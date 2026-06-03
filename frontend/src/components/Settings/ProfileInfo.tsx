@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Camera, User, Save, X, Loader2 } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
+import { uploadFile } from '../../api/client'
 
 export function ProfileInfo() {
   const { profile, updateProfile, isLoading } = useUser()
@@ -65,13 +66,41 @@ export function ProfileInfo() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件')
+      return
+    }
+
+    // 验证文件大小 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('图片大小不能超过5MB')
+      return
+    }
+
     setAvatarUploading(true)
     try {
+      // 直接上传图片到服务器，使用正确的字段名 'image'
       const formData = new FormData()
-      formData.append('avatar', file)
-      await updateProfile({ avatar: URL.createObjectURL(file) })
+      formData.append('image', file)
+
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+      const response = await fetch(`${BASE_URL}/images/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+      
+      // 更新用户资料中的头像URL
+      await updateProfile({ avatar: result.url })
     } catch (err) {
       console.error('Failed to upload avatar:', err)
+      alert('头像上传失败，请重试')
     } finally {
       setAvatarUploading(false)
     }

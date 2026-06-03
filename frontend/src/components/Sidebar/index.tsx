@@ -9,6 +9,7 @@ import {
   User,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
+import { useUser } from '../../context/UserContext'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef } from 'react'
 
@@ -56,6 +57,13 @@ export function Sidebar({
     getHasNewReply,
     resetNewReply,
   } = useChat()
+
+  const { profile } = useUser()
+
+  // Debug: Log profile changes
+  useEffect(() => {
+    console.log('[Sidebar] Profile updated:', profile)
+  }, [profile])
 
   const handleDelete = (id: string, title: string) => {
     onDeleteClick?.(id, title)
@@ -211,13 +219,25 @@ export function Sidebar({
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} hover:bg-white/5 rounded-lg p-1 -m-1 transition-colors`}
           >
-            <div className="w-7 h-7 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center">
-              <User className="w-4 h-4 text-slate-400" />
+            <div className="w-7 h-7 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden">
+              {profile && profile.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('[Sidebar] Failed to load avatar:', profile.avatar)
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <User className="w-4 h-4 text-slate-400" />
+              )}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0 space-y-0.5 text-left">
                 <p className="text-xs font-medium text-slate-300 truncate leading-tight">
-                  Sun Xiaokai
+                  {profile?.nickname || '用户'}
                 </p>
                 <p className="text-[10px] text-slate-500 truncate leading-tight">
                   Premium Plan
