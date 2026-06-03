@@ -296,10 +296,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const allModels = await models.list()
 
       if (allModels.length > 0) {
-        const modelIds = allModels.map((m) => m.id)
-        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: modelIds })
-        if (!modelIds.includes(stateRef.current.currentModel)) {
-          dispatch({ type: 'SET_CURRENT_MODEL', payload: modelIds[0] })
+        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
+        if (!allModels.includes(stateRef.current.currentModel)) {
+          dispatch({ type: 'SET_CURRENT_MODEL', payload: allModels[0] })
         }
       }
     } catch (error) {

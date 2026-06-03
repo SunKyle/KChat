@@ -1,8 +1,8 @@
 import { request } from './client';
-import type { Model, ModelConfig } from '../types';
+import type { ModelConfig } from '../types';
 
 export const models = {
-  list: async (): Promise<Model[]> => {
+  list: async (): Promise<string[]> => {
     return request('/models');
   },
 };
