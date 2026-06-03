@@ -71,12 +71,11 @@ export function ConversationItem({
       <div
         onClick={onClick}
         className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
-          isActive
-            ? 'theme-bg-hover shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
-            : 'hover:theme-bg-hover/60 hover:shadow-[0_1px_4px_rgba(0,0,0,0.15)]'
+          isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
         }`}
         title={conversation.title}
       >
+        {' '}
         <div
           className={`relative w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
             isActive
@@ -104,11 +103,10 @@ export function ConversationItem({
       onClick={isEditing ? undefined : onClick}
       onContextMenu={handleContextMenu}
       className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
-        isActive
-          ? 'theme-bg-hover shadow-[0_2px_8px_rgba(0,0,0,0.2)]'
-          : 'hover:theme-bg-hover/60 hover:shadow-[0_1px_4px_rgba(0,0,0,0.15)]'
+        isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
       }`}
     >
+      {' '}
       <div className="relative">
         <div
           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center micro-transition ${
@@ -129,7 +127,6 @@ export function ConversationItem({
           <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 theme-bg-accent-emerald rounded-full shadow-sm shadow-[var(--accent-emerald)]/40" />
         )}
       </div>
-
       <div className="flex-1 min-w-0">
         {isEditing ? (
           <input
@@ -152,7 +149,6 @@ export function ConversationItem({
           </p>
         )}
       </div>
-
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition">
         {isEditing ? (
           <>
