@@ -221,93 +221,97 @@ export function ModelSettings() {
           </button>
         </div>
       ) : (
-        <div className="space-y-4 sm:space-y-6">
-          {PROVIDERS.map((provider) => {
-            const providerConfigs = groupedConfigs[provider.type]
-            if (providerConfigs.length === 0) return null
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out p-4 sm:p-6">
+          <div className="space-y-4 sm:space-y-6">
+            {PROVIDERS.map((provider) => {
+              const providerConfigs = groupedConfigs[provider.type]
+              if (providerConfigs.length === 0) return null
 
-            return (
-              <div key={provider.type}>
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div
-                    className={`w-7 h-7 rounded-lg ${provider.color} flex items-center justify-center text-white flex-shrink-0`}
-                  >
-                    <span className="text-sm">{provider.icon}</span>
+              return (
+                <div key={provider.type}>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div
+                      className={`w-7 h-7 rounded-lg ${provider.color} flex items-center justify-center text-white flex-shrink-0`}
+                    >
+                      <span className="text-sm">{provider.icon}</span>
+                    </div>
+                    <h3 className="text-sm font-medium theme-text-secondary">
+                      {provider.displayName}
+                    </h3>
+                    <span className="text-xs theme-text-muted/70 theme-bg-input px-2 py-0.5 rounded-full">
+                      {providerConfigs.length}
+                    </span>
                   </div>
-                  <h3 className="text-sm font-medium theme-text-secondary">
-                    {provider.displayName}
-                  </h3>
-                  <span className="text-xs theme-text-muted/70 theme-bg-input px-2 py-0.5 rounded-full">
-                    {providerConfigs.length}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {providerConfigs.map((config) => {
-                    return (
-                      <div
-                        key={config.id}
-                        className="group flex items-center justify-between p-3 sm:p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-sm font-medium theme-text-primary truncate">
-                            {config.name}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-xs theme-text-muted font-mono truncate max-w-[200px] sm:max-w-[250px]">
-                              {config.modelId}
-                            </p>
+                  <div className="space-y-2">
+                    {providerConfigs.map((config) => {
+                      return (
+                        <div
+                          key={config.id}
+                          className="group flex items-center justify-between p-3 sm:p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-medium theme-text-primary truncate">
+                              {config.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-xs theme-text-muted font-mono truncate max-w-[200px] sm:max-w-[250px]">
+                                {config.modelId}
+                              </p>
+                              <button
+                                onClick={() =>
+                                  handleCopy(config.modelId, '模型 ID')
+                                }
+                                className="p-0.5 theme-text-muted/70 hover:theme-text-muted rounded transition-colors flex-shrink-0"
+                                title="复制模型 ID"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                            <button
+                              onClick={() => handleToggleEnabled(config)}
+                              disabled={updatingId === config.id}
+                              className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/30 ${
+                                config.enabled
+                                  ? 'bg-emerald-500'
+                                  : 'theme-bg-hover'
+                              } ${updatingId === config.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
+                              <span
+                                className={`inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform ${
+                                  config.enabled
+                                    ? 'translate-x-5 sm:translate-x-6'
+                                    : 'translate-x-1'
+                                } ${updatingId === config.id ? 'animate-pulse' : ''}`}
+                              />
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(config)}
+                              className="p-2 theme-text-muted/70 hover:theme-text-secondary hover:theme-bg-hover hover:scale-110 rounded-lg transition-all duration-200"
+                              title="编辑"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() =>
-                                handleCopy(config.modelId, '模型 ID')
+                                handleDelete(config.id, config.name)
                               }
-                              className="p-0.5 theme-text-muted/70 hover:theme-text-muted rounded transition-colors flex-shrink-0"
-                              title="复制模型 ID"
+                              className="p-2 theme-text-muted/70 hover:text-red-400 hover:bg-red-500/10 hover:scale-110 rounded-lg transition-all duration-200"
+                              title="删除"
                             >
-                              <Copy className="w-3 h-3" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                          <button
-                            onClick={() => handleToggleEnabled(config)}
-                            disabled={updatingId === config.id}
-                            className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/30 ${
-                              config.enabled
-                                ? 'bg-emerald-500'
-                                : 'theme-bg-hover'
-                            } ${updatingId === config.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                          >
-                            <span
-                              className={`inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform ${
-                                config.enabled
-                                  ? 'translate-x-5 sm:translate-x-6'
-                                  : 'translate-x-1'
-                              } ${updatingId === config.id ? 'animate-pulse' : ''}`}
-                            />
-                          </button>
-                          <button
-                            onClick={() => handleOpenEditModal(config)}
-                            className="p-2 theme-text-muted/70 hover:theme-text-secondary hover:theme-bg-hover hover:scale-110 rounded-lg transition-all duration-200"
-                            title="编辑"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(config.id, config.name)}
-                            className="p-2 theme-text-muted/70 hover:text-red-400 hover:bg-red-500/10 hover:scale-110 rounded-lg transition-all duration-200"
-                            title="删除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       )}
 

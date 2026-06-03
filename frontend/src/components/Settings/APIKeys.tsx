@@ -85,7 +85,7 @@ export function APIKeys() {
       </div>
 
       {profile.apiKeys.length === 0 ? (
-        <div className="theme-bg-card rounded-xl p-8 border theme-border-primary text-center">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out text-center">
           <Key className="w-12 h-12 theme-text-muted mx-auto mb-4" />
           <p className="theme-text-secondary mb-2">暂无 API 密钥</p>
           <p className="text-sm theme-text-muted mb-4">
@@ -105,7 +105,7 @@ export function APIKeys() {
           {profile.apiKeys.map((apiKey) => (
             <div
               key={apiKey.id}
-              className="theme-bg-card rounded-xl p-4 border theme-border-primary"
+              className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out"
             >
               <div className="flex items-center justify-between mb-3">
                 <div>

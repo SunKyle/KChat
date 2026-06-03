@@ -255,118 +255,120 @@ export function MemoryPanel() {
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
-            {filteredMemories.map((memory) => {
-              const TypeIcon = getTypeIcon(memory.type)
-              const colorClass = getTypeColor(memory.type)
-              const isSelected = selectedMemories.includes(memory.id)
+          <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out p-4">
+            <div className="space-y-2">
+              {filteredMemories.map((memory) => {
+                const TypeIcon = getTypeIcon(memory.type)
+                const colorClass = getTypeColor(memory.type)
+                const isSelected = selectedMemories.includes(memory.id)
 
-              return (
-                <div
-                  key={memory.id}
-                  className={`group flex items-center justify-between p-4 theme-bg-input rounded-xl border transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? 'border-blue-500/50 bg-blue-500/10'
-                      : 'border-theme-border-primary hover:border-theme-border-secondary'
-                  }`}
-                  onClick={() =>
-                    setSelectedMemories((prev) =>
-                      prev.includes(memory.id)
-                        ? prev.filter((i) => i !== memory.id)
-                        : [...prev, memory.id],
-                    )
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    {/* 选中标记 */}
-                    <div className="w-4 h-4 flex-shrink-0">
-                      {isSelected ? (
-                        <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      ) : selectedMemories.length > 0 ? (
-                        <div className="w-4 h-4 rounded border-2 border-theme-border-primary" />
-                      ) : null}
-                    </div>
+                return (
+                  <div
+                    key={memory.id}
+                    className={`group flex items-center justify-between p-4 theme-bg-input rounded-xl border cursor-pointer ${
+                      isSelected
+                        ? 'border-blue-500/50 bg-blue-500/10'
+                        : 'border-theme-border-primary hover:border-theme-border-secondary'
+                    }`}
+                    onClick={() =>
+                      setSelectedMemories((prev) =>
+                        prev.includes(memory.id)
+                          ? prev.filter((i) => i !== memory.id)
+                          : [...prev, memory.id],
+                      )
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* 选中标记 */}
+                      <div className="w-4 h-4 flex-shrink-0">
+                        {isSelected ? (
+                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                        ) : selectedMemories.length > 0 ? (
+                          <div className="w-4 h-4 rounded border-2 border-theme-border-primary" />
+                        ) : null}
+                      </div>
 
-                    {/* 类型图标 */}
-                    <div
-                      className={`w-8 h-8 rounded-lg ${colorClass.replace('text-', 'bg-')} flex items-center justify-center`}
-                    >
-                      <TypeIcon className="w-4 h-4 text-white" />
-                    </div>
-
-                    {/* 内容 */}
-                    <div className="min-w-0">
-                      <h4
-                        className={`text-sm font-medium truncate transition-colors ${
-                          isSelected
-                            ? 'theme-text-primary'
-                            : 'theme-text-secondary'
-                        }`}
+                      {/* 类型图标 */}
+                      <div
+                        className={`w-8 h-8 rounded-lg ${colorClass.replace('text-', 'bg-')} flex items-center justify-center`}
                       >
-                        {memory.content}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs theme-text-muted">
-                          {getTypeInfo(memory.type)?.label}
-                        </span>
-                        {memory.isRule && (
-                          <span className="text-xs text-red-400">规则</span>
-                        )}
-                        {memory.score !== undefined && (
-                          <span className="text-xs theme-text-muted/70">
-                            {(memory.score * 100).toFixed(0)}%
+                        <TypeIcon className="w-4 h-4 text-white" />
+                      </div>
+
+                      {/* 内容 */}
+                      <div className="min-w-0">
+                        <h4
+                          className={`text-sm font-medium truncate transition-colors ${
+                            isSelected
+                              ? 'theme-text-primary'
+                              : 'theme-text-secondary'
+                          }`}
+                        >
+                          {memory.content}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs theme-text-muted">
+                            {getTypeInfo(memory.type)?.label}
                           </span>
-                        )}
+                          {memory.isRule && (
+                            <span className="text-xs text-red-400">规则</span>
+                          )}
+                          {memory.score !== undefined && (
+                            <span className="text-xs theme-text-muted/70">
+                              {(memory.score * 100).toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 操作按钮 */}
-                  <div
-                    className={`flex items-center gap-2 transition-opacity ${
-                      isSelected
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover:opacity-100'
-                    }`}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleEdit(memory)
-                      }}
-                      className="p-2 hover:theme-bg-hover rounded-lg theme-text-muted hover:theme-text-primary hover:scale-110 transition-all duration-200"
-                      title="编辑"
+                    {/* 操作按钮 */}
+                    <div
+                      className={`flex items-center gap-2 transition-opacity ${
+                        isSelected
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover:opacity-100'
+                      }`}
                     >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDelete(memory.id)
-                      }}
-                      className="p-2 hover:bg-red-500/20 rounded-lg theme-text-muted hover:text-red-400 hover:scale-110 transition-all duration-200"
-                      title="删除"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(memory)
+                        }}
+                        className="p-2 hover:theme-bg-hover rounded-lg theme-text-muted hover:theme-text-primary hover:scale-110 transition-all duration-200"
+                        title="编辑"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(memory.id)
+                        }}
+                        className="p-2 hover:bg-red-500/20 rounded-lg theme-text-muted hover:text-red-400 hover:scale-110 transition-all duration-200"
+                        title="删除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )}
       </div>

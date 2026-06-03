@@ -70,7 +70,7 @@ export function Privacy() {
 
   return (
     <div className="space-y-6">
-      <div className="theme-bg-card rounded-xl p-6 border theme-border-primary">
+      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
         <div className="flex items-center gap-2 mb-4">
           <Lock className="w-5 h-5 theme-text-muted" />
           <h3 className="font-medium theme-text-primary">隐私设置</h3>
@@ -100,7 +100,7 @@ export function Privacy() {
         </div>
       </div>
 
-      <div className="theme-bg-card rounded-xl p-6 border theme-border-primary">
+      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
         <div className="flex items-center gap-2 mb-4">
           <Shield className="w-5 h-5 theme-text-muted" />
           <h3 className="font-medium theme-text-primary">数据安全</h3>

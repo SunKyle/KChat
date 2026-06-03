@@ -1,11 +1,8 @@
 import {
   Plus,
   MessageSquare,
-  Bot,
   PanelLeftClose,
   PanelLeft,
-  BookOpen,
-  Settings,
   User,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'

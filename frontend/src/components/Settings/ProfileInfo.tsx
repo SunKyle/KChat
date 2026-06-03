@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Camera, User, Save, X, Loader2 } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
-import { uploadFile } from '../../api/client'
 
 export function ProfileInfo() {
   const { profile, updateProfile, isLoading } = useUser()
@@ -147,7 +146,7 @@ export function ProfileInfo() {
         </div>
       </div>
 
-      <div className="theme-bg-card rounded-xl p-6 border theme-border-primary">
+      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium theme-text-primary">基本信息</h3>
           {editing ? (

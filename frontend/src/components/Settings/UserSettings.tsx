@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
-import { User, Monitor, Lock, Key, Loader2, X, Brain, Database } from 'lucide-react'
+import {
+  User,
+  Monitor,
+  Lock,
+  Key,
+  Loader2,
+  X,
+  Brain,
+  Database,
+} from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
@@ -8,7 +17,13 @@ import { ModelSettings } from './ModelSettings'
 import { MemoryPanel } from '../Memory/MemoryPanel'
 import { useUser } from '../../context/UserContext'
 
-type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
+type TabType =
+  | 'profile'
+  | 'preferences'
+  | 'privacy'
+  | 'api'
+  | 'models'
+  | 'memory'
 
 interface TabConfig {
   id: TabType
@@ -30,7 +45,10 @@ const tabs: TabConfig[] = [
   { id: 'memory', label: '记忆管理', icon: Database },
 ]
 
-export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsProps) {
+export function UserSettings({
+  onClose,
+  defaultTab = 'profile',
+}: UserSettingsProps) {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab)
   const { isLoading, error } = useUser()
 
@@ -95,7 +113,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="lg:w-56 flex-shrink-0">
           <nav className="lg:sticky lg:top-6">
-            <div className="space-y-1 p-1 rounded-xl theme-bg-card border theme-border-primary">
+            <div className="space-y-1 p-3 rounded-2xl theme-bg-sidebar/80 backdrop-blur-xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -103,7 +121,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
                       isActive
                         ? 'bg-sky-500/10 text-sky-400'
                         : 'theme-text-secondary hover:theme-bg-hover hover:theme-text-primary'
@@ -118,9 +136,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
           </nav>
         </div>
 
-        <div className="flex-1 min-w-0">
-          {renderContent()}
-        </div>
+        <div className="flex-1 min-w-0">{renderContent()}</div>
       </div>
     </div>
   )

@@ -7,10 +7,16 @@ import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { UserSettings } from './components/Settings/UserSettings'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 
-type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
+type SettingsTab =
+  | 'profile'
+  | 'preferences'
+  | 'privacy'
+  | 'api'
+  | 'models'
+  | 'memory'
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -21,7 +27,6 @@ function AppContent() {
   } | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [settingsTab, setSettingsTab] = useState<SettingsTab>('profile')
-  const settingsRef = useRef<{ setActiveTab: (tab: SettingsTab) => void } | null>(null)
 
   const { deleteConversation, activeConversation } = useChat()
 
@@ -45,9 +50,15 @@ function AppContent() {
       setShowSettings(true)
     }
 
-    window.addEventListener('open-settings', handleOpenSettings as EventListener)
+    window.addEventListener(
+      'open-settings',
+      handleOpenSettings as EventListener,
+    )
     return () => {
-      window.removeEventListener('open-settings', handleOpenSettings as EventListener)
+      window.removeEventListener(
+        'open-settings',
+        handleOpenSettings as EventListener,
+      )
     }
   }, [])
 
@@ -94,11 +105,16 @@ function AppContent() {
         <div
           className={`flex-1 flex flex-col overflow-hidden relative ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
-          <Header onSettingsClick={() => { setSettingsTab('profile'); setShowSettings(true) }} />
+          <Header
+            onSettingsClick={() => {
+              setSettingsTab('profile')
+              setShowSettings(true)
+            }}
+          />
           {showSettings ? (
             <div className="flex-1 overflow-y-auto p-6">
-              <UserSettings 
-                onClose={() => setShowSettings(false)} 
+              <UserSettings
+                onClose={() => setShowSettings(false)}
                 defaultTab={settingsTab}
               />
             </div>
