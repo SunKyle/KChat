@@ -40,6 +40,57 @@ const noHardcodedFontSize = {
   },
 }
 
+const noHardcodedColor = {
+  create(context) {
+    const colorPropertyNames = [
+      'color',
+      'background',
+      'backgroundColor',
+      'borderColor',
+      'border',
+      'outlineColor',
+      'boxShadow',
+      'textShadow',
+      'fill',
+      'stroke',
+    ]
+
+    return {
+      Property(node) {
+        if (
+          node.key &&
+          node.key.type === 'Identifier' &&
+          colorPropertyNames.includes(node.key.name) &&
+          node.value &&
+          node.value.type === 'Literal' &&
+          typeof node.value.value === 'string'
+        ) {
+          const value = node.value.value
+          const colorRegex = /(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))/
+          if (colorRegex.test(value) && !value.startsWith('var(--')) {
+            context.report({
+              node,
+              message: `禁止硬编码颜色值，请使用CSS变量（如 var(--bg-card)）或Tailwind类名`,
+            })
+          }
+        }
+      },
+      Literal(node) {
+        if (typeof node.value === 'string') {
+          const hardcodedColorClass =
+            /(bg|text|border|fill|stroke)-\[(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))\]/
+          if (hardcodedColorClass.test(node.value)) {
+            context.report({
+              node,
+              message: `禁止使用硬编码颜色的Tailwind类名（如 bg-[#fff]），请使用预定义的主题色`,
+            })
+          }
+        }
+      },
+    }
+  },
+}
+
 export default tseslint.config(
   { ignores: ['dist'] },
   {
@@ -53,7 +104,10 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'custom-rules': {
-        rules: { 'no-hardcoded-fontsize': noHardcodedFontSize },
+        rules: {
+          'no-hardcoded-fontsize': noHardcodedFontSize,
+          'no-hardcoded-color': noHardcodedColor,
+        },
       },
     },
     rules: {
@@ -63,6 +117,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       'custom-rules/no-hardcoded-fontsize': 'error',
+      'custom-rules/no-hardcoded-color': 'error',
     },
   },
 )

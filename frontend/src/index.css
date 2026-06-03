@@ -75,6 +75,15 @@
   --accent-rose: #fb7185;
   --accent-purple: #a78bfa;
   --accent-orange: #fb923c;
+
+  --bg-code: #1e1e1e;
+
+  --shadow-color-primary: rgba(0, 0, 0, 0.15);
+  --shadow-color-secondary: rgba(0, 0, 0, 0.1);
+  --shadow-color-hover: rgba(0, 0, 0, 0.18);
+  --shadow-color-hover-secondary: rgba(0, 0, 0, 0.12);
+  --shadow-color-elevated: rgba(0, 0, 0, 0.2);
+  --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.15);
 }
 
 * {

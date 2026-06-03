@@ -51,7 +51,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
           margin: 0,
           borderRadius: 0,
           fontSize: 'var(--font-code-base)',
-          background: '#1e1e1e',
+          background: 'var(--bg-code)',
         }}
         showLineNumbers={true}
         wrapLines={true}
