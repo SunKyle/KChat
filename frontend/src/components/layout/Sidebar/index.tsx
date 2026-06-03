@@ -101,8 +101,12 @@ export function Sidebar({
           <div
             className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}
           >
-            <div className="w-8 h-8 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm overflow-hidden">
+              <img
+                src="/kchat-icon.svg"
+                alt="KChat"
+                className="w-full h-full object-contain"
+              />
             </div>
             {!collapsed && (
               <div>
