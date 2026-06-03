@@ -93,7 +93,7 @@ export function UserSettings({
   }
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full flex flex-col">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold theme-text-primary mb-1">设置</h1>
@@ -110,9 +110,9 @@ export function UserSettings({
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
         <div className="lg:w-56 flex-shrink-0">
-          <nav className="lg:sticky lg:top-6">
+          <nav className="sticky top-6">
             <div className="space-y-1 p-3 rounded-2xl theme-bg-sidebar/80 backdrop-blur-xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
               {tabs.map((tab) => {
                 const Icon = tab.icon

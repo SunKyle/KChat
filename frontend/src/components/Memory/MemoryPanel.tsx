@@ -162,13 +162,13 @@ export function MemoryPanel() {
   const getTypeColor = (type: string) => typeColors[type] || 'theme-text-muted'
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]">
       {loading ? (
-        <div className="flex items-center justify-center py-12 sm:py-16">
+        <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
             <Search className="w-7 h-7 theme-text-muted" />
           </div>
@@ -261,7 +261,7 @@ export function MemoryPanel() {
             </div>
           )}
 
-          <div className="space-y-3 min-h-[200px] max-h-[calc(100vh-400px)] overflow-y-auto">
+          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto">
             {filteredMemories.map((memory) => {
               const TypeIcon = getTypeIcon(memory.type)
               const colorClass = getTypeColor(memory.type)

@@ -175,7 +175,7 @@ export function ModelSettings() {
   const groupedConfigs = groupConfigsByProvider()
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]">
       {copyMessage && (
         <div className="fixed top-4 right-4 theme-bg-brand-success text-white px-3 py-1.5 rounded-lg text-sm shadow-lg animate-fade-in z-50">
           {copyMessage}
@@ -183,11 +183,11 @@ export function ModelSettings() {
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12 sm:py-16">
+        <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : configs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
             <Database className="w-7 h-7 theme-text-muted" />
           </div>
@@ -217,7 +217,7 @@ export function ModelSettings() {
             </button>
           </div>
 
-          <div className="space-y-4 sm:space-y-6 min-h-[200px] max-h-[calc(100vh-320px)] overflow-y-auto">
+          <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-380px)] overflow-y-auto">
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
               if (providerConfigs.length === 0) return null
