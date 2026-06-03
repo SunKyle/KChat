@@ -12,7 +12,7 @@ import type {
   ChatRequest,
   StreamingState,
 } from '../types'
-import { api } from '../utils/api'
+import { conversations, chat, models } from '../api'
 
 interface ChatContextType {
   conversations: Conversation[]
@@ -70,7 +70,6 @@ type ChatAction =
 interface ChatState {
   conversations: Conversation[]
   activeConversation: Conversation | null
-  messages: Message[]
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
   newReplies: Record<string, boolean>
@@ -83,7 +82,6 @@ interface ChatState {
 const initialState: ChatState = {
   conversations: [],
   activeConversation: null,
-  messages: [],
   messagesByConversation: {},
   streamingStates: {},
   newReplies: {},
@@ -105,21 +103,21 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       if (state.activeConversation) {
         return {
           ...state,
-          messages: action.payload,
           messagesByConversation: {
             ...state.messagesByConversation,
             [state.activeConversation.id]: action.payload,
           },
         }
       }
-      return { ...state, messages: action.payload }
+      return state
     }
 
     case 'ADD_MESSAGE': {
-      const newMessages = [...state.messages, action.payload]
+      const currentMessages =
+        state.messagesByConversation[action.payload.conversationId] || []
+      const newMessages = [...currentMessages, action.payload]
       return {
         ...state,
-        messages: newMessages,
         messagesByConversation: {
           ...state.messagesByConversation,
           [action.payload.conversationId]: newMessages,
@@ -128,24 +126,29 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'UPDATE_MESSAGE': {
-      const updatedMessages = state.messages.map((msg) =>
-        msg.id === action.payload.id
-          ? { ...msg, content: action.payload.content }
-          : msg,
+      const conversationId = Object.keys(state.messagesByConversation).find(
+        (convId) =>
+          state.messagesByConversation[convId].some(
+            (msg) => msg.id === action.payload.id,
+          ),
       )
-      const conversationId = state.messages.find(
-        (msg) => msg.id === action.payload.id,
-      )?.conversationId
-      return {
-        ...state,
-        messages: updatedMessages,
-        messagesByConversation: conversationId
-          ? {
-              ...state.messagesByConversation,
-              [conversationId]: updatedMessages,
-            }
-          : state.messagesByConversation,
+      if (conversationId) {
+        const updatedMessages = state.messagesByConversation[
+          conversationId
+        ].map((msg) =>
+          msg.id === action.payload.id
+            ? { ...msg, content: action.payload.content }
+            : msg,
+        )
+        return {
+          ...state,
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: updatedMessages,
+          },
+        }
       }
+      return state
     }
 
     case 'START_STREAMING':
@@ -226,6 +229,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'REMOVE_CONVERSATION': {
       const newStreamingStates = { ...state.streamingStates }
       delete newStreamingStates[action.payload]
+      const newMessagesByConversation = { ...state.messagesByConversation }
+      delete newMessagesByConversation[action.payload]
       return {
         ...state,
         conversations: state.conversations.filter(
@@ -235,9 +240,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           state.activeConversation?.id === action.payload
             ? null
             : state.activeConversation,
-        messages:
-          state.activeConversation?.id === action.payload ? [] : state.messages,
         streamingStates: newStreamingStates,
+        messagesByConversation: newMessagesByConversation,
       }
     }
 
@@ -289,12 +293,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadModels = useCallback(async () => {
     try {
-      const allModels = await api.models.list()
+      const allModels = await models.list()
 
       if (allModels.length > 0) {
-        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
-        if (!allModels.includes(stateRef.current.currentModel)) {
-          dispatch({ type: 'SET_CURRENT_MODEL', payload: allModels[0] })
+        const modelIds = allModels.map((m) => m.id)
+        dispatch({ type: 'SET_AVAILABLE_MODELS', payload: modelIds })
+        if (!modelIds.includes(stateRef.current.currentModel)) {
+          dispatch({ type: 'SET_CURRENT_MODEL', payload: modelIds[0] })
         }
       }
     } catch (error) {
@@ -345,9 +350,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_CONVERSATIONS', payload: JSON.parse(cached) })
       }
 
-      const conversations = await api.conversations.list()
-      dispatch({ type: 'SET_CONVERSATIONS', payload: conversations })
-      localStorage.setItem('kchat_conversations', JSON.stringify(conversations))
+      const convs = await conversations.list()
+      dispatch({ type: 'SET_CONVERSATIONS', payload: convs })
+      localStorage.setItem('kchat_conversations', JSON.stringify(convs))
     } catch (error) {
       console.error('Failed to load conversations:', error)
       dispatch({ type: 'SET_ERROR', payload: '加载对话列表失败' })
@@ -374,7 +379,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const createConversation = useCallback(async () => {
     try {
-      const newConversation = await api.conversations.create()
+      const newConversation = await conversations.create()
       dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
       localStorage.setItem(
         'kchat_conversations',
@@ -395,7 +400,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const updateConversation = useCallback(async (id: string, title: string) => {
     try {
-      await api.conversations.update(id, title)
+      await conversations.update(id, title)
       dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } })
 
       const cached = localStorage.getItem('kchat_conversations')
@@ -415,7 +420,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     async (id: string) => {
       try {
         stopStreaming(id)
-        await api.conversations.delete(id)
+        await conversations.delete(id)
         dispatch({ type: 'REMOVE_CONVERSATION', payload: id })
 
         const cached = localStorage.getItem('kchat_conversations')
@@ -439,7 +444,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const data = await api.conversations.get(conversationId)
+      const data = await conversations.get(conversationId)
       dispatch({ type: 'SET_MESSAGES', payload: data.messages || [] })
     } catch (error) {
       console.error('Failed to load messages:', error)
@@ -497,7 +502,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       abortControllersRef.current[conversationId] = abortController
 
       try {
-        await api.chat.stream(
+        await chat.stream(
           request,
           (chunk) => {
             streamingContent += chunk
@@ -583,12 +588,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       initialState.streamingStates['']
     : initialState.streamingStates['']
 
+  const messages = state.activeConversation
+    ? state.messagesByConversation[state.activeConversation.id] || []
+    : []
+
   return (
     <ChatContext.Provider
       value={{
         conversations: state.conversations,
         activeConversation: state.activeConversation,
-        messages: state.messages,
+        messages,
         streamingState: streamingState || {
           isStreaming: false,
           currentContent: '',

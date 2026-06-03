@@ -10,7 +10,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
-import { api } from '../../utils/api'
+import { images } from '../../api'
 
 export function InputArea() {
   const [input, setInput] = useState('')
@@ -61,7 +61,7 @@ export function InputArea() {
       if (!file.type.startsWith('image/')) continue
 
       try {
-        const result = await api.images.upload(file)
+        const result = await images.upload(file)
         newImages.push(result.url)
         setUploadingImages([...newImages])
       } catch (error) {

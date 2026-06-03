@@ -1,23 +1,5 @@
 import { request } from './client';
-
-export interface Model {
-  id: string;
-  name: string;
-  type: string;
-}
-
-export type ProviderType = 'OPENAI' | 'OPENAI_COMPATIBLE' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'AZURE' | 'CUSTOM';
-
-export interface ModelConfig {
-  id: string;
-  name: string;
-  modelId: string;
-  baseUrl: string;
-  apiKey: string;
-  type: ProviderType;
-  enabled: boolean;
-  createdAt?: string;
-}
+import type { Model, ModelConfig } from '../types';
 
 export const models = {
   list: async (): Promise<Model[]> => {
@@ -49,14 +31,14 @@ export const modelConfigs = {
     });
   },
 
-  update: async (id: string, data: Partial<ModelConfig>): Promise<ModelConfig> => {
+  update: async (id: string | number, data: Partial<ModelConfig>): Promise<ModelConfig> => {
     return request(`/model-configs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
-  delete: async (id: string): Promise<void> => {
+  delete: async (id: string | number): Promise<void> => {
     await request(`/model-configs/${id}`, {
       method: 'DELETE',
     });

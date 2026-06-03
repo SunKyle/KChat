@@ -16,13 +16,13 @@ export function ChatArea() {
   } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [prevConversationId, setPrevConversationId] = useState<string | null>(
     null,
   )
   const [isScrolling, setIsScrolling] = useState(false)
-  let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 
   useEffect(() => {
     if (activeConversation && activeConversation.id !== prevConversationId) {
@@ -56,18 +56,18 @@ export function ChatArea() {
     }
 
     setIsScrolling(true)
-    if (scrollTimeout) {
-      clearTimeout(scrollTimeout)
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
     }
-    scrollTimeout = setTimeout(() => {
+    scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false)
     }, 2500)
   }
 
   useEffect(() => {
     return () => {
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
       }
     }
   }, [])

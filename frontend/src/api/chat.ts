@@ -1,26 +1,26 @@
-import { request, requestStream, uploadFile } from './client';
-import type { Conversation, Message } from '../types';
+import { request, requestStream, uploadFile, requestSSE } from './client';
+import type { Conversation, Message, ChatRequest } from '../types';
 
 export const conversations = {
   list: async (): Promise<Conversation[]> => {
     return request('/conversations');
   },
 
-  get: async (id: string): Promise<Conversation> => {
+  get: async (id: string): Promise<{ conversation: Conversation; messages: Message[] }> => {
     return request(`/conversations/${id}`);
   },
 
-  create: async (data: { name: string }): Promise<Conversation> => {
+  create: async (title?: string): Promise<Conversation> => {
     return request('/conversations', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(title ? { title } : {}),
     });
   },
 
-  update: async (id: string, data: { name: string }): Promise<Conversation> => {
+  update: async (id: string, title: string): Promise<Conversation> => {
     return request(`/conversations/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ title }),
     });
   },
 
@@ -32,14 +32,41 @@ export const conversations = {
 };
 
 export const chat = {
-  send: async (conversationId: string, content: string): Promise<Message> => {
+  send: async (requestData: ChatRequest): Promise<{ messageId: string; content: string; role: 'assistant'; conversationId: string }> => {
+    return request('/chat', {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    });
+  },
+
+  stream: async (
+    requestData: ChatRequest,
+    onMessage: (content: string) => void,
+    onComplete: (messageId: string) => void,
+    onError: (error: Error) => void,
+    controller?: AbortController
+  ): Promise<void> => {
+    return requestSSE(
+      '/chat/stream',
+      {
+        method: 'POST',
+        body: JSON.stringify(requestData),
+      },
+      onMessage,
+      onComplete,
+      onError,
+      controller
+    );
+  },
+
+  sendSimple: async (conversationId: string, content: string): Promise<Message> => {
     return request(`/chat/${conversationId}`, {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
   },
 
-  stream: async (
+  streamSimple: async (
     conversationId: string,
     content: string,
     onData: (data: Message) => void,
@@ -62,7 +89,13 @@ export const images = {
     return uploadFile('/images/upload', file);
   },
 
-  delete: async (url: string): Promise<void> => {
+  delete: async (filename: string): Promise<void> => {
+    await request(`/images/${filename}`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteByUrl: async (url: string): Promise<void> => {
     await request('/images/delete', {
       method: 'POST',
       body: JSON.stringify({ url }),

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Database, Copy } from 'lucide-react'
-import { api } from '../../utils/api'
+import { modelConfigs } from '../../api'
 import type { ModelConfig, ProviderType } from '../../types'
 import { useChat } from '../../context/ChatContext'
 import { PROVIDERS } from '../../types'
@@ -14,7 +14,7 @@ export function ModelSettings() {
   const [selectedProvider, setSelectedProvider] =
     useState<ProviderType>('OPENAI')
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
-  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [updatingId, setUpdatingId] = useState<string | number | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,7 +32,7 @@ export function ModelSettings() {
   const loadConfigs = async () => {
     setIsLoading(true)
     try {
-      const data = await api.modelConfigs.list()
+      const data = await modelConfigs.list()
       setConfigs(data)
     } catch (error) {
       console.error('Failed to load model configs:', error)
@@ -73,9 +73,9 @@ export function ModelSettings() {
   const handleSave = async () => {
     try {
       if (editingConfig) {
-        await api.modelConfigs.update(editingConfig.id, formData)
+        await modelConfigs.update(editingConfig.id, formData)
       } else {
-        await api.modelConfigs.create(formData)
+        await modelConfigs.create(formData)
       }
       setShowAddModal(false)
       loadConfigs()
@@ -92,7 +92,7 @@ export function ModelSettings() {
     setUpdatingId(config.id)
     try {
       const newEnabled = !config.enabled
-      await api.modelConfigs.update(config.id, {
+      await modelConfigs.update(config.id, {
         ...config,
         enabled: newEnabled,
       })
@@ -110,10 +110,10 @@ export function ModelSettings() {
     }
   }
 
-  const handleDelete = async (id: number, name: string) => {
+  const handleDelete = async (id: string | number, name: string) => {
     if (!confirm(`确定要删除 "${name}" 吗？`)) return
     try {
-      await api.modelConfigs.delete(id)
+      await modelConfigs.delete(id)
       loadConfigs()
       await refreshModels()
     } catch (error) {

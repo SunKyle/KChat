@@ -42,8 +42,14 @@ export interface InputState {
 
 export type ProviderType = 'OPENAI' | 'OPENAI_COMPATIBLE' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'AZURE' | 'CUSTOM';
 
+export interface Model {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export interface ModelConfig {
-  id: number;
+  id: string | number;
   name: string;
   modelId: string;
   baseUrl: string;

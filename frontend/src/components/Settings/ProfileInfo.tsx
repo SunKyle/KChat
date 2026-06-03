@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Camera, User, Save, X, Loader2 } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
+import { images } from '../../api'
 
 export function ProfileInfo() {
   const { profile, updateProfile, isLoading } = useUser()
@@ -79,23 +80,8 @@ export function ProfileInfo() {
 
     setAvatarUploading(true)
     try {
-      // 直接上传图片到服务器，使用正确的字段名 'image'
-      const formData = new FormData()
-      formData.append('image', file)
-
-      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
-      const response = await fetch(`${BASE_URL}/images/upload`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await images.upload(file)
       
-      // 更新用户资料中的头像URL
       await updateProfile({ avatar: result.url })
     } catch (err) {
       console.error('Failed to upload avatar:', err)

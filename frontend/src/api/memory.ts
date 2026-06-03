@@ -1,13 +1,7 @@
 import { request } from './client';
+import type { Memory } from '../types';
 
-export interface MemoryItem {
-  id: string;
-  content: string;
-  type: string;
-  importance: number;
-  isRule: boolean;
-  createdAt: string;
-}
+export type MemoryItem = Memory;
 
 export const memory = {
   getAll: async (): Promise<MemoryItem[]> => {
