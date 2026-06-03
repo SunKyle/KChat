@@ -9,6 +9,7 @@ import {
   User,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
+import { useUser } from '../../../context/UserContext'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef } from 'react'
 
@@ -55,6 +56,8 @@ export function Sidebar({
     getHasNewReply,
     resetNewReply,
   } = useChat()
+
+  const { profile } = useUser()
 
   const handleDelete = (id: string, title: string) => {
     onDeleteClick?.(id, title)
@@ -204,13 +207,21 @@ export function Sidebar({
           <div
             className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''}`}
           >
-            <div className="w-7 h-7 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center">
-              <User className="w-4 h-4 theme-text-secondary" />
+            <div className="w-7 h-7 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center overflow-hidden">
+              {profile?.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-4 h-4 theme-text-secondary" />
+              )}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0 space-y-0.5 text-left">
                 <p className="text-xs font-medium theme-text-primary truncate leading-tight">
-                  Sun Xiaokai
+                  {profile?.nickname || '用户'}
                 </p>
                 <p className="text-[10px] theme-text-muted truncate leading-tight">
                   Premium Plan
