@@ -175,32 +175,16 @@ export function ModelSettings() {
   const groupedConfigs = groupConfigsByProvider()
 
   return (
-    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold theme-text-primary">
-            模型配置
-          </h2>
-          <p className="theme-text-muted text-sm mt-1">管理你的 AI 模型</p>
-        </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-400 text-white rounded-lg transition-colors whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-sm font-medium">添加模型</span>
-        </button>
-      </div>
-
+    <div className="space-y-6">
       {copyMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm shadow-lg animate-fade-in z-50">
+        <div className="fixed top-4 right-4 theme-bg-brand-success text-white px-3 py-1.5 rounded-lg text-sm shadow-lg animate-fade-in z-50">
           {copyMessage}
         </div>
       )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12 sm:py-16">
-          <div className="w-8 h-8 border-3 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : configs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
@@ -221,7 +205,18 @@ export function ModelSettings() {
           </button>
         </div>
       ) : (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out p-4 sm:p-6">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-medium theme-text-primary">模型列表</h3>
+            <button
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-3 py-1.5 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              添加模型
+            </button>
+          </div>
+
           <div className="space-y-4 sm:space-y-6 min-h-[200px] max-h-[calc(100vh-320px)] overflow-y-auto">
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
@@ -247,7 +242,7 @@ export function ModelSettings() {
                       return (
                         <div
                           key={config.id}
-                          className="group flex items-center justify-between p-3 sm:p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full"
+                          className="group flex items-center justify-between p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full"
                         >
                           <div className="min-w-0 flex-1">
                             <h4 className="text-sm font-medium theme-text-primary truncate">
@@ -273,16 +268,16 @@ export function ModelSettings() {
                             <button
                               onClick={() => handleToggleEnabled(config)}
                               disabled={updatingId === config.id}
-                              className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/30 ${
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/30 ${
                                 config.enabled
-                                  ? 'bg-emerald-500'
+                                  ? 'bg-[var(--brand-success)]'
                                   : 'theme-bg-hover'
                               } ${updatingId === config.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                               <span
-                                className={`inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform ${
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                                   config.enabled
-                                    ? 'translate-x-5 sm:translate-x-6'
+                                    ? 'translate-x-6'
                                     : 'translate-x-1'
                                 } ${updatingId === config.id ? 'animate-pulse' : ''}`}
                               />
@@ -298,7 +293,7 @@ export function ModelSettings() {
                               onClick={() =>
                                 handleDelete(config.id, config.name)
                               }
-                              className="p-2 theme-text-muted/70 hover:text-red-400 hover:bg-red-500/10 hover:scale-110 rounded-lg transition-all duration-200"
+                              className="p-2 theme-text-muted/70 hover:text-[var(--brand-danger)] hover:bg-[var(--brand-danger)]/10 hover:scale-110 rounded-lg transition-all duration-200"
                               title="删除"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -332,35 +327,38 @@ export function ModelSettings() {
 
             <div className="p-4 space-y-4 overflow-y-auto">
               <div>
-                <label className="block text-xs font-medium theme-text-muted mb-2">
+                <label className="block text-sm font-medium theme-text-secondary mb-3">
                   服务商
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {PROVIDERS.map((provider) => (
                     <button
                       key={provider.type}
                       onClick={() => handleProviderChange(provider.type)}
-                      className={`flex items-center justify-start gap-2 p-2 rounded-lg border transition-all ${
+                      className={`relative p-3 rounded-lg border transition-all ${
                         selectedProvider === provider.type
-                          ? 'border-sky-500 bg-sky-500/10'
-                          : 'border-theme-border-primary hover:border-theme-border-secondary hover:theme-bg-hover/30'
+                          ? 'border-[var(--accent-sky)]/50 bg-[var(--accent-sky)]/10'
+                          : 'theme-border-primary hover:theme-border-primary/80'
                       }`}
                     >
-                      <span
-                        className={`w-6 h-6 rounded ${provider.color} flex items-center justify-center text-white text-xs flex-shrink-0`}
-                      >
-                        {provider.icon}
-                      </span>
-                      <span className="text-xs theme-text-muted">
+                      <div className="text-sm font-medium theme-text-primary mb-1">
+                        <span
+                          className={`w-6 h-6 rounded ${provider.color} flex items-center justify-center text-white text-xs flex-shrink-0 inline mr-2`}
+                        >
+                          {provider.icon}
+                        </span>
                         {provider.displayName}
-                      </span>
+                      </div>
+                      {selectedProvider === provider.type && (
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--accent-sky)] rounded-full" />
+                      )}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium theme-text-muted mb-1.5">
+                <label className="block text-sm font-medium theme-text-secondary mb-1.5">
                   名称
                 </label>
                 <input
@@ -368,13 +366,13 @@ export function ModelSettings() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-primary-500/50 transition-colors"
+                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors"
                   placeholder="我的模型"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium theme-text-muted mb-1.5">
+                <label className="block text-sm font-medium theme-text-secondary mb-1.5">
                   模型 ID
                 </label>
                 <input
@@ -382,13 +380,13 @@ export function ModelSettings() {
                   name="modelId"
                   value={formData.modelId}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-sky-500/50 transition-colors"
+                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors"
                   placeholder="gpt-3.5-turbo"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium theme-text-muted mb-1.5">
+                <label className="block text-sm font-medium theme-text-secondary mb-1.5">
                   API 地址
                 </label>
                 <input
@@ -396,13 +394,13 @@ export function ModelSettings() {
                   name="baseUrl"
                   value={formData.baseUrl}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-sky-500/50 transition-colors"
+                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors"
                   placeholder="https://api.openai.com"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium theme-text-muted mb-1.5">
+                <label className="block text-sm font-medium theme-text-secondary mb-1.5">
                   API Key
                 </label>
                 <input
@@ -410,7 +408,7 @@ export function ModelSettings() {
                   name="apiKey"
                   value={formData.apiKey}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-sky-500/50 transition-colors"
+                  className="w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors"
                   placeholder="sk-..."
                 />
                 {editingConfig && (
@@ -427,7 +425,7 @@ export function ModelSettings() {
                   id="enabled"
                   checked={formData.enabled}
                   onChange={handleChange}
-                  className="w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-sky-500 focus:ring-sky-500/50"
+                  className="w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--accent-sky)] focus:ring-[var(--accent-sky)]/50"
                 />
                 <label htmlFor="enabled" className="text-sm theme-text-muted">
                   启用此模型
@@ -438,13 +436,13 @@ export function ModelSettings() {
             <div className="flex justify-end gap-2 p-4 border-t theme-border-primary flex-shrink-0">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 theme-text-muted hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors text-sm"
+                className="px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm"
               >
                 取消
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
               >
                 {editingConfig ? '更新' : '保存'}
               </button>
