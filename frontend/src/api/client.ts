@@ -150,7 +150,7 @@ export async function uploadFile(
   file: File
 ): Promise<{ url: string }> {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('image', file);
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
