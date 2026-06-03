@@ -17,12 +17,14 @@ interface SidebarProps {
   collapsed?: boolean
   onToggle?: () => void
   onDeleteClick?: (id: string, title: string) => void
+  onConversationClick?: () => void
 }
 
 export function Sidebar({
   collapsed = false,
   onToggle,
   onDeleteClick,
+  onConversationClick,
 }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -188,6 +190,7 @@ export function Sidebar({
                     onClick={() => {
                       resetNewReply(conversation.id)
                       setActiveConversation(conversation)
+                      onConversationClick?.()
                     }}
                     onDelete={() =>
                       handleDelete(conversation.id, conversation.title)

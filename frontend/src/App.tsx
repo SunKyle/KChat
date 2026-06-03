@@ -75,6 +75,7 @@ function AppContent() {
               collapsed={sidebarCollapsed}
               onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
               onDeleteClick={handleDeleteClick}
+              onConversationClick={() => setShowSettings(false)}
             />
           </div>
         </aside>
