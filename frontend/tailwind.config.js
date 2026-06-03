@@ -10,7 +10,7 @@ export default {
       mono: ['SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
     },
     fontSize: {
-      xs: ['11px', { lineHeight: '1.4' }],
+      xs: ['10px', { lineHeight: '1.4' }],
       sm: ['12px', { lineHeight: '1.5' }],
       base: ['14px', { lineHeight: '1.5' }],
       lg: ['15px', { lineHeight: '1.5' }],
@@ -18,6 +18,35 @@ export default {
       '2xl': ['18px', { lineHeight: '1.5' }],
       '3xl': ['20px', { lineHeight: '1.4' }],
       '4xl': ['24px', { lineHeight: '1.4' }],
+      '5xl': ['28px', { lineHeight: '1.4' }],
+      '6xl': ['32px', { lineHeight: '1.3' }],
+      '7xl': ['36px', { lineHeight: '1.3' }],
+      heading: {
+        h1: ['32px', { lineHeight: '1.3' }],
+        h2: ['28px', { lineHeight: '1.35' }],
+        h3: ['24px', { lineHeight: '1.4' }],
+        h4: ['20px', { lineHeight: '1.4' }],
+        h5: ['18px', { lineHeight: '1.4' }],
+        h6: ['16px', { lineHeight: '1.5' }],
+      },
+      body: {
+        large: ['16px', { lineHeight: '1.6' }],
+        base: ['14px', { lineHeight: '1.5' }],
+        small: ['13px', { lineHeight: '1.5' }],
+        caption: ['12px', { lineHeight: '1.4' }],
+        tiny: ['11px', { lineHeight: '1.4' }],
+      },
+      button: {
+        large: ['15px', { lineHeight: '1.5' }],
+        base: ['14px', { lineHeight: '1.5' }],
+        small: ['13px', { lineHeight: '1.5' }],
+        tiny: ['12px', { lineHeight: '1.4' }],
+      },
+      code: {
+        large: ['14px', { lineHeight: '1.5' }],
+        base: ['13px', { lineHeight: '1.5' }],
+        small: ['12px', { lineHeight: '1.4' }],
+      },
     },
     extend: {
       colors: {

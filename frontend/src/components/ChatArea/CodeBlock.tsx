@@ -1,30 +1,32 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useState } from 'react'
+import { Copy, Check } from 'lucide-react'
 
 interface CodeBlockProps {
-  code: string;
-  language?: string;
+  code: string
+  language?: string
 }
 
 export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('复制失败:', err);
+      console.error('复制失败:', err)
     }
-  };
+  }
 
   return (
     <div className="my-3 rounded-lg overflow-hidden border theme-border-primary">
       <div className="flex items-center justify-between px-4 py-2 theme-bg-card border-b theme-border-primary">
-        <span className="text-xs theme-text-muted font-medium uppercase">{language}</span>
+        <span className="text-xs theme-text-muted font-medium uppercase">
+          {language}
+        </span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1.5 px-2 py-1 rounded text-xs theme-text-muted hover:theme-text-secondary hover:theme-bg-hover transition-colors"
@@ -48,7 +50,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         customStyle={{
           margin: 0,
           borderRadius: 0,
-          fontSize: '13px',
+          fontSize: 'var(--font-code-base)',
           background: '#1e1e1e',
         }}
         showLineNumbers={true}
@@ -57,5 +59,5 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         {code}
       </SyntaxHighlighter>
     </div>
-  );
+  )
 }
