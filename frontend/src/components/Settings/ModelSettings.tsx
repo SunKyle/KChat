@@ -217,7 +217,7 @@ export function ModelSettings() {
             </button>
           </div>
 
-          <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-380px)] overflow-y-auto">
+          <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-380px)] overflow-y-auto scrollbar-hidden">
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
               if (providerConfigs.length === 0) return null

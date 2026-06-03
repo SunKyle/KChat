@@ -243,6 +243,15 @@ body {
   background: var(--border-primary);
 }
 
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 .markdown-body {
   font-family: inherit;
   font-size: var(--font-size-base);

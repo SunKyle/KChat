@@ -261,7 +261,7 @@ export function MemoryPanel() {
             </div>
           )}
 
-          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto">
+          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto scrollbar-hidden">
             {filteredMemories.map((memory) => {
               const TypeIcon = getTypeIcon(memory.type)
               const colorClass = getTypeColor(memory.type)
