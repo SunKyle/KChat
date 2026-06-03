@@ -222,7 +222,7 @@ export function ModelSettings() {
         </div>
       ) : (
         <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out p-4 sm:p-6">
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:space-y-6 min-h-[200px] max-h-[calc(100vh-320px)] overflow-y-auto">
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
               if (providerConfigs.length === 0) return null
@@ -247,7 +247,7 @@ export function ModelSettings() {
                       return (
                         <div
                           key={config.id}
-                          className="group flex items-center justify-between p-3 sm:p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors"
+                          className="group flex items-center justify-between p-3 sm:p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full"
                         >
                           <div className="min-w-0 flex-1">
                             <h4 className="text-sm font-medium theme-text-primary truncate">
