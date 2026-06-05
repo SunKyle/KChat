@@ -214,7 +214,7 @@ export function MemoryPanel() {
           <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out text-center">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] text-center">
           <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
             <Search className="w-7 h-7 theme-text-muted" />
           </div>
@@ -233,7 +233,7 @@ export function MemoryPanel() {
           </button>
         </div>
       ) : (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)]">
           {selectedMemories.length > 0 && (
             <div className="flex items-center gap-3 px-4 py-3 theme-bg-input/50 rounded-xl mb-4">
               <label className="flex items-center gap-2 cursor-pointer">
