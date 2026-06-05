@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Pencil, Trash2, Check, X } from 'lucide-react'
+import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
 import type { Conversation } from '../../../types'
 
 interface ConversationItemProps {
@@ -10,6 +10,7 @@ interface ConversationItemProps {
   onClick: () => void
   onDelete: () => void
   onUpdate: (id: string, title: string) => void
+  onPin: (id: string, pinned: boolean) => void
   collapsed?: boolean
 }
 
@@ -21,6 +22,7 @@ export function ConversationItem({
   onClick,
   onDelete,
   onUpdate,
+  onPin,
   collapsed = false,
 }: ConversationItemProps) {
   const [isEditing, setIsEditing] = useState(false)
@@ -175,6 +177,22 @@ export function ConversationItem({
           </>
         ) : (
           <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onPin(conversation.id, !conversation.pinned)
+              }}
+              className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
+              title={conversation.pinned ? '取消置顶' : '置顶'}
+            >
+              <Pin
+                className={`w-4 h-4 transition-colors ${
+                  conversation.pinned
+                    ? 'theme-accent-amber'
+                    : 'theme-text-muted hover:theme-text-secondary'
+                }`}
+              />
+            </button>
             <button
               onClick={handleStartEdit}
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"

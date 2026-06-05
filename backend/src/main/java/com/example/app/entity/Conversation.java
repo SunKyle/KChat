@@ -41,6 +41,10 @@ public class Conversation {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "pinned")
+    @Builder.Default
+    private Boolean pinned = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

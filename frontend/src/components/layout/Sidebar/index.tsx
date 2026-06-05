@@ -40,6 +40,7 @@ export function Sidebar({
     setActiveConversation,
     createConversation,
     updateConversation,
+    pinConversation,
     getStreamingState,
     getHasNewReply,
     resetNewReply,
@@ -71,6 +72,12 @@ export function Sidebar({
     const now = new Date()
 
     filteredConversations.forEach((conv) => {
+      if (conv.pinned) {
+        if (!groups['置顶']) groups['置顶'] = []
+        groups['置顶'].push(conv)
+        return
+      }
+
       const date = new Date(conv.createdAt || Date.now())
       const diffDays = Math.floor(
         (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
@@ -85,7 +92,7 @@ export function Sidebar({
       groups[group].push(conv)
     })
 
-    const order = ['今天', '昨天', '本周', '最近']
+    const order = ['置顶', '今天', '昨天', '本周', '最近']
     return order
       .filter((g) => groups[g])
       .map((g) => ({ group: g, items: groups[g] }))
@@ -120,6 +127,12 @@ export function Sidebar({
     const now = new Date()
 
     conversations.forEach((conv) => {
+      if (conv.pinned) {
+        if (!groups['置顶']) groups['置顶'] = []
+        groups['置顶'].push(conv)
+        return
+      }
+
       const date = new Date(conv.createdAt || Date.now())
       const diffDays = Math.floor(
         (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
@@ -134,7 +147,7 @@ export function Sidebar({
       groups[group].push(conv)
     })
 
-    const order = ['今天', '昨天', '本周', '最近']
+    const order = ['置顶', '今天', '昨天', '本周', '最近']
     return order
       .filter((g) => groups[g])
       .map((g) => ({ group: g, items: groups[g] }))
@@ -287,6 +300,7 @@ export function Sidebar({
                         handleDelete(conversation.id, conversation.title)
                       }
                       onUpdate={updateConversation}
+                      onPin={pinConversation}
                       collapsed={collapsed}
                     />
                   ))}

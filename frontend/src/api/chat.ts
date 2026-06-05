@@ -17,10 +17,10 @@ export const conversations = {
     });
   },
 
-  update: async (id: string, title: string): Promise<Conversation> => {
+  update: async (id: string, updates: Partial<Conversation>): Promise<Conversation> => {
     return request(`/conversations/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ title }),
+      body: JSON.stringify(updates),
     });
   },
 

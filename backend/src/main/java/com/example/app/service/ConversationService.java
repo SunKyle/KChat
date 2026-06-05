@@ -102,16 +102,19 @@ public class ConversationService {
     /**
      * 更新对话标题
      * 
-     * @param id 对话 ID
+     * @param id    对话 ID
      * @param title 新标题
      * @return 更新后的对话；如果不存在返回 null
      */
     @Transactional
-    public ConversationDTO updateConversation(String id, String title) {
+    public ConversationDTO updateConversation(String id, String title, Boolean pinned) {
         return conversationRepository.findById(id)
                 .map(conversation -> {
                     if (title != null && !title.isBlank()) {
                         conversation.setTitle(title);
+                    }
+                    if (pinned != null) {
+                        conversation.setPinned(pinned);
                     }
                     Conversation updated = conversationRepository.save(conversation);
                     log.info("Updated conversation: {}", id);

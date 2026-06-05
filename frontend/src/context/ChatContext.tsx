@@ -27,6 +27,7 @@ interface ChatContextType {
   createConversation: () => Promise<void>
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
+  pinConversation: (id: string, pinned: boolean) => Promise<void>
   sendMessage: (content: string, imageUrls?: string[]) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
@@ -61,6 +62,7 @@ type ChatAction =
       type: 'UPDATE_CONVERSATION_TITLE'
       payload: { id: string; title: string }
     }
+  | { type: 'PIN_CONVERSATION'; payload: { id: string; pinned: boolean } }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -259,6 +261,20 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             : state.activeConversation,
       }
 
+    case 'PIN_CONVERSATION':
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) =>
+          conv.id === action.payload.id
+            ? { ...conv, pinned: action.payload.pinned }
+            : conv,
+        ),
+        activeConversation:
+          state.activeConversation?.id === action.payload.id
+            ? { ...state.activeConversation, pinned: action.payload.pinned }
+            : state.activeConversation,
+      }
+
     case 'SET_ERROR':
       return { ...state, error: action.payload }
 
@@ -399,7 +415,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const updateConversation = useCallback(async (id: string, title: string) => {
     try {
-      await conversations.update(id, title)
+      await conversations.update(id, { title })
       dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id, title } })
 
       const cached = localStorage.getItem('kchat_conversations')
@@ -435,6 +451,24 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     },
     [stopStreaming],
   )
+
+  const pinConversation = useCallback(async (id: string, pinned: boolean) => {
+    try {
+      await conversations.update(id, { pinned })
+      dispatch({ type: 'PIN_CONVERSATION', payload: { id, pinned } })
+
+      const cached = localStorage.getItem('kchat_conversations')
+      if (cached) {
+        const conversations = JSON.parse(cached)
+        const updated = conversations.map((c: Conversation) =>
+          c.id === id ? { ...c, pinned } : c,
+        )
+        localStorage.setItem('kchat_conversations', JSON.stringify(updated))
+      }
+    } catch (error) {
+      console.error('Failed to pin conversation:', error)
+    }
+  }, [])
 
   const loadMessages = useCallback(async (conversationId: string) => {
     const streamingState = state.streamingStates[conversationId]
@@ -610,6 +644,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         createConversation,
         deleteConversation,
         updateConversation,
+        pinConversation,
         sendMessage,
         stopStreaming,
         loadMessages,
