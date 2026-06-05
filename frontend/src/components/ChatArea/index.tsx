@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, AlertCircle, ArrowDown, Sparkles } from 'lucide-react'
+import { MessageCircle, ArrowDown, Sparkles } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
 import { MessageSkeleton } from '../common/Skeleton'
+import { ErrorCard } from '../common/ErrorCard'
 
 export function ChatArea() {
   const {
@@ -94,23 +95,19 @@ export function ChatArea() {
 
   return (
     <div className="flex-1 flex flex-col theme-bg-primary min-h-0 relative">
-      {error && (
-        <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-3 animate-slide-down">
-          <div className="max-w-[800px] mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center gap-2 text-red-400">
-              <AlertCircle className="w-5 h-5" />
-              <span>{error}</span>
-            </div>
-            <button
-              onClick={clearError}
-              className="p-1 rounded hover:bg-red-500/20 transition-colors"
-            >
-              <span className="sr-only">关闭</span>
-              <span className="text-red-400">&times;</span>
-            </button>
-          </div>
-        </div>
-      )}
+      <ErrorCard
+        isVisible={!!error}
+        severity="error"
+        title="发生错误"
+        description={error}
+        showCloseButton
+        onClose={clearError}
+        showRetryButton
+        onRetry={() => {
+          clearError()
+        }}
+        position="top"
+      />
 
       <div
         ref={containerRef}
