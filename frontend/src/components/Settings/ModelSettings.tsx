@@ -186,7 +186,7 @@ export function ModelSettings() {
         <h3 className="font-medium theme-text-primary">模型列表</h3>
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
+          className="flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
           添加模型

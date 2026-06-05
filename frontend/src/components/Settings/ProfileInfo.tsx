@@ -140,7 +140,7 @@ export function ProfileInfo() {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -159,7 +159,7 @@ export function ProfileInfo() {
                   })
                   setErrors({})
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm"
               >
                 <X className="w-3.5 h-3.5" />
                 取消
@@ -168,7 +168,7 @@ export function ProfileInfo() {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="px-3 py-1.5 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm"
+              className="px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm"
             >
               编辑
             </button>
