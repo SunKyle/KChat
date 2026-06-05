@@ -4,6 +4,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   User,
+  ChevronRight,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { useUser } from '../../../context/UserContext'
@@ -24,8 +25,21 @@ export function Sidebar({
   onConversationClick,
 }: SidebarProps) {
   const [isScrolling, setIsScrolling] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    new Set(['今天', '昨天', '本周', '最近']),
+  )
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
+
+  const toggleGroup = (group: string) => {
+    const newExpanded = new Set(expandedGroups)
+    if (newExpanded.has(group)) {
+      newExpanded.delete(group)
+    } else {
+      newExpanded.add(group)
+    }
+    setExpandedGroups(newExpanded)
+  }
 
   const handleScroll = () => {
     setIsScrolling(true)
@@ -177,29 +191,45 @@ export function Sidebar({
             {grouped.map(({ group, items }) => (
               <div key={group} className="space-y-1">
                 {!collapsed && (
-                  <div className="text-[11px] font-semibold theme-text-muted uppercase tracking-widest mb-2 px-2">
-                    {group}
-                  </div>
+                  <button
+                    onClick={() => toggleGroup(group)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ChevronRight
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          expandedGroups.has(group) ? 'rotate-90' : ''
+                        }`}
+                      />
+                      {group}
+                    </span>
+                    <span className="text-[10px] opacity-60">
+                      {items.length}
+                    </span>
+                  </button>
                 )}
-                {items.map((conversation) => (
-                  <ConversationItem
-                    key={conversation.id}
-                    conversation={conversation}
-                    isActive={activeConversation?.id === conversation.id}
-                    isStreaming={getStreamingState(conversation.id).isStreaming}
-                    hasNewReply={getHasNewReply(conversation.id)}
-                    onClick={() => {
-                      resetNewReply(conversation.id)
-                      setActiveConversation(conversation)
-                      onConversationClick?.()
-                    }}
-                    onDelete={() =>
-                      handleDelete(conversation.id, conversation.title)
-                    }
-                    onUpdate={updateConversation}
-                    collapsed={collapsed}
-                  />
-                ))}
+                {(collapsed || expandedGroups.has(group)) &&
+                  items.map((conversation) => (
+                    <ConversationItem
+                      key={conversation.id}
+                      conversation={conversation}
+                      isActive={activeConversation?.id === conversation.id}
+                      isStreaming={
+                        getStreamingState(conversation.id).isStreaming
+                      }
+                      hasNewReply={getHasNewReply(conversation.id)}
+                      onClick={() => {
+                        resetNewReply(conversation.id)
+                        setActiveConversation(conversation)
+                        onConversationClick?.()
+                      }}
+                      onDelete={() =>
+                        handleDelete(conversation.id, conversation.title)
+                      }
+                      onUpdate={updateConversation}
+                      collapsed={collapsed}
+                    />
+                  ))}
               </div>
             ))}
           </div>
