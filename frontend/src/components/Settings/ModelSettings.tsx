@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, Database, Copy } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Brain, Database, Copy } from 'lucide-react'
 import { modelConfigs } from '../../api'
 import type { ModelConfig, ProviderType } from '../../types'
 import { useChat } from '../../context/ChatContext'
@@ -183,7 +183,10 @@ export function ModelSettings() {
       )}
 
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium theme-text-primary">模型列表</h3>
+        <div className="flex items-center gap-2">
+          <Brain className="w-5 h-5 theme-text-muted" />
+          <h3 className="font-medium theme-text-primary">模型列表</h3>
+        </div>
         <button
           onClick={handleOpenAddModal}
           className="flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"

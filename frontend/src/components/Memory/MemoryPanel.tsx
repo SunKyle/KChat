@@ -10,6 +10,7 @@ import {
   Lightbulb,
   Edit2,
   Search,
+  Database,
 } from 'lucide-react'
 import { memoryApi } from '../../utils/memoryApi'
 import { MEMORY_TYPES } from '../../types'
@@ -164,7 +165,10 @@ export function MemoryPanel() {
   return (
     <div className="flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-        <h3 className="font-medium theme-text-primary">记忆列表</h3>
+        <div className="flex items-center gap-2">
+          <Database className="w-5 h-5 theme-text-muted" />
+          <h3 className="font-medium theme-text-primary">记忆列表</h3>
+        </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="flex-1 sm:flex-initial relative">
