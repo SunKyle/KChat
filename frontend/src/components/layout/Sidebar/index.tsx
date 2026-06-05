@@ -5,6 +5,8 @@ import {
   PanelLeft,
   User,
   ChevronRight,
+  Search,
+  X,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { useUser } from '../../../context/UserContext'
@@ -28,8 +30,22 @@ export function Sidebar({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(['今天', '昨天', '本周', '最近']),
   )
+  const [searchQuery, setSearchQuery] = useState('')
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null
+
+  const {
+    conversations,
+    activeConversation,
+    setActiveConversation,
+    createConversation,
+    updateConversation,
+    getStreamingState,
+    getHasNewReply,
+    resetNewReply,
+  } = useChat()
+
+  const { profile } = useUser()
 
   const toggleGroup = (group: string) => {
     const newExpanded = new Set(expandedGroups)
@@ -40,6 +56,42 @@ export function Sidebar({
     }
     setExpandedGroups(newExpanded)
   }
+
+  const filteredConversations = conversations.filter((conv) => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      conv.title.toLowerCase().includes(query) ||
+      conv.lastMessage?.toLowerCase().includes(query)
+    )
+  })
+
+  const groupFilteredConversations = () => {
+    const groups: Record<string, any[]> = {}
+    const now = new Date()
+
+    filteredConversations.forEach((conv) => {
+      const date = new Date(conv.createdAt || Date.now())
+      const diffDays = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+      )
+
+      let group = '最近'
+      if (diffDays === 0) group = '今天'
+      else if (diffDays === 1) group = '昨天'
+      else if (diffDays < 7) group = '本周'
+
+      if (!groups[group]) groups[group] = []
+      groups[group].push(conv)
+    })
+
+    const order = ['今天', '昨天', '本周', '最近']
+    return order
+      .filter((g) => groups[g])
+      .map((g) => ({ group: g, items: groups[g] }))
+  }
+
+  const filteredGrouped = groupFilteredConversations()
 
   const handleScroll = () => {
     setIsScrolling(true)
@@ -58,19 +110,6 @@ export function Sidebar({
       }
     }
   }, [])
-
-  const {
-    conversations,
-    activeConversation,
-    setActiveConversation,
-    createConversation,
-    updateConversation,
-    getStreamingState,
-    getHasNewReply,
-    resetNewReply,
-  } = useChat()
-
-  const { profile } = useUser()
 
   const handleDelete = (id: string, title: string) => {
     onDeleteClick?.(id, title)
@@ -141,12 +180,33 @@ export function Sidebar({
           )}
         </div>
 
+        {!collapsed && (
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜索会话..."
+              className="w-full pl-9 pr-9 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded hover:theme-bg-hover transition-colors"
+              >
+                <X className="w-3.5 h-3.5 theme-text-muted" />
+              </button>
+            )}
+          </div>
+        )}
+
         <button
           onClick={createConversation}
           className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
             collapsed
-              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full'
-              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30'
+              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-3'
+              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30 mt-3'
           }`}
           title={collapsed ? '新对话' : undefined}
         >
@@ -188,7 +248,7 @@ export function Sidebar({
           </div>
         ) : (
           <div className="space-y-6">
-            {grouped.map(({ group, items }) => (
+            {filteredGrouped.map(({ group, items }) => (
               <div key={group} className="space-y-1">
                 {!collapsed && (
                   <button
