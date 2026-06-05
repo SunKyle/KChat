@@ -163,12 +163,58 @@ export function MemoryPanel() {
 
   return (
     <div className="flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <h3 className="font-medium theme-text-primary">记忆列表</h3>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:flex-initial relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="搜索记忆..."
+              className="w-full sm:w-48 pl-9 pr-4 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
+            />
+          </div>
+
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 theme-text-muted" />
+            <select
+              value={selectedType}
+              onChange={(e) =>
+                setSelectedType(e.target.value as MemoryType | 'ALL')
+              }
+              className="pl-9 pr-6 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 appearance-none cursor-pointer min-w-[80px]"
+            >
+              <option value="ALL">全部</option>
+              {MEMORY_TYPES.map((t) => (
+                <option key={t.type} value={t.type}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={() => {
+              setEditingMemory(null)
+              setShowForm(true)
+            }}
+            className="flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            添加
+          </button>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out text-center">
           <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
             <Search className="w-7 h-7 theme-text-muted" />
           </div>
@@ -187,51 +233,7 @@ export function MemoryPanel() {
           </button>
         </div>
       ) : (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium theme-text-primary">记忆列表</h3>
-            <button
-              onClick={() => {
-                setEditingMemory(null)
-                setShowForm(true)
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              添加
-            </button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="搜索记忆..."
-                className="w-full pl-9 pr-4 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
-              />
-            </div>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 theme-text-muted" />
-              <select
-                value={selectedType}
-                onChange={(e) =>
-                  setSelectedType(e.target.value as MemoryType | 'ALL')
-                }
-                className="pl-9 pr-6 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 appearance-none cursor-pointer"
-              >
-                <option value="ALL">全部</option>
-                {MEMORY_TYPES.map((t) => (
-                  <option key={t.type} value={t.type}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
           {selectedMemories.length > 0 && (
             <div className="flex items-center gap-3 px-4 py-3 theme-bg-input/50 rounded-xl mb-4">
               <label className="flex items-center gap-2 cursor-pointer">

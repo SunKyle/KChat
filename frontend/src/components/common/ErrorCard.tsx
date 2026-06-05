@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { XCircle, AlertTriangle, Info, CheckCircle, X, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { XCircle, AlertTriangle, Info, CheckCircle, X, RotateCcw } from 'lucide-react';
 
 export type ErrorSeverity = 'error' | 'warning' | 'info' | 'success';
 
@@ -8,67 +8,58 @@ export interface ErrorCardProps {
   severity?: ErrorSeverity;
   title: string;
   description?: string;
-  details?: string;
   onClose?: () => void;
   onRetry?: () => void;
-  onViewDetails?: () => void;
   showCloseButton?: boolean;
   showRetryButton?: boolean;
-  showDetailsButton?: boolean;
   autoDismiss?: boolean;
   autoDismissDelay?: number;
-  className?: string;
-  position?: 'top' | 'bottom' | 'center';
 }
 
 const severityConfig = {
   error: {
     icon: XCircle,
-    bgColor: 'bg-red-500/8',
-    borderColor: 'border-red-500/40',
     iconBg: 'bg-red-500/20',
     iconColor: 'text-red-400',
-    titleColor: 'text-red-300',
-    buttonColor: 'bg-red-500/20 hover:bg-red-500/30 text-red-300',
-    glowColor: 'shadow-red-500/25',
-    gradientStart: 'from-red-500/10',
-    gradientEnd: 'to-transparent',
+    titleColor: 'text-red-400',
+    buttonBg: 'bg-red-500/15',
+    buttonHover: 'hover:bg-red-500/25',
+    buttonText: 'text-red-300',
+    borderColor: 'border-red-500/20',
+    shadowColor: 'shadow-red-500/15',
   },
   warning: {
     icon: AlertTriangle,
-    bgColor: 'bg-amber-500/8',
-    borderColor: 'border-amber-500/40',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-400',
-    titleColor: 'text-amber-300',
-    buttonColor: 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300',
-    glowColor: 'shadow-amber-500/25',
-    gradientStart: 'from-amber-500/10',
-    gradientEnd: 'to-transparent',
+    titleColor: 'text-amber-400',
+    buttonBg: 'bg-amber-500/15',
+    buttonHover: 'hover:bg-amber-500/25',
+    buttonText: 'text-amber-300',
+    borderColor: 'border-amber-500/20',
+    shadowColor: 'shadow-amber-500/15',
   },
   info: {
     icon: Info,
-    bgColor: 'bg-blue-500/8',
-    borderColor: 'border-blue-500/40',
     iconBg: 'bg-blue-500/20',
     iconColor: 'text-blue-400',
-    titleColor: 'text-blue-300',
-    buttonColor: 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300',
-    glowColor: 'shadow-blue-500/25',
-    gradientStart: 'from-blue-500/10',
-    gradientEnd: 'to-transparent',
+    titleColor: 'text-blue-400',
+    buttonBg: 'bg-blue-500/15',
+    buttonHover: 'hover:bg-blue-500/25',
+    buttonText: 'text-blue-300',
+    borderColor: 'border-blue-500/20',
+    shadowColor: 'shadow-blue-500/15',
   },
   success: {
     icon: CheckCircle,
-    bgColor: 'bg-green-500/8',
-    borderColor: 'border-green-500/40',
     iconBg: 'bg-green-500/20',
     iconColor: 'text-green-400',
-    titleColor: 'text-green-300',
-    buttonColor: 'bg-green-500/20 hover:bg-green-500/30 text-green-300',
-    glowColor: 'shadow-green-500/25',
-    gradientStart: 'from-green-500/10',
-    gradientEnd: 'to-transparent',
+    titleColor: 'text-green-400',
+    buttonBg: 'bg-green-500/15',
+    buttonHover: 'hover:bg-green-500/25',
+    buttonText: 'text-green-300',
+    borderColor: 'border-green-500/20',
+    shadowColor: 'shadow-green-500/15',
   },
 };
 
@@ -77,22 +68,15 @@ export function ErrorCard({
   severity = 'error',
   title,
   description,
-  details,
   onClose,
   onRetry,
-  onViewDetails,
   showCloseButton = true,
   showRetryButton = false,
-  showDetailsButton = !!details,
   autoDismiss = false,
   autoDismissDelay = 5000,
-  className = '',
-  position = 'top',
 }: ErrorCardProps) {
   const [isShowing, setIsShowing] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const config = severityConfig[severity];
   const IconComponent = config.icon;
@@ -105,7 +89,7 @@ export function ErrorCard({
       setTimeout(() => {
         setIsShowing(false);
         setIsExiting(false);
-      }, 350);
+      }, 300);
     }
   }, [isVisible, isShowing, isExiting]);
 
@@ -120,65 +104,40 @@ export function ErrorCard({
 
   if (!isShowing) return null;
 
-  const positionClasses = {
-    top: 'top-4 left-1/2 -translate-x-1/2',
-    bottom: 'bottom-4 left-1/2 -translate-x-1/2',
-    center: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-  };
-
   return (
     <div
       className={`
-        fixed z-50 ${positionClasses[position]}
-        max-w-md w-[calc(100%-2rem)]
-        transition-all duration-350 ease-out
-        ${isExiting ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 translate-y-0 scale-100'}
-        ${className}
+        fixed top-6 left-1/2 -translate-x-1/2 z-50
+        max-w-lg w-[calc(100%-2rem)]
+        transition-all duration-300 ease-out
+        ${isExiting ? 'opacity-0 translate-y-2 scale-98' : 'opacity-100 translate-y-0 scale-100'}
       `}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`
-        relative rounded-2xl border ${config.borderColor} ${config.bgColor}
-        backdrop-blur-xl bg-white/5
+        relative rounded-2xl border ${config.borderColor}
+        bg-gray-900/90 backdrop-blur-sm
         p-5
-        shadow-2xl ${config.glowColor}
-        transition-all duration-300 ease-out
-        ${isHovered ? 'transform -translate-y-1 shadow-3xl' : 'transform translate-y-0'}
+        shadow-lg ${config.shadowColor}
       `}>
-        <div className={`
-          absolute inset-0 rounded-2xl
-          bg-gradient-to-br ${config.gradientStart} ${config.gradientEnd}
-          pointer-events-none
-        `} />
-
-        <div className={`
-          absolute -inset-px rounded-2xl
-          bg-gradient-to-r ${config.iconColor}10 to-transparent
-          pointer-events-none
-        `} />
-
-        <div className="flex items-start gap-4 relative z-10">
+        <div className="flex items-start gap-4">
           <div className={`
-            flex-shrink-0 w-12 h-12
+            flex-shrink-0 w-10 h-10
             rounded-full ${config.iconBg}
             flex items-center justify-center
-            animate-bounce-in
-            shadow-lg ${config.glowColor}
           `}>
-            <IconComponent className={`w-6 h-6 ${config.iconColor}`} />
+            <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className={`font-semibold text-base ${config.titleColor} leading-tight`}>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className={`font-medium text-base ${config.titleColor}`}>
                 {title}
               </h3>
 
               {showCloseButton && onClose && (
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-all hover:scale-110"
+                  className="flex-shrink-0 p-1 rounded-md hover:bg-white/5 transition-colors"
                   aria-label="关闭"
                 >
                   <X className="w-4 h-4 text-gray-400 hover:text-gray-200" />
@@ -192,59 +151,22 @@ export function ErrorCard({
               </p>
             )}
 
-            {(showDetailsButton || showDetails) && details && (
-              <div className="mt-3">
-                <button
-                  onClick={() => setShowDetails(!showDetails)}
-                  className={`
-                    flex items-center gap-2 text-sm ${config.buttonColor}
-                    px-3 py-1.5 rounded-lg transition-all hover:scale-105
-                  `}
-                >
-                  {showDetails ? (
-                    <>
-                      <ChevronUp className="w-4 h-4" />
-                      隐藏详情
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4" />
-                      查看详情
-                    </>
-                  )}
-                </button>
-
-                {showDetails && (
-                  <div className="mt-3 p-3 bg-black/30 rounded-xl border border-gray-700/50 animate-slide-down">
-                    <pre className="text-xs text-gray-400 whitespace-pre-wrap max-h-32 overflow-y-auto">
-                      {details}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            )}
-
             {(showRetryButton || onRetry) && (
-              <div className="mt-4 flex items-center gap-2">
-                <button
-                  onClick={onRetry}
-                  className={`
-                    flex items-center gap-2 text-sm font-medium
-                    px-4 py-2 rounded-xl transition-all
-                    ${config.buttonColor}
-                    hover:shadow-lg hover:shadow-current/30
-                    hover:scale-105 active:scale-95
-                  `}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  重试
-                </button>
-              </div>
+              <button
+                onClick={onRetry}
+                className={`
+                  mt-4 inline-flex items-center gap-2 text-sm font-medium
+                  px-4 py-2 rounded-lg
+                  ${config.buttonBg} ${config.buttonHover} ${config.buttonText}
+                  transition-all hover:scale-[1.02] active:scale-[0.98]
+                `}
+              >
+                <RotateCcw className="w-4 h-4" />
+                重试
+              </button>
             )}
           </div>
         </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       </div>
     </div>
   );
