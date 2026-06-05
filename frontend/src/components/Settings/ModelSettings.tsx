@@ -182,12 +182,23 @@ export function ModelSettings() {
         </div>
       )}
 
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-medium theme-text-primary">模型列表</h3>
+        <button
+          onClick={handleOpenAddModal}
+          className="flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          添加模型
+        </button>
+      </div>
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : configs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out text-center">
           <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
             <Database className="w-7 h-7 theme-text-muted" />
           </div>
@@ -205,19 +216,8 @@ export function ModelSettings() {
           </button>
         </div>
       ) : (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium theme-text-primary">模型列表</h3>
-            <button
-              onClick={handleOpenAddModal}
-              className="flex items-center gap-2 px-3 py-1.5 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              添加模型
-            </button>
-          </div>
-
-          <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-380px)] overflow-y-auto scrollbar-hidden">
+        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
+          <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-340px)] overflow-y-auto scrollbar-hidden">
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
               if (providerConfigs.length === 0) return null
