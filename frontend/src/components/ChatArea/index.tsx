@@ -122,11 +122,12 @@ export function ChatArea() {
               <div className='absolute bottom-1/4 -left-1/4 w-64 h-64 bg-gradient-to-tr from-amber-400/10 via-pink-500/10 to-emerald-500/5 rounded-full blur-3xl animate-float-slow-delayed' />
 
               <div className='relative z-10 text-center flex flex-col items-center w-full'>
-                <div className='relative mb-8 sm:mb-12'>
-                  <div className='w-20 sm:w-24 h-20 sm:h-24 rounded-2xl bg-gradient-to-br from-sky-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-xl shadow-sky-500/25 animate-gradient-shift'>
-                    <Sparkles className='w-10 sm:w-12 h-10 sm:h-12 text-white' />
-                  </div>
-                  <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-500 via-indigo-500 to-purple-500 opacity-30 blur-xl animate-pulse-glow' />
+                <div className='mb-8 sm:mb-12'>
+                  <img
+                    src='/kchat-icon.svg'
+                    alt='KChat'
+                    className='w-16 sm:w-20 h-16 sm:h-20 object-contain'
+                  />
                 </div>
 
                 <h2 className='font-h2 sm:font-h1 theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>
@@ -136,32 +137,7 @@ export function ChatArea() {
                   智能助手随时为您服务，开启高效对话体验
                 </p>
 
-                <div className='w-full max-w-md space-y-3 animate-fade-in-up animation-delay-200'>
-                  <button
-                    onClick={() => {}}
-                    className='w-full group flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-secondary font-medium rounded-xl shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
-                  >
-                    <div className='w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors'>
-                      <MessageCircle className='w-4 h-4' />
-                    </div>
-                    <span>开始新对话</span>
-                    <div className='ml-auto w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors'>
-                      <svg
-                        className='w-4 h-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M17 8l4 4m0 0l-4 4m4-4H3'
-                        />
-                      </svg>
-                    </div>
-                  </button>
-
+                <div className='w-full max-w-md animate-fade-in-up animation-delay-200'>
                   <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>
                     <button
                       onClick={() => {}}

@@ -1,6 +1,6 @@
 import {
   Plus,
-  MessageSquare,
+  MessageSquarePlus,
   PanelLeftClose,
   PanelLeft,
   User,
@@ -171,9 +171,11 @@ export function Sidebar({
         </div>
 
         {!collapsed && (
-          <div className='relative mt-2'>
+          <div className='relative mt-3'>
             <Search
-              className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted'
+              className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
+                searchQuery ? 'theme-text-muted/60' : 'theme-text-muted'
+              }`}
               aria-hidden='true'
             />
             <input
@@ -182,13 +184,13 @@ export function Sidebar({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder='搜索会话...'
               aria-label='搜索会话'
-              className='w-full pl-10 pr-10 py-2 bg-[var(--bg-card)] border theme-border-secondary rounded-lg font-secondary theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/40 transition-colors'
+              className='w-full pl-11 pr-10 py-2.5 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label='清除搜索'
-                className='absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded hover:theme-bg-hover transition-colors focus-ring'
+                className='absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-200 focus-ring'
               >
                 <X className='w-4 h-4 theme-text-muted' aria-hidden='true' />
               </button>
@@ -201,11 +203,14 @@ export function Sidebar({
           aria-label='创建新对话'
           className={`flex items-center transition-all font-medium ${
             collapsed
-              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-4 justify-center'
-              : 'flex items-center justify-start gap-2 w-full mt-2 py-2 px-3 rounded-lg font-secondary font-medium bg-[var(--bg-card)] border theme-border-secondary theme-text-secondary hover:theme-text-primary transition-all focus-ring press-effect'
+              ? 'w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-500 text-white rounded-full mt-4 justify-center shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-110 active:scale-95 transition-all duration-200 focus-ring'
+              : 'flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 rounded-xl font-secondary font-medium bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 focus-ring'
           }`}
         >
-          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} aria-hidden='true' />
+          <MessageSquarePlus
+            className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`}
+            aria-hidden='true'
+          />
           {!collapsed && <span>新对话</span>}
         </button>
 
