@@ -109,62 +109,64 @@ export function ChatArea() {
         onScroll={handleScroll}
         className={`flex-1 overflow-y-auto scroll-smooth scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
-        <div className='w-full min-h-full flex flex-col items-center justify-center'>
+        <div className='w-full min-h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8'>
           {isLoading ? (
-            <div className='max-w-[800px] mx-auto w-full p-6 space-y-4'>
+            <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full p-6 space-y-4'>
               <MessageSkeleton />
               <MessageSkeleton />
               <MessageSkeleton />
             </div>
           ) : messages.length === 0 ? (
-            <div className='flex flex-col items-center justify-center px-8 py-20 max-w-[800px] mx-auto relative'>
+            <div className='flex flex-col items-center justify-center px-6 py-20 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto relative'>
               <div className='absolute -top-20 -right-20 w-72 h-72 bg-gradient-to-br from-sky-400/10 to-indigo-500/5 rounded-full blur-3xl' />
               <div className='absolute -bottom-20 -left-20 w-56 h-56 bg-gradient-to-tr from-purple-400/10 to-pink-500/5 rounded-full blur-3xl' />
               <div className='relative z-10 text-center flex flex-col items-center'>
-                <div className='w-28 h-28 mb-8 rounded-xl bg-gradient-to-br from-sky-500/25 via-indigo-500/15 to-purple-500/10 flex items-center justify-center shadow-lg shadow-sky-500/10 hover:shadow-xl hover:shadow-sky-500/15 transition-all duration-300'>
-                  <div className='w-20 h-20 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center shadow-inner'>
-                    <Sparkles className='w-10 h-10 text-white' />
+                <div className='w-24 sm:w-28 h-24 sm:h-28 mb-6 sm:mb-8 rounded-xl bg-gradient-to-br from-sky-500/25 via-indigo-500/15 to-purple-500/10 flex items-center justify-center shadow-lg shadow-sky-500/10 hover:shadow-xl hover:shadow-sky-500/15 transition-all duration-300'>
+                  <div className='w-16 sm:w-20 h-16 sm:h-20 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center shadow-inner'>
+                    <Sparkles className='w-8 sm:w-10 h-8 sm:h-10 text-white' />
                   </div>
                 </div>
-                <h2 className='font-h2 theme-text-primary mb-3 text-center'>开始新对话</h2>
-                <p className='theme-text-secondary mb-10 max-w-md text-center'>
+                <h2 className='font-h3 sm:font-h2 theme-text-primary mb-2 sm:mb-3 text-center'>
+                  开始新对话
+                </h2>
+                <p className='theme-text-secondary mb-6 sm:mb-10 max-w-sm text-center'>
                   你好！我是 AI 助手。有什么我可以帮助你的吗？
                 </p>
-                <div className='flex flex-wrap justify-center gap-3'>
+                <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-3 sm:px-5 py-2 sm:py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2 sm:gap-2.5 cursor-pointer'
                   >
-                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
-                      <Code className='w-4 h-4 text-sky-600' />
+                    <div className='w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <Code className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600' />
                     </div>
-                    帮我写代码
+                    <span className='hidden sm:inline'>帮我写代码</span>
                   </button>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-3 sm:px-5 py-2 sm:py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2 sm:gap-2.5 cursor-pointer'
                   >
-                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
-                      <BookOpen className='w-4 h-4 text-sky-600' />
+                    <div className='w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <BookOpen className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600' />
                     </div>
-                    解释概念
+                    <span className='hidden sm:inline'>解释概念</span>
                   </button>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-3 sm:px-5 py-2 sm:py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2 sm:gap-2.5 cursor-pointer'
                   >
-                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
-                      <MessageCircle className='w-4 h-4 text-sky-600' />
+                    <div className='w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <MessageCircle className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600' />
                     </div>
-                    回答问题
+                    <span className='hidden sm:inline'>回答问题</span>
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className='py-6 font-ai-message'>
+            <div className='py-6 font-ai-message w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto'>
               <div
-                className={`max-w-[800px] mx-auto w-full px-4 sm:px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
+                className={`w-full px-2 sm:px-4 lg:px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
               >
                 {messages.map((message, index) => {
                   const isLastAssistantMessage =
