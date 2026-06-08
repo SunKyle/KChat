@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
-import { XCircle, AlertTriangle, Info, CheckCircle, X, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { XCircle, AlertTriangle, Info, CheckCircle, X, RotateCcw } from 'lucide-react'
 
-export type ErrorSeverity = 'error' | 'warning' | 'info' | 'success';
+export type ErrorSeverity = 'error' | 'warning' | 'info' | 'success'
 
 export interface ErrorCardProps {
-  isVisible: boolean;
-  severity?: ErrorSeverity;
-  title: string;
-  description?: string;
-  onClose?: () => void;
-  onRetry?: () => void;
-  showCloseButton?: boolean;
-  showRetryButton?: boolean;
-  autoDismiss?: boolean;
-  autoDismissDelay?: number;
+  isVisible: boolean
+  severity?: ErrorSeverity
+  title: string
+  description?: string
+  onClose?: () => void
+  onRetry?: () => void
+  showCloseButton?: boolean
+  showRetryButton?: boolean
+  autoDismiss?: boolean
+  autoDismissDelay?: number
 }
 
 const severityConfig = {
@@ -61,7 +61,7 @@ const severityConfig = {
     borderColor: 'border-green-500/20',
     shadowColor: 'shadow-green-500/15',
   },
-};
+}
 
 export function ErrorCard({
   isVisible,
@@ -75,34 +75,34 @@ export function ErrorCard({
   autoDismiss = false,
   autoDismissDelay = 5000,
 }: ErrorCardProps) {
-  const [isShowing, setIsShowing] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+  const [isShowing, setIsShowing] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
 
-  const config = severityConfig[severity];
-  const IconComponent = config.icon;
+  const config = severityConfig[severity]
+  const IconComponent = config.icon
 
   useEffect(() => {
     if (isVisible && !isShowing) {
-      setIsShowing(true);
+      setIsShowing(true)
     } else if (!isVisible && isShowing && !isExiting) {
-      setIsExiting(true);
+      setIsExiting(true)
       setTimeout(() => {
-        setIsShowing(false);
-        setIsExiting(false);
-      }, 300);
+        setIsShowing(false)
+        setIsExiting(false)
+      }, 300)
     }
-  }, [isVisible, isShowing, isExiting]);
+  }, [isVisible, isShowing, isExiting])
 
   useEffect(() => {
     if (isVisible && autoDismiss && onClose) {
       const timer = setTimeout(() => {
-        onClose();
-      }, autoDismissDelay);
-      return () => clearTimeout(timer);
+        onClose()
+      }, autoDismissDelay)
+      return () => clearTimeout(timer)
     }
-  }, [isVisible, autoDismiss, autoDismissDelay, onClose]);
+  }, [isVisible, autoDismiss, autoDismissDelay, onClose])
 
-  if (!isShowing) return null;
+  if (!isShowing) return null
 
   return (
     <div
@@ -113,42 +113,42 @@ export function ErrorCard({
         ${isExiting ? 'opacity-0 translate-y-2 scale-98' : 'opacity-100 translate-y-0 scale-100'}
       `}
     >
-      <div className={`
+      <div
+        className={`
         relative rounded-2xl border ${config.borderColor}
         bg-gray-900/90 backdrop-blur-sm
         p-5
         shadow-lg ${config.shadowColor}
-      `}>
-        <div className="flex items-start gap-4">
-          <div className={`
+      `}
+      >
+        <div className='flex items-start gap-4'>
+          <div
+            className={`
             flex-shrink-0 w-10 h-10
             rounded-full ${config.iconBg}
             flex items-center justify-center
-          `}>
+          `}
+          >
             <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className={`font-medium text-base ${config.titleColor}`}>
-                {title}
-              </h3>
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-start justify-between gap-3'>
+              <h3 className={`font-medium text-base ${config.titleColor}`}>{title}</h3>
 
               {showCloseButton && onClose && (
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 p-1 rounded-md hover:bg-white/5 transition-colors"
-                  aria-label="关闭"
+                  className='flex-shrink-0 p-1 rounded-md hover:bg-white/5 transition-colors'
+                  aria-label='关闭'
                 >
-                  <X className="w-4 h-4 text-gray-400 hover:text-gray-200" />
+                  <X className='w-4 h-4 text-gray-400 hover:text-gray-200' />
                 </button>
               )}
             </div>
 
             {description && (
-              <p className="mt-2 text-sm text-gray-300 leading-relaxed">
-                {description}
-              </p>
+              <p className='mt-2 text-sm text-gray-300 leading-relaxed'>{description}</p>
             )}
 
             {(showRetryButton || onRetry) && (
@@ -161,7 +161,7 @@ export function ErrorCard({
                   transition-all hover:scale-[1.02] active:scale-[0.98]
                 `}
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className='w-4 h-4' />
                 重试
               </button>
             )}
@@ -169,7 +169,7 @@ export function ErrorCard({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default ErrorCard;
+export default ErrorCard

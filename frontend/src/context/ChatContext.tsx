@@ -1,17 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react'
-import type {
-  Conversation,
-  Message,
-  ChatRequest,
-  StreamingState,
-} from '../types'
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
+import type { Conversation, Message, ChatRequest, StreamingState } from '../types'
 import { conversations, chat, models } from '../api'
 
 interface ChatContextType {
@@ -115,8 +103,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'ADD_MESSAGE': {
-      const currentMessages =
-        state.messagesByConversation[action.payload.conversationId] || []
+      const currentMessages = state.messagesByConversation[action.payload.conversationId] || []
       const newMessages = [...currentMessages, action.payload]
       return {
         ...state,
@@ -128,19 +115,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'UPDATE_MESSAGE': {
-      const conversationId = Object.keys(state.messagesByConversation).find(
-        (convId) =>
-          state.messagesByConversation[convId].some(
-            (msg) => msg.id === action.payload.id,
-          ),
+      const conversationId = Object.keys(state.messagesByConversation).find((convId) =>
+        state.messagesByConversation[convId].some((msg) => msg.id === action.payload.id)
       )
       if (conversationId) {
-        const updatedMessages = state.messagesByConversation[
-          conversationId
-        ].map((msg) =>
-          msg.id === action.payload.id
-            ? { ...msg, content: action.payload.content }
-            : msg,
+        const updatedMessages = state.messagesByConversation[conversationId].map((msg) =>
+          msg.id === action.payload.id ? { ...msg, content: action.payload.content } : msg
         )
         return {
           ...state,
@@ -167,9 +147,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       }
 
     case 'UPDATE_STREAMING_CONTENT': {
-      const currentStreaming = state.streamingStates[
-        action.payload.conversationId
-      ] || {
+      const currentStreaming = state.streamingStates[action.payload.conversationId] || {
         isStreaming: false,
         currentContent: '',
         messageId: null,
@@ -180,8 +158,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           ...state.streamingStates,
           [action.payload.conversationId]: {
             ...currentStreaming,
-            currentContent:
-              currentStreaming.currentContent + action.payload.content,
+            currentContent: currentStreaming.currentContent + action.payload.content,
           },
         },
       }
@@ -235,13 +212,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       delete newMessagesByConversation[action.payload]
       return {
         ...state,
-        conversations: state.conversations.filter(
-          (conv) => conv.id !== action.payload,
-        ),
+        conversations: state.conversations.filter((conv) => conv.id !== action.payload),
         activeConversation:
-          state.activeConversation?.id === action.payload
-            ? null
-            : state.activeConversation,
+          state.activeConversation?.id === action.payload ? null : state.activeConversation,
         streamingStates: newStreamingStates,
         messagesByConversation: newMessagesByConversation,
       }
@@ -251,9 +224,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         conversations: state.conversations.map((conv) =>
-          conv.id === action.payload.id
-            ? { ...conv, title: action.payload.title }
-            : conv,
+          conv.id === action.payload.id ? { ...conv, title: action.payload.title } : conv
         ),
         activeConversation:
           state.activeConversation?.id === action.payload.id
@@ -265,9 +236,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         conversations: state.conversations.map((conv) =>
-          conv.id === action.payload.id
-            ? { ...conv, pinned: action.payload.pinned }
-            : conv,
+          conv.id === action.payload.id ? { ...conv, pinned: action.payload.pinned } : conv
         ),
         activeConversation:
           state.activeConversation?.id === action.payload.id
@@ -389,7 +358,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         await loadMessages(conv.id)
       }
     },
-    [state.messagesByConversation, state.streamingStates],
+    [state.messagesByConversation, state.streamingStates]
   )
 
   const createConversation = useCallback(async () => {
@@ -400,10 +369,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         'kchat_conversations',
         JSON.stringify(
           [...state.conversations, newConversation].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          ),
-        ),
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        )
       )
       dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
       dispatch({ type: 'SET_MESSAGES', payload: [] })
@@ -421,9 +389,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const cached = localStorage.getItem('kchat_conversations')
       if (cached) {
         const conversations = JSON.parse(cached)
-        const updated = conversations.map((c: Conversation) =>
-          c.id === id ? { ...c, title } : c,
-        )
+        const updated = conversations.map((c: Conversation) => (c.id === id ? { ...c, title } : c))
         localStorage.setItem('kchat_conversations', JSON.stringify(updated))
       }
     } catch (error) {
@@ -449,7 +415,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_ERROR', payload: '删除对话失败' })
       }
     },
-    [stopStreaming],
+    [stopStreaming]
   )
 
   const pinConversation = useCallback(async (id: string, pinned: boolean) => {
@@ -460,9 +426,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const cached = localStorage.getItem('kchat_conversations')
       if (cached) {
         const conversations = JSON.parse(cached)
-        const updated = conversations.map((c: Conversation) =>
-          c.id === id ? { ...c, pinned } : c,
-        )
+        const updated = conversations.map((c: Conversation) => (c.id === id ? { ...c, pinned } : c))
         localStorage.setItem('kchat_conversations', JSON.stringify(updated))
       }
     } catch (error) {
@@ -491,11 +455,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = useCallback(
     async (content: string, imageUrls: string[] = []) => {
-      if (
-        (!content.trim() && imageUrls.length === 0) ||
-        !state.activeConversation
-      )
-        return
+      if ((!content.trim() && imageUrls.length === 0) || !state.activeConversation) return
 
       const conversationId = state.activeConversation.id
 
@@ -571,12 +531,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             })
             abortControllersRef.current[conversationId] = null
           },
-          abortController,
+          abortController
         )
-      } catch (error: any) {
+      } catch (error) {
         console.error('Failed to send message:', error)
         const errorMessage =
-          error.response?.data?.message || '发送消息失败，请检查网络或模型状态'
+          (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          '发送消息失败，请检查网络或模型状态'
         dispatch({ type: 'SET_ERROR', payload: errorMessage })
         dispatch({
           type: 'END_STREAMING',
@@ -585,7 +546,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         abortControllersRef.current[conversationId] = null
       }
     },
-    [state.activeConversation, state.currentModel],
+    [state.activeConversation, state.currentModel]
   )
 
   const setCurrentModel = useCallback((model: string) => {
@@ -602,14 +563,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       )
     },
-    [state.streamingStates],
+    [state.streamingStates]
   )
 
   const getHasNewReply = useCallback(
     (conversationId: string): boolean => {
       return state.newReplies[conversationId] || false
     },
-    [state.newReplies],
+    [state.newReplies]
   )
 
   const resetNewReply = useCallback((conversationId: string) => {
@@ -617,8 +578,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const streamingState = state.activeConversation
-    ? state.streamingStates[state.activeConversation.id] ||
-      initialState.streamingStates['']
+    ? state.streamingStates[state.activeConversation.id] || initialState.streamingStates['']
     : initialState.streamingStates['']
 
   const messages = state.activeConversation

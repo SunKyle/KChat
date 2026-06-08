@@ -128,12 +128,12 @@ export const themes: Record<ThemeName, ThemeConfig> = {
 export const getThemeColors = (theme: ThemeName): Record<string, string> => {
   const config = themes[theme]
   const colors: Record<string, string> = {}
-  
+
   Object.entries(config.colors).forEach(([category, values]) => {
     Object.entries(values).forEach(([key, value]) => {
       colors[`--${category}-${key}`] = value
     })
   })
-  
+
   return colors
 }

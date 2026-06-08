@@ -1,6 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import type { UserProfile, UpdateProfileRequest, UpdatePreferencesRequest, UpdatePrivacyRequest, CreateAPIKeyRequest, APIKey } from '../types/user'
+import type {
+  UserProfile,
+  UpdateProfileRequest,
+  UpdatePreferencesRequest,
+  UpdatePrivacyRequest,
+  CreateAPIKeyRequest,
+  APIKey,
+} from '../types/user'
 import { userApi } from '../api/user'
 
 interface UserContextType {
@@ -107,10 +114,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setError(null)
       const newKey = await userApi.createAPIKey(data)
-      setProfile((prev) => prev ? {
-        ...prev,
-        apiKeys: [...prev.apiKeys, newKey],
-      } : null)
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              apiKeys: [...prev.apiKeys, newKey],
+            }
+          : null
+      )
       return newKey
     } catch (err) {
       console.error('Failed to create API key:', err)
@@ -123,10 +134,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setError(null)
       await userApi.deleteAPIKey(keyId)
-      setProfile((prev) => prev ? {
-        ...prev,
-        apiKeys: prev.apiKeys.filter((key) => key.id !== keyId),
-      } : null)
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              apiKeys: prev.apiKeys.filter((key) => key.id !== keyId),
+            }
+          : null
+      )
     } catch (err) {
       console.error('Failed to delete API key:', err)
       setError('删除API密钥失败')

@@ -4,7 +4,7 @@ import { type ThemeName, themes, getThemeColors } from '../theme/types'
 interface ThemeContextType {
   theme: ThemeName
   setTheme: (theme: ThemeName) => void
-  themeConfig: typeof themes[ThemeName]
+  themeConfig: (typeof themes)[ThemeName]
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const colors = getThemeColors(theme)
     const root = document.documentElement
-    
+
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(key, value)
     })

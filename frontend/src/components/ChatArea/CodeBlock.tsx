@@ -22,23 +22,21 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   return (
-    <div className="my-3 rounded-lg overflow-hidden border theme-border-primary">
-      <div className="flex items-center justify-between px-4 py-2 theme-bg-card border-b theme-border-primary">
-        <span className="text-xs theme-text-muted font-medium uppercase">
-          {language}
-        </span>
+    <div className='my-3 rounded-lg overflow-hidden border theme-border-primary'>
+      <div className='flex items-center justify-between px-4 py-2 theme-bg-card border-b theme-border-primary'>
+        <span className='text-xs theme-text-muted font-medium uppercase'>{language}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 py-1 rounded text-xs theme-text-muted hover:theme-text-secondary hover:theme-bg-hover transition-colors"
+          className='flex items-center gap-1.5 px-2 py-1 rounded text-xs theme-text-muted hover:theme-text-secondary hover:theme-bg-hover transition-colors'
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-400">已复制</span>
+              <Check className='w-3.5 h-3.5 text-green-400' />
+              <span className='text-green-400'>已复制</span>
             </>
           ) : (
             <>
-              <Copy className="w-3.5 h-3.5" />
+              <Copy className='w-3.5 h-3.5' />
               <span>复制</span>
             </>
           )}

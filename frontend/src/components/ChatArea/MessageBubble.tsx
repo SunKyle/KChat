@@ -54,9 +54,7 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   return (
-    <div
-      className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}
-    >
+    <div className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition overflow-hidden ${
           isUser
@@ -66,16 +64,12 @@ export const MessageBubble = memo(function MessageBubble({
       >
         {isUser ? (
           profile?.avatar ? (
-            <img
-              src={profile.avatar}
-              alt="User Avatar"
-              className="w-full h-full object-cover"
-            />
+            <img src={profile.avatar} alt='User Avatar' className='w-full h-full object-cover' />
           ) : (
-            <User className="w-4 h-4" />
+            <User className='w-4 h-4' />
           )
         ) : (
-          <Bot className="w-4 h-4" />
+          <Bot className='w-4 h-4' />
         )}
       </div>
 
@@ -86,27 +80,27 @@ export const MessageBubble = memo(function MessageBubble({
           }`}
         >
           {isThinking && !message.content ? (
-            <div className="flex items-center gap-2 py-1">
-              <span className="theme-text-muted font-secondary font-weight-medium">
+            <div className='flex items-center gap-2 py-1'>
+              <span className='theme-text-muted font-secondary font-weight-medium'>
                 AI 正在思考
               </span>
-              <div className="flex items-center gap-1">
+              <div className='flex items-center gap-1'>
                 <span
-                  className="w-1.5 h-1.5 rounded-full theme-text-muted"
+                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0ms',
                   }}
                 />
                 <span
-                  className="w-1.5 h-1.5 rounded-full theme-text-muted"
+                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.2s',
                   }}
                 />
                 <span
-                  className="w-1.5 h-1.5 rounded-full theme-text-muted"
+                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.4s',
@@ -115,17 +109,14 @@ export const MessageBubble = memo(function MessageBubble({
               </div>
             </div>
           ) : (
-            <div className="leading-relaxed">
+            <div className='leading-relaxed'>
               {message.images && message.images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className='flex flex-wrap gap-2 mb-3'>
                   {message.images.map((imageUrl, index) => (
-                    <div
-                      key={index}
-                      className="relative rounded-lg overflow-hidden max-w-xs"
-                    >
+                    <div key={index} className='relative rounded-lg overflow-hidden max-w-xs'>
                       {!imageLoaded[imageUrl] && (
-                        <div className="absolute inset-0 theme-bg-hover/30 flex items-center justify-center z-10">
-                          <div className="w-6 h-6 border-2 theme-border-primary border-t-transparent rounded-full animate-spin" />
+                        <div className='absolute inset-0 theme-bg-hover/30 flex items-center justify-center z-10'>
+                          <div className='w-6 h-6 border-2 theme-border-primary border-t-transparent rounded-full animate-spin' />
                         </div>
                       )}
                       <img
@@ -145,32 +136,30 @@ export const MessageBubble = memo(function MessageBubble({
           )}
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}
-        >
-          <span className="font-tiny font-weight-medium theme-text-muted uppercase">
+        <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <span className='font-tiny font-weight-medium theme-text-muted uppercase'>
             {formatTimestamp(message.timestamp)}
           </span>
 
           {!isUser && !isThinking && (
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition">
+            <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
               <button
                 onClick={handleCopy}
-                className="p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200"
+                className='p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200'
                 title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-green-400" />
+                  <Check className='w-4 h-4 text-green-400' />
                 ) : (
-                  <Copy className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
+                  <Copy className='w-4 h-4 theme-text-muted hover:theme-text-secondary' />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200"
+                  className='p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200'
                 >
-                  <RotateCcw className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
+                  <RotateCcw className='w-4 h-4 theme-text-muted hover:theme-text-secondary' />
                 </button>
               )}
             </div>

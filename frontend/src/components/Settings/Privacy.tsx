@@ -28,7 +28,10 @@ function Toggle({ enabled, onChange, disabled }: ToggleProps) {
 export function Privacy() {
   const { profile, updatePrivacy, isLoading } = useUser()
 
-  const handlePrivacyChange = async (key: keyof NonNullable<typeof profile>['privacy'], value: boolean) => {
+  const handlePrivacyChange = async (
+    key: keyof NonNullable<typeof profile>['privacy'],
+    value: boolean
+  ) => {
     if (!profile) return
     try {
       await updatePrivacy({
@@ -69,25 +72,23 @@ export function Privacy() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-        <div className="flex items-center gap-2 mb-4">
-          <Lock className="w-5 h-5 theme-text-muted" />
-          <h3 className="font-medium theme-text-primary">隐私设置</h3>
+    <div className='space-y-6'>
+      <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+        <div className='flex items-center gap-2 mb-4'>
+          <Lock className='w-5 h-5 theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>隐私设置</h3>
         </div>
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {privacyOptions.map((option) => (
-            <div key={option.key} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center">
-                  <option.icon className="w-4 h-4 theme-text-muted" />
+            <div key={option.key} className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                  <option.icon className='w-4 h-4 theme-text-muted' />
                 </div>
                 <div>
-                  <div className="text-sm font-medium theme-text-primary">
-                    {option.label}
-                  </div>
-                  <div className="text-xs theme-text-muted">{option.description}</div>
+                  <div className='text-sm font-medium theme-text-primary'>{option.label}</div>
+                  <div className='text-xs theme-text-muted'>{option.description}</div>
                 </div>
               </div>
               <Toggle
@@ -100,40 +101,34 @@ export function Privacy() {
         </div>
       </div>
 
-      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5 theme-text-muted" />
-          <h3 className="font-medium theme-text-primary">数据安全</h3>
+      <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+        <div className='flex items-center gap-2 mb-4'>
+          <Shield className='w-5 h-5 theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>数据安全</h3>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50">
-            <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+        <div className='space-y-3'>
+          <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
+            <div className='w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0' />
             <div>
-              <div className="text-sm font-medium theme-text-primary">数据加密</div>
-              <div className="text-xs theme-text-muted">
-                您的所有数据都采用端到端加密传输和存储
-              </div>
+              <div className='text-sm font-medium theme-text-primary'>数据加密</div>
+              <div className='text-xs theme-text-muted'>您的所有数据都采用端到端加密传输和存储</div>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50">
-            <div className="w-2 h-2 rounded-full bg-green-400 mt-2 flex-shrink-0" />
+          <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
+            <div className='w-2 h-2 rounded-full bg-green-400 mt-2 flex-shrink-0' />
             <div>
-              <div className="text-sm font-medium theme-text-primary">安全审计</div>
-              <div className="text-xs theme-text-muted">
-                定期进行安全审计，确保数据保护措施有效
-              </div>
+              <div className='text-sm font-medium theme-text-primary'>安全审计</div>
+              <div className='text-xs theme-text-muted'>定期进行安全审计，确保数据保护措施有效</div>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50">
-            <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
+          <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
+            <div className='w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0' />
             <div>
-              <div className="text-sm font-medium theme-text-primary">隐私政策</div>
-              <div className="text-xs theme-text-muted">
-                我们承诺不会出售或分享您的个人数据
-              </div>
+              <div className='text-sm font-medium theme-text-primary'>隐私政策</div>
+              <div className='text-xs theme-text-muted'>我们承诺不会出售或分享您的个人数据</div>
             </div>
           </div>
         </div>

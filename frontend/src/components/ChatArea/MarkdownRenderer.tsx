@@ -37,51 +37,48 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     <>
       {expandedImage && (
         <div
-          className="fixed inset-0 z-50 theme-bg-card/95 flex items-center justify-center p-4"
+          className='fixed inset-0 z-50 theme-bg-card/95 flex items-center justify-center p-4'
           onClick={() => setExpandedImage(null)}
         >
-          <div className="absolute top-4 right-4 flex gap-2">
+          <div className='absolute top-4 right-4 flex gap-2'>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleDownload(expandedImage)
               }}
-              className="p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors"
-              title="下载图片"
+              className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+              title='下载图片'
             >
-              <Download className="w-6 h-6 theme-text-primary" />
+              <Download className='w-6 h-6 theme-text-primary' />
             </button>
             <button
-              className="p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors"
+              className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
               onClick={(e) => {
                 e.stopPropagation()
                 setExpandedImage(null)
               }}
             >
-              <X className="w-6 h-6 theme-text-primary" />
+              <X className='w-6 h-6 theme-text-primary' />
             </button>
           </div>
           <img
             src={expandedImage}
-            alt="Expanded"
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            alt='Expanded'
+            className='max-w-full max-h-full object-contain rounded-lg shadow-2xl'
             onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
-      <div className="markdown-body text-sm leading-relaxed">
+      <div className='markdown-body text-sm leading-relaxed'>
         <ReactMarkdown
           components={{
             code({ node: _node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '')
               return !inline && match ? (
-                <CodeBlock
-                  code={String(children).replace(/\n$/, '')}
-                  language={match[1]}
-                />
+                <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
               ) : (
                 <code
-                  className="theme-bg-hover/50 rounded px-1.5 py-0.5 text-sm font-mono theme-text-primary"
+                  className='theme-bg-hover/50 rounded px-1.5 py-0.5 text-sm font-mono theme-text-primary'
                   {...props}
                 >
                   {children}
@@ -92,10 +89,10 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               if (!src) return null
               const filename = src.split('/').pop() || 'generated-image.png'
               return (
-                <div className="relative group my-4 inline-block">
+                <div className='relative group my-4 inline-block'>
                   {!imageLoaded[src] && (
-                    <div className="absolute inset-0 theme-bg-hover/50 flex items-center justify-center z-10 rounded-lg">
-                      <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                    <div className='absolute inset-0 theme-bg-hover/50 flex items-center justify-center z-10 rounded-lg'>
+                      <div className='w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin' />
                     </div>
                   )}
                   <img
@@ -109,93 +106,77 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                     onLoad={() => handleImageLoad(src)}
                     onClick={() => setExpandedImage(src)}
                   />
-                  <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDownload(src, filename)
                       }}
-                      className="p-1.5 theme-bg-card/80 hover:theme-bg-card rounded-lg backdrop-blur-sm transition-colors"
-                      title="下载图片"
+                      className='p-1.5 theme-bg-card/80 hover:theme-bg-card rounded-lg backdrop-blur-sm transition-colors'
+                      title='下载图片'
                     >
-                      <Download className="w-4 h-4 theme-text-primary" />
+                      <Download className='w-4 h-4 theme-text-primary' />
                     </button>
-                    <div className="p-1.5 theme-bg-card/80 rounded-lg backdrop-blur-sm">
-                      <ZoomIn className="w-4 h-4 theme-text-primary" />
+                    <div className='p-1.5 theme-bg-card/80 rounded-lg backdrop-blur-sm'>
+                      <ZoomIn className='w-4 h-4 theme-text-primary' />
                     </div>
                   </div>
                 </div>
               )
             },
             h1: ({ children }) => (
-              <h1 className="text-2xl font-bold mt-4 mb-2 theme-text-primary">
-                {children}
-              </h1>
+              <h1 className='text-2xl font-bold mt-4 mb-2 theme-text-primary'>{children}</h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-xl font-bold mt-3 mb-2 theme-text-primary">
-                {children}
-              </h2>
+              <h2 className='text-xl font-bold mt-3 mb-2 theme-text-primary'>{children}</h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-lg font-bold mt-2 mb-1 theme-text-primary">
-                {children}
-              </h3>
+              <h3 className='text-lg font-bold mt-2 mb-1 theme-text-primary'>{children}</h3>
             ),
-            p: ({ children }) => (
-              <p className="mb-3 last:mb-0 theme-text-primary">{children}</p>
-            ),
+            p: ({ children }) => <p className='mb-3 last:mb-0 theme-text-primary'>{children}</p>,
             ul: ({ children }) => (
-              <ul className="list-disc list-inside mb-3 space-y-1 theme-text-primary">
+              <ul className='list-disc list-inside mb-3 space-y-1 theme-text-primary'>
                 {children}
               </ul>
             ),
             ol: ({ children }) => (
-              <ol className="list-decimal list-inside mb-3 space-y-1 theme-text-primary">
+              <ol className='list-decimal list-inside mb-3 space-y-1 theme-text-primary'>
                 {children}
               </ol>
             ),
-            li: ({ children }) => (
-              <li className="theme-text-primary">{children}</li>
-            ),
+            li: ({ children }) => <li className='theme-text-primary'>{children}</li>,
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-primary-500 pl-4 my-3 italic theme-text-secondary">
+              <blockquote className='border-l-4 border-primary-500 pl-4 my-3 italic theme-text-secondary'>
                 {children}
               </blockquote>
             ),
             a: ({ href, children }) => (
               <a
                 href={href}
-                className="text-primary-400 hover:text-primary-300 underline"
-                target="_blank"
-                rel="noopener noreferrer"
+                className='text-primary-400 hover:text-primary-300 underline'
+                target='_blank'
+                rel='noopener noreferrer'
               >
                 {children}
               </a>
             ),
             strong: ({ children }) => (
-              <strong className="font-bold theme-text-primary">
-                {children}
-              </strong>
+              <strong className='font-bold theme-text-primary'>{children}</strong>
             ),
-            em: ({ children }) => (
-              <em className="italic theme-text-primary">{children}</em>
-            ),
-            hr: () => <hr className="border-theme-border-primary my-4" />,
+            em: ({ children }) => <em className='italic theme-text-primary'>{children}</em>,
+            hr: () => <hr className='border-theme-border-primary my-4' />,
             table: ({ children }) => (
-              <div className="overflow-x-auto my-3">
-                <table className="min-w-full border theme-border-primary">
-                  {children}
-                </table>
+              <div className='overflow-x-auto my-3'>
+                <table className='min-w-full border theme-border-primary'>{children}</table>
               </div>
             ),
             th: ({ children }) => (
-              <th className="border theme-border-primary px-3 py-2 theme-bg-hover theme-text-primary">
+              <th className='border theme-border-primary px-3 py-2 theme-bg-hover theme-text-primary'>
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border theme-border-primary px-3 py-2 theme-text-primary">
+              <td className='border theme-border-primary px-3 py-2 theme-text-primary'>
                 {children}
               </td>
             ),

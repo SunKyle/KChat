@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Plus,
   Filter,
@@ -16,10 +16,7 @@ import { memoryApi } from '../../utils/memoryApi'
 import { MEMORY_TYPES } from '../../types'
 import type { Memory, MemoryType } from '../../types'
 
-const typeIcons: Record<
-  string,
-  React.ComponentType<{ size?: number; className?: string }>
-> = {
+const typeIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   KNOWLEDGE: BookOpen,
   RULE: FileText,
   FACT: CheckCircle,
@@ -47,16 +44,14 @@ export function MemoryPanel() {
   const [showForm, setShowForm] = useState(false)
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null)
   const [selectedMemories, setSelectedMemories] = useState<number[]>([])
-  const [debounceRef, setDebounceRef] = useState<ReturnType<
-    typeof setTimeout
-  > | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const userId = 'default'
 
   useEffect(() => {
     loadMemories()
     return () => {
-      if (debounceRef) clearTimeout(debounceRef)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [])
 
@@ -90,9 +85,9 @@ export function MemoryPanel() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
-    if (debounceRef) clearTimeout(debounceRef)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     const timer = setTimeout(() => handleSearch(value), 300)
-    setDebounceRef(timer)
+    debounceRef.current = timer
   }
 
   const handleDelete = async (id: number) => {
@@ -113,9 +108,7 @@ export function MemoryPanel() {
     setSelectedMemories([])
   }
 
-  const handleSubmit = async (
-    memory: Memory | Omit<Memory, 'id' | 'createdAt'>,
-  ) => {
+  const handleSubmit = async (memory: Memory | Omit<Memory, 'id' | 'createdAt'>) => {
     const data = {
       userId: 'default',
       content: (memory as Memory).content,
@@ -125,15 +118,8 @@ export function MemoryPanel() {
 
     try {
       if ('id' in memory) {
-        const updatedMemory = await memoryApi.update(
-          (memory as Memory).id,
-          data,
-        )
-        setMemories(
-          memories.map((m) =>
-            m.id === (memory as Memory).id ? updatedMemory : m,
-          ),
-        )
+        const updatedMemory = await memoryApi.update((memory as Memory).id, data)
+        setMemories(memories.map((m) => (m.id === (memory as Memory).id ? updatedMemory : m)))
       } else {
         const newMemory = await memoryApi.create(data)
         setMemories([newMemory, ...memories])
@@ -151,47 +137,42 @@ export function MemoryPanel() {
   }
 
   const filteredMemories =
-    selectedType === 'ALL'
-      ? memories
-      : memories.filter((m) => m.type === selectedType)
+    selectedType === 'ALL' ? memories : memories.filter((m) => m.type === selectedType)
 
   const isSelectAll =
-    selectedMemories.length === filteredMemories.length &&
-    filteredMemories.length > 0
+    selectedMemories.length === filteredMemories.length && filteredMemories.length > 0
 
   const getTypeIcon = (type: string) => typeIcons[type] || BookOpen
   const getTypeColor = (type: string) => typeColors[type] || 'theme-text-muted'
 
   return (
-    <div className="flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <Database className="w-5 h-5 theme-text-muted" />
-          <h3 className="font-medium theme-text-primary">记忆列表</h3>
+    <div className='flex flex-col max-h-[calc(100vh-200px)] min-h-[200px]'>
+      <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4'>
+        <div className='flex items-center gap-2'>
+          <Database className='w-5 h-5 theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>记忆列表</h3>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="flex-1 sm:flex-initial relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
+        <div className='flex items-center gap-3 w-full sm:w-auto'>
+          <div className='flex-1 sm:flex-initial relative'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted' />
             <input
-              type="text"
+              type='text'
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="搜索记忆..."
-              className="w-full sm:w-48 pl-9 pr-4 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
+              placeholder='搜索记忆...'
+              className='w-full sm:w-48 pl-9 pr-4 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50'
             />
           </div>
 
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 theme-text-muted" />
+          <div className='relative'>
+            <Filter className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 theme-text-muted' />
             <select
               value={selectedType}
-              onChange={(e) =>
-                setSelectedType(e.target.value as MemoryType | 'ALL')
-              }
-              className="pl-9 pr-6 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 appearance-none cursor-pointer min-w-[80px]"
+              onChange={(e) => setSelectedType(e.target.value as MemoryType | 'ALL')}
+              className='pl-9 pr-6 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 appearance-none cursor-pointer min-w-[80px]'
             >
-              <option value="ALL">全部</option>
+              <option value='ALL'>全部</option>
               {MEMORY_TYPES.map((t) => (
                 <option key={t.type} value={t.type}>
                   {t.label}
@@ -205,44 +186,42 @@ export function MemoryPanel() {
               setEditingMemory(null)
               setShowForm(true)
             }}
-            className="flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium whitespace-nowrap"
+            className='flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium whitespace-nowrap'
           >
-            <Plus className="w-4 h-4" />
+            <Plus className='w-4 h-4' />
             添加
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin"></div>
+        <div className='flex items-center justify-center py-12'>
+          <div className='w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin'></div>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] text-center">
-          <div className="w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4">
-            <Search className="w-7 h-7 theme-text-muted" />
+        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] text-center'>
+          <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
+            <Search className='w-7 h-7 theme-text-muted' />
           </div>
-          <h3 className="text-base font-medium theme-text-primary mb-1">
-            暂无记忆
-          </h3>
-          <p className="theme-text-muted text-sm mb-5">添加你的第一条记忆</p>
+          <h3 className='text-base font-medium theme-text-primary mb-1'>暂无记忆</h3>
+          <p className='theme-text-muted text-sm mb-5'>添加你的第一条记忆</p>
           <button
             onClick={() => {
               setEditingMemory(null)
               setShowForm(true)
             }}
-            className="px-4 py-2 theme-bg-hover/50 hover:theme-bg-hover theme-text-secondary rounded-lg transition-colors text-sm"
+            className='px-4 py-2 theme-bg-hover/50 hover:theme-bg-hover theme-text-secondary rounded-lg transition-colors text-sm'
           >
             添加记忆
           </button>
         </div>
       ) : (
-        <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)]">
+        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)]'>
           {selectedMemories.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-3 theme-bg-input/50 rounded-xl mb-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className='flex items-center gap-3 px-4 py-3 theme-bg-input/50 rounded-xl mb-4'>
+              <label className='flex items-center gap-2 cursor-pointer'>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   checked={isSelectAll}
                   onChange={(e) => {
                     if (e.target.checked) {
@@ -251,23 +230,21 @@ export function MemoryPanel() {
                       setSelectedMemories([])
                     }
                   }}
-                  className="w-3.5 h-3.5 rounded border-theme-border-primary"
+                  className='w-3.5 h-3.5 rounded border-theme-border-primary'
                 />
-                <span className="theme-text-muted text-xs">
-                  已选 {selectedMemories.length}
-                </span>
+                <span className='theme-text-muted text-xs'>已选 {selectedMemories.length}</span>
               </label>
               <button
                 onClick={handleBatchDelete}
-                className="flex items-center gap-1 px-3 py-1.5 theme-bg-brand-danger/80 hover:bg-[var(--brand-danger)] text-white rounded-lg text-xs transition-colors"
+                className='flex items-center gap-1 px-3 py-1.5 theme-bg-brand-danger/80 hover:bg-[var(--brand-danger)] text-white rounded-lg text-xs transition-colors'
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className='w-3 h-3' />
                 删除
               </button>
             </div>
           )}
 
-          <div className="space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto scrollbar-hidden">
+          <div className='space-y-3 max-h-[calc(100vh-380px)] overflow-y-auto scrollbar-hidden'>
             {filteredMemories.map((memory) => {
               const TypeIcon = getTypeIcon(memory.type)
               const colorClass = getTypeColor(memory.type)
@@ -285,60 +262,54 @@ export function MemoryPanel() {
                     setSelectedMemories((prev) =>
                       prev.includes(memory.id)
                         ? prev.filter((i) => i !== memory.id)
-                        : [...prev, memory.id],
+                        : [...prev, memory.id]
                     )
                   }
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 flex-shrink-0">
+                  <div className='flex items-center gap-3'>
+                    <div className='w-4 h-4 flex-shrink-0'>
                       {isSelected ? (
-                        <div className="w-4 h-4 rounded-full bg-[var(--accent-sky)] flex items-center justify-center">
+                        <div className='w-4 h-4 rounded-full bg-[var(--accent-sky)] flex items-center justify-center'>
                           <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                            className='w-3 h-3 text-white'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
                           >
                             <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
                               strokeWidth={3}
-                              d="M5 13l4 4L19 7"
+                              d='M5 13l4 4L19 7'
                             />
                           </svg>
                         </div>
                       ) : selectedMemories.length > 0 ? (
-                        <div className="w-4 h-4 rounded border-2 border-theme-border-primary" />
+                        <div className='w-4 h-4 rounded border-2 border-theme-border-primary' />
                       ) : null}
                     </div>
 
                     <div
                       className={`w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center`}
                     >
-                      <TypeIcon className="w-4 h-4 text-white" />
+                      <TypeIcon className='w-4 h-4 text-white' />
                     </div>
 
-                    <div className="min-w-0 flex-1">
+                    <div className='min-w-0 flex-1'>
                       <h4
                         className={`text-sm font-medium truncate transition-colors ${
-                          isSelected
-                            ? 'theme-text-primary'
-                            : 'theme-text-secondary'
+                          isSelected ? 'theme-text-primary' : 'theme-text-secondary'
                         }`}
                       >
                         {memory.content}
                       </h4>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs theme-text-muted">
+                      <div className='flex items-center gap-2 mt-0.5'>
+                        <span className='text-xs theme-text-muted'>
                           {getTypeInfo(memory.type)?.label}
                         </span>
-                        {memory.isRule && (
-                          <span className="text-xs theme-brand-danger">
-                            规则
-                          </span>
-                        )}
+                        {memory.isRule && <span className='text-xs theme-brand-danger'>规则</span>}
                         {memory.score !== undefined && (
-                          <span className="text-xs theme-text-muted/70">
+                          <span className='text-xs theme-text-muted/70'>
                             {(memory.score * 100).toFixed(0)}%
                           </span>
                         )}
@@ -348,9 +319,7 @@ export function MemoryPanel() {
 
                   <div
                     className={`flex items-center gap-2 transition-opacity ${
-                      isSelected
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover:opacity-100'
+                      isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                     }`}
                   >
                     <button
@@ -358,20 +327,20 @@ export function MemoryPanel() {
                         e.stopPropagation()
                         handleEdit(memory)
                       }}
-                      className="p-2 hover:theme-bg-hover rounded-lg theme-text-muted/70 hover:theme-text-secondary hover:scale-110 transition-all duration-200"
-                      title="编辑"
+                      className='p-2 hover:theme-bg-hover rounded-lg theme-text-muted/70 hover:theme-text-secondary hover:scale-110 transition-all duration-200'
+                      title='编辑'
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className='w-4 h-4' />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDelete(memory.id)
                       }}
-                      className="p-2 hover:bg-[var(--brand-danger)]/10 rounded-lg theme-text-muted/70 hover:text-[var(--brand-danger)] hover:scale-110 transition-all duration-200"
-                      title="删除"
+                      className='p-2 hover:bg-[var(--brand-danger)]/10 rounded-lg theme-text-muted/70 hover:text-[var(--brand-danger)] hover:scale-110 transition-all duration-200'
+                      title='删除'
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className='w-4 h-4' />
                     </button>
                   </div>
                 </div>
@@ -383,18 +352,18 @@ export function MemoryPanel() {
 
       {showForm && (
         <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'
           onClick={() => {
             setShowForm(false)
             setEditingMemory(null)
           }}
         >
           <div
-            className="w-full max-w-md theme-bg-card rounded-xl border theme-border-primary overflow-hidden"
+            className='w-full max-w-md theme-bg-card rounded-xl border theme-border-primary overflow-hidden'
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b theme-border-primary">
-              <h3 className="text-base font-semibold theme-text-primary">
+            <div className='flex items-center justify-between p-4 border-b theme-border-primary'>
+              <h3 className='text-base font-semibold theme-text-primary'>
                 {editingMemory ? '编辑记忆' : '添加记忆'}
               </h3>
               <button
@@ -402,27 +371,22 @@ export function MemoryPanel() {
                   setShowForm(false)
                   setEditingMemory(null)
                 }}
-                className="p-1.5 theme-text-muted hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors"
+                className='p-1.5 theme-text-muted hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors'
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
                     strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
+                    d='M6 18L18 6M6 6l12 12'
                   />
                 </svg>
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className='p-4 space-y-4'>
               <div>
-                <label className="block text-sm font-medium theme-text-secondary mb-1.5">
+                <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
                   内容
                 </label>
                 <textarea
@@ -435,24 +399,21 @@ export function MemoryPanel() {
                       })
                     }
                   }}
-                  placeholder="输入记忆内容..."
-                  className="w-full h-24 px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm placeholder-theme-text-placeholder focus:outline-none focus:border-[var(--accent-sky)]/50 resize-none"
+                  placeholder='输入记忆内容...'
+                  className='w-full h-24 px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm placeholder-theme-text-placeholder focus:outline-none focus:border-[var(--accent-sky)]/50 resize-none'
                   maxLength={500}
                 />
-                <p className="text-xs theme-text-muted mt-1 text-right">
+                <p className='text-xs theme-text-muted mt-1 text-right'>
                   {(editingMemory?.content || '').length}/500
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium theme-text-secondary mb-3">
-                  类型
-                </label>
-                <div className="flex flex-wrap gap-2">
+                <label className='block text-sm font-medium theme-text-secondary mb-3'>类型</label>
+                <div className='flex flex-wrap gap-2'>
                   {MEMORY_TYPES.map((t) => {
                     const TypeIcon = getTypeIcon(t.type)
-                    const isSelected =
-                      !editingMemory || editingMemory.type === t.type
+                    const isSelected = !editingMemory || editingMemory.type === t.type
                     return (
                       <button
                         key={t.type}
@@ -470,7 +431,7 @@ export function MemoryPanel() {
                             : 'theme-bg-input border theme-border-primary hover:theme-border-secondary hover:theme-text-secondary'
                         }`}
                       >
-                        <TypeIcon className="w-3 h-3" />
+                        <TypeIcon className='w-3 h-3' />
                         {t.label}
                       </button>
                     )
@@ -478,10 +439,10 @@ export function MemoryPanel() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className='flex items-center gap-2.5'>
                 <input
-                  type="checkbox"
-                  id="isRule"
+                  type='checkbox'
+                  id='isRule'
                   checked={editingMemory?.isRule || false}
                   onChange={(e) => {
                     if (editingMemory) {
@@ -491,24 +452,21 @@ export function MemoryPanel() {
                       })
                     }
                   }}
-                  className="w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50"
+                  className='w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50'
                 />
-                <label
-                  htmlFor="isRule"
-                  className="text-sm theme-text-muted cursor-pointer"
-                >
+                <label htmlFor='isRule' className='text-sm theme-text-muted cursor-pointer'>
                   标记为规则
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 p-4 border-t theme-border-primary">
+            <div className='flex justify-end gap-2 p-4 border-t theme-border-primary'>
               <button
                 onClick={() => {
                   setShowForm(false)
                   setEditingMemory(null)
                 }}
-                className="px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm"
+                className='px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm'
               >
                 取消
               </button>

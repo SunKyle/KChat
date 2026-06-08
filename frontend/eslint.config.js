@@ -92,12 +92,12 @@ const noHardcodedColor = {
 }
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'node_modules', '.git'] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [js.configs.recommended, ...tseslint.configs.strict],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: globals.browser,
     },
     plugins: {
@@ -116,8 +116,24 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-dynamic-delete': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
+      'react-hooks/exhaustive-deps': 'warn',
       'custom-rules/no-hardcoded-fontsize': 'error',
       'custom-rules/no-hardcoded-color': 'error',
+    },
+  },
+  // 为配置文件设置特殊规则
+  {
+    files: ['src/theme/tokens.ts'],
+    rules: {
+      'custom-rules/no-hardcoded-fontsize': 'off',
     },
   },
 )

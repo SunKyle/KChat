@@ -16,7 +16,10 @@ export const userApi = {
     return request(`/user/profile?userId=${userId}`)
   },
 
-  updateProfile: async (data: UpdateProfileRequest, userId: string = DEFAULT_USER_ID): Promise<UserProfile> => {
+  updateProfile: async (
+    data: UpdateProfileRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<UserProfile> => {
     return request(`/user/profile?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -33,7 +36,10 @@ export const userApi = {
     })
   },
 
-  updatePrivacy: async (data: UpdatePrivacyRequest, userId: string = DEFAULT_USER_ID): Promise<UserProfile> => {
+  updatePrivacy: async (
+    data: UpdatePrivacyRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<UserProfile> => {
     return request(`/user/privacy?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -44,7 +50,10 @@ export const userApi = {
     return request(`/user/api-keys?userId=${userId}`)
   },
 
-  createAPIKey: async (data: CreateAPIKeyRequest, userId: string = DEFAULT_USER_ID): Promise<APIKey> => {
+  createAPIKey: async (
+    data: CreateAPIKeyRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<APIKey> => {
     return request(`/user/api-keys?userId=${userId}`, {
       method: 'POST',
       body: JSON.stringify(data),

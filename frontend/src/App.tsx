@@ -10,13 +10,7 @@ import { UserSettings } from './components/Settings/UserSettings'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 
-type SettingsTab =
-  | 'profile'
-  | 'preferences'
-  | 'privacy'
-  | 'api'
-  | 'models'
-  | 'memory'
+type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -50,24 +44,18 @@ function AppContent() {
       setShowSettings(true)
     }
 
-    window.addEventListener(
-      'open-settings',
-      handleOpenSettings as EventListener,
-    )
+    window.addEventListener('open-settings', handleOpenSettings as EventListener)
     return () => {
-      window.removeEventListener(
-        'open-settings',
-        handleOpenSettings as EventListener,
-      )
+      window.removeEventListener('open-settings', handleOpenSettings as EventListener)
     }
   }, [])
 
   return (
     <>
-      <div className="flex h-screen theme-bg-primary overflow-hidden theme-text-primary">
+      <div className='flex h-screen theme-bg-primary overflow-hidden theme-text-primary'>
         {sidebarOpen && (
           <div
-            className="fixed inset-0 theme-bg-overlay z-40 lg:hidden"
+            className='fixed inset-0 theme-bg-overlay z-40 lg:hidden'
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -93,12 +81,12 @@ function AppContent() {
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-lg hover:theme-bg-hover transition-colors"
+          className='fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-lg hover:theme-bg-hover transition-colors'
         >
           {sidebarOpen ? (
-            <X className="w-5 h-5 theme-text-primary" />
+            <X className='w-5 h-5 theme-text-primary' />
           ) : (
-            <Menu className="w-5 h-5 theme-text-primary" />
+            <Menu className='w-5 h-5 theme-text-primary' />
           )}
         </button>
 
@@ -112,11 +100,8 @@ function AppContent() {
             }}
           />
           {showSettings ? (
-            <div className="flex-1 overflow-y-auto p-6">
-              <UserSettings
-                onClose={() => setShowSettings(false)}
-                defaultTab={settingsTab}
-              />
+            <div className='flex-1 overflow-y-auto p-6'>
+              <UserSettings onClose={() => setShowSettings(false)} defaultTab={settingsTab} />
             </div>
           ) : (
             <>
@@ -129,17 +114,13 @@ function AppContent() {
 
       <ConfirmDialog
         isOpen={deleteConfirm !== null}
-        title="删除对话"
-        message={
-          deleteConfirm
-            ? `确定要删除"${deleteConfirm.title}"吗？此操作无法撤销。`
-            : ''
-        }
-        confirmText="删除"
-        cancelText="取消"
+        title='删除对话'
+        message={deleteConfirm ? `确定要删除"${deleteConfirm.title}"吗？此操作无法撤销。` : ''}
+        confirmText='删除'
+        cancelText='取消'
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteConfirm(null)}
-        type="danger"
+        type='danger'
       />
     </>
   )

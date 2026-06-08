@@ -30,33 +30,26 @@ export function ConfirmDialog({
   }[type]
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      onClick={onCancel}
-    >
-      <div className="absolute inset-0 theme-bg-primary/70 backdrop-blur-sm" />
+    <div className='fixed inset-0 z-[100] flex items-center justify-center' onClick={onCancel}>
+      <div className='absolute inset-0 theme-bg-primary/70 backdrop-blur-sm' />
       <div
-        className="relative theme-bg-card rounded-xl shadow-2xl max-w-sm w-[90%] mx-4 p-6 animate-fade-in border theme-border-primary"
+        className='relative theme-bg-card rounded-xl shadow-2xl max-w-sm w-[90%] mx-4 p-6 animate-fade-in border theme-border-primary'
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 rounded-lg hover:theme-bg-hover transition-colors"
+          className='absolute top-4 right-4 p-1.5 rounded-lg hover:theme-bg-hover transition-colors'
         >
-          <X className="w-4 h-4 theme-text-muted" />
+          <X className='w-4 h-4 theme-text-muted' />
         </button>
 
-        <h3 className="text-lg font-semibold theme-text-primary mb-2 pr-6">
-          {title}
-        </h3>
-        <p className="theme-text-secondary text-sm mb-6 leading-relaxed">
-          {message}
-        </p>
+        <h3 className='text-lg font-semibold theme-text-primary mb-2 pr-6'>{title}</h3>
+        <p className='theme-text-secondary text-sm mb-6 leading-relaxed'>{message}</p>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className='flex items-center justify-end gap-3'>
           <button
             onClick={onCancel}
-            className="px-5 py-2.5 text-sm theme-text-secondary hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-all"
+            className='px-5 py-2.5 text-sm theme-text-secondary hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-all'
           >
             {cancelText}
           </button>

@@ -1,105 +1,149 @@
 export interface Conversation {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt?: string;
-  pinned?: boolean;
+  id: string
+  title: string
+  createdAt: string
+  updatedAt?: string
+  pinned?: boolean
 }
 
 export interface Message {
-  id: string;
-  conversationId: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  images?: string[];
+  id: string
+  conversationId: string
+  content: string
+  role: 'user' | 'assistant'
+  timestamp: string
+  images?: string[]
 }
 
 export interface ChatRequest {
-  conversationId?: string;
-  message: string;
-  model?: string;
-  imageUrls?: string[];
-  userId?: string;
+  conversationId?: string
+  message: string
+  model?: string
+  imageUrls?: string[]
+  userId?: string
 }
 
 export interface ChatResponse {
-  messageId: string;
-  content: string;
-  role: 'assistant';
-  conversationId: string;
+  messageId: string
+  content: string
+  role: 'assistant'
+  conversationId: string
 }
 
 export interface StreamingState {
-  isStreaming: boolean;
-  currentContent: string;
-  messageId: string | null;
+  isStreaming: boolean
+  currentContent: string
+  messageId: string | null
 }
 
 export interface InputState {
-  value: string;
-  isFocused: boolean;
+  value: string
+  isFocused: boolean
 }
 
-export type ProviderType = 'OPENAI' | 'OPENAI_COMPATIBLE' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'AZURE' | 'CUSTOM';
+export type ProviderType =
+  | 'OPENAI'
+  | 'OPENAI_COMPATIBLE'
+  | 'ANTHROPIC'
+  | 'GOOGLE'
+  | 'OLLAMA'
+  | 'AZURE'
+  | 'CUSTOM'
 
 export interface Model {
-  id: string;
-  name: string;
-  type: string;
+  id: string
+  name: string
+  type: string
 }
 
 export interface ModelConfig {
-  id: string | number;
-  name: string;
-  modelId: string;
-  baseUrl: string;
-  apiKey: string;
-  type: ProviderType;
-  enabled: boolean;
-  createdAt?: string;
+  id: string | number
+  name: string
+  modelId: string
+  baseUrl: string
+  apiKey: string
+  type: ProviderType
+  enabled: boolean
+  createdAt?: string
 }
 
 export interface ProviderInfo {
-  type: ProviderType;
-  displayName: string;
-  icon: string;
-  color: string;
-  defaultBaseUrl?: string;
+  type: ProviderType
+  displayName: string
+  icon: string
+  color: string
+  defaultBaseUrl?: string
 }
 
 export const PROVIDERS: ProviderInfo[] = [
-  { type: 'OPENAI', displayName: 'OpenAI', icon: '🧠', color: 'bg-green-500', defaultBaseUrl: 'https://api.openai.com' },
-  { type: 'ANTHROPIC', displayName: 'Anthropic', icon: '🔮', color: 'bg-yellow-500', defaultBaseUrl: 'https://api.anthropic.com' },
-  { type: 'GOOGLE', displayName: 'Google', icon: '🌐', color: 'bg-blue-600', defaultBaseUrl: 'https://generativelanguage.googleapis.com' },
-  { type: 'OLLAMA', displayName: 'Ollama', icon: '🦙', color: 'bg-purple-600', defaultBaseUrl: 'http://localhost:11434' },
-  { type: 'AZURE', displayName: 'Azure OpenAI', icon: '☁️', color: 'bg-blue-500', defaultBaseUrl: 'https://your-resource.openai.azure.com' },
+  {
+    type: 'OPENAI',
+    displayName: 'OpenAI',
+    icon: '🧠',
+    color: 'bg-green-500',
+    defaultBaseUrl: 'https://api.openai.com',
+  },
+  {
+    type: 'ANTHROPIC',
+    displayName: 'Anthropic',
+    icon: '🔮',
+    color: 'bg-yellow-500',
+    defaultBaseUrl: 'https://api.anthropic.com',
+  },
+  {
+    type: 'GOOGLE',
+    displayName: 'Google',
+    icon: '🌐',
+    color: 'bg-blue-600',
+    defaultBaseUrl: 'https://generativelanguage.googleapis.com',
+  },
+  {
+    type: 'OLLAMA',
+    displayName: 'Ollama',
+    icon: '🦙',
+    color: 'bg-purple-600',
+    defaultBaseUrl: 'http://localhost:11434',
+  },
+  {
+    type: 'AZURE',
+    displayName: 'Azure OpenAI',
+    icon: '☁️',
+    color: 'bg-blue-500',
+    defaultBaseUrl: 'https://your-resource.openai.azure.com',
+  },
   { type: 'CUSTOM', displayName: '自定义', icon: '🔧', color: 'bg-gray-600' },
-];
+]
 
-export type MemoryType = 
-  | 'KNOWLEDGE'
-  | 'RULE'
-  | 'FACT'
-  | 'PREFERENCE'
-  | 'EXPERIENCE';
+export type MemoryType = 'KNOWLEDGE' | 'RULE' | 'FACT' | 'PREFERENCE' | 'EXPERIENCE'
 
 export interface Memory {
-  id: number;
-  userId: string;
-  content: string;
-  type: MemoryType;
-  importance: number;
-  createdAt: string;
-  score?: number;
-  isRule?: boolean;
+  id: number
+  userId: string
+  content: string
+  type: MemoryType
+  importance: number
+  createdAt: string
+  score?: number
+  isRule?: boolean
 }
 
+export type IconName =
+  | 'BookOpen'
+  | 'FileText'
+  | 'CheckCircle'
+  | 'Heart'
+  | 'Lightbulb'
+  | 'X'
+  | 'Edit2'
+  | 'Trash2'
+  | 'Star'
+  | 'AlertCircle'
+
 export interface MemoryTypeInfo {
-  type: MemoryType;
-  label: string;
-  color: string;
-  icon: string;
+  type: MemoryType
+  label: string
+  color: string
+  icon: IconName
 }
 
 export const MEMORY_TYPES: MemoryTypeInfo[] = [
@@ -108,4 +152,4 @@ export const MEMORY_TYPES: MemoryTypeInfo[] = [
   { type: 'FACT', label: '事实', color: 'bg-green-500', icon: 'CheckCircle' },
   { type: 'PREFERENCE', label: '偏好', color: 'bg-purple-500', icon: 'Heart' },
   { type: 'EXPERIENCE', label: '经验', color: 'bg-orange-500', icon: 'Lightbulb' },
-];
+]

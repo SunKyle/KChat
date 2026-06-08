@@ -34,7 +34,9 @@ export function Preferences() {
     try {
       await updatePreferences({ theme })
       if (theme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
         setTheme(systemTheme)
       } else {
         setTheme(theme)
@@ -44,7 +46,10 @@ export function Preferences() {
     }
   }
 
-  const handleNotificationChange = async (key: keyof NonNullable<typeof profile>['preferences']['notifications'], value: boolean) => {
+  const handleNotificationChange = async (
+    key: keyof NonNullable<typeof profile>['preferences']['notifications'],
+    value: boolean
+  ) => {
     if (!profile) return
     try {
       await updatePreferences({
@@ -67,18 +72,16 @@ export function Preferences() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-        <div className="flex items-center gap-2 mb-4">
-          <Monitor className="w-5 h-5 theme-text-muted" />
-          <h3 className="font-medium theme-text-primary">外观</h3>
+    <div className='space-y-6'>
+      <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+        <div className='flex items-center gap-2 mb-4'>
+          <Monitor className='w-5 h-5 theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>外观</h3>
         </div>
 
         <div>
-          <label className="block text-sm font-medium theme-text-secondary mb-3">
-            主题模式
-          </label>
-          <div className="grid grid-cols-3 gap-3">
+          <label className='block text-sm font-medium theme-text-secondary mb-3'>主题模式</label>
+          <div className='grid grid-cols-3 gap-3'>
             {themes.map((theme) => (
               <button
                 key={theme.id}
@@ -90,12 +93,10 @@ export function Preferences() {
                     : 'theme-border-primary hover:theme-border-primary/80'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                <div className="text-sm font-medium theme-text-primary mb-1">
-                  {theme.label}
-                </div>
-                <div className="text-xs theme-text-muted">{theme.description}</div>
+                <div className='text-sm font-medium theme-text-primary mb-1'>{theme.label}</div>
+                <div className='text-xs theme-text-muted'>{theme.description}</div>
                 {profile.preferences.theme === theme.id && (
-                  <div className="absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full" />
+                  <div className='absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full' />
                 )}
               </button>
             ))}
@@ -103,21 +104,21 @@ export function Preferences() {
         </div>
       </div>
 
-      <div className="theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
-        <div className="flex items-center gap-2 mb-4">
-          <Bell className="w-5 h-5 theme-text-muted" />
-          <h3 className="font-medium theme-text-primary">通知设置</h3>
+      <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+        <div className='flex items-center gap-2 mb-4'>
+          <Bell className='w-5 h-5 theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>通知设置</h3>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center">
-                <Bell className="w-4 h-4 theme-text-muted" />
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                <Bell className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className="text-sm font-medium theme-text-primary">消息通知</div>
-                <div className="text-xs theme-text-muted">接收新消息时发送通知</div>
+                <div className='text-sm font-medium theme-text-primary'>消息通知</div>
+                <div className='text-xs theme-text-muted'>接收新消息时发送通知</div>
               </div>
             </div>
             <Toggle
@@ -127,14 +128,14 @@ export function Preferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center">
-                <Mail className="w-4 h-4 theme-text-muted" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                <Mail className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className="text-sm font-medium theme-text-primary">邮件通知</div>
-                <div className="text-xs theme-text-muted">发送重要更新到您的邮箱</div>
+                <div className='text-sm font-medium theme-text-primary'>邮件通知</div>
+                <div className='text-xs theme-text-muted'>发送重要更新到您的邮箱</div>
               </div>
             </div>
             <Toggle
@@ -144,14 +145,14 @@ export function Preferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center">
-                <Smartphone className="w-4 h-4 theme-text-muted" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                <Smartphone className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className="text-sm font-medium theme-text-primary">推送通知</div>
-                <div className="text-xs theme-text-muted">浏览器推送通知</div>
+                <div className='text-sm font-medium theme-text-primary'>推送通知</div>
+                <div className='text-xs theme-text-muted'>浏览器推送通知</div>
               </div>
             </div>
             <Toggle
@@ -161,14 +162,14 @@ export function Preferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center">
-                <Volume2 className="w-4 h-4 theme-text-muted" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                <Volume2 className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className="text-sm font-medium theme-text-primary">通知声音</div>
-                <div className="text-xs theme-text-muted">接收通知时播放声音</div>
+                <div className='text-sm font-medium theme-text-primary'>通知声音</div>
+                <div className='text-xs theme-text-muted'>接收通知时播放声音</div>
               </div>
             </div>
             <Toggle

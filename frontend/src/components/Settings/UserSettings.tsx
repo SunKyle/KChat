@@ -1,14 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  User,
-  Monitor,
-  Lock,
-  Key,
-  Loader2,
-  X,
-  Brain,
-  Database,
-} from 'lucide-react'
+import { User, Monitor, Lock, Key, Loader2, X, Brain, Database } from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
@@ -17,13 +8,7 @@ import { ModelSettings } from './ModelSettings'
 import { MemoryPanel } from '../Memory/MemoryPanel'
 import { useUser } from '../../context/UserContext'
 
-type TabType =
-  | 'profile'
-  | 'preferences'
-  | 'privacy'
-  | 'api'
-  | 'models'
-  | 'memory'
+type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
 
 interface TabConfig {
   id: TabType
@@ -45,10 +30,7 @@ const tabs: TabConfig[] = [
   { id: 'memory', label: '记忆管理', icon: Database },
 ]
 
-export function UserSettings({
-  onClose,
-  defaultTab = 'profile',
-}: UserSettingsProps) {
+export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsProps) {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab)
   const { isLoading, error } = useUser()
 
@@ -59,16 +41,16 @@ export function UserSettings({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-6 h-6 theme-text-muted animate-spin" />
+      <div className='flex items-center justify-center min-h-[400px]'>
+        <Loader2 className='w-6 h-6 theme-text-muted animate-spin' />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="p-6 text-center">
-        <p className="theme-text-muted">{error}</p>
+      <div className='p-6 text-center'>
+        <p className='theme-text-muted'>{error}</p>
       </div>
     )
   }
@@ -93,27 +75,27 @@ export function UserSettings({
   }
 
   return (
-    <div className="min-h-full flex flex-col">
-      <div className="mb-6 flex items-start justify-between">
+    <div className='min-h-full flex flex-col'>
+      <div className='mb-6 flex items-start justify-between'>
         <div>
-          <h1 className="text-2xl font-bold theme-text-primary mb-1">设置</h1>
-          <p className="text-sm theme-text-muted">管理您的账户和偏好设置</p>
+          <h1 className='text-2xl font-bold theme-text-primary mb-1'>设置</h1>
+          <p className='text-sm theme-text-muted'>管理您的账户和偏好设置</p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 rounded-lg theme-bg-card hover:theme-bg-hover transition-all duration-200 theme-text-muted hover:theme-text-primary"
-            title="返回对话"
+            className='p-2 rounded-lg theme-bg-card hover:theme-bg-hover transition-all duration-200 theme-text-muted hover:theme-text-primary'
+            title='返回对话'
           >
-            <X className="w-5 h-5" />
+            <X className='w-5 h-5' />
           </button>
         )}
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
-        <div className="lg:w-56 flex-shrink-0">
-          <nav className="sticky top-6">
-            <div className="space-y-1 p-3 rounded-2xl theme-bg-sidebar/80 backdrop-blur-xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out">
+      <div className='flex-1 flex flex-col lg:flex-row gap-6 min-h-0'>
+        <div className='lg:w-56 flex-shrink-0'>
+          <nav className='sticky top-6'>
+            <div className='space-y-1 p-3 rounded-2xl theme-bg-sidebar/80 backdrop-blur-xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -127,8 +109,8 @@ export function UserSettings({
                         : 'theme-text-secondary hover:theme-bg-hover hover:theme-text-primary'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{tab.label}</span>
+                    <Icon className='w-5 h-5' />
+                    <span className='font-medium'>{tab.label}</span>
                   </button>
                 )
               })}
@@ -136,7 +118,7 @@ export function UserSettings({
           </nav>
         </div>
 
-        <div className="flex-1 min-w-0">{renderContent()}</div>
+        <div className='flex-1 min-w-0'>{renderContent()}</div>
       </div>
     </div>
   )
