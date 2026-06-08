@@ -210,14 +210,20 @@ export function InputArea() {
                 className={`relative flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-200 ease-out ${
                   streamingState.isStreaming
                     ? 'bg-red-500/15 text-red-500 hover:bg-red-500/25 hover:scale-105 cursor-pointer'
-                    : hasContent && charCount <= maxChars
-                      ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : uploading
+                      ? 'bg-sky-500/80 text-white cursor-wait'
+                      : hasContent && charCount <= maxChars
+                        ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
-                title={streamingState.isStreaming ? '中断回答' : '发送消息'}
+                title={
+                  streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'
+                }
               >
                 {streamingState.isStreaming ? (
                   <Square className='w-5 h-5' fill='currentColor' />
+                ) : uploading ? (
+                  <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin' />
                 ) : (
                   <Send className='w-5 h-5' />
                 )}

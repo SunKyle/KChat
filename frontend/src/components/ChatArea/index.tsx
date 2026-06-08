@@ -133,28 +133,28 @@ export function ChatArea() {
                 <div className='flex flex-wrap justify-center gap-3'>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/60 backdrop-blur-sm hover:bg-white hover:border-sky-400/50 hover:shadow-lg hover:shadow-sky-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
                   >
-                    <div className='w-7 h-7 rounded-md bg-sky-100 group-hover:bg-sky-500/15 flex items-center justify-center transition-colors'>
-                      <Code className='w-4 h-4 theme-text-muted group-hover:text-sky-500 transition-colors' />
+                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <Code className='w-4 h-4 text-sky-600' />
                     </div>
                     帮我写代码
                   </button>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/60 backdrop-blur-sm hover:bg-white hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
                   >
-                    <div className='w-7 h-7 rounded-md bg-amber-100 group-hover:bg-amber-500/15 flex items-center justify-center transition-colors'>
-                      <BookOpen className='w-4 h-4 theme-text-muted group-hover:text-amber-600 transition-colors' />
+                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <BookOpen className='w-4 h-4 text-sky-600' />
                     </div>
                     解释概念
                   </button>
                   <button
                     onClick={() => {}}
-                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/60 backdrop-blur-sm hover:bg-white hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
+                    className='group relative px-5 py-3 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/80 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-lg hover:shadow-sky-500/15 hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center gap-2.5 cursor-pointer'
                   >
-                    <div className='w-7 h-7 rounded-md bg-emerald-100 group-hover:bg-emerald-500/15 flex items-center justify-center transition-colors'>
-                      <MessageCircle className='w-4 h-4 theme-text-muted group-hover:text-emerald-500 transition-colors' />
+                    <div className='w-8 h-8 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
+                      <MessageCircle className='w-4 h-4 text-sky-600' />
                     </div>
                     回答问题
                   </button>

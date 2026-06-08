@@ -81,9 +81,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
             8 / 10 <span className='opacity-40'>CTX</span>
           </span>
         </div>
-        <div className='hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-md'>
-          <BrainCircuit className='w-4 h-4 text-amber-600' />
-          <span className='font-secondary text-sm text-amber-700'>记忆开启</span>
+        <div className='hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 rounded-md'>
+          <BrainCircuit className='w-4 h-4 text-sky-600' />
+          <span className='font-secondary text-sm text-sky-700'>记忆开启</span>
         </div>
 
         <div className='flex items-center gap-3 border-l border-gray-200 pl-4'>
@@ -99,14 +99,14 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <ThemeToggle />
           <div className='flex items-center gap-2'>
             {isOnline ? (
-              <div className='flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full'>
-                <div className='w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/40 animate-pulse' />
-                <span className='font-secondary text-sm text-emerald-700'>已连接</span>
+              <div className='flex items-center gap-2 px-3 py-1.5 bg-sky-50 rounded-full'>
+                <div className='w-2.5 h-2.5 rounded-full bg-sky-500 shadow-md shadow-sky-500/40 animate-pulse' />
+                <span className='font-secondary text-sm text-sky-700'>已连接</span>
               </div>
             ) : (
-              <div className='flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-full'>
-                <div className='w-2.5 h-2.5 rounded-full bg-red-500' />
-                <span className='font-secondary text-sm text-red-600'>离线</span>
+              <div className='flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full'>
+                <div className='w-2.5 h-2.5 rounded-full bg-gray-400' />
+                <span className='font-secondary text-sm text-gray-600'>离线</span>
               </div>
             )}
           </div>
