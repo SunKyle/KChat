@@ -96,15 +96,20 @@ export function ConversationItem({
         >
           {isStreaming ? (
             <>
-              <div className='w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)]' />
-              <div className='absolute inset-0 rounded-full border-2 border-[var(--brand-primary)]/30 border-t-[var(--brand-primary)] animate-spin' />
+              <div className='w-2 h-2 rounded-full bg-[var(--brand-primary)]' />
+              <div className='absolute inset-[-3px] rounded-full border-[1.5px] border-[var(--brand-primary)]/30 animate-stream-pulse' />
             </>
           ) : (
-            <span className='font-conversation-name font-weight-semibold'>{conversation.title.charAt(0)}</span>
+            <span className={`font-weight-semibold ${isActive ? 'text-[12px]' : 'font-conversation-name'}`}>{conversation.title.charAt(0)}</span>
           )}
         </div>
+        {conversation.pinned && (
+          <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400/90 flex items-center justify-center shadow-sm'>
+            <Pin className='w-[7px] h-[7px] text-white' fill='white' />
+          </div>
+        )}
         {hasNewReply && (
-          <div className='absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
+          <div className='absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--accent-emerald)] shadow-[0_0_4px_rgba(16,185,129,0.4)]' />
         )}
       </div>
     )

@@ -298,8 +298,8 @@ export function Sidebar({
 
       <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className='w-full'>
-          <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}>
-            <div className='w-8 h-8 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center overflow-hidden'>
+          <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center cursor-pointer hover:scale-105 transition-transform duration-200' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}>
+            <div className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden ${collapsed ? 'w-9 h-9 hover:theme-bg-hover transition-colors' : 'w-8 h-8 theme-bg-hover'}`}>
               {profile?.avatar ? (
                 <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
               ) : (
