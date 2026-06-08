@@ -92,11 +92,18 @@ export function ConversationItem({
           }`}
         >
           {isStreaming ? (
-            <div className='w-3.5 h-3.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin' />
+            <div className='flex gap-0.5'>
+              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0s' }} />
+              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.2s' }} />
+              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.4s' }} />
+            </div>
           ) : (
             <span className='font-conversation-name'>{conversation.title.charAt(0)}</span>
           )}
         </div>
+        {isStreaming && (
+          <div className='absolute inset-0 w-8 h-8 rounded-full border-2 border-[var(--brand-primary)]/20 border-t-[var(--brand-primary)] animate-spin pointer-events-none' />
+        )}
         {hasNewReply && (
           <div className='absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
         )}
@@ -122,22 +129,20 @@ export function ConversationItem({
         isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
       }`}
     >
-      {' '}
       <div className='relative'>
-        <div
-          className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center micro-transition ${
-            isActive ? 'theme-brand-primary text-white' : 'theme-bg-card theme-text-secondary'
-          }`}
-        >
-          <span className={`font-conversation-name font-weight-semibold ${isStreaming ? 'opacity-40' : ''}`}>
-            {conversation.title.charAt(0)}
-          </span>
-        </div>
         {isStreaming && (
-          <div className='absolute inset-0 w-9 h-9 rounded-full border-2 border-[var(--brand-primary)]/30 border-t-[var(--brand-primary)] animate-spin pointer-events-none' />
+          <div className='w-5 h-5 rounded-full flex items-center justify-center theme-brand-primary/10'>
+            <div className='flex gap-0.5'>
+              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0s' }} />
+              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.2s' }} />
+              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.4s' }} />
+            </div>
+          </div>
         )}
-        {hasNewReply && (
-          <div className='absolute -bottom-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
+        {hasNewReply && !isStreaming && (
+          <div className='w-5 h-5 rounded-full flex items-center justify-center theme-accent-emerald/10'>
+            <div className='w-2 h-2 rounded-full bg-[var(--accent-emerald)]' />
+          </div>
         )}
       </div>
       <div className='flex-1 min-w-0'>

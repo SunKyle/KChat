@@ -32,7 +32,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='h-14 card-float-solid flex items-center justify-between px-6 relative z-40 mx-4 mt-3 lg:mx-6'>
+    <header className='h-14 card-float-solid flex items-center justify-between px-6 relative z-40 mx-4 mt-6 lg:mx-6'>
       <div className='flex items-center gap-3'>
         {activeConversation ? (
           <h1 className='font-secondary font-medium theme-text-primary truncate max-w-lg'>

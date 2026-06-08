@@ -147,7 +147,11 @@ export function Sidebar({
           className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
         >
           <div className={`flex items-center gap-2 ${collapsed ? 'flex flex-col gap-1' : ''}`}>
-            <img src='/kchat-icon.svg' alt='KChat' className='w-7 h-7 object-contain flex-shrink-0' />
+            <img
+              src='/kchat-icon.svg'
+              alt='KChat'
+              className='w-7 h-7 object-contain flex-shrink-0'
+            />
             {!collapsed && (
               <div>
                 <h1 className='font-logo theme-text-primary'>KChat</h1>
@@ -195,10 +199,10 @@ export function Sidebar({
         <button
           onClick={createConversation}
           aria-label='创建新对话'
-          className={`flex items-center justify-center transition-all font-medium ${
+          className={`flex items-center transition-all font-medium ${
             collapsed
-              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-4'
-              : 'flex items-center justify-center gap-2 w-full mt-2 py-2 rounded-lg font-secondary font-medium bg-[var(--bg-card)] border theme-border-secondary theme-text-secondary hover:theme-text-primary transition-all focus-ring press-effect'
+              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-4 justify-center'
+              : 'flex items-center justify-start gap-2 w-full mt-2 py-2 px-3 rounded-lg font-secondary font-medium bg-[var(--bg-card)] border theme-border-secondary theme-text-secondary hover:theme-text-primary transition-all focus-ring press-effect'
           }`}
         >
           <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} aria-hidden='true' />
