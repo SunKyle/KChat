@@ -142,7 +142,13 @@
 }
 
 /* Exclude elements that shouldn't transition */
-input, textarea, select, img, svg, code, pre {
+input,
+textarea,
+select,
+img,
+svg,
+code,
+pre {
   transition-property: background-color, border-color, opacity;
 }
 
@@ -299,6 +305,38 @@ input, textarea, select, img, svg, code, pre {
   100% {
     background-position: 200% 0;
   }
+}
+
+/* ============================================
+   Border Radius Utility Classes
+   ============================================ */
+
+.rounded-xs {
+  border-radius: 4px;
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+  border-radius: var(--radius-full);
 }
 
 /* ============================================
@@ -566,8 +604,8 @@ body {
 }
 
 /* Hide native search clear button to avoid duplicate icons */
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-decoration {
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
 }
@@ -786,44 +824,112 @@ input[type="search"]::-webkit-search-decoration {
    Theme Utility Classes
    ============================================ */
 
-.theme-bg-primary { background-color: var(--bg-primary); }
-.theme-bg-sidebar { background-color: var(--bg-sidebar); }
-.theme-bg-card { background-color: var(--bg-card); }
-.theme-bg-hover { background-color: var(--bg-hover); }
-.theme-bg-input { background-color: var(--bg-input); }
-.theme-bg-overlay { background-color: var(--bg-overlay); }
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+.theme-bg-sidebar {
+  background-color: var(--bg-sidebar);
+}
+.theme-bg-card {
+  background-color: var(--bg-card);
+}
+.theme-bg-hover {
+  background-color: var(--bg-hover);
+}
+.theme-bg-input {
+  background-color: var(--bg-input);
+}
+.theme-bg-overlay {
+  background-color: var(--bg-overlay);
+}
 
-.theme-text-primary { color: var(--text-primary); }
-.theme-text-secondary { color: var(--text-secondary); }
-.theme-text-muted { color: var(--text-muted); }
-.theme-text-placeholder { color: var(--text-placeholder); }
+.theme-text-primary {
+  color: var(--text-primary);
+}
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+.theme-text-muted {
+  color: var(--text-muted);
+}
+.theme-text-placeholder {
+  color: var(--text-placeholder);
+}
 
-.theme-border-primary { border-color: var(--border-primary); }
-.theme-border-secondary { border-color: var(--border-secondary); }
+.theme-border-primary {
+  border-color: var(--border-primary);
+}
+.theme-border-secondary {
+  border-color: var(--border-secondary);
+}
 
-.theme-brand-primary { color: var(--brand-primary); }
-.theme-bg-brand-primary { background-color: var(--brand-primary); }
-.theme-brand-success { color: var(--brand-success); }
-.theme-bg-brand-success { background-color: var(--brand-success); }
-.theme-brand-danger { color: var(--brand-danger); }
-.theme-bg-brand-danger { background-color: var(--brand-danger); }
-.theme-brand-warning { color: var(--brand-warning); }
-.theme-bg-brand-warning { background-color: var(--brand-warning); }
-.theme-brand-info { color: var(--brand-info); }
-.theme-bg-brand-info { background-color: var(--brand-info); }
+.theme-brand-primary {
+  color: var(--brand-primary);
+}
+.theme-bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+.theme-brand-success {
+  color: var(--brand-success);
+}
+.theme-bg-brand-success {
+  background-color: var(--brand-success);
+}
+.theme-brand-danger {
+  color: var(--brand-danger);
+}
+.theme-bg-brand-danger {
+  background-color: var(--brand-danger);
+}
+.theme-brand-warning {
+  color: var(--brand-warning);
+}
+.theme-bg-brand-warning {
+  background-color: var(--brand-warning);
+}
+.theme-brand-info {
+  color: var(--brand-info);
+}
+.theme-bg-brand-info {
+  background-color: var(--brand-info);
+}
 
-.theme-accent-sky { color: var(--accent-sky); }
-.theme-bg-accent-sky { background-color: var(--accent-sky); }
-.theme-accent-emerald { color: var(--accent-emerald); }
-.theme-bg-accent-emerald { background-color: var(--accent-emerald); }
-.theme-accent-amber { color: var(--accent-amber); }
-.theme-bg-accent-amber { background-color: var(--accent-amber); }
-.theme-accent-rose { color: var(--accent-rose); }
-.theme-bg-accent-rose { background-color: var(--accent-rose); }
-.theme-accent-purple { color: var(--accent-purple); }
-.theme-bg-accent-purple { background-color: var(--accent-purple); }
-.theme-accent-orange { color: var(--accent-orange); }
-.theme-bg-accent-orange { background-color: var(--accent-orange); }
+.theme-accent-sky {
+  color: var(--accent-sky);
+}
+.theme-bg-accent-sky {
+  background-color: var(--accent-sky);
+}
+.theme-accent-emerald {
+  color: var(--accent-emerald);
+}
+.theme-bg-accent-emerald {
+  background-color: var(--accent-emerald);
+}
+.theme-accent-amber {
+  color: var(--accent-amber);
+}
+.theme-bg-accent-amber {
+  background-color: var(--accent-amber);
+}
+.theme-accent-rose {
+  color: var(--accent-rose);
+}
+.theme-bg-accent-rose {
+  background-color: var(--accent-rose);
+}
+.theme-accent-purple {
+  color: var(--accent-purple);
+}
+.theme-bg-accent-purple {
+  background-color: var(--accent-purple);
+}
+.theme-accent-orange {
+  color: var(--accent-orange);
+}
+.theme-bg-accent-orange {
+  background-color: var(--accent-orange);
+}
 
 /* ============================================
    Typography Utility Classes
@@ -974,10 +1080,18 @@ input[type="search"]::-webkit-search-decoration {
   font-weight: var(--font-weight-normal);
 }
 
-.font-weight-normal { font-weight: var(--font-weight-normal); }
-.font-weight-medium { font-weight: var(--font-weight-medium); }
-.font-weight-semibold { font-weight: var(--font-weight-semibold); }
-.font-weight-bold { font-weight: var(--font-weight-bold); }
+.font-weight-normal {
+  font-weight: var(--font-weight-normal);
+}
+.font-weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+.font-weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+.font-weight-bold {
+  font-weight: var(--font-weight-bold);
+}
 
 /* ============================================
    Button System

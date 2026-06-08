@@ -32,7 +32,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='h-14 card-float-solid flex items-center justify-between px-6 relative z-40 mx-4 mt-6 lg:mx-6'>
+    <header className='h-14 card-float-solid flex items-center justify-between px-5 lg:px-6 relative z-40 mx-4 mt-6 lg:mx-6 rounded-xl'>
       <div className='flex items-center gap-3'>
         {activeConversation ? (
           <h1 className='font-secondary font-medium theme-text-primary truncate max-w-lg'>
@@ -43,20 +43,20 @@ export function Header({ onSettingsClick }: HeaderProps) {
         )}
       </div>
 
-      <div className='flex items-center gap-4'>
+      <div className='flex items-center gap-3'>
         <div className='hidden md:block relative'>
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className='flex items-center gap-2.5 px-3 py-2 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer focus-ring'
+            className='flex items-center gap-2.5 px-3.5 py-2 bg-white/80 backdrop-blur-sm theme-brand-primary rounded-md border border-gray-200 hover:border-sky-300 hover:shadow-md hover:shadow-sky-500/10 transition-all duration-200 cursor-pointer'
           >
             <Cpu className='w-4 h-4' />
-            <span className='font-model-name'>{currentModel}</span>
-            <ChevronDown className='w-3.5 h-3.5' />
+            <span className='font-model-name font-medium'>{currentModel}</span>
+            <ChevronDown className='w-4 h-4 opacity-60' />
           </button>
 
           {isModelDropdownOpen && (
-            <div className='absolute top-full left-0 w-44 mt-1 theme-bg-card rounded-lg border theme-border-primary shadow-xl overflow-hidden z-50'>
+            <div className='absolute top-full left-0 w-48 mt-2 bg-white rounded-lg border border-gray-200 shadow-xl shadow-gray-500/5 overflow-hidden z-50'>
               {availableModels.map((model) => (
                 <button
                   key={model}
@@ -64,7 +64,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
                     setCurrentModel(model)
                     setIsModelDropdownOpen(false)
                   }}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between hover:theme-bg-hover micro-fast ${
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${
                     model === currentModel ? 'theme-brand-primary' : 'theme-text-secondary'
                   }`}
                 >
@@ -75,43 +75,39 @@ export function Header({ onSettingsClick }: HeaderProps) {
             </div>
           )}
         </div>
-        <div className='hidden md:flex items-center gap-1.5 px-2.5 py-1.5 theme-text-muted rounded-lg micro-transition'>
-          <Database className='w-[15px] h-[15px]' />
-          <span className='font-secondary'>
-            8 / 10 <span className='opacity-40 text-xs'>CTX</span>
+        <div className='hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-md'>
+          <Database className='w-4 h-4 text-gray-500' />
+          <span className='font-secondary text-sm text-gray-600'>
+            8 / 10 <span className='opacity-40'>CTX</span>
           </span>
         </div>
-        <div className='hidden md:flex items-center gap-1.5 px-2.5 py-1.5 theme-text-muted rounded-lg micro-transition'>
-          <BrainCircuit className='w-[15px] h-[15px]' />
-          <span className='font-secondary'>记忆开启</span>
+        <div className='hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-md'>
+          <BrainCircuit className='w-4 h-4 text-amber-600' />
+          <span className='font-secondary text-sm text-amber-700'>记忆开启</span>
         </div>
 
-        <div className='flex items-center gap-4 border-l theme-border-primary pl-5'>
+        <div className='flex items-center gap-3 border-l border-gray-200 pl-4'>
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
-              className='p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-105 transition-all duration-200 theme-text-muted hover:theme-text-primary focus-ring'
+              className='flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 hover:text-gray-700 text-gray-500 transition-all duration-200 cursor-pointer'
               title='设置'
             >
-              <Settings className='w-[18px] h-[18px]' />
+              <Settings className='w-4 h-4' />
             </button>
           )}
           <ThemeToggle />
           <div className='flex items-center gap-2'>
             {isOnline ? (
-              <>
-                <div className='w-2 h-2 rounded-full theme-bg-accent-emerald animate-pulse' />
-                <span className='font-status-tag theme-text-muted' style={{ textTransform: 'none', letterSpacing: '0' }}>
-                  已连接
-                </span>
-              </>
+              <div className='flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full'>
+                <div className='w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/40 animate-pulse' />
+                <span className='font-secondary text-sm text-emerald-700'>已连接</span>
+              </div>
             ) : (
-              <>
-                <div className='w-2 h-2 rounded-full theme-bg-brand-danger' />
-                <span className='font-status-tag theme-text-muted' style={{ textTransform: 'none', letterSpacing: '0' }}>
-                  离线
-                </span>
-              </>
+              <div className='flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-full'>
+                <div className='w-2.5 h-2.5 rounded-full bg-red-500' />
+                <span className='font-secondary text-sm text-red-600'>离线</span>
+              </div>
             )}
           </div>
         </div>
