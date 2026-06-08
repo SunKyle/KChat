@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (stored && stored in themes) {
       return stored
     }
-    return 'dark'
+    return 'light'
   })
 
   const setTheme = useCallback((newTheme: ThemeName) => {

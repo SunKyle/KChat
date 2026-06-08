@@ -1,23 +1,23 @@
 export const tokens = {
   colors: {
     bg: {
-      primary: '#0F172A',
-      sidebar: '#111827',
-      card: '#1E293B',
-      hover: '#334155',
-      input: 'rgba(255, 255, 255, 0.03)',
+      primary: '#F8F9FA',
+      sidebar: '#FFFFFF',
+      card: '#FFFFFF',
+      hover: '#E9ECEF',
+      input: 'rgba(0, 0, 0, 0.05)',
       overlay: 'rgba(0, 0, 0, 0.5)',
       code: '#1e1e1e',
     },
     text: {
-      primary: '#E5E7EB',
-      secondary: '#94a3b8',
-      muted: '#64748b',
-      placeholder: '#64748b',
+      primary: '#1F2937',
+      secondary: '#4B5563',
+      muted: '#9CA3AF',
+      placeholder: '#9CA3AF',
     },
     border: {
-      primary: 'rgba(255, 255, 255, 0.1)',
-      secondary: 'rgba(255, 255, 255, 0.05)',
+      primary: 'rgba(0, 0, 0, 0.1)',
+      secondary: 'rgba(0, 0, 0, 0.05)',
     },
     brand: {
       primary: '#0EA5E9',

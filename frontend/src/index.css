@@ -50,20 +50,20 @@
   --font-placeholder: 15px;
   --font-helper-text: 12px;
 
-  --bg-primary: #0f172a;
-  --bg-sidebar: #111827;
-  --bg-card: #1e293b;
-  --bg-hover: #334155;
-  --bg-input: rgba(255, 255, 255, 0.03);
+  --bg-primary: #F8F9FA;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-hover: #E9ECEF;
+  --bg-input: rgba(0, 0, 0, 0.05);
   --bg-overlay: rgba(0, 0, 0, 0.5);
 
-  --text-primary: #e5e7eb;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-placeholder: #64748b;
+  --text-primary: #1F2937;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --text-placeholder: #9CA3AF;
 
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --border-secondary: rgba(255, 255, 255, 0.05);
+  --border-primary: rgba(0, 0, 0, 0.1);
+  --border-secondary: rgba(0, 0, 0, 0.05);
 
   --brand-primary: #0ea5e9;
   --brand-success: #10b981;
