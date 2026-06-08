@@ -72,12 +72,20 @@ export function ConversationItem({
     return (
       <div
         onClick={onClick}
-        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onClick()
+          }
+        }}
+        tabIndex={0}
+        role="button"
+        aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
+        aria-current={isActive ? 'true' : undefined}
+        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/50 ${
           isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
         }`}
-        title={conversation.title}
       >
-        {' '}
         <div
           className={`relative w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
             isActive
@@ -104,7 +112,17 @@ export function ConversationItem({
     <div
       onClick={isEditing ? undefined : onClick}
       onContextMenu={handleContextMenu}
-      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out ${
+      onKeyDown={(e) => {
+        if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
+      aria-current={isActive ? 'true' : undefined}
+      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/50 ${
         isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
       }`}
     >
@@ -159,20 +177,23 @@ export function ConversationItem({
                 e.stopPropagation()
                 handleSaveEdit()
               }}
+              aria-label="保存编辑"
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
-              title="保存"
             >
-              <Check className="w-4 h-4 theme-accent-emerald" />
+              <Check
+                className="w-4 h-4 theme-accent-emerald"
+                aria-hidden="true"
+              />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleCancelEdit()
               }}
+              aria-label="取消编辑"
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
-              title="取消"
             >
-              <X className="w-4 h-4 theme-brand-danger" />
+              <X className="w-4 h-4 theme-brand-danger" aria-hidden="true" />
             </button>
           </>
         ) : (
@@ -182,8 +203,9 @@ export function ConversationItem({
                 e.stopPropagation()
                 onPin(conversation.id, !conversation.pinned)
               }}
+              aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
+              aria-pressed={conversation.pinned}
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
-              title={conversation.pinned ? '取消置顶' : '置顶'}
             >
               <Pin
                 className={`w-4 h-4 transition-colors ${
@@ -191,24 +213,31 @@ export function ConversationItem({
                     ? 'theme-accent-amber'
                     : 'theme-text-muted hover:theme-text-secondary'
                 }`}
+                aria-hidden="true"
               />
             </button>
             <button
               onClick={handleStartEdit}
+              aria-label="编辑会话标题"
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
-              title="编辑"
             >
-              <Pencil className="w-4 h-4 theme-text-muted hover:theme-text-secondary" />
+              <Pencil
+                className="w-4 h-4 theme-text-muted hover:theme-text-secondary"
+                aria-hidden="true"
+              />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete()
               }}
+              aria-label="删除会话"
               className="p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200"
-              title="删除"
             >
-              <Trash2 className="w-4 h-4 theme-text-muted hover:theme-brand-danger" />
+              <Trash2
+                className="w-4 h-4 theme-text-muted hover:theme-brand-danger"
+                aria-hidden="true"
+              />
             </button>
           </>
         )}
