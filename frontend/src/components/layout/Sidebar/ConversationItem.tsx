@@ -88,10 +88,10 @@ export function ConversationItem({
         }`}
       >
         <div
-          className={`relative w-8 h-8 rounded-full flex items-center justify-center micro-transition ${
+          className={`relative rounded-full flex items-center justify-center micro-transition ${
             isActive
-              ? 'bg-brand-subtle ring-2 ring-[var(--brand-primary)] theme-brand-primary'
-              : 'theme-bg-card theme-text-secondary'
+              ? 'w-7 h-7 bg-brand-subtle ring-[1.5px] ring-[var(--brand-primary)] theme-brand-primary'
+              : 'w-8 h-8 theme-bg-card theme-text-secondary'
           }`}
         >
           {isStreaming ? (

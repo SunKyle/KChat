@@ -135,10 +135,10 @@ export function InputArea() {
           return (
           <div className={`flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
             isThinking
-              ? 'shadow-[0_0_20px_rgba(16,185,129,0.10),0_4px_16px_rgba(16,185,129,0.06)] ring-1 ring-emerald-400/15'
+              ? 'input-glow-thinking'
               : isOutputting
-                ? 'shadow-[0_0_20px_rgba(14,165,233,0.10),0_4px_16px_rgba(14,165,233,0.06)] ring-1 ring-sky-400/15'
-                : 'shadow-[0_4px_16px_rgba(0,0,0,0.06),0_6px_24px_rgba(0,0,0,0.03)] focus-within:shadow-[0_0_24px_rgba(14,165,233,0.12),0_4px_16px_rgba(14,165,233,0.06)] focus-within:ring-1 focus-within:ring-sky-400/15'
+                ? 'input-glow-outputting'
+                : 'input-glow-focus'
           }`}>
           {/* AI 思考/输出状态条 */}
           {streamingState.isStreaming && (() => {
@@ -269,7 +269,7 @@ export function InputArea() {
                 disabled={!hasContent && !streamingState.isStreaming}
                 className={`relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 ease-out ${
                   streamingState.isStreaming
-                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-md shadow-emerald-500/25 cursor-pointer'
+                    ? 'bg-sky-500 text-white hover:bg-sky-600 hover:scale-105 shadow-md shadow-sky-500/25 cursor-pointer'
                     : uploading
                       ? 'bg-sky-500/80 text-white cursor-wait'
                       : hasContent && charCount <= maxChars

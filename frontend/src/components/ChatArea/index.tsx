@@ -214,10 +214,14 @@ export function ChatArea() {
       {showScrollButton && messages.length > 0 && (
         <button
           onClick={scrollToBottom}
-          className='absolute bottom-4 right-4 p-3 card-inset rounded-full hover-lift micro-transition hover:scale-110'
+          className={`scroll-btn-enter scroll-btn-glass absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95 ${
+            streamingState.isStreaming ? 'scroll-btn-streaming' : ''
+          }`}
           title='滚动到底部'
         >
-          <ArrowDown className='w-[18px] h-[18px] theme-text-secondary' />
+          <ArrowDown className={`w-4 h-4 transition-colors duration-200 ${
+            streamingState.isStreaming ? 'text-sky-500' : 'theme-text-secondary hover:text-sky-500'
+          }`} />
         </button>
       )}
     </div>
