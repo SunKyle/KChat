@@ -161,7 +161,7 @@ export function MemoryPanel() {
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder='搜索记忆...'
-              className='w-full sm:w-48 pl-9 pr-4 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50'
+              className='input-field w-full sm:w-48 pl-9 pr-4 py-2 text-sm placeholder-theme-text-placeholder'
             />
           </div>
 
@@ -170,7 +170,7 @@ export function MemoryPanel() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value as MemoryType | 'ALL')}
-              className='pl-9 pr-6 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 appearance-none cursor-pointer min-w-[80px]'
+              className='input-field pl-9 pr-6 py-2 text-sm appearance-none cursor-pointer min-w-[80px]'
             >
               <option value='ALL'>全部</option>
               {MEMORY_TYPES.map((t) => (
@@ -186,7 +186,7 @@ export function MemoryPanel() {
               setEditingMemory(null)
               setShowForm(true)
             }}
-            className='flex items-center gap-2 px-3 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium whitespace-nowrap'
+            className='flex items-center gap-2 btn-primary whitespace-nowrap'
           >
             <Plus className='w-4 h-4' />
             添加
@@ -199,7 +199,7 @@ export function MemoryPanel() {
           <div className='w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin'></div>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] text-center'>
+        <div className='card-float-solid rounded-2xl p-8 text-center'>
           <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
             <Search className='w-7 h-7 theme-text-muted' />
           </div>
@@ -216,7 +216,7 @@ export function MemoryPanel() {
           </button>
         </div>
       ) : (
-        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)]'>
+        <div className='card-float-solid rounded-2xl p-4'>
           {selectedMemories.length > 0 && (
             <div className='flex items-center gap-3 px-4 py-3 theme-bg-input/50 rounded-xl mb-4'>
               <label className='flex items-center gap-2 cursor-pointer'>
@@ -253,7 +253,7 @@ export function MemoryPanel() {
               return (
                 <div
                   key={memory.id}
-                  className={`group flex items-center justify-between p-4 theme-bg-input rounded-xl border cursor-pointer transition-all ${
+                  className={`group flex items-center justify-between p-4 card-inset rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-[var(--accent-sky)]/50 bg-[var(--accent-sky)]/10'
                       : 'border-theme-border-primary hover:border-theme-border-secondary'
@@ -327,7 +327,7 @@ export function MemoryPanel() {
                         e.stopPropagation()
                         handleEdit(memory)
                       }}
-                      className='p-2 hover:theme-bg-hover rounded-lg theme-text-muted/70 hover:theme-text-secondary hover:scale-110 transition-all duration-200'
+                      className='icon-btn'
                       title='编辑'
                     >
                       <Edit2 className='w-4 h-4' />
@@ -337,7 +337,7 @@ export function MemoryPanel() {
                         e.stopPropagation()
                         handleDelete(memory.id)
                       }}
-                      className='p-2 hover:bg-[var(--brand-danger)]/10 rounded-lg theme-text-muted/70 hover:text-[var(--brand-danger)] hover:scale-110 transition-all duration-200'
+                      className='icon-btn hover:text-[var(--brand-danger)]'
                       title='删除'
                     >
                       <Trash2 className='w-4 h-4' />
@@ -352,14 +352,14 @@ export function MemoryPanel() {
 
       {showForm && (
         <div
-          className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'
+          className='fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4'
           onClick={() => {
             setShowForm(false)
             setEditingMemory(null)
           }}
         >
           <div
-            className='w-full max-w-md theme-bg-card rounded-xl border theme-border-primary overflow-hidden'
+            className='w-full max-w-md theme-bg-card rounded-2xl border theme-border-primary overflow-hidden'
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between p-4 border-b theme-border-primary'>
@@ -371,7 +371,7 @@ export function MemoryPanel() {
                   setShowForm(false)
                   setEditingMemory(null)
                 }}
-                className='p-1.5 theme-text-muted hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors'
+                className='icon-btn'
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path

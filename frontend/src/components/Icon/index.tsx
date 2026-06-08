@@ -37,9 +37,33 @@ import {
   BrainCircuit,
   Pencil,
   Square,
+  Settings,
+  Sun,
+  Moon,
+  Loader2,
 } from 'lucide-react'
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
+
+/**
+ * Icon size scale (aligned with design tokens):
+ *  xs: 12  — tiny indicators, inline badges
+ *  sm: 14  — compact action buttons, tags
+ *  md: 16  — default action buttons
+ *  lg: 20  — navigation, section headers
+ *  xl: 24  — prominent actions, empty states
+ *  2xl: 32 — hero / empty-state illustrations
+ */
+export const ICON_SIZES = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  '2xl': 32,
+} as const
+
+export type IconSize = keyof typeof ICON_SIZES
 
 export interface IconTheme {
   size: number
@@ -53,8 +77,8 @@ export interface IconProviderProps {
 }
 
 const defaultTheme: IconTheme = {
-  size: 20,
-  strokeWidth: 2,
+  size: ICON_SIZES.md,
+  strokeWidth: 1.75,
   color: 'currentColor',
 }
 
@@ -112,6 +136,10 @@ const IconMap: Record<
   BrainCircuit,
   Pencil,
   Square,
+  Settings,
+  Sun,
+  Moon,
+  Loader2,
 }
 
 export type IconName = keyof typeof IconMap
@@ -120,7 +148,7 @@ export type { IconName as LucideIconName }
 
 export interface IconProps {
   name: IconName
-  size?: number
+  size?: number | IconSize
   strokeWidth?: number
   className?: string
   style?: React.CSSProperties
@@ -135,7 +163,8 @@ export function Icon({ name, size, strokeWidth, className, style }: IconProps) {
     return null
   }
 
-  const computedSize = size ?? theme.size
+  const computedSize =
+    typeof size === 'string' ? ICON_SIZES[size] : (size ?? theme.size)
   const computedStrokeWidth = strokeWidth ?? theme.strokeWidth
 
   return (

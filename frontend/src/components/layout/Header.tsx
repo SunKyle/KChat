@@ -32,18 +32,14 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='h-16 theme-bg-primary/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-primary hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] flex items-center justify-between px-6 relative z-40 mx-4 mt-6 lg:mx-6 transition-all duration-200 ease-out'>
-      <div className='flex items-center gap-6'>
+    <header className='h-14 card-float-solid flex items-center justify-between px-6 relative z-40 mx-4 mt-3 lg:mx-6'>
+      <div className='flex items-center gap-3'>
         {activeConversation ? (
-          <div className='px-4 py-2 theme-bg-hover/50 rounded-full border theme-border-primary micro-transition hover:theme-bg-hover cursor-default'>
-            <h1 className='text-base font-medium theme-text-primary truncate max-w-lg transition-all'>
-              {activeConversation.title}
-            </h1>
-          </div>
+          <h1 className='font-secondary font-medium theme-text-primary truncate max-w-lg'>
+            {activeConversation.title}
+          </h1>
         ) : (
-          <div className='px-4 py-2 theme-bg-hover/50 rounded-full border theme-border-primary'>
-            <h1 className='text-base font-medium theme-text-muted'>选择或创建对话</h1>
-          </div>
+          <h1 className='font-secondary theme-text-muted'>选择或创建对话</h1>
         )}
       </div>
 
@@ -52,11 +48,11 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className='flex items-center gap-2.5 px-4 py-2.5 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer'
+            className='flex items-center gap-2.5 px-3 py-2 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer focus-ring'
           >
-            <Cpu className='w-4.5 h-4.5' />
-            <span className='text-sm font-bold uppercase tracking-tight'>{currentModel}</span>
-            <ChevronDown className='w-4 h-4' />
+            <Cpu className='w-4 h-4' />
+            <span className='font-model-name'>{currentModel}</span>
+            <ChevronDown className='w-3.5 h-3.5' />
           </button>
 
           {isModelDropdownOpen && (
@@ -68,7 +64,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
                     setCurrentModel(model)
                     setIsModelDropdownOpen(false)
                   }}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between hover:theme-bg-hover transition-colors ${
+                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between hover:theme-bg-hover micro-fast ${
                     model === currentModel ? 'theme-brand-primary' : 'theme-text-secondary'
                   }`}
                 >
@@ -79,41 +75,41 @@ export function Header({ onSettingsClick }: HeaderProps) {
             </div>
           )}
         </div>
-        <div className='hidden md:flex items-center gap-2 px-3.5 py-2.5 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition'>
-          <Database className='w-4.5 h-4.5' />
-          <span className='text-sm font-bold uppercase tracking-tight'>
-            8 / 10 <span className='opacity-50 text-xs'>CTX</span>
+        <div className='hidden md:flex items-center gap-1.5 px-2.5 py-1.5 theme-text-muted rounded-lg micro-transition'>
+          <Database className='w-[15px] h-[15px]' />
+          <span className='font-secondary'>
+            8 / 10 <span className='opacity-40 text-xs'>CTX</span>
           </span>
         </div>
-        <div className='hidden md:flex items-center gap-2 px-3.5 py-2.5 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition'>
-          <BrainCircuit className='w-4.5 h-4.5' />
-          <span className='text-sm font-bold uppercase tracking-tight'>记忆开启</span>
+        <div className='hidden md:flex items-center gap-1.5 px-2.5 py-1.5 theme-text-muted rounded-lg micro-transition'>
+          <BrainCircuit className='w-[15px] h-[15px]' />
+          <span className='font-secondary'>记忆开启</span>
         </div>
 
         <div className='flex items-center gap-4 border-l theme-border-primary pl-5'>
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
-              className='p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-105 transition-all duration-200 theme-text-muted hover:theme-text-primary'
+              className='p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-105 transition-all duration-200 theme-text-muted hover:theme-text-primary focus-ring'
               title='设置'
             >
-              <Settings className='w-5 h-5' />
+              <Settings className='w-[18px] h-[18px]' />
             </button>
           )}
           <ThemeToggle />
           <div className='flex items-center gap-2'>
             {isOnline ? (
               <>
-                <div className='w-2.5 h-2.5 rounded-full theme-bg-accent-emerald animate-pulse' />
-                <span className='text-sm font-medium theme-text-secondary uppercase tracking-tight'>
-                  Connected
+                <div className='w-2 h-2 rounded-full theme-bg-accent-emerald animate-pulse' />
+                <span className='font-status-tag theme-text-muted' style={{ textTransform: 'none', letterSpacing: '0' }}>
+                  已连接
                 </span>
               </>
             ) : (
               <>
-                <div className='w-2.5 h-2.5 rounded-full theme-bg-brand-danger' />
-                <span className='text-sm font-medium theme-text-secondary uppercase tracking-tight'>
-                  Offline
+                <div className='w-2 h-2 rounded-full theme-bg-brand-danger' />
+                <span className='font-status-tag theme-text-muted' style={{ textTransform: 'none', letterSpacing: '0' }}>
+                  离线
                 </span>
               </>
             )}

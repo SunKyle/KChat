@@ -54,7 +54,7 @@ function AppContent() {
         `}
         >
           <div
-            className={`h-full backdrop-blur-xl bg-[var(--bg-sidebar)]/80 rounded-2xl border-0 overflow-hidden transition-all duration-200 ease-out ${sidebarWidth} shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)]`}
+            className={`h-full card-float-solid overflow-hidden ${sidebarWidth}`}
           >
             <Sidebar
               collapsed={sidebarCollapsed}
@@ -67,7 +67,7 @@ function AppContent() {
 
         <button
           onClick={toggleSidebar}
-          className='fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-lg hover:theme-bg-hover transition-colors'
+          className='fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-md hover:theme-bg-hover transition-colors'
         >
           {sidebarOpen ? (
             <X className='w-5 h-5 theme-text-primary' />

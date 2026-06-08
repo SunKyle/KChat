@@ -7,7 +7,7 @@ export default {
   theme: {
     fontFamily: {
       sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-      mono: ['SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
+      mono: ['JetBrains Mono', 'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
     },
     fontSize: {
       xs: ['10px', { lineHeight: '1.4' }],
@@ -21,32 +21,6 @@ export default {
       '5xl': ['28px', { lineHeight: '1.4' }],
       '6xl': ['32px', { lineHeight: '1.3' }],
       '7xl': ['36px', { lineHeight: '1.3' }],
-      heading: {
-        h1: ['32px', { lineHeight: '1.3' }],
-        h2: ['28px', { lineHeight: '1.35' }],
-        h3: ['24px', { lineHeight: '1.4' }],
-        h4: ['20px', { lineHeight: '1.4' }],
-        h5: ['18px', { lineHeight: '1.4' }],
-        h6: ['16px', { lineHeight: '1.5' }],
-      },
-      body: {
-        large: ['16px', { lineHeight: '1.6' }],
-        base: ['14px', { lineHeight: '1.5' }],
-        small: ['13px', { lineHeight: '1.5' }],
-        caption: ['12px', { lineHeight: '1.4' }],
-        tiny: ['11px', { lineHeight: '1.4' }],
-      },
-      button: {
-        large: ['15px', { lineHeight: '1.5' }],
-        base: ['14px', { lineHeight: '1.5' }],
-        small: ['13px', { lineHeight: '1.5' }],
-        tiny: ['12px', { lineHeight: '1.4' }],
-      },
-      code: {
-        large: ['14px', { lineHeight: '1.5' }],
-        base: ['13px', { lineHeight: '1.5' }],
-        small: ['12px', { lineHeight: '1.4' }],
-      },
     },
     extend: {
       colors: {
@@ -108,6 +82,27 @@ export default {
         'brand': '0 4px 20px rgba(14, 165, 233, 0.15)',
         'brand-lg': '0 8px 30px rgba(14, 165, 233, 0.2)',
         'glow': '0 0 20px rgba(14, 165, 233, 0.3)',
+        'card': '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
+        'card-hover': '0 2px 8px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06)',
+        'float': '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
+        'float-hover': '0 2px 8px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06)',
+      },
+      spacing: {
+        'icon-xs': '12px',
+        'icon-sm': '14px',
+        'icon-md': '16px',
+        'icon-lg': '20px',
+        'icon-xl': '24px',
+        'icon-2xl': '32px',
+      },
+      transitionTimingFunction: {
+        'out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      transitionDuration: {
+        'fast': '150ms',
+        'normal': '200ms',
+        'slow': '300ms',
       },
     },
   },

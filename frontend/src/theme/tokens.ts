@@ -49,10 +49,10 @@ export const tokens = {
       mono: 'JetBrains Mono, SF Mono, Fira Code, Monaco, Consolas, Liberation Mono, monospace',
     },
     weights: {
-      normal: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
     },
     typography: {
       display: {

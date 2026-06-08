@@ -77,7 +77,7 @@ export function APIKeys() {
         <button
           onClick={() => setShowCreateModal(true)}
           disabled={isLoading}
-          className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+          className='flex items-center gap-1.5 btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
         >
           <Plus className='w-4 h-4' />
           生成密钥
@@ -85,14 +85,14 @@ export function APIKeys() {
       </div>
 
       {profile.apiKeys.length === 0 ? (
-        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out text-center'>
+        <div className='card-float-solid rounded-2xl p-8 text-center'>
           <Key className='w-12 h-12 theme-text-muted mx-auto mb-4' />
           <p className='theme-text-secondary mb-2'>暂无 API 密钥</p>
           <p className='text-sm theme-text-muted mb-4'>创建 API 密钥以通过编程方式访问您的数据</p>
           <button
             onClick={() => setShowCreateModal(true)}
             disabled={isLoading}
-            className='inline-flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium disabled:opacity-50'
+            className='inline-flex items-center gap-1.5 btn-primary disabled:opacity-50'
           >
             <Plus className='w-4 h-4' />
             生成密钥
@@ -103,7 +103,7 @@ export function APIKeys() {
           {profile.apiKeys.map((apiKey) => (
             <div
               key={apiKey.id}
-              className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'
+              className='card-float-solid rounded-2xl p-4'
             >
               <div className='flex items-center justify-between mb-3'>
                 <div>
@@ -116,7 +116,7 @@ export function APIKeys() {
                   {showKey === apiKey.id ? (
                     <button
                       onClick={() => setShowKey(null)}
-                      className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+                      className='icon-btn'
                       title='隐藏密钥'
                     >
                       <EyeOff className='w-4 h-4 theme-text-muted' />
@@ -124,7 +124,7 @@ export function APIKeys() {
                   ) : (
                     <button
                       onClick={() => setShowKey(apiKey.id)}
-                      className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+                      className='icon-btn'
                       title='显示密钥'
                     >
                       <Eye className='w-4 h-4 theme-text-muted' />
@@ -132,7 +132,7 @@ export function APIKeys() {
                   )}
                   <button
                     onClick={() => handleCopyKey(apiKey.key, apiKey.id)}
-                    className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+                    className='icon-btn'
                     title='复制密钥'
                   >
                     {copiedKey === apiKey.id ? (
@@ -143,7 +143,7 @@ export function APIKeys() {
                   </button>
                   <button
                     onClick={() => handleDeleteKey(apiKey.id, apiKey.name)}
-                    className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 hover:text-red-400 transition-colors'
+                    className='icon-btn hover:text-red-400'
                     title='删除密钥'
                   >
                     <Trash2 className='w-4 h-4 theme-text-muted' />
@@ -169,8 +169,8 @@ export function APIKeys() {
       )}
 
       {showCreateModal && (
-        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
-          <div className='theme-bg-card rounded-xl border theme-border-primary w-full max-w-md overflow-hidden'>
+        <div className='fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4'>
+          <div className='theme-bg-card rounded-2xl border theme-border-primary w-full max-w-md overflow-hidden'>
             <div className='px-6 py-4 border-b theme-border-primary'>
               <h3 className='text-lg font-semibold theme-text-primary'>生成 API 密钥</h3>
             </div>
@@ -213,7 +213,7 @@ export function APIKeys() {
                       type='text'
                       value={newKeyName}
                       onChange={(e) => setNewKeyName(e.target.value)}
-                      className='w-full px-3 py-2 rounded-lg theme-bg-input border theme-border-primary theme-text-primary focus:outline-none focus:border-sky-500/50'
+                      className='input-field'
                       placeholder='输入密钥名称'
                     />
                   </div>

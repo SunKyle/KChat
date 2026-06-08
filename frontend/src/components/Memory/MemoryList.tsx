@@ -37,10 +37,10 @@ export default function MemoryList({
         return (
           <div
             key={memory.id}
-            className={`p-4 rounded-lg border transition-all cursor-pointer group ${
+            className={`p-4 card-inset rounded-lg border transition-all cursor-pointer group ${
               isSelected
                 ? 'border-[var(--accent-sky)] bg-[var(--accent-sky)]/10'
-                : 'theme-border-primary theme-bg-card/50 hover:theme-bg-hover'
+                : 'theme-border-primary hover:theme-bg-hover'
             }`}
             onClick={() => onSelect(memory.id)}
           >
@@ -58,13 +58,13 @@ export default function MemoryList({
               <div className='flex-1 min-w-0'>
                 <div className='flex items-center gap-2 mb-1'>
                   <span
-                    className={`px-2 py-0.5 text-xs rounded-full ${typeInfo.color} text-white flex items-center gap-1`}
+                    className={`badge px-2 py-0.5 text-xs ${typeInfo.color} text-white flex items-center gap-1`}
                   >
                     <Icon name={typeInfo.icon} size={12} />
                     {typeInfo.label}
                   </span>
                   {memory.isRule && (
-                    <span className='flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-red-500/20 text-red-400'>
+                    <span className='badge flex items-center gap-1 px-2 py-0.5 text-xs bg-red-500/20 text-red-400'>
                       <Icon name='AlertCircle' size={12} />
                       规则
                     </span>
@@ -101,7 +101,7 @@ export default function MemoryList({
                     e.stopPropagation()
                     onEdit(memory)
                   }}
-                  className='p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors'
+                  className='icon-btn'
                   title='编辑'
                 >
                   <Icon name='Edit2' size={16} />
@@ -111,7 +111,7 @@ export default function MemoryList({
                     e.stopPropagation()
                     onDelete(memory.id)
                   }}
-                  className='p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors'
+                  className='icon-btn hover:text-red-400'
                   title='删除'
                 >
                   <Icon name='Trash2' size={16} />

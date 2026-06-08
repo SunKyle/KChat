@@ -22,12 +22,12 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   return (
-    <div className='my-3 rounded-lg overflow-hidden border theme-border-primary'>
-      <div className='flex items-center justify-between px-4 py-2 theme-bg-card border-b theme-border-primary'>
-        <span className='text-xs theme-text-muted font-medium uppercase'>{language}</span>
+    <div className='my-3 rounded-xl overflow-hidden border theme-border-primary'>
+      <div className='flex items-center justify-between px-4 py-2.5 theme-bg-card border-b theme-border-primary'>
+        <span className='font-caption font-weight-semibold uppercase tracking-wider theme-text-muted'>{language}</span>
         <button
           onClick={handleCopy}
-          className='flex items-center gap-1.5 px-2 py-1 rounded text-xs theme-text-muted hover:theme-text-secondary hover:theme-bg-hover transition-colors'
+          className='flex items-center gap-1.5 icon-btn text-xs'
         >
           {copied ? (
             <>

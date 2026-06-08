@@ -78,13 +78,13 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
     <div className='min-h-full flex flex-col'>
       <div className='mb-6 flex items-start justify-between'>
         <div>
-          <h1 className='text-2xl font-bold theme-text-primary mb-1'>设置</h1>
-          <p className='text-sm theme-text-muted'>管理您的账户和偏好设置</p>
+          <h1 className='font-h2 mb-1'>设置</h1>
+          <p className='font-secondary theme-text-muted'>管理您的账户和偏好设置</p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className='p-2 rounded-lg theme-bg-card hover:theme-bg-hover transition-all duration-200 theme-text-muted hover:theme-text-primary'
+            className='icon-btn'
             title='返回对话'
           >
             <X className='w-5 h-5' />
@@ -95,7 +95,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
       <div className='flex-1 flex flex-col lg:flex-row gap-6 min-h-0'>
         <div className='lg:w-56 flex-shrink-0'>
           <nav className='sticky top-6'>
-            <div className='space-y-1 p-3 rounded-2xl theme-bg-sidebar/80 backdrop-blur-xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+            <div className='space-y-1 p-3 rounded-2xl card-float-solid gap-1'>
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -103,9 +103,9 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
                       isActive
-                        ? 'bg-sky-500/10 text-sky-400'
+                        ? 'bg-[var(--accent-sky)]/8 text-sky-400'
                         : 'theme-text-secondary hover:theme-bg-hover hover:theme-text-primary'
                     }`}
                   >

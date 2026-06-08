@@ -37,7 +37,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     <>
       {expandedImage && (
         <div
-          className='fixed inset-0 z-50 theme-bg-card/95 flex items-center justify-center p-4'
+          className='fixed inset-0 z-50 theme-bg-card/95 backdrop-blur-md flex items-center justify-center p-4'
           onClick={() => setExpandedImage(null)}
         >
           <div className='absolute top-4 right-4 flex gap-2'>
@@ -46,13 +46,13 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 e.stopPropagation()
                 handleDownload(expandedImage)
               }}
-              className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+              className='icon-btn'
               title='下载图片'
             >
               <Download className='w-6 h-6 theme-text-primary' />
             </button>
             <button
-              className='p-2 rounded-lg theme-bg-hover hover:theme-bg-hover/80 transition-colors'
+              className='icon-btn'
               onClick={(e) => {
                 e.stopPropagation()
                 setExpandedImage(null)
@@ -69,7 +69,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           />
         </div>
       )}
-      <div className='markdown-body text-sm leading-relaxed'>
+      <div className='markdown-body'>
         <ReactMarkdown
           components={{
             code({ node: _node, inline, className, children, ...props }) {
@@ -78,7 +78,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
               ) : (
                 <code
-                  className='theme-bg-hover/50 rounded px-1.5 py-0.5 text-sm font-mono theme-text-primary'
+                  className='bg-[var(--bg-hover)] rounded-[var(--radius-sm)] px-1.5 py-0.5 text-sm font-mono theme-text-primary'
                   {...props}
                 >
                   {children}
@@ -112,7 +112,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                         e.stopPropagation()
                         handleDownload(src, filename)
                       }}
-                      className='p-1.5 theme-bg-card/80 hover:theme-bg-card rounded-lg backdrop-blur-sm transition-colors'
+                      className='icon-btn theme-bg-card/80 backdrop-blur-sm'
                       title='下载图片'
                     >
                       <Download className='w-4 h-4 theme-text-primary' />

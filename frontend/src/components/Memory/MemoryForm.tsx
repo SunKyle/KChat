@@ -52,15 +52,15 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
   }
 
   return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
-      <div className='w-full max-w-lg theme-bg-card rounded-xl border theme-border-primary shadow-2xl'>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4'>
+      <div className='w-full max-w-lg theme-bg-card rounded-2xl border theme-border-primary shadow-2xl'>
         <div className='flex items-center justify-between p-4 border-b theme-border-primary'>
-          <h3 className='text-lg font-semibold theme-text-primary'>
+          <h3 className='font-title'>
             {memory ? '编辑记忆' : '添加记忆'}
           </h3>
           <button
             onClick={onCancel}
-            className='p-1 hover:theme-bg-hover rounded-lg theme-text-muted hover:theme-text-primary transition-colors'
+            className='icon-btn'
           >
             <Icon name='X' size={20} />
           </button>
@@ -75,7 +75,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder='输入记忆内容...'
-              className='w-full h-32 px-4 py-3 theme-bg-input theme-text-primary border theme-border-primary rounded-lg focus:outline-none focus:border-blue-500 resize-none'
+              className='input-field w-full h-32 px-4 py-3 resize-none'
               maxLength={500}
             />
             <p className='text-xs theme-text-muted mt-1 text-right'>{content.length}/500</p>
@@ -145,7 +145,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
         <div className='flex justify-end gap-3 p-4 border-t theme-border-primary'>
           <button
             onClick={onCancel}
-            className='px-4 py-2 theme-text-secondary hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors'
+            className='btn-ghost'
           >
             取消
           </button>
@@ -154,7 +154,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
             disabled={!content.trim()}
             className={`px-4 py-2 rounded-lg transition-colors ${
               content.trim()
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'btn-primary'
                 : 'theme-bg-hover theme-text-muted cursor-not-allowed'
             }`}
           >

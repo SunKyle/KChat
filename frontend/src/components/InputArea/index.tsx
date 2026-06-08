@@ -92,7 +92,7 @@ export function InputArea() {
             {uploadingImages.map((imageUrl, index) => (
               <div
                 key={index}
-                className='relative w-16 h-16 rounded-lg overflow-hidden border theme-border-primary hover:border-primary-500/50 transition-all duration-200'
+                className='card-inset relative w-16 h-16 overflow-hidden hover:border-primary-500/50 transition-all duration-200'
               >
                 <img
                   src={imageUrl}
@@ -101,9 +101,9 @@ export function InputArea() {
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className='absolute top-1 right-1 w-6 h-6 flex items-center justify-center theme-bg-card/80 backdrop-blur-sm rounded-full hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+                  className='absolute top-1 right-1 icon-btn w-6 h-6 backdrop-blur-sm bg-[var(--bg-card)]/80 rounded-full'
                 >
-                  <Trash2 className='w-4 h-4 theme-text-primary' />
+                  <Trash2 className='w-[14px] h-[14px] theme-text-primary' />
                 </button>
               </div>
             ))}
@@ -111,7 +111,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className='flex flex-col theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] focus-within:theme-bg-sidebar focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+        <div className='flex flex-col card-float-solid focus-within:shadow-[0_4px_12px_var(--shadow-color-hover),0_8px_20px_var(--shadow-color-hover-secondary)] transition-all duration-200 ease-out'>
           {/* 上半部分：文本输入区域 */}
           <div className='px-4 py-2'>
             <textarea
@@ -146,47 +146,47 @@ export function InputArea() {
                 disabled={
                   uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
                 }
-                className={`p-2 rounded-lg transition-all duration-200 ${
+                className={`icon-btn ${
                   uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
-                    ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 cursor-pointer'
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'cursor-pointer'
                 }`}
                 title='上传文件（包括图片）'
               >
                 {uploading ? (
-                  <Loader2 className='w-4 h-4 animate-spin' />
+                  <Loader2 className='w-4 h-4 theme-text-secondary animate-spin' />
                 ) : (
-                  <Paperclip className='w-4 h-4' />
+                  <Paperclip className='w-4 h-4 theme-text-secondary' />
                 )}
               </button>
 
               {/* 代码按钮 */}
               <button
-                className='p-2 rounded-lg theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 transition-all duration-200'
+                className='icon-btn'
                 title='插入代码'
               >
-                <Code className='w-4 h-4' />
+                <Code className='w-4 h-4 theme-text-secondary' />
               </button>
 
               {/* 生成图片按钮 */}
               <button
                 onClick={() => setInput('生成图片：')}
                 disabled={streamingState.isStreaming}
-                className={`p-2 rounded-lg transition-all duration-200 ${
+                className={`icon-btn ${
                   streamingState.isStreaming
-                    ? 'theme-text-muted/50 cursor-not-allowed'
-                    : 'theme-text-muted hover:theme-text-primary hover:theme-bg-hover/50 hover:scale-105 cursor-pointer'
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'cursor-pointer'
                 }`}
                 title='生成图片'
               >
-                <Image className='w-4 h-4' />
+                <Image className='w-4 h-4 theme-text-secondary' />
               </button>
             </div>
 
             {/* 右侧：提示文字和发送按钮 */}
             <div className='flex items-center gap-2'>
               {/* 键盘提示 */}
-              <span className='font-secondary theme-text-muted/70'>
+              <span className='font-helper-text theme-text-muted/40'>
                 Shift + Enter 换行, Enter 发送
               </span>
 
@@ -200,11 +200,11 @@ export function InputArea() {
                   }
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`flex items-center justify-center p-2 rounded-lg micro-transition transition-all duration-200 ${
+                className={`flex items-center justify-center p-2 rounded-xl micro-transition hover-lift press-effect ${
                   streamingState.isStreaming
-                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:scale-105 cursor-pointer'
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer'
                     : hasContent && charCount <= maxChars
-                      ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 hover:bg-sky-400 hover:shadow-xl hover:shadow-sky-500/50 hover:scale-105 active:scale-95 cursor-pointer'
+                      ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 hover:bg-sky-400 hover:shadow-xl hover:shadow-sky-500/50 cursor-pointer'
                       : 'theme-bg-hover/50 theme-text-muted/50 cursor-not-allowed'
                 }`}
                 title={streamingState.isStreaming ? '中断回答' : '发送消息'}
@@ -221,7 +221,7 @@ export function InputArea() {
 
         {/* 图片上传提示 */}
         {uploading && (
-          <div className='mt-2 text-xs theme-text-muted flex items-center gap-1'>
+          <div className='mt-2 font-helper-text theme-text-muted flex items-center gap-1'>
             <Loader2 className='w-3 h-3 animate-spin' />
             正在上传图片...
           </div>

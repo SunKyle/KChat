@@ -97,7 +97,7 @@ export function ProfileInfo() {
     <div className='space-y-6'>
       <div className='flex items-center gap-4'>
         <div className='relative'>
-          <div className='w-20 h-20 rounded-full overflow-hidden theme-border-primary border-2 flex items-center justify-center'>
+          <div className='w-20 h-20 rounded-full overflow-hidden ring-2 ring-[var(--border-primary)] flex items-center justify-center'>
             {profile.avatar ? (
               <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
             ) : (
@@ -126,7 +126,7 @@ export function ProfileInfo() {
         </div>
       </div>
 
-      <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-6 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-sidebar hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out'>
+      <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center justify-between mb-4'>
           <h3 className='font-medium theme-text-primary'>基本信息</h3>
           {editing ? (
@@ -134,7 +134,7 @@ export function ProfileInfo() {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+                className='flex items-center gap-1.5 btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 {isLoading ? (
                   <Loader2 className='w-3.5 h-3.5 animate-spin' />
@@ -153,7 +153,7 @@ export function ProfileInfo() {
                   })
                   setErrors({})
                 }}
-                className='flex items-center gap-1.5 px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm'
+                className='flex items-center gap-1.5 btn-ghost text-sm'
               >
                 <X className='w-3.5 h-3.5' />
                 取消
@@ -162,7 +162,7 @@ export function ProfileInfo() {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className='px-4 py-2 theme-bg-hover rounded-lg hover:theme-bg-hover/80 transition-colors text-sm'
+              className='btn-ghost text-sm'
             >
               编辑
             </button>
@@ -171,15 +171,15 @@ export function ProfileInfo() {
 
         <div className='space-y-4'>
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-1.5'>昵称</label>
+            <label className='block font-secondary font-weight-medium mb-1.5'>昵称</label>
             <input
               type='text'
               value={localProfile.nickname}
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, nickname: e.target.value }))}
               disabled={!editing}
-              className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.nickname ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60`}
+              className={`input-field ${
+                errors.nickname ? 'border-[var(--brand-danger)]/50' : ''
+              } disabled:opacity-60`}
               placeholder='请输入昵称'
             />
             {errors.nickname && (
@@ -188,30 +188,30 @@ export function ProfileInfo() {
           </div>
 
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-1.5'>邮箱</label>
+            <label className='block font-secondary font-weight-medium mb-1.5'>邮箱</label>
             <input
               type='email'
               value={localProfile.email}
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, email: e.target.value }))}
               disabled={!editing}
-              className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.email ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60`}
+              className={`input-field ${
+                errors.email ? 'border-[var(--brand-danger)]/50' : ''
+              } disabled:opacity-60`}
               placeholder='请输入邮箱'
             />
             {errors.email && <p className='mt-1 text-xs theme-brand-danger'>{errors.email}</p>}
           </div>
 
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-1.5'>简介</label>
+            <label className='block font-secondary font-weight-medium mb-1.5'>简介</label>
             <textarea
               value={localProfile.bio}
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, bio: e.target.value }))}
               disabled={!editing}
               rows={3}
-              className={`w-full px-3 py-2 rounded-lg theme-bg-input border ${
-                errors.bio ? 'border-[var(--brand-danger)]/50' : 'theme-border-primary'
-              } theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50 disabled:opacity-60 resize-none`}
+              className={`input-field resize-none ${
+                errors.bio ? 'border-[var(--brand-danger)]/50' : ''
+              } disabled:opacity-60`}
               placeholder='介绍一下你自己...'
             />
             {errors.bio && <p className='mt-1 text-xs theme-brand-danger'>{errors.bio}</p>}

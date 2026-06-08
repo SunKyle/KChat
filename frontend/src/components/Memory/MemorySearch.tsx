@@ -41,14 +41,14 @@ export default function MemorySearch({ value, onChange, onSearch }: MemorySearch
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder='搜索记忆（支持语义搜索）...'
-        className='w-full pl-10 pr-10 py-2 theme-bg-input theme-text-primary border theme-border-primary rounded-lg focus:outline-none focus:border-[var(--accent-sky)] placeholder-theme-text-placeholder'
+        className='input-field w-full pl-10 pr-10 py-2 placeholder-theme-text-placeholder'
       />
       {value && (
         <button
           onClick={handleClear}
-          className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white'
+          className='absolute right-3 top-1/2 -translate-y-1/2 icon-btn'
         >
-          ✕
+          <span className='text-sm'>✕</span>
         </button>
       )}
     </div>

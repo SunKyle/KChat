@@ -54,22 +54,22 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   return (
-    <div className={`flex gap-4 py-8 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-4 py-5 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
-        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all micro-transition overflow-hidden ${
+        className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all micro-transition overflow-hidden ${
           isUser
             ? 'theme-bg-card theme-text-secondary'
-            : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
+            : 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-sm'
         }`}
       >
         {isUser ? (
           profile?.avatar ? (
             <img src={profile.avatar} alt='User Avatar' className='w-full h-full object-cover' />
           ) : (
-            <User className='w-4 h-4' />
+            <User className='w-[16px] h-[16px]' />
           )
         ) : (
-          <Bot className='w-4 h-4' />
+          <Bot className='w-[16px] h-[16px]' />
         )}
       </div>
 
@@ -86,21 +86,21 @@ export const MessageBubble = memo(function MessageBubble({
               </span>
               <div className='flex items-center gap-1'>
                 <span
-                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
+                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0ms',
                   }}
                 />
                 <span
-                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
+                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.2s',
                   }}
                 />
                 <span
-                  className='w-1.5 h-1.5 rounded-full theme-text-muted'
+                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.4s',
@@ -137,7 +137,7 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className='font-tiny font-weight-medium theme-text-muted uppercase'>
+          <span className='font-tiny font-weight-medium theme-text-muted'>
             {formatTimestamp(message.timestamp)}
           </span>
 
@@ -145,21 +145,21 @@ export const MessageBubble = memo(function MessageBubble({
             <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
               <button
                 onClick={handleCopy}
-                className='p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200'
+                className='icon-btn'
                 title={copied ? '已复制' : '复制'}
               >
                 {copied ? (
-                  <Check className='w-4 h-4 text-green-400' />
+                  <Check className='w-[14px] h-[14px] text-green-400' />
                 ) : (
-                  <Copy className='w-4 h-4 theme-text-muted hover:theme-text-secondary' />
+                  <Copy className='w-[14px] h-[14px]' />
                 )}
               </button>
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className='p-2 rounded-lg hover:theme-bg-hover/50 hover:scale-110 transition-all duration-200'
+                  className='icon-btn'
                 >
-                  <RotateCcw className='w-4 h-4 theme-text-muted hover:theme-text-secondary' />
+                  <RotateCcw className='w-[14px] h-[14px]' />
                 </button>
               )}
             </div>

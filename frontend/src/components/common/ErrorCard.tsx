@@ -19,7 +19,7 @@ export interface ErrorCardProps {
 const severityConfig = {
   error: {
     icon: XCircle,
-    iconBg: 'bg-red-500/20',
+    iconBg: 'bg-red-500/15',
     iconColor: 'text-red-400',
     titleColor: 'text-red-400',
     buttonBg: 'bg-red-500/15',
@@ -30,7 +30,7 @@ const severityConfig = {
   },
   warning: {
     icon: AlertTriangle,
-    iconBg: 'bg-amber-500/20',
+    iconBg: 'bg-amber-500/15',
     iconColor: 'text-amber-400',
     titleColor: 'text-amber-400',
     buttonBg: 'bg-amber-500/15',
@@ -41,7 +41,7 @@ const severityConfig = {
   },
   info: {
     icon: Info,
-    iconBg: 'bg-blue-500/20',
+    iconBg: 'bg-blue-500/15',
     iconColor: 'text-blue-400',
     titleColor: 'text-blue-400',
     buttonBg: 'bg-blue-500/15',
@@ -52,7 +52,7 @@ const severityConfig = {
   },
   success: {
     icon: CheckCircle,
-    iconBg: 'bg-green-500/20',
+    iconBg: 'bg-green-500/15',
     iconColor: 'text-green-400',
     titleColor: 'text-green-400',
     buttonBg: 'bg-green-500/15',
@@ -124,7 +124,7 @@ export function ErrorCard({
         <div className='flex items-start gap-4'>
           <div
             className={`
-            flex-shrink-0 w-10 h-10
+            flex-shrink-0 w-9 h-9
             rounded-full ${config.iconBg}
             flex items-center justify-center
           `}
@@ -134,12 +134,12 @@ export function ErrorCard({
 
           <div className='flex-1 min-w-0'>
             <div className='flex items-start justify-between gap-3'>
-              <h3 className={`font-medium text-base ${config.titleColor}`}>{title}</h3>
+              <h3 className={`font-body-l font-weight-semibold ${config.titleColor}`}>{title}</h3>
 
               {showCloseButton && onClose && (
                 <button
                   onClick={onClose}
-                  className='flex-shrink-0 p-1 rounded-md hover:bg-white/5 transition-colors'
+                  className='flex-shrink-0 icon-btn'
                   aria-label='关闭'
                 >
                   <X className='w-4 h-4 text-gray-400 hover:text-gray-200' />
@@ -148,14 +148,14 @@ export function ErrorCard({
             </div>
 
             {description && (
-              <p className='mt-2 text-sm text-gray-300 leading-relaxed'>{description}</p>
+              <p className='mt-2 font-secondary leading-relaxed'>{description}</p>
             )}
 
             {(showRetryButton || onRetry) && (
               <button
                 onClick={onRetry}
                 className={`
-                  mt-4 inline-flex items-center gap-2 text-sm font-medium
+                  mt-4 inline-flex items-center gap-2 text-sm font-medium btn-ghost
                   px-4 py-2 rounded-lg
                   ${config.buttonBg} ${config.buttonHover} ${config.buttonText}
                   transition-all hover:scale-[1.02] active:scale-[0.98]

@@ -141,18 +141,16 @@ export function Sidebar({
   }
 
   return (
-    <div className='flex flex-col h-full overflow-hidden'>
-      <div className={`p-4 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+    <div className='flex flex-col h-full overflow-hidden border-r theme-border-secondary'>
+      <div className={`px-4 pt-4 pb-2 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div
           className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
         >
-          <div className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}>
-            <div className='w-9 h-9 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm overflow-hidden'>
-              <img src='/kchat-icon.svg' alt='KChat' className='w-full h-full object-contain' />
-            </div>
+          <div className={`flex items-center gap-2 ${collapsed ? 'flex flex-col gap-1' : ''}`}>
+            <img src='/kchat-icon.svg' alt='KChat' className='w-7 h-7 object-contain flex-shrink-0' />
             {!collapsed && (
               <div>
-                <h1 className='font-logo theme-text-primary tracking-tight'>KChat</h1>
+                <h1 className='font-logo theme-text-primary'>KChat</h1>
                 <p className='font-tagline theme-text-muted'>Productivity AI</p>
               </div>
             )}
@@ -161,34 +159,34 @@ export function Sidebar({
             <button
               onClick={onToggle}
               aria-label='收起侧边栏'
-              className='p-1.5 rounded-md hover:theme-bg-hover transition-colors theme-text-muted hover:theme-text-secondary'
+              className='p-1.5 rounded-md hover:theme-bg-hover transition-colors theme-text-muted hover:theme-text-secondary focus-ring'
             >
-              <PanelLeftClose className='w-5 h-5' aria-hidden='true' />
+              <PanelLeftClose className='w-[18px] h-[18px]' aria-hidden='true' />
             </button>
           )}
         </div>
 
         {!collapsed && (
-          <div className='relative mt-3'>
+          <div className='relative mt-2'>
             <Search
-              className='absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 theme-text-muted'
+              className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted'
               aria-hidden='true'
             />
             <input
-              type='search'
+              type='text'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder='搜索会话...'
               aria-label='搜索会话'
-              className='w-full pl-10 pr-10 py-2.5 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder font-secondary focus:outline-none focus:border-[var(--accent-sky)]/50'
+              className='w-full pl-10 pr-10 py-2 bg-[var(--bg-card)] border theme-border-secondary rounded-lg font-secondary theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/40 transition-colors'
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label='清除搜索'
-                className='absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded hover:theme-bg-hover transition-colors'
+                className='absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded hover:theme-bg-hover transition-colors focus-ring'
               >
-                <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
+                <X className='w-4 h-4 theme-text-muted' aria-hidden='true' />
               </button>
             )}
           </div>
@@ -197,13 +195,13 @@ export function Sidebar({
         <button
           onClick={createConversation}
           aria-label='创建新对话'
-          className={`flex items-center justify-center gap-2.5 transition-all duration-200 font-medium ${
+          className={`flex items-center justify-center transition-all font-medium ${
             collapsed
               ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-4'
-              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-4 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30 mt-4 text-sm'
+              : 'flex items-center justify-center gap-2 w-full mt-2 py-2 rounded-lg font-secondary font-medium bg-[var(--bg-card)] border theme-border-secondary theme-text-secondary hover:theme-text-primary transition-all focus-ring press-effect'
           }`}
         >
-          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4.5 h-4.5'}`} aria-hidden='true' />
+          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} aria-hidden='true' />
           {!collapsed && <span>新对话</span>}
         </button>
 
@@ -211,23 +209,23 @@ export function Sidebar({
           <button
             onClick={onToggle}
             aria-label='展开侧边栏'
-            className='mt-3 w-10 h-10 flex items-center justify-center rounded-full theme-bg-hover/50 hover:theme-bg-hover transition-all theme-text-secondary hover:theme-text-primary'
+            className='mt-3 w-10 h-10 flex items-center justify-center rounded-full theme-bg-hover/50 hover:theme-bg-hover transition-all theme-text-secondary hover:theme-text-primary focus-ring'
           >
-            <PanelLeft className='w-5 h-5' aria-hidden='true' />
+            <PanelLeft className='w-[18px] h-[18px]' aria-hidden='true' />
           </button>
         )}
       </div>
 
       <div
         ref={scrollContainerRef}
-        className={`flex-1 overflow-y-auto py-3 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
+        className={`flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
         {conversations.length === 0 ? (
           <div
             className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
           >
             <div className='w-12 h-12 mx-auto mb-3 rounded-full theme-bg-hover/50 flex items-center justify-center'>
-              <MessageSquare className='w-6 h-6 theme-text-muted' />
+              <MessageSquare className='w-5 h-5 theme-text-muted' />
             </div>
             {!collapsed && (
               <>
@@ -242,7 +240,7 @@ export function Sidebar({
             <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
           </div>
         ) : (
-          <div className='space-y-6'>
+          <div className='space-y-2'>
             {filteredGrouped.map(({ group, items }) => (
               <div key={group} className='space-y-1'>
                 {!collapsed && (
@@ -250,7 +248,7 @@ export function Sidebar({
                     onClick={() => toggleGroup(group)}
                     aria-expanded={expandedGroups.has(group)}
                     aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                    className='w-full flex items-center justify-between px-2.5 py-2 font-group-title theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors'
+                    className='w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors focus-ring'
                   >
                     <span className='flex items-center gap-2'>
                       <ChevronRight
@@ -292,11 +290,11 @@ export function Sidebar({
       <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className='w-full'>
           <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''}`}>
-            <div className='w-7 h-7 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center overflow-hidden'>
+            <div className='w-8 h-8 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center overflow-hidden'>
               {profile?.avatar ? (
                 <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
               ) : (
-                <User className='w-4 h-4 theme-text-secondary' />
+                <User className='w-[18px] h-[18px] theme-text-secondary' />
               )}
             </div>
             {!collapsed && (
@@ -304,7 +302,7 @@ export function Sidebar({
                 <p className='font-conversation-name theme-text-primary truncate leading-tight'>
                   {profile?.nickname || '用户'}
                 </p>
-                <p className='font-tiny theme-text-muted truncate leading-tight'>Premium Plan</p>
+                <p className='font-caption theme-text-muted truncate leading-tight'>Premium Plan</p>
               </div>
             )}
           </div>

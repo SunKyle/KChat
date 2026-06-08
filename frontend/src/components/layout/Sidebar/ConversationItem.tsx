@@ -82,12 +82,12 @@ export function ConversationItem({
         role='button'
         aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
         aria-current={isActive ? 'true' : undefined}
-        className={`relative flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/50 ${
+        className={`relative flex items-center justify-center py-1.5 px-1 rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
         }`}
       >
         <div
-          className={`relative w-7 h-7 rounded-full flex items-center justify-center micro-transition ${
+          className={`relative w-8 h-8 rounded-full flex items-center justify-center micro-transition ${
             isActive ? 'theme-brand-primary text-white' : 'theme-bg-card theme-text-secondary'
           }`}
         >
@@ -98,7 +98,7 @@ export function ConversationItem({
           )}
         </div>
         {hasNewReply && (
-          <div className='absolute -top-0.5 -right-0.5 w-2.5 h-2.5 theme-bg-accent-emerald rounded-full shadow-sm shadow-[var(--accent-emerald)]/40' />
+          <div className='absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
         )}
       </div>
     )
@@ -118,7 +118,7 @@ export function ConversationItem({
       role='button'
       aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
       aria-current={isActive ? 'true' : undefined}
-      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/50 ${
+      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring ${
         isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
       }`}
     >
@@ -129,16 +129,15 @@ export function ConversationItem({
             isActive ? 'theme-brand-primary text-white' : 'theme-bg-card theme-text-secondary'
           }`}
         >
-          {isStreaming ? (
-            <div className='w-4.5 h-4.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin' />
-          ) : (
-            <span className='font-conversation-name font-weight-semibold'>
-              {conversation.title.charAt(0)}
-            </span>
-          )}
+          <span className={`font-conversation-name font-weight-semibold ${isStreaming ? 'opacity-40' : ''}`}>
+            {conversation.title.charAt(0)}
+          </span>
         </div>
+        {isStreaming && (
+          <div className='absolute inset-0 w-9 h-9 rounded-full border-2 border-[var(--brand-primary)]/30 border-t-[var(--brand-primary)] animate-spin pointer-events-none' />
+        )}
         {hasNewReply && (
-          <div className='absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 theme-bg-accent-emerald rounded-full shadow-sm shadow-[var(--accent-emerald)]/40' />
+          <div className='absolute -bottom-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
         )}
       </div>
       <div className='flex-1 min-w-0'>
@@ -156,7 +155,7 @@ export function ConversationItem({
         ) : (
           <p
             className={`font-conversation-name truncate transition-colors duration-150 ${
-              isActive ? 'theme-text-primary' : 'theme-text-secondary'
+              isActive ? 'theme-brand-primary font-medium' : 'theme-text-secondary'
             }`}
           >
             {conversation.title}
@@ -172,9 +171,9 @@ export function ConversationItem({
                 handleSaveEdit()
               }}
               aria-label='保存编辑'
-              className='p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+              className='icon-btn focus-ring'
             >
-              <Check className='w-4 h-4 theme-accent-emerald' aria-hidden='true' />
+              <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
             </button>
             <button
               onClick={(e) => {
@@ -182,9 +181,9 @@ export function ConversationItem({
                 handleCancelEdit()
               }}
               aria-label='取消编辑'
-              className='p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+              className='icon-btn focus-ring'
             >
-              <X className='w-4 h-4 theme-brand-danger' aria-hidden='true' />
+              <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
             </button>
           </>
         ) : (
@@ -196,10 +195,10 @@ export function ConversationItem({
               }}
               aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
               aria-pressed={conversation.pinned}
-              className='p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+              className='icon-btn focus-ring'
             >
               <Pin
-                className={`w-4 h-4 transition-colors ${
+                className={`w-[15px] h-[15px] transition-colors ${
                   conversation.pinned
                     ? 'theme-accent-amber'
                     : 'theme-text-muted hover:theme-text-secondary'
@@ -210,10 +209,10 @@ export function ConversationItem({
             <button
               onClick={handleStartEdit}
               aria-label='编辑会话标题'
-              className='p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+              className='icon-btn focus-ring'
             >
               <Pencil
-                className='w-4 h-4 theme-text-muted hover:theme-text-secondary'
+                className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
                 aria-hidden='true'
               />
             </button>
@@ -223,10 +222,10 @@ export function ConversationItem({
                 onDelete()
               }}
               aria-label='删除会话'
-              className='p-2 rounded-lg hover:theme-bg-hover hover:scale-110 transition-all duration-200'
+              className='icon-btn focus-ring'
             >
               <Trash2
-                className='w-4 h-4 theme-text-muted hover:theme-brand-danger'
+                className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
                 aria-hidden='true'
               />
             </button>

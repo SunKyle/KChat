@@ -181,7 +181,7 @@ export function ModelSettings() {
         </div>
         <button
           onClick={handleOpenAddModal}
-          className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium'
+          className='flex items-center gap-1.5 btn-primary'
         >
           <Plus className='w-4 h-4' />
           添加模型
@@ -193,7 +193,7 @@ export function ModelSettings() {
           <div className='w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin'></div>
         </div>
       ) : configs.length === 0 ? (
-        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-8 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] text-center'>
+        <div className='card-float-solid rounded-2xl p-8 text-center'>
           <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
             <Database className='w-7 h-7 theme-text-muted' />
           </div>
@@ -207,7 +207,7 @@ export function ModelSettings() {
           </button>
         </div>
       ) : (
-        <div className='theme-bg-sidebar/80 backdrop-blur-xl rounded-2xl p-4 border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)]'>
+        <div className='card-float-solid rounded-2xl p-4'>
           <div className='space-y-4 sm:space-y-6 max-h-[calc(100vh-340px)] overflow-y-auto scrollbar-hidden'>
             {PROVIDERS.map((provider) => {
               const providerConfigs = groupedConfigs[provider.type]
@@ -233,7 +233,7 @@ export function ModelSettings() {
                       return (
                         <div
                           key={config.id}
-                          className='group flex items-center justify-between p-4 theme-bg-input rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full'
+                          className='group flex items-center justify-between p-4 card-inset rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full'
                         >
                           <div className='min-w-0 flex-1'>
                             <h4 className='text-sm font-medium theme-text-primary truncate'>
@@ -269,14 +269,14 @@ export function ModelSettings() {
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(config)}
-                              className='p-2 theme-text-muted/70 hover:theme-text-secondary hover:theme-bg-hover hover:scale-110 rounded-lg transition-all duration-200'
+                              className='icon-btn'
                               title='编辑'
                             >
                               <Edit2 className='w-4 h-4' />
                             </button>
                             <button
                               onClick={() => handleDelete(config.id, config.name)}
-                              className='p-2 theme-text-muted/70 hover:text-[var(--brand-danger)] hover:bg-[var(--brand-danger)]/10 hover:scale-110 rounded-lg transition-all duration-200'
+                              className='icon-btn hover:text-[var(--brand-danger)]'
                               title='删除'
                             >
                               <Trash2 className='w-4 h-4' />
@@ -294,15 +294,15 @@ export function ModelSettings() {
       )}
 
       {showAddModal && (
-        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'>
-          <div className='theme-bg-card rounded-xl w-full max-w-lg border theme-border-primary max-h-[90vh] flex flex-col'>
+        <div className='fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4'>
+          <div className='theme-bg-card rounded-2xl w-full max-w-lg border theme-border-primary max-h-[90vh] flex flex-col'>
             <div className='flex items-center justify-between p-4 border-b theme-border-primary flex-shrink-0'>
               <h3 className='text-base font-semibold theme-text-primary'>
                 {editingConfig ? '编辑模型' : '添加模型'}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className='p-1.5 theme-text-muted hover:theme-text-primary hover:theme-bg-hover rounded-lg transition-colors'
+                className='icon-btn'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -349,7 +349,7 @@ export function ModelSettings() {
                   name='name'
                   value={formData.name}
                   onChange={handleChange}
-                  className='w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors'
+                  className='input-field text-sm'
                   placeholder='我的模型'
                 />
               </div>
@@ -363,7 +363,7 @@ export function ModelSettings() {
                   name='modelId'
                   value={formData.modelId}
                   onChange={handleChange}
-                  className='w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors'
+                  className='input-field text-sm font-mono'
                   placeholder='gpt-3.5-turbo'
                 />
               </div>
@@ -377,7 +377,7 @@ export function ModelSettings() {
                   name='baseUrl'
                   value={formData.baseUrl}
                   onChange={handleChange}
-                  className='w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors'
+                  className='input-field text-sm font-mono'
                   placeholder='https://api.openai.com'
                 />
               </div>
@@ -391,7 +391,7 @@ export function ModelSettings() {
                   name='apiKey'
                   value={formData.apiKey}
                   onChange={handleChange}
-                  className='w-full px-3 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary text-sm font-mono focus:outline-none focus:border-[var(--accent-sky)]/50 transition-colors'
+                  className='input-field text-sm font-mono'
                   placeholder='sk-...'
                 />
                 {editingConfig && (
