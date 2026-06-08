@@ -164,7 +164,7 @@ export function Sidebar({
           <div
             className={`flex items-center gap-3 ${collapsed ? 'flex flex-col' : ''}`}
           >
-            <div className="w-8 h-8 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm overflow-hidden">
+            <div className="w-9 h-9 rounded-lg theme-brand-primary flex items-center justify-center shadow-sm overflow-hidden">
               <img
                 src="/kchat-icon.svg"
                 alt="KChat"
@@ -173,10 +173,10 @@ export function Sidebar({
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-sm font-semibold theme-text-primary tracking-tight">
+                <h1 className="text-base font-semibold theme-text-primary tracking-tight">
                   KChat
                 </h1>
-                <p className="text-[10px] theme-text-muted uppercase tracking-wider font-medium">
+                <p className="text-[11px] theme-text-muted uppercase tracking-wider font-medium">
                   Productivity AI
                 </p>
               </div>
@@ -195,13 +195,13 @@ export function Sidebar({
 
         {!collapsed && (
           <div className="relative mt-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 theme-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索会话..."
-              className="w-full pl-9 pr-9 py-2 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
+              className="w-full pl-10 pr-10 py-2.5 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
             />
             {searchQuery && (
               <button
@@ -216,14 +216,14 @@ export function Sidebar({
 
         <button
           onClick={createConversation}
-          className={`flex items-center justify-center gap-2 transition-all duration-200 font-medium text-sm ${
+          className={`flex items-center justify-center gap-2.5 transition-all duration-200 font-medium ${
             collapsed
-              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-3'
-              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-3 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30 mt-3'
+              ? 'w-10 h-10 theme-bg-hover/50 theme-text-secondary hover:theme-bg-hover hover:theme-text-primary hover:scale-110 rounded-full mt-4'
+              : 'w-full theme-bg-card hover:theme-bg-hover theme-text-secondary hover:theme-text-primary transition-transform active:scale-[0.98] px-4 py-2.5 rounded-lg border theme-border-primary hover:border-primary-500/30 mt-4 text-sm'
           }`}
           title={collapsed ? '新对话' : undefined}
         >
-          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+          <Plus className={`${collapsed ? 'w-5 h-5' : 'w-4.5 h-4.5'}`} />
           {!collapsed && <span>新对话</span>}
         </button>
 
@@ -266,17 +266,17 @@ export function Sidebar({
                 {!collapsed && (
                   <button
                     onClick={() => toggleGroup(group)}
-                    className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <ChevronRight
-                        className={`w-3 h-3 transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
                           expandedGroups.has(group) ? 'rotate-90' : ''
                         }`}
                       />
                       {group}
                     </span>
-                    <span className="text-[10px] opacity-60">
+                    <span className="text-[11px] opacity-60">
                       {items.length}
                     </span>
                   </button>
@@ -327,11 +327,11 @@ export function Sidebar({
               )}
             </div>
             {!collapsed && (
-              <div className="flex-1 min-w-0 space-y-0.5 text-left">
-                <p className="text-xs font-medium theme-text-primary truncate leading-tight">
+              <div className="flex-1 min-w-0 space-y-1 text-left">
+                <p className="text-sm font-medium theme-text-primary truncate leading-tight">
                   {profile?.nickname || '用户'}
                 </p>
-                <p className="text-[10px] theme-text-muted truncate leading-tight">
+                <p className="text-[11px] theme-text-muted truncate leading-tight">
                   Premium Plan
                 </p>
               </div>

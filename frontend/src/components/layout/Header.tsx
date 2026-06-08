@@ -43,14 +43,14 @@ export function Header({ onSettingsClick }: HeaderProps) {
     <header className="h-16 theme-bg-primary/80 backdrop-blur-xl rounded-2xl border-0 shadow-[0_2px_8px_rgba(0,0,0,0.15),0_4px_16px_rgba(0,0,0,0.1)] hover:theme-bg-primary hover:shadow-[0_4px_12px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)] flex items-center justify-between px-6 relative z-40 mx-4 mt-6 lg:mx-6 transition-all duration-200 ease-out">
       <div className="flex items-center gap-6">
         {activeConversation ? (
-          <div className="px-4 py-1.5 theme-bg-hover/50 rounded-full border theme-border-primary micro-transition hover:theme-bg-hover cursor-default">
-            <h1 className="text-sm font-medium theme-text-primary truncate max-w-lg transition-all">
+          <div className="px-4 py-2 theme-bg-hover/50 rounded-full border theme-border-primary micro-transition hover:theme-bg-hover cursor-default">
+            <h1 className="text-base font-medium theme-text-primary truncate max-w-lg transition-all">
               {activeConversation.title}
             </h1>
           </div>
         ) : (
-          <div className="px-4 py-1.5 theme-bg-hover/50 rounded-full border theme-border-primary">
-            <h1 className="text-sm font-medium theme-text-muted">
+          <div className="px-4 py-2 theme-bg-hover/50 rounded-full border theme-border-primary">
+            <h1 className="text-base font-medium theme-text-muted">
               选择或创建对话
             </h1>
           </div>
@@ -62,13 +62,13 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className="flex items-center gap-2 px-4 py-2 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer"
+            className="flex items-center gap-2.5 px-4 py-2.5 theme-bg-hover/50 theme-brand-primary rounded-lg border theme-border-primary micro-transition hover:theme-bg-hover cursor-pointer"
           >
-            <Cpu className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-tight">
+            <Cpu className="w-4.5 h-4.5" />
+            <span className="text-sm font-bold uppercase tracking-tight">
               {currentModel}
             </span>
-            <ChevronDown className="w-3.5 h-3.5" />
+            <ChevronDown className="w-4 h-4" />
           </button>
 
           {isModelDropdownOpen && (
@@ -80,28 +80,28 @@ export function Header({ onSettingsClick }: HeaderProps) {
                     setCurrentModel(model)
                     setIsModelDropdownOpen(false)
                   }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:theme-bg-hover transition-colors ${
+                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between hover:theme-bg-hover transition-colors ${
                     model === currentModel
                       ? 'theme-brand-primary'
                       : 'theme-text-secondary'
                   }`}
                 >
                   <span className="capitalize">{model}</span>
-                  {model === currentModel && <Check className="w-3.5 h-3.5" />}
+                  {model === currentModel && <Check className="w-4 h-4" />}
                 </button>
               ))}
             </div>
           )}
         </div>
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
-          <Database className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-tight">
-            8 / 10 <span className="opacity-50 text-[10px]">CTX</span>
+        <div className="hidden md:flex items-center gap-2 px-3.5 py-2.5 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
+          <Database className="w-4.5 h-4.5" />
+          <span className="text-sm font-bold uppercase tracking-tight">
+            8 / 10 <span className="opacity-50 text-[11px]">CTX</span>
           </span>
         </div>
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
-          <BrainCircuit className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-tight">
+        <div className="hidden md:flex items-center gap-2 px-3.5 py-2.5 theme-bg-hover/50 theme-text-secondary rounded-lg border theme-border-primary micro-transition">
+          <BrainCircuit className="w-4.5 h-4.5" />
+          <span className="text-sm font-bold uppercase tracking-tight">
             记忆开启
           </span>
         </div>
@@ -120,15 +120,15 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <div className="flex items-center gap-2">
             {isOnline ? (
               <>
-                <div className="w-2 h-2 rounded-full theme-bg-accent-emerald animate-pulse" />
-                <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
+                <div className="w-2.5 h-2.5 rounded-full theme-bg-accent-emerald animate-pulse" />
+                <span className="text-sm font-medium theme-text-secondary uppercase tracking-tight">
                   Connected
                 </span>
               </>
             ) : (
               <>
-                <div className="w-2 h-2 rounded-full theme-bg-brand-danger" />
-                <span className="text-xs font-medium theme-text-secondary uppercase tracking-tighter">
+                <div className="w-2.5 h-2.5 rounded-full theme-bg-brand-danger" />
+                <span className="text-sm font-medium theme-text-secondary uppercase tracking-tight">
                   Offline
                 </span>
               </>

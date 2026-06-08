@@ -9,39 +9,39 @@
   --font-family-mono:
     'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
 
-  --font-size-xs: 10px;
-  --font-size-sm: 12px;
-  --font-size-base: 14px;
-  --font-size-lg: 15px;
-  --font-size-xl: 16px;
-  --font-size-2xl: 18px;
-  --font-size-3xl: 20px;
-  --font-size-4xl: 24px;
-  --font-size-5xl: 28px;
-  --font-size-6xl: 32px;
-  --font-size-7xl: 36px;
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 28px;
+  --font-size-5xl: 32px;
+  --font-size-6xl: 36px;
+  --font-size-7xl: 40px;
 
-  --font-heading-h1: 32px;
-  --font-heading-h2: 28px;
-  --font-heading-h3: 24px;
-  --font-heading-h4: 20px;
-  --font-heading-h5: 18px;
-  --font-heading-h6: 16px;
+  --font-heading-h1: 28px;
+  --font-heading-h2: 24px;
+  --font-heading-h3: 20px;
+  --font-heading-h4: 18px;
+  --font-heading-h5: 16px;
+  --font-heading-h6: 15px;
 
   --font-body-large: 16px;
-  --font-body-base: 14px;
-  --font-body-small: 13px;
-  --font-body-caption: 12px;
-  --font-body-tiny: 11px;
+  --font-body-base: 15px;
+  --font-body-small: 14px;
+  --font-body-caption: 13px;
+  --font-body-tiny: 12px;
 
   --font-button-large: 15px;
   --font-button-base: 14px;
   --font-button-small: 13px;
   --font-button-tiny: 12px;
 
-  --font-code-large: 14px;
-  --font-code-base: 13px;
-  --font-code-small: 12px;
+  --font-code-large: 15px;
+  --font-code-base: 14px;
+  --font-code-small: 13px;
 
   --line-height-tight: 1.4;
   --line-height-normal: 1.5;
@@ -315,6 +315,106 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 14px;
+    --font-size-lg: 15px;
+    --font-size-xl: 16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 22px;
+    --font-size-4xl: 26px;
+    --font-size-5xl: 30px;
+
+    --font-heading-h1: 24px;
+    --font-heading-h2: 20px;
+    --font-heading-h3: 18px;
+    --font-heading-h4: 16px;
+    --font-heading-h5: 15px;
+    --font-heading-h6: 14px;
+
+    --font-body-large: 15px;
+    --font-body-base: 14px;
+    --font-body-small: 13px;
+    --font-body-caption: 12px;
+
+    --font-button-large: 14px;
+    --font-button-base: 13px;
+    --font-button-small: 12px;
+
+    --font-code-large: 14px;
+    --font-code-base: 13px;
+    --font-code-small: 12px;
+  }
+
+  body {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  :root {
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 20px;
+    --font-size-3xl: 24px;
+    --font-size-4xl: 28px;
+    --font-size-5xl: 32px;
+
+    --font-heading-h1: 26px;
+    --font-heading-h2: 22px;
+    --font-heading-h3: 19px;
+    --font-heading-h4: 17px;
+    --font-heading-h5: 16px;
+    --font-heading-h6: 15px;
+
+    --font-body-large: 16px;
+    --font-body-base: 15px;
+    --font-body-small: 14px;
+    --font-body-caption: 13px;
+  }
+
+  body {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 20px;
+    --font-size-3xl: 24px;
+    --font-size-4xl: 28px;
+    --font-size-5xl: 32px;
+    --font-size-6xl: 36px;
+    --font-size-7xl: 40px;
+
+    --font-heading-h1: 28px;
+    --font-heading-h2: 24px;
+    --font-heading-h3: 20px;
+    --font-heading-h4: 18px;
+    --font-heading-h5: 16px;
+    --font-heading-h6: 15px;
+
+    --font-body-large: 16px;
+    --font-body-base: 15px;
+    --font-body-small: 14px;
+    --font-body-caption: 13px;
+  }
+
+  body {
+    font-size: var(--font-size-base);
+  }
 }
 
 ::-webkit-scrollbar {
