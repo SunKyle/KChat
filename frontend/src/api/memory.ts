@@ -1,61 +1,72 @@
 import { request } from './client'
 import type { Memory } from '../types'
 
-export type MemoryItem = Memory
+export interface MemoryRecallRequest {
+  userId: string
+  query: string
+  topK?: number
+  types?: string[]
+}
+
+export interface MemoryRecallResponse {
+  memories: Memory[]
+  count: number
+}
 
 export const memory = {
-  getAll: async (): Promise<MemoryItem[]> => {
-    return request('/memory')
+  getAll: async (userId: string): Promise<Memory[]> => {
+    return request(`/memories?userId=${userId}`)
   },
 
-  getByType: async (type: string): Promise<MemoryItem[]> => {
-    return request(`/memory/type/${type}`)
+  getByType: async (userId: string, type: string): Promise<Memory[]> => {
+    return request(`/memories/type/${type}?userId=${userId}`)
   },
 
-  getById: async (id: string): Promise<MemoryItem> => {
-    return request(`/memory/${id}`)
+  getById: async (id: number): Promise<Memory> => {
+    return request(`/memories/${id}`)
   },
 
-  create: async (data: Omit<MemoryItem, 'id' | 'createdAt'>): Promise<MemoryItem> => {
-    return request('/memory', {
+  create: async (data: Omit<Memory, 'id' | 'createdAt'>): Promise<Memory> => {
+    return request('/memories', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   },
 
-  update: async (id: string, data: Partial<MemoryItem>): Promise<MemoryItem> => {
-    return request(`/memory/${id}`, {
+  update: async (id: number, data: Partial<Omit<Memory, 'id' | 'createdAt'>>): Promise<Memory> => {
+    return request(`/memories/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   },
 
-  createBatch: async (items: Omit<MemoryItem, 'id' | 'createdAt'>[]): Promise<MemoryItem[]> => {
-    return request('/memory/batch', {
+  createBatch: async (items: Omit<Memory, 'id' | 'createdAt'>[]): Promise<Memory[]> => {
+    return request('/memories/batch', {
       method: 'POST',
       body: JSON.stringify(items),
     })
   },
 
-  recall: async (query: string, limit?: number): Promise<MemoryItem[]> => {
-    const params = new URLSearchParams({ query })
-    if (limit) params.set('limit', limit.toString())
-    return request(`/memory/recall?${params}`)
+  recall: async (requestData: MemoryRecallRequest): Promise<MemoryRecallResponse> => {
+    return request('/memories/recall', {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    })
   },
 
-  delete: async (id: string): Promise<void> => {
-    await request(`/memory/${id}`, {
+  delete: async (id: number): Promise<void> => {
+    await request(`/memories/${id}`, {
       method: 'DELETE',
     })
   },
 
   deleteByUserId: async (userId: string): Promise<void> => {
-    await request(`/memory/user/${userId}`, {
+    await request(`/memories/user/${userId}`, {
       method: 'DELETE',
     })
   },
 
   getTypes: async (): Promise<string[]> => {
-    return request('/memory/types')
+    return request('/memories/types')
   },
 }

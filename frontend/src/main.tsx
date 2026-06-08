@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import { IconProvider } from './components/Icon'
 import { ThemeProvider } from './context/ThemeContext'
+import { ErrorProvider } from './context/ErrorContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <IconProvider>
-        <App />
-      </IconProvider>
-    </ThemeProvider>
+    <ErrorProvider>
+      <ThemeProvider>
+        <IconProvider>
+          <App />
+        </IconProvider>
+      </ThemeProvider>
+    </ErrorProvider>
   </StrictMode>
 )

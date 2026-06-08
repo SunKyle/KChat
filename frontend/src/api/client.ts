@@ -5,24 +5,123 @@ interface RequestOptions extends RequestInit {
   timeout?: number
   retries?: number
   retryDelay?: number
+  skipAuth?: boolean
 }
 
-function isRetryableError(error: Error): boolean {
+interface ApiError extends Error {
+  status?: number
+  code?: string
+  data?: unknown
+}
+
+function createApiError(message: string, status?: number, code?: string, data?: unknown): ApiError {
+  const error = new Error(message) as ApiError
+  error.status = status
+  error.code = code
+  error.data = data
+  return error
+}
+
+function isRetryableError(error: ApiError): boolean {
   if (error.message.includes('请求超时')) return true
   if (error.message.includes('NetworkError')) return true
   if (error.message.includes('Failed to fetch')) return true
+  if (error.status === 500 || error.status === 502 || error.status === 503 || error.status === 504) return true
   return false
+}
+
+function isNetworkError(error: Error): boolean {
+  return error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
 }
 
 async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function generateRequestId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+function logRequest(requestId: string, endpoint: string, options: RequestOptions): void {
+  if (import.meta.env.NODE_ENV !== 'development') return
+  console.debug(`[API] [${requestId}] Request: ${options.method || 'GET'} ${endpoint}`, {
+    body: options.body ? 'Present' : 'None',
+    timeout: options.timeout,
+    retries: options.retries,
+  })
+}
+
+function logResponse(requestId: string, status: number, duration: number): void {
+  if (import.meta.env.NODE_ENV !== 'development') return
+  console.debug(`[API] [${requestId}] Response: ${status} (${duration}ms)`, { status })
+}
+
+function logError(requestId: string, error: ApiError): void {
+  if (import.meta.env.NODE_ENV !== 'development') return
+  console.error(`[API] [${requestId}] Error: ${error.message}`, {
+    status: error.status,
+    code: error.code,
+    data: error.data,
+  })
+}
+
+async function applyRequestInterceptors(options: RequestOptions): Promise<RequestOptions> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+
+  if (!options.skipAuth) {
+    const token = localStorage.getItem('kchat_token')
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+  }
+
+  return {
+    ...options,
+    headers,
+  }
+}
+
+async function applyResponseInterceptors<T>(response: Response, requestId: string): Promise<T> {
+  const duration = Date.now() - parseInt(requestId.split('-')[0])
+  logResponse(requestId, response.status, duration)
+
+  if (!response.ok) {
+    let errorData: { message?: string; code?: string; data?: unknown } = {}
+    try {
+      errorData = await response.json()
+    } catch {
+      errorData = { message: `HTTP error! status: ${response.status}` }
+    }
+
+    const error = createApiError(
+      errorData.message || `HTTP error! status: ${response.status}`,
+      response.status,
+      errorData.code,
+      errorData.data
+    )
+    logError(requestId, error)
+    throw error
+  }
+
+  const contentType = response.headers.get('content-type')
+  if (contentType && contentType.includes('application/json')) {
+    return response.json()
+  }
+
+  return response.text() as unknown as T
+}
+
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { timeout = 30000, headers, retries = 2, retryDelay = 1000, ...rest } = options
+  const requestId = generateRequestId()
+  const { timeout = 30000, retries = 2, retryDelay = 1000, ...rest } = await applyRequestInterceptors(options)
+
+  logRequest(requestId, endpoint, { ...rest, timeout, retries })
 
   let attempt = 0
-  let lastError: Error | null = null
+  let lastError: ApiError | null = null
 
   while (attempt <= retries) {
     const abortController = new AbortController()
@@ -30,77 +129,68 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
 
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
         signal: abortController.signal,
         ...rest,
       })
 
       clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({
-          message: `HTTP error! status: ${response.status}`,
-        }))
-        throw new Error(error.message || `HTTP error! status: ${response.status}`)
-      }
-
-      return response.json()
+      return applyResponseInterceptors<T>(response, requestId)
     } catch (error) {
       clearTimeout(timeoutId)
 
-      if (error instanceof Error) {
-        lastError = error
+      const apiError = error instanceof Error
+        ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
+        : createApiError(String(error))
 
-        if (attempt < retries && isRetryableError(error)) {
-          attempt++
-          await delay(retryDelay * Math.pow(2, attempt - 1))
-          continue
+      lastError = apiError
+
+      if (attempt < retries && isRetryableError(apiError)) {
+        attempt++
+        const delayMs = retryDelay * Math.pow(2, attempt - 1)
+        if (import.meta.env.NODE_ENV === 'development') {
+          console.debug(`[API] [${requestId}] Retrying (${attempt}/${retries}) after ${delayMs}ms`)
         }
+        await delay(delayMs)
+        continue
       }
 
-      throw error
+      logError(requestId, apiError)
+      throw apiError
     }
   }
 
-  throw lastError || new Error('请求失败')
+  throw lastError || createApiError('请求失败')
 }
 
 export async function requestStream<T>(
   endpoint: string,
   options: RequestOptions = {},
   onData: (data: T) => void,
-  onError?: (error: Error) => void
+  onError?: (error: ApiError) => void
 ): Promise<void> {
-  const { headers, ...rest } = options
+  const requestId = generateRequestId()
+  const processedOptions = await applyRequestInterceptors(options)
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    credentials: 'same-origin',
-    ...rest,
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: `HTTP error! status: ${response.status}`,
-    }))
-    throw new Error(error.message || `HTTP error! status: ${response.status}`)
-  }
-
-  const reader = response.body?.getReader()
-  if (!reader) {
-    throw new Error('无法获取响应流')
-  }
-
-  const decoder = new TextDecoder('utf-8')
-  let buffer = ''
+  logRequest(requestId, endpoint, processedOptions)
 
   try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      credentials: 'same-origin',
+      ...processedOptions,
+    })
+
+    await applyResponseInterceptors(response, requestId)
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      const error = createApiError('无法获取响应流')
+      logError(requestId, error)
+      throw error
+    }
+
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
+
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
@@ -131,28 +221,36 @@ export async function requestStream<T>(
       }
     }
   } catch (error) {
-    onError?.(error as Error)
-    throw error
+    const apiError = error instanceof Error
+      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
+      : createApiError(String(error))
+    onError?.(apiError)
+    throw apiError
   }
 }
 
 export async function uploadFile(endpoint: string, file: File): Promise<{ url: string }> {
+  const requestId = generateRequestId()
+
+  logRequest(requestId, endpoint, { method: 'POST', body: 'FormData' })
+
   const formData = new FormData()
   formData.append('image', file)
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method: 'POST',
-    body: formData,
-  })
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      body: formData,
+    })
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: `File upload failed: ${response.status}`,
-    }))
-    throw new Error(error.message || `File upload failed: ${response.status}`)
+    return applyResponseInterceptors<{ url: string }>(response, requestId)
+  } catch (error) {
+    const apiError = error instanceof Error
+      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
+      : createApiError(String(error))
+    logError(requestId, apiError)
+    throw apiError
   }
-
-  return response.json()
 }
 
 export async function requestSSE(
@@ -160,9 +258,14 @@ export async function requestSSE(
   options: RequestOptions = {},
   onMessage: (content: string) => void,
   onComplete: (messageId: string) => void,
-  onError: (error: Error) => void,
+  onError: (error: ApiError) => void,
   controller?: AbortController
 ): Promise<void> {
+  const requestId = generateRequestId()
+  const processedOptions = await applyRequestInterceptors(options)
+
+  logRequest(requestId, endpoint, { ...processedOptions, method: 'POST' })
+
   try {
     const abortController = controller || new AbortController()
     const timeout = setTimeout(() => {
@@ -172,33 +275,37 @@ export async function requestSSE(
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         Accept: 'text/event-stream',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
-        ...options.headers,
+        ...processedOptions.headers,
       },
-      body: options.body,
+      body: processedOptions.body,
       credentials: 'same-origin',
       signal: abortController.signal,
-      ...options,
     })
 
     clearTimeout(timeout)
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      const error = await applyResponseInterceptors(response, requestId).catch((e) => e)
+      if (error instanceof Error) {
+        throw error
+      }
+      throw createApiError(`HTTP error! status: ${response.status}`, response.status)
     }
 
     if (!response.body) {
-      throw new Error('No response body')
+      const error = createApiError('No response body')
+      logError(requestId, error)
+      throw error
     }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
 
-    const processBuffer = () => {
+    const processBuffer = (): boolean => {
       const index = buffer.indexOf('\n\n')
       if (index === -1) return false
 
@@ -254,7 +361,13 @@ export async function requestSSE(
       }
     }
   } catch (error) {
-    console.error('SSE stream error:', error)
-    onError(error as Error)
+    const apiError = error instanceof Error
+      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
+      : createApiError(String(error))
+    logError(requestId, apiError)
+    onError(apiError)
   }
 }
+
+export { createApiError, isNetworkError }
+export type { ApiError }

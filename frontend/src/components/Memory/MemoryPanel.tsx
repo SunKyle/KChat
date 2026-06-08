@@ -12,7 +12,7 @@ import {
   Search,
   Database,
 } from 'lucide-react'
-import { memoryApi } from '../../utils/memoryApi'
+import { memory } from '../../api/memory'
 import { MEMORY_TYPES } from '../../types'
 import type { Memory, MemoryType } from '../../types'
 
@@ -58,7 +58,7 @@ export function MemoryPanel() {
   const loadMemories = async () => {
     setLoading(true)
     try {
-      const data = await memoryApi.getAll(userId)
+      const data = await memory.getAll(userId)
       setMemories(data)
     } catch (error) {
       console.error('加载记忆失败:', error)
@@ -74,7 +74,7 @@ export function MemoryPanel() {
     }
     setLoading(true)
     try {
-      const result = await memoryApi.recall({ userId, query, topK: 20 })
+      const result = await memory.recall({ userId, query, topK: 20 })
       setMemories(result.memories)
     } catch (error) {
       console.error('搜索失败:', error)
@@ -92,7 +92,7 @@ export function MemoryPanel() {
 
   const handleDelete = async (id: number) => {
     try {
-      await memoryApi.delete(id)
+      await memory.delete(id)
       setMemories(memories.filter((m) => m.id !== id))
       setSelectedMemories(selectedMemories.filter((i) => i !== id))
     } catch (error) {
@@ -102,26 +102,26 @@ export function MemoryPanel() {
 
   const handleBatchDelete = async () => {
     for (const id of selectedMemories) {
-      await memoryApi.delete(id)
+      await memory.delete(id)
     }
     setMemories(memories.filter((m) => !selectedMemories.includes(m.id)))
     setSelectedMemories([])
   }
 
-  const handleSubmit = async (memory: Memory | Omit<Memory, 'id' | 'createdAt'>) => {
+  const handleSubmit = async (memoryData: Memory | Omit<Memory, 'id' | 'createdAt'>) => {
     const data = {
       userId: 'default',
-      content: (memory as Memory).content,
-      type: (memory as Memory).type,
-      importance: (memory as Memory).importance,
+      content: (memoryData as Memory).content,
+      type: (memoryData as Memory).type,
+      importance: (memoryData as Memory).importance,
     }
 
     try {
-      if ('id' in memory) {
-        const updatedMemory = await memoryApi.update((memory as Memory).id, data)
-        setMemories(memories.map((m) => (m.id === (memory as Memory).id ? updatedMemory : m)))
+      if ('id' in memoryData) {
+        const updatedMemory = await memory.update((memoryData as Memory).id, data)
+        setMemories(memories.map((m) => (m.id === (memoryData as Memory).id ? updatedMemory : m)))
       } else {
-        const newMemory = await memoryApi.create(data)
+        const newMemory = await memory.create(data)
         setMemories([newMemory, ...memories])
       }
       setShowForm(false)
