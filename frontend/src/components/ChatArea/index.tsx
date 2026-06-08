@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, ArrowDown, Sparkles, Code, BookOpen, Lightbulb } from 'lucide-react'
+import { MessageCircle, ArrowDown, Code, BookOpen, Lightbulb } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
 import { MessageSkeleton } from '../common/Skeleton'

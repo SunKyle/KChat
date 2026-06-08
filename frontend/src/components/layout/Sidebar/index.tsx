@@ -1,5 +1,5 @@
 import {
-  Plus,
+  MessageSquare,
   MessageSquarePlus,
   PanelLeftClose,
   PanelLeft,
@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Search,
   X,
+  Settings,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { useUser } from '../../../context/UserContext'
@@ -142,15 +143,15 @@ export function Sidebar({
 
   return (
     <div className='flex flex-col h-full overflow-hidden border-r theme-border-secondary'>
-      <div className={`px-4 pt-4 pb-2 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+      <div className={`px-4 pt-4 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
         <div
-          className={`mb-4 ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
+          className={`${collapsed ? 'mb-2' : 'mb-4'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
         >
           <div className={`flex items-center gap-2 ${collapsed ? 'flex flex-col gap-1' : ''}`}>
             <img
               src='/kchat-icon.svg'
               alt='KChat'
-              className='w-7 h-7 object-contain flex-shrink-0'
+              className={`${collapsed ? 'w-6 h-6' : 'w-7 h-7'} object-contain flex-shrink-0`}
             />
             {!collapsed && (
               <div>
@@ -198,21 +199,16 @@ export function Sidebar({
           </div>
         )}
 
-        <button
-          onClick={createConversation}
-          aria-label='创建新对话'
-          className={`flex items-center transition-all font-medium ${
-            collapsed
-              ? 'w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-500 text-white rounded-full mt-4 justify-center shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-110 active:scale-95 transition-all duration-200 focus-ring'
-              : 'flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 rounded-xl font-secondary font-medium bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 focus-ring'
-          }`}
-        >
-          <MessageSquarePlus
-            className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`}
-            aria-hidden='true'
-          />
-          {!collapsed && <span>新对话</span>}
-        </button>
+        {!collapsed && (
+          <button
+            onClick={createConversation}
+            aria-label='创建新对话'
+            className='flex items-center justify-center gap-2 w-full mt-2 py-2.5 px-4 rounded-xl font-secondary font-medium bg-[var(--bg-card)] border border-[var(--border-primary)] theme-brand-primary hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.98] transition-all duration-200 focus-ring'
+          >
+            <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+            <span>新对话</span>
+          </button>
+        )}
 
         {collapsed && onToggle && (
           <button
@@ -224,6 +220,8 @@ export function Sidebar({
           </button>
         )}
       </div>
+
+      {collapsed && <div className='mx-3 divider' />}
 
       <div
         ref={scrollContainerRef}
@@ -268,7 +266,7 @@ export function Sidebar({
                       />
                       {group}
                     </span>
-                    <span className='text-xs opacity-60'>{items.length}</span>
+                    <span className='inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-medium rounded-full bg-[var(--bg-hover)] theme-text-muted'>{items.length}</span>
                   </button>
                 )}
                 {(collapsed || expandedGroups.has(group)) &&
@@ -296,9 +294,11 @@ export function Sidebar({
         )}
       </div>
 
+      {collapsed && <div className='mx-3 divider' />}
+
       <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className='w-full'>
-          <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''}`}>
+          <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}>
             <div className='w-8 h-8 rounded-full theme-bg-hover flex-shrink-0 flex items-center justify-center overflow-hidden'>
               {profile?.avatar ? (
                 <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
@@ -307,12 +307,15 @@ export function Sidebar({
               )}
             </div>
             {!collapsed && (
-              <div className='flex-1 min-w-0 space-y-1 text-left'>
-                <p className='font-conversation-name theme-text-primary truncate leading-tight'>
-                  {profile?.nickname || '用户'}
-                </p>
-                <p className='font-caption theme-text-muted truncate leading-tight'>Premium Plan</p>
-              </div>
+              <>
+                <div className='flex-1 min-w-0 space-y-0.5 text-left'>
+                  <p className='font-conversation-name theme-text-primary truncate leading-tight'>
+                    {profile?.nickname || '用户'}
+                  </p>
+                  <p className='font-caption theme-text-muted truncate leading-tight'>Premium Plan</p>
+                </div>
+                <Settings className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0' aria-hidden='true' />
+              </>
             )}
           </div>
         </div>

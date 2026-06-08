@@ -488,6 +488,39 @@ pre {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+@keyframes stream-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.animate-stream-pulse {
+  animation: stream-pulse 2s ease-in-out infinite;
+}
+
+@keyframes stream-bg {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(14, 165, 233, 0.04); }
+}
+
+.animate-stream-bg {
+  animation: stream-bg 2.5s ease-in-out infinite;
+}
+
+/* Thinking status bar */
+@keyframes thinking-spin {
+  to { transform: rotate(360deg); }
+}
+.thinking-spinner {
+  animation: thinking-spin 1.2s linear infinite;
+}
+@keyframes thinking-bar-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.thinking-bar-enter {
+  animation: thinking-bar-in 0.25s ease-out;
+}
+
 .animate-gradient-shift {
   background-size: 200% 200%;
   animation: gradient-shift 5s ease infinite;
@@ -958,6 +991,12 @@ input[type='search']::-webkit-search-decoration {
 }
 .theme-bg-brand-primary {
   background-color: var(--brand-primary);
+}
+.bg-brand-subtle {
+  background-color: rgba(14, 165, 233, 0.08);
+}
+.border-brand-subtle {
+  border-color: rgba(14, 165, 233, 0.15);
 }
 .theme-brand-success {
   color: var(--brand-success);
