@@ -91,19 +91,13 @@ export function ConversationItem({
             isActive ? 'theme-brand-primary text-white' : 'theme-bg-card theme-text-secondary'
           }`}
         >
-          {isStreaming ? (
-            <div className='flex gap-0.5'>
-              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0s' }} />
-              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.2s' }} />
-              <div className='w-1 h-1 rounded-full bg-current animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.4s' }} />
+          <span className='font-conversation-name'>{conversation.title.charAt(0)}</span>
+          {isStreaming && (
+            <div className='absolute inset-0 flex items-center justify-center'>
+              <div className='w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin' />
             </div>
-          ) : (
-            <span className='font-conversation-name'>{conversation.title.charAt(0)}</span>
           )}
         </div>
-        {isStreaming && (
-          <div className='absolute inset-0 w-8 h-8 rounded-full border-2 border-[var(--brand-primary)]/20 border-t-[var(--brand-primary)] animate-spin pointer-events-none' />
-        )}
         {hasNewReply && (
           <div className='absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full border-[1.5px] border-[var(--accent-emerald)] bg-white' />
         )}
@@ -130,15 +124,6 @@ export function ConversationItem({
       }`}
     >
       <div className='relative'>
-        {isStreaming && (
-          <div className='w-5 h-5 rounded-full flex items-center justify-center theme-brand-primary/10'>
-            <div className='flex gap-0.5'>
-              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0s' }} />
-              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.2s' }} />
-              <div className='w-1 h-1 rounded-full bg-[var(--brand-primary)] animate-[typing_1.4s_ease-in-out_infinite]' style={{ animationDelay: '0.4s' }} />
-            </div>
-          </div>
-        )}
         {hasNewReply && !isStreaming && (
           <div className='w-5 h-5 rounded-full flex items-center justify-center theme-accent-emerald/10'>
             <div className='w-2 h-2 rounded-full bg-[var(--accent-emerald)]' />
@@ -167,75 +152,82 @@ export function ConversationItem({
           </p>
         )}
       </div>
-      <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
-        {isEditing ? (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleSaveEdit()
-              }}
-              aria-label='保存编辑'
-              className='icon-btn focus-ring'
-            >
-              <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleCancelEdit()
-              }}
-              aria-label='取消编辑'
-              className='icon-btn focus-ring'
-            >
-              <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onPin(conversation.id, !conversation.pinned)
-              }}
-              aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
-              aria-pressed={conversation.pinned}
-              className='icon-btn focus-ring'
-            >
-              <Pin
-                className={`w-[15px] h-[15px] transition-colors ${
-                  conversation.pinned
-                    ? 'theme-accent-amber'
-                    : 'theme-text-muted hover:theme-text-secondary'
-                }`}
-                aria-hidden='true'
-              />
-            </button>
-            <button
-              onClick={handleStartEdit}
-              aria-label='编辑会话标题'
-              className='icon-btn focus-ring'
-            >
-              <Pencil
-                className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
-                aria-hidden='true'
-              />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete()
-              }}
-              aria-label='删除会话'
-              className='icon-btn focus-ring'
-            >
-              <Trash2
-                className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
-                aria-hidden='true'
-              />
-            </button>
-          </>
+      <div className='flex items-center gap-1'>
+        {isStreaming && (
+          <div className='w-5 h-5 rounded-full flex items-center justify-center theme-brand-primary/10'>
+            <div className='w-3 h-3 border-2 border-[var(--brand-primary)]/50 border-t-[var(--brand-primary)] rounded-full animate-spin' />
+          </div>
         )}
+        <div className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}>
+          {isEditing ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSaveEdit()
+                }}
+                aria-label='保存编辑'
+                className='icon-btn focus-ring'
+              >
+                <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCancelEdit()
+                }}
+                aria-label='取消编辑'
+                className='icon-btn focus-ring'
+              >
+                <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
+              </button>
+            </>
+          ) : !isStreaming ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPin(conversation.id, !conversation.pinned)
+                }}
+                aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
+                aria-pressed={conversation.pinned}
+                className='icon-btn focus-ring'
+              >
+                <Pin
+                  className={`w-[15px] h-[15px] transition-colors ${
+                    conversation.pinned
+                      ? 'theme-accent-amber'
+                      : 'theme-text-muted hover:theme-text-secondary'
+                  }`}
+                  aria-hidden='true'
+                />
+              </button>
+              <button
+                onClick={handleStartEdit}
+                aria-label='编辑会话标题'
+                className='icon-btn focus-ring'
+              >
+                <Pencil
+                  className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
+                  aria-hidden='true'
+                />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                aria-label='删除会话'
+                className='icon-btn focus-ring'
+              >
+                <Trash2
+                  className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
+                  aria-hidden='true'
+                />
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
     </div>
   )
