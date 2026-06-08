@@ -53,9 +53,7 @@ function AppContent() {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         >
-          <div
-            className={`h-full card-float-solid overflow-hidden ${sidebarWidth}`}
-          >
+          <div className={`h-full card-float-solid overflow-hidden ${sidebarWidth}`}>
             <Sidebar
               collapsed={sidebarCollapsed}
               onToggle={toggleCollapsed}
@@ -77,19 +75,21 @@ function AppContent() {
         </button>
 
         <div
-          className={`flex-1 flex flex-col overflow-hidden relative ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
+          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-4 lg:pt-6 lg:pb-6 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
-          <Header onSettingsClick={() => openSettings('profile')} />
-          {showSettings ? (
-            <div className='flex-1 overflow-y-auto p-6'>
-              <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
-            </div>
-          ) : (
-            <>
-              <ChatArea />
-              {activeConversation && <InputArea />}
-            </>
-          )}
+          <div className='flex flex-col h-full card-float-solid mx-4 lg:mx-6'>
+            <Header onSettingsClick={() => openSettings('profile')} />
+            {showSettings ? (
+              <div className='flex-1 overflow-y-auto p-6'>
+                <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
+              </div>
+            ) : (
+              <div className='flex-1 flex flex-col overflow-hidden'>
+                <ChatArea />
+                {activeConversation && <InputArea />}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -111,7 +111,7 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className='flex flex-col card-float-solid focus-within:shadow-[0_4px_16px_rgba(147,197,253,0.15),0_8px_24px_rgba(147,197,253,0.1)] transition-all duration-300 ease-out'>
+        <div className='flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.08),0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 ease-out focus-within:shadow-[0_6px_24px_rgba(147,197,253,0.18),0_10px_40px_rgba(147,197,253,0.12)]'>
           {/* 上半部分：文本输入区域 */}
           <div className='px-5 py-3'>
             <textarea

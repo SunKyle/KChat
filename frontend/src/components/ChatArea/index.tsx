@@ -77,7 +77,7 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className='flex-1 flex items-center justify-center theme-bg-primary'>
+      <div className='flex-1 flex items-center justify-center'>
         <div className='text-center theme-text-muted animate-fade-in px-4'>
           <MessageCircle className='w-20 h-20 mx-auto mb-4 opacity-40' />
           <h2 className='font-h3 mb-2 theme-text-primary'>选择或创建对话</h2>
@@ -90,7 +90,7 @@ export function ChatArea() {
   }
 
   return (
-    <div className='flex-1 flex flex-col theme-bg-primary min-h-0 relative'>
+    <div className='flex-1 flex flex-col min-h-0 relative'>
       <ErrorCard
         isVisible={!!error}
         severity='error'
