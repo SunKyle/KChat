@@ -90,10 +90,10 @@
   --duration-slow: 300ms;
 
   /* --- Light Theme (default) --- */
-  --bg-primary: #f8f9fa;
+  --bg-primary: #f1f1f6;
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-hover: #f1f5f9;
+  --bg-hover: #e8e8ef;
   --bg-input: rgba(0, 0, 0, 0.03);
   --bg-overlay: rgba(0, 0, 0, 0.4);
 

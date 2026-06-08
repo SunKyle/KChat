@@ -85,12 +85,12 @@ export const lightTheme: ThemeConfig = {
   label: '明亮主题',
   colors: {
     bg: {
-      primary: '#ffffff',
-      sidebar: '#f1f5f9',
-      card: '#f8fafc',
-      hover: '#e2e8f0',
-      input: 'rgba(0, 0, 0, 0.05)',
-      overlay: 'rgba(0, 0, 0, 0.5)',
+      primary: '#F1F1F6',
+      sidebar: '#ffffff',
+      card: '#ffffff',
+      hover: '#e8e8ef',
+      input: 'rgba(0, 0, 0, 0.03)',
+      overlay: 'rgba(0, 0, 0, 0.4)',
     },
     text: {
       primary: '#0f172a',
