@@ -82,7 +82,7 @@ export function ConversationItem({
         role='button'
         aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
         aria-current={isActive ? 'true' : undefined}
-        className={`relative flex items-center justify-center py-1.5 px-1 rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
+        className={`relative flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           isActive ? 'theme-bg-hover' : 'hover:theme-bg-hover/60'
         }`}
       >
@@ -158,7 +158,9 @@ export function ConversationItem({
             <div className='w-3 h-3 border-2 border-[var(--brand-primary)]/50 border-t-[var(--brand-primary)] rounded-full animate-spin' />
           </div>
         )}
-        <div className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}>
+        <div
+          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
+        >
           {isEditing ? (
             <>
               <button
