@@ -96,7 +96,7 @@ export function ConversationItem({
           {isStreaming ? (
             <div className="w-3.5 h-3.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
-            <span className="text-sm font-medium">
+            <span className="font-conversation-name">
               {conversation.title.charAt(0)}
             </span>
           )}
@@ -138,7 +138,7 @@ export function ConversationItem({
           {isStreaming ? (
             <div className="w-4.5 h-4.5 border-2 border-[var(--text-muted)]/50 border-t-[var(--text-primary)] rounded-full animate-spin" />
           ) : (
-            <span className="text-sm font-semibold">
+            <span className="font-conversation-name font-weight-semibold">
               {conversation.title.charAt(0)}
             </span>
           )}
@@ -156,12 +156,12 @@ export function ConversationItem({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSaveEdit}
-            className="w-full px-2.5 py-1.5 text-sm theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50"
+            className="w-full px-2.5 py-1.5 font-secondary theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <p
-            className={`text-sm font-medium truncate transition-colors duration-150 ${
+            className={`font-conversation-name truncate transition-colors duration-150 ${
               isActive ? 'theme-text-primary' : 'theme-text-secondary'
             }`}
           >

@@ -172,12 +172,10 @@ export function Sidebar({
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-base font-semibold theme-text-primary tracking-tight">
+                <h1 className="font-logo theme-text-primary tracking-tight">
                   KChat
                 </h1>
-                <p className="text-[11px] theme-text-muted uppercase tracking-wider font-medium">
-                  Productivity AI
-                </p>
+                <p className="font-tagline theme-text-muted">Productivity AI</p>
               </div>
             )}
           </div>
@@ -204,7 +202,7 @@ export function Sidebar({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索会话..."
               aria-label="搜索会话"
-              className="w-full pl-10 pr-10 py-2.5 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder text-sm focus:outline-none focus:border-[var(--accent-sky)]/50"
+              className="w-full pl-10 pr-10 py-2.5 theme-bg-input border theme-border-primary rounded-lg theme-text-primary placeholder-theme-text-placeholder font-secondary focus:outline-none focus:border-[var(--accent-sky)]/50"
             />
             {searchQuery && (
               <button
@@ -285,7 +283,7 @@ export function Sidebar({
                     onClick={() => toggleGroup(group)}
                     aria-expanded={expandedGroups.has(group)}
                     aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                    className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-2 font-group-title theme-text-muted uppercase tracking-widest hover:theme-bg-hover rounded-md transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <ChevronRight
@@ -348,10 +346,10 @@ export function Sidebar({
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0 space-y-1 text-left">
-                <p className="text-sm font-medium theme-text-primary truncate leading-tight">
+                <p className="font-conversation-name theme-text-primary truncate leading-tight">
                   {profile?.nickname || '用户'}
                 </p>
-                <p className="text-[11px] theme-text-muted truncate leading-tight">
+                <p className="font-tiny theme-text-muted truncate leading-tight">
                   Premium Plan
                 </p>
               </div>

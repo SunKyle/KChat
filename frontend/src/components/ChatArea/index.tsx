@@ -99,14 +99,14 @@ export function ChatArea() {
         isVisible={!!error}
         severity="error"
         title="发生错误"
-        description={error}
+        description={error ?? undefined}
         showCloseButton
         onClose={clearError}
         showRetryButton
         onRetry={() => {
           clearError()
         }}
-        position="top"
+
       />
 
       <div

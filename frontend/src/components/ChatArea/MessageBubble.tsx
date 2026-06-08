@@ -80,12 +80,14 @@ export const MessageBubble = memo(function MessageBubble({
       </div>
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
-        <div className={`relative inline-block max-w-[85%] transition-all ${
+        <div
+          className={`relative inline-block max-w-[85%] transition-all ${
             isUser ? 'theme-text-primary' : 'bg-transparent theme-text-primary'
-          }`}>
+          }`}
+        >
           {isThinking && !message.content ? (
             <div className="flex items-center gap-2 py-1">
-              <span className="theme-text-muted text-sm font-medium">
+              <span className="theme-text-muted font-secondary font-weight-medium">
                 AI 正在思考
               </span>
               <div className="flex items-center gap-1">
@@ -146,7 +148,7 @@ export const MessageBubble = memo(function MessageBubble({
         <div
           className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}
         >
-          <span className="text-[10px] font-medium theme-text-muted uppercase">
+          <span className="font-tiny font-weight-medium theme-text-muted uppercase">
             {formatTimestamp(message.timestamp)}
           </span>
 

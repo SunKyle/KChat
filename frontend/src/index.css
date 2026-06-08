@@ -7,46 +7,49 @@
     -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
   --font-family-mono:
-    'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+    'JetBrains Mono', 'SF Mono', 'Fira Code', 'Monaco', 'Consolas',
+    'Liberation Mono', monospace;
 
-  --font-size-xs: 11px;
-  --font-size-sm: 13px;
-  --font-size-base: 15px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-  --font-size-2xl: 20px;
-  --font-size-3xl: 24px;
-  --font-size-4xl: 28px;
-  --font-size-5xl: 32px;
-  --font-size-6xl: 36px;
-  --font-size-7xl: 40px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
-  --font-heading-h1: 28px;
-  --font-heading-h2: 24px;
-  --font-heading-h3: 20px;
-  --font-heading-h4: 18px;
-  --font-heading-h5: 16px;
-  --font-heading-h6: 15px;
+  --font-display: 32px;
+  --font-h1: 28px;
+  --font-h2: 24px;
+  --font-h3: 20px;
+  --font-title: 18px;
+  --font-body-l: 16px;
+  --font-body-m: 15px;
+  --font-secondary: 14px;
+  --font-caption: 12px;
+  --font-tiny: 11px;
 
-  --font-body-large: 16px;
-  --font-body-base: 15px;
-  --font-body-small: 14px;
-  --font-body-caption: 13px;
-  --font-body-tiny: 12px;
+  --line-height-display: 40px;
+  --line-height-h1: 36px;
+  --line-height-h2: 32px;
+  --line-height-h3: 28px;
+  --line-height-title: 26px;
+  --line-height-body-l: 30px;
+  --line-height-body-m: 28px;
+  --line-height-secondary: 24px;
+  --line-height-caption: 18px;
+  --line-height-tiny: 16px;
 
-  --font-button-large: 15px;
-  --font-button-base: 14px;
-  --font-button-small: 13px;
-  --font-button-tiny: 12px;
-
-  --font-code-large: 15px;
-  --font-code-base: 14px;
-  --font-code-small: 13px;
-
-  --line-height-tight: 1.4;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.6;
-  --line-height-loose: 1.8;
+  --font-logo: 18px;
+  --font-tagline: 11px;
+  --font-group-title: 13px;
+  --font-conversation-name: 14px;
+  --font-current-title: 18px;
+  --font-model-name: 14px;
+  --font-status-tag: 13px;
+  --font-ai-message: 16px;
+  --font-user-message: 15px;
+  --font-code-block: 13px;
+  --font-input-text: 15px;
+  --font-placeholder: 15px;
+  --font-helper-text: 12px;
 
   --bg-primary: #0f172a;
   --bg-sidebar: #111827;
@@ -309,8 +312,9 @@
 
 body {
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-body-m);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -319,101 +323,30 @@ body {
 
 @media (max-width: 640px) {
   :root {
-    --font-size-xs: 11px;
-    --font-size-sm: 12px;
-    --font-size-base: 14px;
-    --font-size-lg: 15px;
-    --font-size-xl: 16px;
-    --font-size-2xl: 18px;
-    --font-size-3xl: 22px;
-    --font-size-4xl: 26px;
-    --font-size-5xl: 30px;
+    --font-display: 28px;
+    --font-h1: 24px;
+    --font-h2: 20px;
+    --font-h3: 18px;
+    --font-title: 16px;
+    --font-body-l: 15px;
+    --font-body-m: 14px;
+    --font-secondary: 13px;
+    --font-caption: 11px;
+    --font-tiny: 10px;
 
-    --font-heading-h1: 24px;
-    --font-heading-h2: 20px;
-    --font-heading-h3: 18px;
-    --font-heading-h4: 16px;
-    --font-heading-h5: 15px;
-    --font-heading-h6: 14px;
+    --line-height-display: 36px;
+    --line-height-h1: 32px;
+    --line-height-h2: 28px;
+    --line-height-h3: 26px;
+    --line-height-title: 24px;
+    --line-height-body-l: 28px;
+    --line-height-body-m: 26px;
+    --line-height-secondary: 22px;
+    --line-height-caption: 16px;
+    --line-height-tiny: 14px;
 
-    --font-body-large: 15px;
-    --font-body-base: 14px;
-    --font-body-small: 13px;
-    --font-body-caption: 12px;
-
-    --font-button-large: 14px;
-    --font-button-base: 13px;
-    --font-button-small: 12px;
-
-    --font-code-large: 14px;
-    --font-code-base: 13px;
-    --font-code-small: 12px;
-  }
-
-  body {
-    font-size: var(--font-size-base);
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  :root {
-    --font-size-xs: 11px;
-    --font-size-sm: 13px;
-    --font-size-base: 15px;
-    --font-size-lg: 16px;
-    --font-size-xl: 18px;
-    --font-size-2xl: 20px;
-    --font-size-3xl: 24px;
-    --font-size-4xl: 28px;
-    --font-size-5xl: 32px;
-
-    --font-heading-h1: 26px;
-    --font-heading-h2: 22px;
-    --font-heading-h3: 19px;
-    --font-heading-h4: 17px;
-    --font-heading-h5: 16px;
-    --font-heading-h6: 15px;
-
-    --font-body-large: 16px;
-    --font-body-base: 15px;
-    --font-body-small: 14px;
-    --font-body-caption: 13px;
-  }
-
-  body {
-    font-size: var(--font-size-base);
-  }
-}
-
-@media (min-width: 1025px) {
-  :root {
-    --font-size-xs: 11px;
-    --font-size-sm: 13px;
-    --font-size-base: 15px;
-    --font-size-lg: 16px;
-    --font-size-xl: 18px;
-    --font-size-2xl: 20px;
-    --font-size-3xl: 24px;
-    --font-size-4xl: 28px;
-    --font-size-5xl: 32px;
-    --font-size-6xl: 36px;
-    --font-size-7xl: 40px;
-
-    --font-heading-h1: 28px;
-    --font-heading-h2: 24px;
-    --font-heading-h3: 20px;
-    --font-heading-h4: 18px;
-    --font-heading-h5: 16px;
-    --font-heading-h6: 15px;
-
-    --font-body-large: 16px;
-    --font-body-base: 15px;
-    --font-body-small: 14px;
-    --font-body-caption: 13px;
-  }
-
-  body {
-    font-size: var(--font-size-base);
+    --font-group-title: 12px;
+    --font-code-block: 12px;
   }
 }
 
@@ -457,14 +390,15 @@ body {
 
 .markdown-body {
   font-family: inherit;
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-relaxed);
+  font-size: var(--font-body-l);
+  line-height: var(--line-height-body-l);
   color: var(--text-primary);
 }
 
 .markdown-body h1 {
-  font-size: var(--font-heading-h1);
-  font-weight: 600;
+  font-size: var(--font-h1);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h1);
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-primary);
   margin-top: 24px;
@@ -472,8 +406,9 @@ body {
 }
 
 .markdown-body h2 {
-  font-size: var(--font-heading-h2);
-  font-weight: 600;
+  font-size: var(--font-h2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h2);
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-primary);
   margin-top: 24px;
@@ -481,29 +416,31 @@ body {
 }
 
 .markdown-body h3 {
-  font-size: var(--font-heading-h3);
-  font-weight: 600;
+  font-size: var(--font-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h3);
   margin-top: 24px;
   margin-bottom: 16px;
 }
 
 .markdown-body h4 {
-  font-size: var(--font-heading-h4);
-  font-weight: 600;
+  font-size: var(--font-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
   margin-top: 24px;
   margin-bottom: 16px;
 }
 
 .markdown-body h5 {
-  font-size: var(--font-heading-h5);
-  font-weight: 600;
+  font-size: var(--font-body-l);
+  font-weight: var(--font-weight-semibold);
   margin-top: 24px;
   margin-bottom: 16px;
 }
 
 .markdown-body h6 {
-  font-size: var(--font-heading-h6);
-  font-weight: 600;
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-semibold);
   margin-top: 24px;
   margin-bottom: 16px;
 }
@@ -533,17 +470,20 @@ body {
 
 .markdown-body code {
   padding: 0.2em 0.4em;
-  font-size: var(--font-code-small);
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-normal);
   background-color: var(--bg-card);
   border-radius: 0.375rem;
-  font-family: 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+  font-family:
+    'JetBrains Mono', 'SF Mono', 'Fira Code', 'Monaco', 'Consolas',
+    'Liberation Mono', monospace;
 }
 
 .markdown-body pre {
   padding: 16px;
   overflow: auto;
-  font-size: var(--font-code-base);
-  line-height: var(--line-height-relaxed);
+  font-size: var(--font-code-block);
+  line-height: 20px;
   background-color: var(--bg-card);
   border-radius: 0.375rem;
   margin-bottom: 16px;
@@ -706,4 +646,154 @@ body {
 
 .theme-bg-overlay {
   background-color: var(--bg-overlay);
+}
+
+.font-display {
+  font-size: var(--font-display);
+  line-height: var(--line-height-display);
+  font-weight: var(--font-weight-bold);
+}
+
+.font-h1 {
+  font-size: var(--font-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-h2 {
+  font-size: var(--font-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-h3 {
+  font-size: var(--font-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-title {
+  font-size: var(--font-title);
+  line-height: var(--line-height-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-body-l {
+  font-size: var(--font-body-l);
+  line-height: var(--line-height-body-l);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-body-m {
+  font-size: var(--font-body-m);
+  line-height: var(--line-height-body-m);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-secondary {
+  font-size: var(--font-secondary);
+  line-height: var(--line-height-secondary);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-caption {
+  font-size: var(--font-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-tiny {
+  font-size: var(--font-tiny);
+  line-height: var(--line-height-tiny);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-logo {
+  font-size: var(--font-logo);
+  font-weight: var(--font-weight-bold);
+}
+
+.font-tagline {
+  font-size: var(--font-tagline);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.15em;
+}
+
+.font-group-title {
+  font-size: var(--font-group-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-conversation-name {
+  font-size: var(--font-conversation-name);
+  font-weight: var(--font-weight-medium);
+}
+
+.font-current-title {
+  font-size: var(--font-current-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-model-name {
+  font-size: var(--font-model-name);
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-status-tag {
+  font-size: var(--font-status-tag);
+  font-weight: var(--font-weight-medium);
+}
+
+.font-ai-message {
+  font-size: var(--font-ai-message);
+  line-height: var(--line-height-body-l);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-user-message {
+  font-size: var(--font-user-message);
+  line-height: var(--line-height-body-m);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-code-block {
+  font-size: var(--font-code-block);
+  line-height: 20px;
+  font-weight: var(--font-weight-normal);
+  font-family:
+    'JetBrains Mono', 'SF Mono', 'Fira Code', 'Monaco', 'Consolas',
+    'Liberation Mono', monospace;
+}
+
+.font-input-text {
+  font-size: var(--font-input-text);
+  line-height: var(--line-height-body-m);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-placeholder {
+  font-size: var(--font-placeholder);
+  line-height: var(--line-height-body-m);
+  font-weight: var(--font-weight-normal);
+}
+
+.font-helper-text {
+  font-size: var(--font-helper-text);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-normal);
+}
+.font-weight-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.font-weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-weight-bold {
+  font-weight: var(--font-weight-bold);
 }

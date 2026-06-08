@@ -137,7 +137,7 @@ export function InputArea() {
               placeholder={
                 streamingState.isStreaming ? 'AI 正在思考中...' : '输入消息...'
               }
-              className="w-full resize-none bg-transparent px-0 py-2 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[44px] max-h-[200px] overflow-y-auto text-base leading-relaxed"
+              className="w-full resize-none bg-transparent px-0 py-2 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[44px] max-h-[200px] overflow-y-auto font-input-text"
             />
           </div>
 
@@ -208,7 +208,7 @@ export function InputArea() {
             {/* 右侧：提示文字和发送按钮 */}
             <div className="flex items-center gap-2">
               {/* 键盘提示 */}
-              <span className="text-sm theme-text-muted/70">
+              <span className="font-secondary theme-text-muted/70">
                 Shift + Enter 换行, Enter 发送
               </span>
 

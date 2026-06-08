@@ -46,52 +46,127 @@ export const tokens = {
   font: {
     family: {
       sans: '-apple-system, BlinkMacSystemFont, SF Pro Display, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif',
-      mono: 'SF Mono, Fira Code, Monaco, Consolas, Liberation Mono, monospace',
+      mono: 'JetBrains Mono, SF Mono, Fira Code, Monaco, Consolas, Liberation Mono, monospace',
     },
-    sizes: {
-      xs: '10px',
-      sm: '12px',
-      base: '14px',
-      lg: '15px',
-      xl: '16px',
-      '2xl': '18px',
-      '3xl': '20px',
-      '4xl': '24px',
-      '5xl': '28px',
-      '6xl': '32px',
-      '7xl': '36px',
+    weights: {
+      normal: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
     },
-    heading: {
-      h1: '32px',
-      h2: '28px',
-      h3: '24px',
-      h4: '20px',
-      h5: '18px',
-      h6: '16px',
+    typography: {
+      display: {
+        fontSize: '32px',
+        lineHeight: '40px',
+        fontWeight: '700',
+      },
+      h1: {
+        fontSize: '28px',
+        lineHeight: '36px',
+        fontWeight: '600',
+      },
+      h2: {
+        fontSize: '24px',
+        lineHeight: '32px',
+        fontWeight: '600',
+      },
+      h3: {
+        fontSize: '20px',
+        lineHeight: '28px',
+        fontWeight: '600',
+      },
+      title: {
+        fontSize: '18px',
+        lineHeight: '26px',
+        fontWeight: '600',
+      },
+      bodyL: {
+        fontSize: '16px',
+        lineHeight: '30px',
+        fontWeight: '400',
+      },
+      bodyM: {
+        fontSize: '15px',
+        lineHeight: '28px',
+        fontWeight: '400',
+      },
+      secondary: {
+        fontSize: '14px',
+        lineHeight: '24px',
+        fontWeight: '400',
+      },
+      caption: {
+        fontSize: '12px',
+        lineHeight: '18px',
+        fontWeight: '400',
+      },
+      tiny: {
+        fontSize: '11px',
+        lineHeight: '16px',
+        fontWeight: '400',
+      },
     },
-    body: {
-      large: '16px',
-      base: '14px',
-      small: '13px',
-      caption: '12px',
-      tiny: '11px',
-    },
-    button: {
-      large: '15px',
-      base: '14px',
-      small: '13px',
-      tiny: '12px',
-    },
-    code: {
-      large: '14px',
-      base: '13px',
-      small: '12px',
-    },
-    lineHeight: {
-      tight: '1.4',
-      normal: '1.5',
-      relaxed: '1.6',
-      loose: '1.8',
+    components: {
+      logo: {
+        fontSize: '18px',
+        fontWeight: '700',
+      },
+      tagline: {
+        fontSize: '11px',
+        fontWeight: '500',
+        letterSpacing: '0.15em',
+      },
+      groupTitle: {
+        fontSize: '13px',
+        fontWeight: '600',
+      },
+      conversationName: {
+        fontSize: '14px',
+        fontWeight: '500',
+      },
+      currentTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+      },
+      modelName: {
+        fontSize: '14px',
+        fontWeight: '600',
+      },
+      statusTag: {
+        fontSize: '13px',
+        fontWeight: '500',
+      },
+      aiMessage: {
+        fontSize: '16px',
+        lineHeight: '30px',
+        fontWeight: '400',
+      },
+      userMessage: {
+        fontSize: '15px',
+        lineHeight: '28px',
+        fontWeight: '400',
+      },
+      codeBlock: {
+        fontSize: '13px',
+        lineHeight: '20px',
+        fontWeight: '400',
+        fontFamily: 'JetBrains Mono, SF Mono, Fira Code, monospace',
+      },
+      inputText: {
+        fontSize: '15px',
+        lineHeight: '28px',
+        fontWeight: '400',
+      },
+      placeholder: {
+        fontSize: '15px',
+        lineHeight: '28px',
+        fontWeight: '400',
+      },
+      helperText: {
+        fontSize: '12px',
+        lineHeight: '18px',
+        fontWeight: '400',
+      },
     },
   },
   spacing: {
