@@ -111,9 +111,9 @@ export function InputArea() {
         )}
 
         {/* 输入框容器 */}
-        <div className='flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.08),0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 ease-out focus-within:shadow-[0_6px_24px_rgba(147,197,253,0.18),0_10px_40px_rgba(147,197,253,0.12)]'>
+        <div className='flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_6px_24px_rgba(0,0,0,0.03)] transition-all duration-300 ease-out focus-within:shadow-[0_5px_20px_rgba(147,197,253,0.15),0_8px_32px_rgba(147,197,253,0.1)]'>
           {/* 上半部分：文本输入区域 */}
-          <div className='px-5 py-3'>
+          <div className='px-4 py-1.5'>
             <textarea
               ref={textareaRef}
               value={input}
@@ -121,12 +121,12 @@ export function InputArea() {
               onKeyDown={handleKeyDown}
               disabled={streamingState.isStreaming}
               placeholder={streamingState.isStreaming ? 'AI 正在思考中...' : '输入消息...'}
-              className='w-full resize-none bg-transparent px-0 py-2 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[48px] max-h-[200px] overflow-y-auto font-input-text'
+              className='w-full resize-none bg-transparent px-0 py-1 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[32px] max-h-[200px] overflow-y-auto font-input-text'
             />
           </div>
 
           {/* 下半部分：工具栏 */}
-          <div className='flex items-center justify-between px-5 pt-1 pb-3'>
+          <div className='flex items-center justify-between px-4 pt-0.5 pb-2'>
             {/* 左侧：功能按钮 */}
             <div className='flex items-center gap-1'>
               {/* 上传文件按钮（包括图片） */}
@@ -207,7 +207,7 @@ export function InputArea() {
                   }
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`relative flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-200 ease-out ${
+                className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 ease-out ${
                   streamingState.isStreaming
                     ? 'bg-red-500/15 text-red-500 hover:bg-red-500/25 hover:scale-105 cursor-pointer'
                     : uploading
@@ -221,11 +221,11 @@ export function InputArea() {
                 }
               >
                 {streamingState.isStreaming ? (
-                  <Square className='w-5 h-5' fill='currentColor' />
+                  <Square className='w-4 h-4' fill='currentColor' />
                 ) : uploading ? (
-                  <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin' />
+                  <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
                 ) : (
-                  <Send className='w-5 h-5' />
+                  <Send className='w-4 h-4' />
                 )}
               </button>
             </div>
