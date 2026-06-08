@@ -116,6 +116,8 @@ const IconMap: Record<
 
 export type IconName = keyof typeof IconMap
 
+export type { IconName as LucideIconName }
+
 export interface IconProps {
   name: IconName
   size?: number

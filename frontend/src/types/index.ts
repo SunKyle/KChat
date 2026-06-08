@@ -127,17 +127,7 @@ export interface Memory {
   isRule?: boolean
 }
 
-export type IconName =
-  | 'BookOpen'
-  | 'FileText'
-  | 'CheckCircle'
-  | 'Heart'
-  | 'Lightbulb'
-  | 'X'
-  | 'Edit2'
-  | 'Trash2'
-  | 'Star'
-  | 'AlertCircle'
+export type IconName = import('../components/Icon').IconName
 
 export interface MemoryTypeInfo {
   type: MemoryType

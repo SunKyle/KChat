@@ -7,24 +7,23 @@ import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { UserSettings } from './components/Settings/UserSettings'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
-
-type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
+import { useSidebar } from './hooks/useSidebar'
+import { useSettings } from './hooks/useSettings'
 
 function AppContent() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    id: string
-    title: string
-  } | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>('profile')
-
+  const {
+    sidebarOpen,
+    sidebarCollapsed,
+    sidebarWidth,
+    setSidebarOpen,
+    toggleCollapsed,
+    toggleSidebar,
+  } = useSidebar()
+  const { showSettings, settingsTab, openSettings, closeSettings } = useSettings()
   const { deleteConversation, activeConversation } = useChat()
-
-  const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-72'
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
 
   const handleDeleteClick = (id: string, title: string) => {
     setDeleteConfirm({ id, title })
@@ -36,19 +35,6 @@ function AppContent() {
       setDeleteConfirm(null)
     }
   }
-
-  // 监听打开设置事件
-  useEffect(() => {
-    const handleOpenSettings = (event: CustomEvent<{ tab: SettingsTab }>) => {
-      setSettingsTab(event.detail.tab)
-      setShowSettings(true)
-    }
-
-    window.addEventListener('open-settings', handleOpenSettings as EventListener)
-    return () => {
-      window.removeEventListener('open-settings', handleOpenSettings as EventListener)
-    }
-  }, [])
 
   return (
     <>
@@ -72,15 +58,15 @@ function AppContent() {
           >
             <Sidebar
               collapsed={sidebarCollapsed}
-              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onToggle={toggleCollapsed}
               onDeleteClick={handleDeleteClick}
-              onConversationClick={() => setShowSettings(false)}
+              onConversationClick={() => closeSettings()}
             />
           </div>
         </aside>
 
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+          onClick={toggleSidebar}
           className='fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-lg hover:theme-bg-hover transition-colors'
         >
           {sidebarOpen ? (
@@ -93,15 +79,10 @@ function AppContent() {
         <div
           className={`flex-1 flex flex-col overflow-hidden relative ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
-          <Header
-            onSettingsClick={() => {
-              setSettingsTab('profile')
-              setShowSettings(true)
-            }}
-          />
+          <Header onSettingsClick={() => openSettings('profile')} />
           {showSettings ? (
             <div className='flex-1 overflow-y-auto p-6'>
-              <UserSettings onClose={() => setShowSettings(false)} defaultTab={settingsTab} />
+              <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
             </div>
           ) : (
             <>
