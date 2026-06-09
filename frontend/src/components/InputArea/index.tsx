@@ -9,14 +9,38 @@ export function InputArea() {
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [showStatusBar, setShowStatusBar] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
   const { sendMessage, streamingState, activeConversation, createConversation, stopStreaming } =
     useChat()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const charCount = input.length
   const maxChars = 2000
   const maxImages = 5
+
+  // 状态条滑出/收起动画
+  useEffect(() => {
+    if (streamingState.isStreaming) {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current)
+        exitTimerRef.current = null
+      }
+      setIsExiting(false)
+      setShowStatusBar(true)
+    } else if (showStatusBar) {
+      setIsExiting(true)
+      exitTimerRef.current = setTimeout(() => {
+        setShowStatusBar(false)
+        setIsExiting(false)
+      }, 300)
+    }
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current)
+    }
+  }, [streamingState.isStreaming])
 
   // 流式计时器
   useEffect(() => {
@@ -128,44 +152,44 @@ export function InputArea() {
           </div>
         )}
 
+        {/* 状态条 — 在输入框背后，从顶部滑出 */}
+        <div className='relative z-0 mx-4 lg:mx-6 mb-0'>
+          {showStatusBar && (() => {
+            const isOutputting = streamingState.currentContent.length > 0
+            return (
+              <div className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl transition-all duration-300 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
+                isExiting ? 'opacity-0 -translate-y-full scale-y-0' : 'opacity-100 translate-y-0 scale-y-100'
+              } ${
+                isOutputting ? 'bg-sky-200/40' : 'bg-amber-200/40'
+              }`} style={{ transformOrigin: 'bottom center' }}>
+                <div className='flex items-center gap-2'>
+                  <div className={`w-2 h-2 rounded-full transition-colors duration-500 ${
+                    isOutputting ? 'bg-sky-500' : 'bg-amber-500'
+                  }`} />
+                  <span className={`text-[12px] font-medium transition-colors duration-500 ${
+                    isOutputting ? 'text-sky-700' : 'text-amber-700'
+                  }`}>{isOutputting ? '正在输出...' : '正在思考...'}</span>
+                </div>
+                <span className={`text-[11px] font-secondary tabular-nums transition-colors duration-500 ${
+                  isOutputting ? 'text-sky-600/70' : 'text-amber-600/70'
+                }`}>{elapsedSeconds}s</span>
+              </div>
+            )
+          })()}
+        </div>
+
         {/* 输入框容器 */}
         {(() => {
           const isOutputting = streamingState.isStreaming && streamingState.currentContent.length > 0
           const isThinking = streamingState.isStreaming && !isOutputting
           return (
-          <div className={`flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
+          <div className={`relative z-10 -mt-3 flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
             isThinking
               ? 'input-glow-thinking'
               : isOutputting
                 ? 'input-glow-outputting'
                 : 'input-glow-focus'
           }`}>
-          {/* AI 思考/输出状态条 */}
-          {streamingState.isStreaming && (() => {
-            const isOutputting = streamingState.currentContent.length > 0
-            return (
-              <div className={`thinking-bar-enter flex items-center justify-between px-4 py-2.5 mx-2 mt-2 rounded-xl transition-colors duration-500 ${
-                isOutputting ? 'bg-sky-50/80' : 'bg-amber-50/80'
-              }`}>
-                <div className='flex items-center gap-2.5'>
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-500 ${
-                    isOutputting ? 'border-[1.5px] border-sky-500/60' : 'border-[1.5px] border-amber-500/60'
-                  }`}>
-                    <div className={`w-2.5 h-2.5 border-[1.5px] border-t-transparent rounded-full thinking-spinner transition-colors duration-500 ${
-                      isOutputting ? 'border-sky-500' : 'border-amber-500'
-                    }`} />
-                  </div>
-                  <span className={`text-[13px] font-medium transition-colors duration-500 ${
-                    isOutputting ? 'text-sky-700' : 'text-amber-700'
-                  }`}>{isOutputting ? '正在输出...' : '正在思考...'}</span>
-                </div>
-                <span className={`text-[12px] font-secondary tabular-nums transition-colors duration-500 ${
-                  isOutputting ? 'text-sky-600/80' : 'text-amber-600/80'
-                }`}>{elapsedSeconds}s</span>
-              </div>
-            )
-          })()}
-
           {/* 上半部分：文本输入区域 */}
           <div className='px-4 py-1.5'>
             <textarea
