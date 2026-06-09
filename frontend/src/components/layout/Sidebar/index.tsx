@@ -164,25 +164,23 @@ export function Sidebar({
       <div className={`flex flex-col h-full overflow-hidden`}>
         <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
           <div
-            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
+            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-2'}`}
           >
-            <img
-              src='/kchat-icon.svg'
-              alt='KChat'
-              className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0 transition-transform duration-300 ease-out group-hover/logo:rotate-12`}
-            />
+            {/* Logo with soft glow */}
+            <div className='relative flex-shrink-0'>
+              <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
+                collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
+              }`} />
+              <img
+                src='/kchat-icon.svg'
+                alt='KChat'
+                className={`relative ${collapsed ? 'w-6 h-6' : 'w-7 h-7'} object-contain transition-transform duration-300 ease-out group-hover/logo:rotate-12`}
+              />
+            </div>
             {!collapsed && (
-              <div className='flex flex-col items-start gap-0.5 sidebar-content-enter leading-none'>
-                <h1 className='font-logo bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent leading-none'>
-                  KChat
-                </h1>
-                <span
-                  className='inline-flex items-center px-1.5 h-3.5 rounded text-[8px] font-mono font-semibold leading-none bg-[var(--bg-hover)] theme-text-muted border border-[var(--border-primary)]/60 tracking-tight'
-                  title='当前版本'
-                >
-                  v1.2.0
-                </span>
-              </div>
+              <h1 className='font-logo bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
+                KChat
+              </h1>
             )}
           </div>
         </div>
@@ -192,7 +190,7 @@ export function Sidebar({
             <div className='relative flex-1 group/search'>
               <Search
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
-                  searchQuery ? 'theme-text-muted/60' : 'theme-text-muted'
+                  searchQuery ? 'text-sky-500/70' : 'text-sky-400/80'
                 }`}
                 aria-hidden='true'
               />
@@ -211,10 +209,10 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
+                className='w-full pl-9 pr-16 py-2 bg-sky-50/70 border border-sky-200/50 rounded-xl font-secondary text-[13px] theme-text-primary placeholder-sky-400/50 focus:outline-none focus:bg-white focus:border-sky-300 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/8 transition-all duration-200'
               />
               {!searchQuery && (
-                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-[var(--bg-hover)] theme-text-muted border border-[var(--border-primary)]/60 group-hover/search:opacity-0 transition-opacity duration-200'>
+                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-white/60 text-sky-500/70 border border-sky-200/40 backdrop-blur-sm group-hover/search:opacity-0 transition-opacity duration-200'>
                   ⌘K
                 </kbd>
               )}
@@ -222,16 +220,16 @@ export function Sidebar({
                 <button
                   onClick={() => setSearchQuery('')}
                   aria-label='清除搜索'
-                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-300 focus-ring hover:rotate-90'
+                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:bg-sky-100 hover:text-sky-600 transition-all duration-300 focus-ring hover:rotate-90'
                 >
-                  <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
+                  <X className='w-3.5 h-3.5 text-sky-400' aria-hidden='true' />
                 </button>
               )}
             </div>
             <button
               onClick={createConversation}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-xl theme-bg-hover theme-brand-primary hover:bg-[var(--brand-primary)] hover:text-white hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
+              className='flex items-center justify-center w-9 h-9 rounded-xl bg-sky-50/70 text-sky-500 border border-sky-200/50 hover:bg-sky-500 hover:text-white hover:border-sky-500 hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
             >
               <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
             </button>
