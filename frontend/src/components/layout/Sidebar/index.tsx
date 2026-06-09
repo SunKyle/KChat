@@ -43,6 +43,7 @@ export function Sidebar({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(getInitialExpandedGroups)
   const [searchQuery, setSearchQuery] = useState('')
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const {
@@ -136,6 +137,24 @@ export function Sidebar({
     }
   }, [])
 
+  // 全局 ⌘K / Ctrl+K 快捷键：聚焦搜索框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isModK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
+      if (!isModK) return
+
+      // 侧边栏折叠时无搜索框可用
+      if (collapsed) return
+
+      e.preventDefault()
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [collapsed])
+
   const handleDelete = (id: string, title: string) => {
     onDeleteClick?.(id, title)
   }
@@ -145,22 +164,32 @@ export function Sidebar({
       <div className={`flex flex-col h-full overflow-hidden`}>
         <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
           <div
-            className={`${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
+            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
           >
             <img
               src='/kchat-icon.svg'
               alt='KChat'
-              className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0`}
+              className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0 transition-transform duration-300 ease-out group-hover/logo:rotate-12`}
             />
             {!collapsed && (
-              <h1 className='font-logo theme-text-primary sidebar-content-enter'>KChat</h1>
+              <div className='flex flex-col items-start gap-0.5 sidebar-content-enter leading-none'>
+                <h1 className='font-logo bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent leading-none'>
+                  KChat
+                </h1>
+                <span
+                  className='inline-flex items-center px-1.5 h-3.5 rounded text-[8px] font-mono font-semibold leading-none bg-[var(--bg-hover)] theme-text-muted border border-[var(--border-primary)]/60 tracking-tight'
+                  title='当前版本'
+                >
+                  v1.2.0
+                </span>
+              </div>
             )}
           </div>
         </div>
 
         {!collapsed && (
           <div className='flex items-center gap-2 mt-2 px-4 sidebar-search-enter'>
-            <div className='relative flex-1'>
+            <div className='relative flex-1 group/search'>
               <Search
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
                   searchQuery ? 'theme-text-muted/60' : 'theme-text-muted'
@@ -168,18 +197,32 @@ export function Sidebar({
                 aria-hidden='true'
               />
               <input
+                ref={searchInputRef}
                 type='text'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' && searchQuery) {
+                    e.preventDefault()
+                    setSearchQuery('')
+                  } else if (e.key === 'Escape') {
+                    searchInputRef.current?.blur()
+                  }
+                }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-9 pr-9 py-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
+                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
               />
+              {!searchQuery && (
+                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-[var(--bg-hover)] theme-text-muted border border-[var(--border-primary)]/60 group-hover/search:opacity-0 transition-opacity duration-200'>
+                  ⌘K
+                </kbd>
+              )}
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
                   aria-label='清除搜索'
-                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-200 focus-ring'
+                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-300 focus-ring hover:rotate-90'
                 >
                   <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
                 </button>
@@ -229,18 +272,20 @@ export function Sidebar({
                       onClick={() => toggleGroup(group)}
                       aria-expanded={expandedGroups.has(group)}
                       aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors focus-ring sidebar-content-enter'
+                      className='group/header w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
                     >
-                      <span className='flex items-center gap-2'>
+                      <span className='flex items-center gap-1.5'>
                         <ChevronRight
                           className={`w-3.5 h-3.5 transition-transform duration-200 ${
                             expandedGroups.has(group) ? 'rotate-90' : ''
                           }`}
                           aria-hidden='true'
                         />
-                        {group}
+                        <span className='group-hover/header:theme-text-secondary transition-colors'>
+                          {group}
+                        </span>
                       </span>
-                      <span className='inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-medium rounded-full bg-[var(--bg-hover)] theme-text-muted'>
+                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-[10px] font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
                         {items.length}
                       </span>
                     </button>
