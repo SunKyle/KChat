@@ -288,13 +288,17 @@ export function Sidebar({
               </div>
               {!collapsed && (
                 <>
-                  <div className='flex-1 min-w-0 space-y-0.5 text-left sidebar-content-enter'>
+                  <div className='flex-1 min-w-0 space-y-1 text-left sidebar-content-enter'>
                     <p className='font-conversation-name theme-text-primary truncate leading-tight'>
                       {profile?.nickname || '用户'}
                     </p>
-                    <p className='font-caption theme-text-muted truncate leading-tight'>
-                      Premium Plan
-                    </p>
+                    <span
+                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-600 dark:text-amber-400 text-[10px] font-semibold leading-none backdrop-blur-sm'
+                      title='Premium Plan'
+                    >
+                      <Crown className='w-2.5 h-2.5' aria-hidden='true' />
+                      Premium
+                    </span>
                   </div>
                   <Settings
                     className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
