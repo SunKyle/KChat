@@ -138,7 +138,7 @@ export function ConversationItem({
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
       {/* 标题区域：延伸到右侧，用 mask 实现渐隐 */}
-      <div className='flex-1 min-w-0 pr-20' style={{
+      <div className='flex-1 min-w-0 pr-20 sidebar-content-enter' style={{
         maskImage: 'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
         WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))'
       }}>

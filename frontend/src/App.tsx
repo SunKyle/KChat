@@ -7,8 +7,8 @@ import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { UserSettings } from './components/Settings/UserSettings'
-import { useState } from 'react'
-import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useRef, useCallback } from 'react'
+import { Menu, X } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 
@@ -18,12 +18,28 @@ function AppContent() {
     sidebarCollapsed,
     sidebarWidth,
     setSidebarOpen,
-    toggleCollapsed,
+    setSidebarCollapsed,
     toggleSidebar,
   } = useSidebar()
   const { showSettings, settingsTab, openSettings, closeSettings } = useSettings()
   const { deleteConversation, activeConversation } = useChat()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleSidebarEnter = useCallback(() => {
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current)
+      collapseTimerRef.current = null
+    }
+    setSidebarCollapsed(false)
+  }, [setSidebarCollapsed])
+
+  const handleSidebarLeave = useCallback(() => {
+    if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current)
+    collapseTimerRef.current = setTimeout(() => {
+      setSidebarCollapsed(true)
+    }, 5000)
+  }, [setSidebarCollapsed])
 
   const handleDeleteClick = (id: string, title: string) => {
     setDeleteConfirm({ id, title })
@@ -48,29 +64,17 @@ function AppContent() {
 
         <aside
           className={`
-          group/sidebar fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
+          fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
           lg:left-6 lg:top-6 lg:bottom-6
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
+          onMouseEnter={handleSidebarEnter}
+          onMouseLeave={handleSidebarLeave}
         >
-          {/* 收起/展开条 — 在侧边栏下层，从右边缘露出 */}
-          <button
-            onClick={toggleCollapsed}
-            aria-label={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
-            className='absolute inset-y-0 -right-5 z-0 w-7 flex items-center justify-center bg-sky-200/40 group-hover/sidebar:bg-sky-200/70 hover:!bg-sky-300/80 rounded-r-xl cursor-pointer scale-x-0 group-hover/sidebar:scale-x-100 transition-all duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.06)] focus-ring'
-            style={{ transformOrigin: 'left center' }}
-          >
-            {sidebarCollapsed ? (
-              <ChevronRight className='w-4 h-4 text-sky-700' />
-            ) : (
-              <ChevronLeft className='w-4 h-4 text-sky-700' />
-            )}
-          </button>
-
-          <div className={`relative z-10 h-full card-float-solid ${sidebarWidth}`}>
+          <div className={`h-full card-float-solid ${sidebarWidth} transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[width]`}>
             <Sidebar
               collapsed={sidebarCollapsed}
-              onToggle={toggleCollapsed}
+              onToggle={() => {}}
               onDeleteClick={handleDeleteClick}
               onConversationClick={() => closeSettings()}
             />
@@ -89,7 +93,7 @@ function AppContent() {
         </button>
 
         <div
-          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-4 lg:pt-6 lg:pb-6 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
+          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-4 lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms] ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
           <div className='flex flex-col h-full card-float-solid mx-4 lg:mx-6'>
             <Header onSettingsClick={() => openSettings('profile')} />

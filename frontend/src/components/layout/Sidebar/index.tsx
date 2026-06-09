@@ -6,6 +6,7 @@ import {
   Search,
   X,
   Settings,
+  Crown,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { useUser } from '../../../context/UserContext'
@@ -142,23 +143,23 @@ export function Sidebar({
   return (
     <div className='flex flex-col h-full relative'>
       <div className={`flex flex-col h-full overflow-hidden`}>
-      <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
-        <div
-          className={`${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
-        >
-          <img
-            src='/kchat-icon.svg'
-            alt='KChat'
-            className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0`}
-          />
-          {!collapsed && (
-            <h1 className='font-logo theme-text-primary'>KChat</h1>
-          )}
+        <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
+          <div
+            className={`${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
+          >
+            <img
+              src='/kchat-icon.svg'
+              alt='KChat'
+              className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0`}
+            />
+            {!collapsed && (
+              <h1 className='font-logo theme-text-primary sidebar-content-enter'>KChat</h1>
+            )}
+          </div>
         </div>
-      </div>
 
-      {!collapsed && (
-        <div className='flex items-center gap-2 mt-2 px-4'>
+        {!collapsed && (
+          <div className='flex items-center gap-2 mt-2 px-4 sidebar-search-enter'>
             <div className='relative flex-1'>
               <Search
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
@@ -194,105 +195,116 @@ export function Sidebar({
           </div>
         )}
 
-      {collapsed && <div className='mx-3 divider' />}
+        {collapsed && <div className='mx-3 divider' />}
 
-      <div
-        ref={scrollContainerRef}
-        className={`flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
-      >
-        {conversations.length === 0 ? (
-          <div
-            className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
-          >
-            <div className='w-12 h-12 mx-auto mb-3 rounded-full theme-bg-hover/50 flex items-center justify-center'>
-              <MessageSquare className='w-5 h-5 theme-text-muted' />
-            </div>
-            {!collapsed && (
-              <>
-                <p className='theme-text-secondary text-sm mb-1 font-medium'>暂无对话</p>
-                <p className='text-xs theme-text-muted'>点击上方按钮开始</p>
-              </>
-            )}
-          </div>
-        ) : filteredGrouped.length === 0 ? (
-          <div className='text-center py-12 px-4'>
-            <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
-            <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
-          </div>
-        ) : (
-          <div className='space-y-2'>
-            {filteredGrouped.map(({ group, items }) => (
-              <div key={group} className='space-y-1'>
-                {!collapsed && (
-                  <button
-                    onClick={() => toggleGroup(group)}
-                    aria-expanded={expandedGroups.has(group)}
-                    aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                    className='w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors focus-ring'
-                  >
-                    <span className='flex items-center gap-2'>
-                      <ChevronRight
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                          expandedGroups.has(group) ? 'rotate-90' : ''
-                        }`}
-                        aria-hidden='true'
-                      />
-                      {group}
-                    </span>
-                    <span className='inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-medium rounded-full bg-[var(--bg-hover)] theme-text-muted'>{items.length}</span>
-                  </button>
-                )}
-                {(collapsed || expandedGroups.has(group)) &&
-                  items.map((conversation) => (
-                    <ConversationItem
-                      key={conversation.id}
-                      conversation={conversation}
-                      isActive={activeConversation?.id === conversation.id}
-                      isStreaming={getStreamingState(conversation.id).isStreaming}
-                      hasNewReply={getHasNewReply(conversation.id)}
-                      onClick={() => {
-                        resetNewReply(conversation.id)
-                        setActiveConversation(conversation)
-                        onConversationClick?.()
-                      }}
-                      onDelete={() => handleDelete(conversation.id, conversation.title)}
-                      onUpdate={updateConversation}
-                      onPin={pinConversation}
-                      collapsed={collapsed}
-                    />
-                  ))}
+        <div
+          ref={scrollContainerRef}
+          className={`flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
+        >
+          {conversations.length === 0 ? (
+            <div
+              className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
+            >
+              <div className='w-12 h-12 mx-auto mb-3 rounded-full theme-bg-hover/50 flex items-center justify-center'>
+                <MessageSquare className='w-5 h-5 theme-text-muted' />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {collapsed && <div className='mx-3 divider' />}
-
-      <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className='w-full'>
-          <div className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center cursor-pointer hover:scale-105 transition-transform duration-200' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}>
-            <div className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden ${collapsed ? 'w-9 h-9 hover:theme-bg-hover transition-colors' : 'w-8 h-8 theme-bg-hover'}`}>
-              {profile?.avatar ? (
-                <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
-              ) : (
-                <User className='w-[18px] h-[18px] theme-text-secondary' />
+              {!collapsed && (
+                <>
+                  <p className='theme-text-secondary text-sm mb-1 font-medium'>暂无对话</p>
+                  <p className='text-xs theme-text-muted'>点击上方按钮开始</p>
+                </>
               )}
             </div>
-            {!collapsed && (
-              <>
-                <div className='flex-1 min-w-0 space-y-0.5 text-left'>
-                  <p className='font-conversation-name theme-text-primary truncate leading-tight'>
-                    {profile?.nickname || '用户'}
-                  </p>
-                  <p className='font-caption theme-text-muted truncate leading-tight'>Premium Plan</p>
+          ) : filteredGrouped.length === 0 ? (
+            <div className='text-center py-12 px-4'>
+              <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
+              <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              {filteredGrouped.map(({ group, items }) => (
+                <div key={group} className='space-y-1'>
+                  {!collapsed && (
+                    <button
+                      onClick={() => toggleGroup(group)}
+                      aria-expanded={expandedGroups.has(group)}
+                      aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
+                      className='w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors focus-ring sidebar-content-enter'
+                    >
+                      <span className='flex items-center gap-2'>
+                        <ChevronRight
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            expandedGroups.has(group) ? 'rotate-90' : ''
+                          }`}
+                          aria-hidden='true'
+                        />
+                        {group}
+                      </span>
+                      <span className='inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-medium rounded-full bg-[var(--bg-hover)] theme-text-muted'>
+                        {items.length}
+                      </span>
+                    </button>
+                  )}
+                  {(collapsed || expandedGroups.has(group)) &&
+                    items.map((conversation) => (
+                      <ConversationItem
+                        key={conversation.id}
+                        conversation={conversation}
+                        isActive={activeConversation?.id === conversation.id}
+                        isStreaming={getStreamingState(conversation.id).isStreaming}
+                        hasNewReply={getHasNewReply(conversation.id)}
+                        onClick={() => {
+                          resetNewReply(conversation.id)
+                          setActiveConversation(conversation)
+                          onConversationClick?.()
+                        }}
+                        onDelete={() => handleDelete(conversation.id, conversation.title)}
+                        onUpdate={updateConversation}
+                        onPin={pinConversation}
+                        collapsed={collapsed}
+                      />
+                    ))}
                 </div>
-                <Settings className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0' aria-hidden='true' />
-              </>
-            )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {collapsed && <div className='mx-3 divider' />}
+
+        <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+          <div className='w-full'>
+            <div
+              className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center cursor-pointer hover:scale-105 transition-transform duration-200' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}
+            >
+              <div
+                className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden ${collapsed ? 'w-9 h-9 hover:theme-bg-hover transition-colors' : 'w-8 h-8 theme-bg-hover'}`}
+              >
+                {profile?.avatar ? (
+                  <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
+                ) : (
+                  <User className='w-[18px] h-[18px] theme-text-secondary' />
+                )}
+              </div>
+              {!collapsed && (
+                <>
+                  <div className='flex-1 min-w-0 space-y-0.5 text-left sidebar-content-enter'>
+                    <p className='font-conversation-name theme-text-primary truncate leading-tight'>
+                      {profile?.nickname || '用户'}
+                    </p>
+                    <p className='font-caption theme-text-muted truncate leading-tight'>
+                      Premium Plan
+                    </p>
+                  </div>
+                  <Settings
+                    className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
+                    aria-hidden='true'
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   )
