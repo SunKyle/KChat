@@ -85,7 +85,7 @@ export function ConversationItem({
         aria-current={isActive ? 'true' : undefined}
         className={`relative flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           hasNewReply
-            ? 'bg-new-reply'
+            ? 'ring-1.5 ring-[var(--accent-emerald)]/30'
             : isActive
               ? 'bg-brand-selected'
               : 'hover:theme-bg-hover/60'
@@ -137,11 +137,11 @@ export function ConversationItem({
           : 'hover:theme-bg-hover/60 border border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
-      {/* 新回复指示：标题左侧绿色圆点 */}
-      {hasNewReply && !isStreaming && (
-        <div className='absolute left-1.5 top-1/2 -translate-y-1/2 w-[5px] h-[5px] rounded-full bg-[var(--accent-emerald)]' />
-      )}
-      <div className='flex-1 min-w-0'>
+      {/* 标题区域：延伸到右侧，用 mask 实现渐隐 */}
+      <div className='flex-1 min-w-0 pr-20' style={{
+        maskImage: 'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
+        WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))'
+      }}>
         {isEditing ? (
           <input
             ref={inputRef}
@@ -163,7 +163,7 @@ export function ConversationItem({
           </p>
         )}
       </div>
-      <div className='flex items-center gap-1 flex-shrink-0'>
+      <div className='absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1'>
         {isStreaming && (
           <div className='w-[18px] h-[18px] rounded-full flex items-center justify-center'>
             <div className='w-4 h-4 border-2 border-[var(--brand-primary)]/40 border-t-[var(--brand-primary)] rounded-full animate-spin' />

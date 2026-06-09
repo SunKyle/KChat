@@ -8,7 +8,7 @@ import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
 import { UserSettings } from './components/Settings/UserSettings'
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 
@@ -48,12 +48,26 @@ function AppContent() {
 
         <aside
           className={`
-          fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
+          group/sidebar fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
           lg:left-6 lg:top-6 lg:bottom-6
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         >
-          <div className={`h-full card-float-solid overflow-hidden ${sidebarWidth}`}>
+          {/* 收起/展开条 — 在侧边栏下层，从右边缘露出 */}
+          <button
+            onClick={toggleCollapsed}
+            aria-label={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
+            className='absolute inset-y-0 -right-5 z-0 w-7 flex items-center justify-center bg-sky-200/40 group-hover/sidebar:bg-sky-200/70 hover:!bg-sky-300/80 rounded-r-xl cursor-pointer scale-x-0 group-hover/sidebar:scale-x-100 transition-all duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.06)] focus-ring'
+            style={{ transformOrigin: 'left center' }}
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className='w-4 h-4 text-sky-700' />
+            ) : (
+              <ChevronLeft className='w-4 h-4 text-sky-700' />
+            )}
+          </button>
+
+          <div className={`relative z-10 h-full card-float-solid ${sidebarWidth}`}>
             <Sidebar
               collapsed={sidebarCollapsed}
               onToggle={toggleCollapsed}

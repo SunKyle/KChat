@@ -145,22 +145,22 @@ export function InputArea() {
             const isOutputting = streamingState.currentContent.length > 0
             return (
               <div className={`thinking-bar-enter flex items-center justify-between px-4 py-2.5 mx-2 mt-2 rounded-xl transition-colors duration-500 ${
-                isOutputting ? 'bg-sky-50/80' : 'bg-emerald-50/80'
+                isOutputting ? 'bg-sky-50/80' : 'bg-amber-50/80'
               }`}>
                 <div className='flex items-center gap-2.5'>
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-500 ${
-                    isOutputting ? 'border-[1.5px] border-sky-500/60' : 'border-[1.5px] border-emerald-500/60'
+                    isOutputting ? 'border-[1.5px] border-sky-500/60' : 'border-[1.5px] border-amber-500/60'
                   }`}>
                     <div className={`w-2.5 h-2.5 border-[1.5px] border-t-transparent rounded-full thinking-spinner transition-colors duration-500 ${
-                      isOutputting ? 'border-sky-500' : 'border-emerald-500'
+                      isOutputting ? 'border-sky-500' : 'border-amber-500'
                     }`} />
                   </div>
                   <span className={`text-[13px] font-medium transition-colors duration-500 ${
-                    isOutputting ? 'text-sky-700' : 'text-emerald-700'
+                    isOutputting ? 'text-sky-700' : 'text-amber-700'
                   }`}>{isOutputting ? '正在输出...' : '正在思考...'}</span>
                 </div>
                 <span className={`text-[12px] font-secondary tabular-nums transition-colors duration-500 ${
-                  isOutputting ? 'text-sky-600/80' : 'text-emerald-600/80'
+                  isOutputting ? 'text-sky-600/80' : 'text-amber-600/80'
                 }`}>{elapsedSeconds}s</span>
               </div>
             )
@@ -268,13 +268,15 @@ export function InputArea() {
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
                 className={`relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 ease-out ${
-                  streamingState.isStreaming
-                    ? 'bg-sky-500 text-white hover:bg-sky-600 hover:scale-105 shadow-md shadow-sky-500/25 cursor-pointer'
-                    : uploading
-                      ? 'bg-sky-500/80 text-white cursor-wait'
-                      : hasContent && charCount <= maxChars
-                        ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  isThinking
+                    ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/25 cursor-pointer'
+                    : isOutputting
+                      ? 'bg-sky-500 text-white hover:bg-sky-600 hover:scale-105 shadow-md shadow-sky-500/25 cursor-pointer'
+                      : uploading
+                        ? 'bg-sky-500/80 text-white cursor-wait'
+                        : hasContent && charCount <= maxChars
+                          ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
                 title={
                   streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'

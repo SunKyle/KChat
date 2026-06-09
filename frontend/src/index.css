@@ -599,10 +599,10 @@ pre {
 /* Input area glow states */
 .card-float-solid.input-glow-thinking {
   box-shadow:
-    0 0 24px rgba(16, 185, 129, 0.12),
-    0 0 48px rgba(16, 185, 129, 0.06),
-    0 4px 16px rgba(16, 185, 129, 0.08);
-  border-color: rgba(52, 211, 153, 0.25);
+    0 0 24px rgba(245, 158, 11, 0.12),
+    0 0 48px rgba(245, 158, 11, 0.06),
+    0 4px 16px rgba(245, 158, 11, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
 }
 .card-float-solid.input-glow-outputting {
   box-shadow:
@@ -1043,7 +1043,7 @@ input[type='search']::-webkit-search-decoration {
   background-color: var(--brand-primary);
 }
 .bg-brand-subtle {
-  background-color: rgba(14, 165, 233, 0.08);
+  background-color: rgba(14, 165, 233, 0.12);
 }
 .bg-brand-selected {
   background-color: rgba(14, 165, 233, 0.12);

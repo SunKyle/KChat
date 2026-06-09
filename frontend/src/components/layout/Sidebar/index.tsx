@@ -1,8 +1,6 @@
 import {
   MessageSquare,
   MessageSquarePlus,
-  PanelLeftClose,
-  PanelLeft,
   User,
   ChevronRight,
   Search,
@@ -23,7 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({
   collapsed = false,
-  onToggle,
+  onToggle: _onToggle,
   onDeleteClick,
   onConversationClick,
 }: SidebarProps) {
@@ -142,84 +140,59 @@ export function Sidebar({
   }
 
   return (
-    <div className='flex flex-col h-full overflow-hidden border-r theme-border-secondary'>
-      <div className={`px-4 pt-4 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
+    <div className='flex flex-col h-full relative'>
+      <div className={`flex flex-col h-full overflow-hidden`}>
+      <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
         <div
-          className={`${collapsed ? 'mb-2' : 'mb-4'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between'}`}
+          className={`${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-1.5'}`}
         >
-          <div className={`flex items-center gap-2 ${collapsed ? 'flex flex-col gap-1' : ''}`}>
-            <img
-              src='/kchat-icon.svg'
-              alt='KChat'
-              className={`${collapsed ? 'w-6 h-6' : 'w-7 h-7'} object-contain flex-shrink-0`}
-            />
-            {!collapsed && (
-              <div>
-                <h1 className='font-logo theme-text-primary'>KChat</h1>
-                <p className='font-tagline theme-text-muted'>Productivity AI</p>
-              </div>
-            )}
-          </div>
-          {!collapsed && onToggle && (
-            <button
-              onClick={onToggle}
-              aria-label='收起侧边栏'
-              className='p-1.5 rounded-md hover:theme-bg-hover transition-colors theme-text-muted hover:theme-text-secondary focus-ring'
-            >
-              <PanelLeftClose className='w-[18px] h-[18px]' aria-hidden='true' />
-            </button>
+          <img
+            src='/kchat-icon.svg'
+            alt='KChat'
+            className={`${collapsed ? 'w-6 h-6' : 'w-6 h-6'} object-contain flex-shrink-0`}
+          />
+          {!collapsed && (
+            <h1 className='font-logo theme-text-primary'>KChat</h1>
           )}
         </div>
+      </div>
 
-        {!collapsed && (
-          <div className='relative mt-3'>
-            <Search
-              className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
-                searchQuery ? 'theme-text-muted/60' : 'theme-text-muted'
-              }`}
-              aria-hidden='true'
-            />
-            <input
-              type='text'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder='搜索会话...'
-              aria-label='搜索会话'
-              className='w-full pl-11 pr-10 py-2.5 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                aria-label='清除搜索'
-                className='absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-200 focus-ring'
-              >
-                <X className='w-4 h-4 theme-text-muted' aria-hidden='true' />
-              </button>
-            )}
+      {!collapsed && (
+        <div className='flex items-center gap-2 mt-2 px-4'>
+            <div className='relative flex-1'>
+              <Search
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
+                  searchQuery ? 'theme-text-muted/60' : 'theme-text-muted'
+                }`}
+                aria-hidden='true'
+              />
+              <input
+                type='text'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder='搜索会话...'
+                aria-label='搜索会话'
+                className='w-full pl-9 pr-9 py-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-muted/60 focus:outline-none focus:border-[var(--accent-sky)] focus:ring-2 focus:ring-[var(--accent-sky)]/20 focus:shadow-md focus:shadow-[var(--accent-sky)]/10 transition-all duration-200'
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label='清除搜索'
+                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:theme-bg-hover hover:text-theme-text-secondary transition-all duration-200 focus-ring'
+                >
+                  <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={createConversation}
+              aria-label='创建新对话'
+              className='flex items-center justify-center w-9 h-9 rounded-xl theme-bg-hover theme-brand-primary hover:bg-[var(--brand-primary)] hover:text-white hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
+            >
+              <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+            </button>
           </div>
         )}
-
-        {!collapsed && (
-          <button
-            onClick={createConversation}
-            aria-label='创建新对话'
-            className='flex items-center justify-center gap-2 w-full mt-2 py-2.5 px-4 rounded-xl font-secondary font-medium bg-[var(--bg-card)] border border-[var(--border-primary)] theme-brand-primary hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.98] transition-all duration-200 focus-ring'
-          >
-            <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
-            <span>新对话</span>
-          </button>
-        )}
-
-        {collapsed && onToggle && (
-          <button
-            onClick={onToggle}
-            aria-label='展开侧边栏'
-            className='mt-3 w-10 h-10 flex items-center justify-center rounded-full theme-bg-hover/50 hover:theme-bg-hover transition-all theme-text-secondary hover:theme-text-primary focus-ring'
-          >
-            <PanelLeft className='w-[18px] h-[18px]' aria-hidden='true' />
-          </button>
-        )}
-      </div>
 
       {collapsed && <div className='mx-3 divider' />}
 
@@ -319,6 +292,7 @@ export function Sidebar({
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
