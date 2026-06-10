@@ -534,8 +534,15 @@
 }
 
 @keyframes stream-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.95); }
-  50% { opacity: 0.6; transform: scale(1.08); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
 }
 
 .animate-stream-pulse {
@@ -543,8 +550,13 @@
 }
 
 @keyframes stream-bg {
-  0%, 100% { background-color: transparent; }
-  50% { background-color: rgba(14, 165, 233, 0.04); }
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(14, 165, 233, 0.04);
+  }
 }
 
 .animate-stream-bg {
@@ -553,30 +565,65 @@
 
 /* Thinking status bar */
 @keyframes thinking-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .thinking-spinner {
   animation: thinking-spin 1.2s linear infinite;
 }
 @keyframes thinking-bar-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .thinking-bar-enter {
   animation: thinking-bar-in 0.25s ease-out;
 }
 
+/* Typewriter cursor blink — 流式输出时光标闪烁 */
+@keyframes typing-cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Scroll-to-bottom button */
 @keyframes scroll-btn-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.9); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .scroll-btn-enter {
   animation: scroll-btn-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes scroll-btn-pulse {
-  0%, 100% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08), 0 0 0 0 rgba(14, 165, 233, 0.12); }
-  50% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15), 0 0 0 6px rgba(14, 165, 233, 0); }
+  0%,
+  100% {
+    box-shadow:
+      0 2px 8px rgba(14, 165, 233, 0.08),
+      0 0 0 0 rgba(14, 165, 233, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 2px 8px rgba(14, 165, 233, 0.15),
+      0 0 0 6px rgba(14, 165, 233, 0);
+  }
 }
 .scroll-btn-streaming {
   animation: scroll-btn-pulse 2s ease-in-out infinite;
@@ -584,15 +631,27 @@
 
 /* Sidebar expand/collapse content animations */
 @keyframes sidebar-content-in {
-  from { opacity: 0; transform: translateX(-6px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 .sidebar-content-enter {
   animation: sidebar-content-in 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s both;
 }
 @keyframes sidebar-search-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .sidebar-search-enter {
   animation: sidebar-search-in 0.2s ease-out 0.12s both;
@@ -602,7 +661,9 @@
   -webkit-backdrop-filter: blur(12px) saturate(1.4);
   background-color: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 .dark .scroll-btn-glass {
   background-color: rgba(30, 41, 59, 0.75);
@@ -674,10 +735,10 @@
 }
 .card-float-solid.input-glow-focus:focus-within {
   box-shadow:
-    0 0 24px rgba(14, 165, 233, 0.10),
+    0 0 24px rgba(14, 165, 233, 0.1),
     0 0 48px rgba(14, 165, 233, 0.05),
     0 4px 16px rgba(0, 0, 0, 0.04);
-  border-color: rgba(56, 189, 248, 0.20);
+  border-color: rgba(56, 189, 248, 0.2);
 }
 
 .card-inset {
@@ -1108,7 +1169,9 @@ input[type='search']::-webkit-search-decoration {
 }
 .bg-brand-selected {
   background-color: rgba(14, 165, 233, 0.12);
-  box-shadow: 0 0 10px rgba(14, 165, 233, 0.10), 0 0 20px rgba(14, 165, 233, 0.05);
+  box-shadow:
+    0 0 10px rgba(14, 165, 233, 0.1),
+    0 0 20px rgba(14, 165, 233, 0.05);
 }
 .bg-new-reply {
   background-color: rgba(16, 185, 129, 0.12);
