@@ -1546,7 +1546,10 @@ input[type='search']::-webkit-search-decoration {
   }
   to {
     opacity: 0;
-    transform: translateY(100%) scaleY(0.8);
+    transform: translateY(40%) scaleY(0.6);
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
@@ -1558,6 +1561,7 @@ input[type='search']::-webkit-search-decoration {
 .status-bar-exit {
   animation: status-bar-slide-out 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   transform-origin: bottom center;
+  overflow: hidden;
 }
 
 .status-bar-color-transition {
