@@ -32,11 +32,15 @@ type ChatAction =
   | { type: 'SET_ACTIVE_CONVERSATION'; payload: Conversation | null }
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'ADD_MESSAGE'; payload: Message }
-  | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string } }
+  | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string; conversationId: string } }
   | { type: 'START_STREAMING'; payload: { conversationId: string } }
   | {
       type: 'UPDATE_STREAMING_CONTENT'
       payload: { conversationId: string; content: string }
+    }
+  | {
+      type: 'STREAM_CHUNK'
+      payload: { conversationId: string; messageId: string; content: string; accumulated: string }
     }
   | {
       type: 'END_STREAMING'
@@ -115,11 +119,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'UPDATE_MESSAGE': {
-      const conversationId = Object.keys(state.messagesByConversation).find((convId) =>
-        state.messagesByConversation[convId].some((msg) => msg.id === action.payload.id)
-      )
-      if (conversationId) {
-        const updatedMessages = state.messagesByConversation[conversationId].map((msg) =>
+      const conversationId = action.payload.conversationId
+      const msgs = state.messagesByConversation[conversationId]
+      if (msgs) {
+        const updatedMessages = msgs.map((msg) =>
           msg.id === action.payload.id ? { ...msg, content: action.payload.content } : msg
         )
         return {
@@ -157,6 +160,41 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         streamingStates: {
           ...state.streamingStates,
           [action.payload.conversationId]: {
+            ...currentStreaming,
+            currentContent: currentStreaming.currentContent + action.payload.content,
+          },
+        },
+      }
+    }
+
+    case 'STREAM_CHUNK': {
+      const convId = action.payload.conversationId
+      const currentStreaming = state.streamingStates[convId] || {
+        isStreaming: false,
+        currentContent: '',
+        messageId: null,
+      }
+      const msgs = state.messagesByConversation[convId]
+      const updatedMessages = msgs
+        ? msgs.map((msg) =>
+            msg.id === action.payload.messageId
+              ? { ...msg, content: action.payload.accumulated }
+              : msg
+          )
+        : msgs
+      return {
+        ...state,
+        ...(updatedMessages
+          ? {
+              messagesByConversation: {
+                ...state.messagesByConversation,
+                [convId]: updatedMessages,
+              },
+            }
+          : {}),
+        streamingStates: {
+          ...state.streamingStates,
+          [convId]: {
             ...currentStreaming,
             currentContent: currentStreaming.currentContent + action.payload.content,
           },
@@ -455,9 +493,31 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = useCallback(
     async (content: string, imageUrls: string[] = []) => {
-      if ((!content.trim() && imageUrls.length === 0) || !state.activeConversation) return
+      if (!content.trim() && imageUrls.length === 0) return
 
-      const conversationId = state.activeConversation.id
+      // Optimistic conversation creation: create inline if no active conversation
+      let conversationId = state.activeConversation?.id
+      if (!conversationId) {
+        try {
+          const newConversation = await conversations.create()
+          dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
+          dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
+          dispatch({ type: 'SET_MESSAGES', payload: [] })
+          conversationId = newConversation.id
+          localStorage.setItem(
+            'kchat_conversations',
+            JSON.stringify(
+              [...state.conversations, newConversation].sort(
+                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              )
+            )
+          )
+        } catch (error) {
+          console.error('Failed to create conversation:', error)
+          dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
+          return
+        }
+      }
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -500,18 +560,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           (chunk) => {
             streamingContent += chunk
             dispatch({
-              type: 'UPDATE_STREAMING_CONTENT',
-              payload: { conversationId, content: chunk },
-            })
-            dispatch({
-              type: 'UPDATE_MESSAGE',
-              payload: { id: tempMessageId, content: streamingContent },
+              type: 'STREAM_CHUNK',
+              payload: { conversationId, messageId: tempMessageId, content: chunk, accumulated: streamingContent },
             })
           },
           (messageId) => {
             dispatch({
               type: 'UPDATE_MESSAGE',
-              payload: { id: tempMessageId, content: streamingContent },
+              payload: { id: tempMessageId, content: streamingContent, conversationId },
             })
             dispatch({
               type: 'END_STREAMING',
@@ -546,7 +602,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         abortControllersRef.current[conversationId] = null
       }
     },
-    [state.activeConversation, state.currentModel]
+    [state.activeConversation, state.currentModel, state.conversations]
   )
 
   const setCurrentModel = useCallback((model: string) => {

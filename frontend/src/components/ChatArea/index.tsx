@@ -20,9 +20,19 @@ export function ChatArea() {
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const currentConversationId = activeConversation?.id ?? null
   const [prevConversationId, setPrevConversationId] = useState<string | null>(null)
   const [isScrolling, setIsScrolling] = useState(false)
+  const mountedMsgCountRef = useRef(0)
+  const prevConvIdForCountRef = useRef<string | null>(null)
 
+  // Track mounted message count: only apply stagger animation to pre-existing messages
+  if (prevConvIdForCountRef.current !== currentConversationId) {
+    mountedMsgCountRef.current = messages.length
+    prevConvIdForCountRef.current = currentConversationId ?? null
+  }
+
+  // Conversation switch transition
   useEffect(() => {
     if (activeConversation && activeConversation.id !== prevConversationId) {
       setIsTransitioning(true)
@@ -34,9 +44,12 @@ export function ChatArea() {
     }
   }, [activeConversation, prevConversationId])
 
+  // Auto-scroll: instant during streaming, smooth otherwise
   useEffect(() => {
     if (!showScrollButton && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      messagesEndRef.current.scrollIntoView({
+        behavior: streamingState.isStreaming ? 'instant' : 'smooth',
+      })
     }
   }, [messages, streamingState, showScrollButton])
 
@@ -196,11 +209,13 @@ export function ChatArea() {
                     index === messages.length - 1 &&
                     streamingState.isStreaming
 
+                  const isPreExisting = index < mountedMsgCountRef.current
+
                   return (
                     <div
                       key={message.id}
-                      className='animate-message-in'
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      className={isPreExisting ? 'animate-message-in' : ''}
+                      style={isPreExisting ? { animationDelay: `${index * 50}ms` } : undefined}
                     >
                       <MessageBubble
                         message={message}

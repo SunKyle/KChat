@@ -11,7 +11,7 @@ export function InputArea() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
-  const { sendMessage, streamingState, activeConversation, createConversation, stopStreaming } =
+  const { sendMessage, streamingState, stopStreaming } =
     useChat()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
@@ -114,13 +114,12 @@ export function InputArea() {
     )
       return
 
-    if (!activeConversation) {
-      await createConversation()
-    }
-
-    sendMessage(input, uploadingImages)
+    const currentInput = input
+    const currentImages = uploadingImages
     setInput('')
     setUploadingImages([])
+
+    sendMessage(currentInput, currentImages)
   }
 
   const hasContent = input.trim() || uploadingImages.length > 0
