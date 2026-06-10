@@ -131,17 +131,7 @@ export const MessageBubble = memo(function MessageBubble({
                   ))}
                 </div>
               )}
-              <MarkdownRenderer content={message.content} />
-              {/* 流式打字机光标 — 仅在 AI 正在输出时显示 */}
-              {isThinking && message.content && (
-                <span
-                  aria-hidden='true'
-                  className='inline-block w-[2px] h-[1em] ml-0.5 align-text-bottom bg-sky-500 rounded-sm'
-                  style={{
-                    animation: 'typing-cursor-blink 1s steps(2, end) infinite',
-                  }}
-                />
-              )}
+              <MarkdownRenderer content={message.content} showCursor={isThinking} />
             </div>
           )}
         </div>

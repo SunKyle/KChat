@@ -340,17 +340,15 @@ export function InputArea() {
                       streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'
                     }
                   >
-                    {/* 状态切换时的脉冲光环 — 思考/输出时呼吸 */}
+                    {/* 状态切换时的脉冲光环 — 仅在输出时显示青色呼吸光环 */}
                     <span
                       aria-hidden='true'
                       className={`pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 ${
-                        isThinking
-                          ? 'opacity-100 animate-ping bg-amber-400/40'
-                          : isOutputting
-                            ? 'opacity-100 animate-pulse bg-sky-400/40'
-                            : 'opacity-0'
+                        isOutputting
+                          ? 'opacity-100 animate-pulse bg-sky-400/40'
+                          : 'opacity-0'
                       }`}
-                      style={{ animationDuration: isThinking ? '1.4s' : '1.8s' }}
+                      style={{ animationDuration: '1.8s' }}
                     />
                     {/* 状态切换时的旋转光环（仅在状态变化瞬间） */}
                     <span
