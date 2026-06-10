@@ -1559,3 +1559,30 @@ input[type='search']::-webkit-search-decoration {
   animation: status-bar-slide-out 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   transform-origin: bottom center;
 }
+
+.status-bar-color-transition {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-bar-thinking {
+  background-color: rgba(251, 191, 36, 0.4);
+}
+
+.status-bar-outputting {
+  background-color: rgba(56, 189, 248, 0.4);
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 1.5s ease-in-out infinite;
+}

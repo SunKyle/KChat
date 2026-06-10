@@ -11,8 +11,7 @@ export function InputArea() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
-  const { sendMessage, streamingState, stopStreaming } =
-    useChat()
+  const { sendMessage, streamingState, stopStreaming } = useChat()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -164,19 +163,17 @@ export function InputArea() {
                   role='status'
                   aria-live='polite'
                   className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
-                    isExiting
-                      ? 'status-bar-exit'
-                      : 'status-bar-enter'
-                  } ${isOutputting ? 'bg-sky-200/40' : 'bg-amber-200/40'}`}
+                    isExiting ? 'status-bar-exit' : 'status-bar-enter'
+                  } status-bar-color-transition ${isOutputting ? 'status-bar-outputting' : 'status-bar-thinking'}`}
                 >
                   <div className='flex items-center gap-2'>
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors duration-500 ${
+                      className={`w-2 h-2 rounded-full transition-all duration-500 ${
                         isOutputting ? 'bg-sky-500' : 'bg-amber-500'
-                      }`}
+                      } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
-                      className={`text-[12px] font-medium transition-colors duration-500 ${
+                      className={`text-[12px] font-medium transition-all duration-500 ${
                         isOutputting ? 'text-sky-700' : 'text-amber-700'
                       }`}
                     >
@@ -184,7 +181,7 @@ export function InputArea() {
                     </span>
                   </div>
                   <span
-                    className={`text-[11px] font-secondary tabular-nums transition-colors duration-500 ${
+                    className={`text-[11px] font-secondary tabular-nums transition-all duration-500 ${
                       isOutputting ? 'text-sky-600/70' : 'text-amber-600/70'
                     }`}
                   >
@@ -344,9 +341,7 @@ export function InputArea() {
                     <span
                       aria-hidden='true'
                       className={`pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 ${
-                        isOutputting
-                          ? 'opacity-100 animate-pulse bg-sky-400/40'
-                          : 'opacity-0'
+                        isOutputting ? 'opacity-100 animate-pulse bg-sky-400/40' : 'opacity-0'
                       }`}
                       style={{ animationDuration: '1.8s' }}
                     />
