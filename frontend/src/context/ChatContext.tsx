@@ -11,6 +11,7 @@ interface ChatContextType {
   isLoading: boolean
   currentModel: string
   availableModels: string[]
+  scrollTrigger: number
   setActiveConversation: (conv: Conversation) => void
   createConversation: () => Promise<void>
   deleteConversation: (id: string) => Promise<void>
@@ -25,6 +26,7 @@ interface ChatContextType {
   getStreamingState: (conversationId: string) => StreamingState
   getHasNewReply: (conversationId: string) => boolean
   resetNewReply: (conversationId: string) => void
+  triggerScrollToBottom: () => void
 }
 
 type ChatAction =
@@ -60,6 +62,8 @@ type ChatAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_CURRENT_MODEL'; payload: string }
   | { type: 'SET_AVAILABLE_MODELS'; payload: string[] }
+  | { type: 'SCROLL_TO_BOTTOM' }
+  | { type: 'RESET_SCROLL_TRIGGER' }
 
 interface ChatState {
   conversations: Conversation[]
@@ -71,6 +75,7 @@ interface ChatState {
   isLoading: boolean
   currentModel: string
   availableModels: string[]
+  scrollTrigger: number
 }
 
 const initialState: ChatState = {
@@ -83,6 +88,7 @@ const initialState: ChatState = {
   isLoading: false,
   currentModel: 'llama3',
   availableModels: ['llama3', 'mistral', 'phi', 'gemma', 'qwen'],
+  scrollTrigger: 0,
 }
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -296,6 +302,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
     case 'SET_AVAILABLE_MODELS':
       return { ...state, availableModels: action.payload }
+
+    case 'SCROLL_TO_BOTTOM':
+      return { ...state, scrollTrigger: state.scrollTrigger + 1 }
+
+    case 'RESET_SCROLL_TRIGGER':
+      return { ...state, scrollTrigger: 0 }
 
     default:
       return state
@@ -530,6 +542,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       dispatch({ type: 'ADD_MESSAGE', payload: userMessage })
       dispatch({ type: 'START_STREAMING', payload: { conversationId } })
+      dispatch({ type: 'SCROLL_TO_BOTTOM' })
 
       const request: ChatRequest = {
         conversationId,
@@ -561,7 +574,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             streamingContent += chunk
             dispatch({
               type: 'STREAM_CHUNK',
-              payload: { conversationId, messageId: tempMessageId, content: chunk, accumulated: streamingContent },
+              payload: {
+                conversationId,
+                messageId: tempMessageId,
+                content: chunk,
+                accumulated: streamingContent,
+              },
             })
           },
           (messageId) => {
@@ -633,6 +651,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'RESET_NEW_REPLY', payload: conversationId })
   }, [])
 
+  const triggerScrollToBottom = useCallback(() => {
+    dispatch({ type: 'SCROLL_TO_BOTTOM' })
+  }, [])
+
   const streamingState = state.activeConversation
     ? state.streamingStates[state.activeConversation.id] || initialState.streamingStates['']
     : initialState.streamingStates['']
@@ -656,6 +678,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         isLoading: state.isLoading,
         currentModel: state.currentModel,
         availableModels: state.availableModels,
+        scrollTrigger: state.scrollTrigger,
         setActiveConversation,
         createConversation,
         deleteConversation,
@@ -670,6 +693,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         getStreamingState,
         getHasNewReply,
         resetNewReply,
+        triggerScrollToBottom,
       }}
     >
       {children}

@@ -14,6 +14,7 @@ export function ChatArea() {
     clearError,
     isLoading,
     stopStreaming,
+    scrollTrigger,
   } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -52,6 +53,13 @@ export function ChatArea() {
       })
     }
   }, [messages, streamingState, showScrollButton])
+
+  // Force scroll to bottom when triggered (e.g., on send message)
+  useEffect(() => {
+    if (scrollTrigger > 0 && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [scrollTrigger])
 
   useEffect(() => {
     if (error) {
@@ -188,7 +196,10 @@ export function ChatArea() {
                   </div>
                 </div>
 
-                <div className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted font-caption animate-fade-in-up animation-delay-300' role='status'>
+                <div
+                  className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted font-caption animate-fade-in-up animation-delay-300'
+                  role='status'
+                >
                   <div className='flex items-center gap-1.5'>
                     <div className='w-2 h-2 rounded-full bg-[var(--brand-success)] animate-pulse' />
                     <span>服务正常</span>
@@ -241,9 +252,13 @@ export function ChatArea() {
           }`}
           title='滚动到底部'
         >
-          <ArrowDown className={`w-4 h-4 transition-colors duration-200 ${
-            streamingState.isStreaming ? 'theme-brand-primary' : 'theme-text-secondary hover:text-[var(--brand-primary)]'
-          }`} />
+          <ArrowDown
+            className={`w-4 h-4 transition-colors duration-200 ${
+              streamingState.isStreaming
+                ? 'theme-brand-primary'
+                : 'theme-text-secondary hover:text-[var(--brand-primary)]'
+            }`}
+          />
         </button>
       )}
     </div>

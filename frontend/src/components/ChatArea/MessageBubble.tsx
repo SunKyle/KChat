@@ -131,7 +131,7 @@ export const MessageBubble = memo(function MessageBubble({
                   ))}
                 </div>
               )}
-              <MarkdownRenderer content={message.content} showCursor={isThinking} />
+              <MarkdownRenderer content={message.content} />
             </div>
           )}
         </div>
@@ -143,11 +143,7 @@ export const MessageBubble = memo(function MessageBubble({
 
           {!isUser && !isThinking && (
             <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
-              <button
-                onClick={handleCopy}
-                className='icon-btn'
-                title={copied ? '已复制' : '复制'}
-              >
+              <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
                 {copied ? (
                   <Check className='w-[14px] h-[14px] text-green-400' />
                 ) : (
@@ -155,10 +151,7 @@ export const MessageBubble = memo(function MessageBubble({
                 )}
               </button>
               {onRegenerate && (
-                <button
-                  onClick={onRegenerate}
-                  className='icon-btn'
-                >
+                <button onClick={onRegenerate} className='icon-btn'>
                   <RotateCcw className='w-[14px] h-[14px]' />
                 </button>
               )}

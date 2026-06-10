@@ -5,10 +5,9 @@ import { ZoomIn, X, Download } from 'lucide-react'
 
 interface MarkdownRendererProps {
   content: string
-  showCursor?: boolean
 }
 
-export function MarkdownRenderer({ content, showCursor }: MarkdownRendererProps) {
+export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
 
@@ -185,16 +184,6 @@ export function MarkdownRenderer({ content, showCursor }: MarkdownRendererProps)
         >
           {content}
         </ReactMarkdown>
-        {/* 流式打字机光标 — 仅在 AI 正在输出时显示 */}
-        {showCursor && content && (
-          <span
-            aria-hidden='true'
-            className='inline-block w-[2px] h-[1em] ml-0.5 align-text-bottom bg-sky-500 rounded-sm'
-            style={{
-              animation: 'typing-cursor-blink 1s steps(2, end) infinite',
-            }}
-          />
-        )}
       </div>
     </>
   )
