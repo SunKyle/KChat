@@ -297,7 +297,7 @@ export function InputArea() {
                   }
                 }}
                 disabled={!hasContent && !streamingState.isStreaming}
-                className={`relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 ease-out ${
+                className={`relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ease-out ${
                   isThinking
                     ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/25 cursor-pointer'
                     : isOutputting
@@ -316,11 +316,11 @@ export function InputArea() {
                 }
               >
                 {streamingState.isStreaming ? (
-                  <Square className='w-3.5 h-3.5' fill='currentColor' />
+                  <Square className='w-3 h-3' fill='currentColor' />
                 ) : uploading ? (
-                  <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
+                  <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin' />
                 ) : (
-                  <Send className='w-4 h-4' />
+                  <Send className='w-3.5 h-3.5' />
                 )}
               </button>
             </div>
