@@ -29,13 +29,15 @@ export function InputArea() {
         exitTimerRef.current = null
       }
       setIsExiting(false)
-      setShowStatusBar(true)
+      requestAnimationFrame(() => {
+        setShowStatusBar(true)
+      })
     } else if (showStatusBar) {
       setIsExiting(true)
       exitTimerRef.current = setTimeout(() => {
         setShowStatusBar(false)
         setIsExiting(false)
-      }, 300)
+      }, 350)
     }
     return () => {
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current)
@@ -161,12 +163,11 @@ export function InputArea() {
                 <div
                   role='status'
                   aria-live='polite'
-                  className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl transition-all duration-300 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
+                  className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
                     isExiting
-                      ? 'opacity-0 -translate-y-full scale-y-0'
-                      : 'opacity-100 translate-y-0 scale-y-100'
+                      ? 'status-bar-exit'
+                      : 'status-bar-enter'
                   } ${isOutputting ? 'bg-sky-200/40' : 'bg-amber-200/40'}`}
-                  style={{ transformOrigin: 'bottom center' }}
                 >
                   <div className='flex items-center gap-2'>
                     <div
