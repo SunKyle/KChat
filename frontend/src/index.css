@@ -126,6 +126,65 @@
   --shadow-color-hover-secondary: rgba(0, 0, 0, 0.06);
   --shadow-color-elevated: rgba(0, 0, 0, 0.16);
   --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.08);
+
+  /* --- Extended Theme Tokens --- */
+  --bg-glass: rgba(255, 255, 255, 0.55);
+  --bg-glass-border: rgba(255, 255, 255, 0.7);
+  --bg-glass-hover: rgba(255, 255, 255, 0.75);
+  --bg-toolbar-hover: rgba(0, 0, 0, 0.04);
+  --text-toolbar: #6b7280;
+  --text-toolbar-hover: #374151;
+  --text-timestamp: rgba(0, 0, 0, 0.35);
+  --border-divider: rgba(0, 0, 0, 0.06);
+  --bg-status-connected: rgba(14, 165, 233, 0.08);
+  --bg-dropdown: #ffffff;
+  --bg-dropdown-hover: rgba(0, 0, 0, 0.03);
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-sidebar: #1e293b;
+  --bg-card: #1e293b;
+  --bg-hover: #334155;
+  --bg-input: rgba(255, 255, 255, 0.08);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --text-primary: #e5e7eb;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-placeholder: #4b5563;
+
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --border-secondary: rgba(255, 255, 255, 0.05);
+
+  --accent-sky: #38bdf8;
+  --accent-emerald: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-rose: #fb7185;
+  --accent-purple: #a78bfa;
+  --accent-orange: #fb923c;
+
+  --bg-code: #0d1117;
+
+  --shadow-color-primary: rgba(0, 0, 0, 0.3);
+  --shadow-color-secondary: rgba(0, 0, 0, 0.2);
+  --shadow-color-hover: rgba(0, 0, 0, 0.35);
+  --shadow-color-hover-secondary: rgba(0, 0, 0, 0.25);
+  --shadow-color-elevated: rgba(0, 0, 0, 0.4);
+  --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.3);
+
+  /* Extended tokens dark overrides */
+  --bg-glass: rgba(30, 41, 59, 0.6);
+  --bg-glass-border: rgba(255, 255, 255, 0.08);
+  --bg-glass-hover: rgba(30, 41, 59, 0.8);
+  --bg-toolbar-hover: rgba(255, 255, 255, 0.06);
+  --text-toolbar: #9ca3af;
+  --text-toolbar-hover: #d1d5db;
+  --text-timestamp: rgba(255, 255, 255, 0.3);
+  --border-divider: rgba(255, 255, 255, 0.06);
+  --bg-status-connected: rgba(56, 189, 248, 0.1);
+  --bg-dropdown: #1e293b;
+  --bg-dropdown-hover: rgba(255, 255, 255, 0.05);
 }
 
 /* ============================================
@@ -136,20 +195,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  transition-property: background-color, color, border-color, box-shadow, opacity, transform;
-  transition-duration: var(--duration-normal);
-  transition-timing-function: var(--ease-out);
-}
-
-/* Exclude elements that shouldn't transition */
-input,
-textarea,
-select,
-img,
-svg,
-code,
-pre {
-  transition-property: background-color, border-color, opacity;
 }
 
 /* ============================================
@@ -560,7 +605,7 @@ pre {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 .dark .scroll-btn-glass {
-  background-color: rgba(40, 40, 48, 0.75);
+  background-color: rgba(30, 41, 59, 0.75);
   border-color: rgba(255, 255, 255, 0.08);
 }
 

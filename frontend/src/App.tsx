@@ -64,7 +64,7 @@ function AppContent() {
 
         <aside
           className={`
-          fixed left-4 top-20 bottom-4 z-50 transition-all duration-300 ease-in-out
+          fixed left-4 top-20 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 transition-all duration-300 ease-in-out
           lg:left-6 lg:top-6 lg:bottom-6
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -83,7 +83,7 @@ function AppContent() {
 
         <button
           onClick={toggleSidebar}
-          className='fixed top-4 left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-md hover:theme-bg-hover transition-colors'
+          className='fixed top-[max(1rem,env(safe-area-inset-top))] left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-md hover:theme-bg-hover transition-colors'
         >
           {sidebarOpen ? (
             <X className='w-5 h-5 theme-text-primary' />
@@ -93,7 +93,7 @@ function AppContent() {
         </button>
 
         <div
-          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-4 lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms] ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
+          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms] ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
         >
           <div className='flex flex-col h-full card-float-solid mx-4 lg:mx-6'>
             <Header onSettingsClick={() => openSettings('profile')} />

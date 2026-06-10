@@ -27,7 +27,9 @@ export function ConversationItem({
 }: ConversationItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(conversation.title)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -36,13 +38,35 @@ export function ConversationItem({
     }
   }, [isEditing])
 
+  useEffect(() => {
+    if (!contextMenu) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null)
+      }
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setContextMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [contextMenu])
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
-    onDelete()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY })
   }
 
-  const handleStartEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleStartEdit = () => {
     setEditValue(conversation.title)
     setIsEditing(true)
   }
@@ -118,9 +142,10 @@ export function ConversationItem({
   }
 
   return (
-    <div
-      onClick={isEditing ? undefined : onClick}
-      onContextMenu={handleContextMenu}
+    <>
+      <div
+        onClick={isEditing ? undefined : onClick}
+        onContextMenu={handleContextMenu}
       onKeyDown={(e) => {
         if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault()
@@ -133,7 +158,7 @@ export function ConversationItem({
       aria-current={isActive ? 'true' : undefined}
       className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring ${
         isActive
-          ? 'bg-brand-subtle border border-brand-subtle'
+          ? 'bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)]'
           : 'hover:theme-bg-hover/60 border border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
@@ -242,6 +267,34 @@ export function ConversationItem({
           ) : null}
         </div>
       </div>
-    </div>
+      </div>
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className='fixed z-[100] min-w-[140px] py-1 bg-[var(--bg-dropdown)] rounded-lg border theme-border-secondary shadow-lg shadow-[var(--shadow-color-elevated)] overflow-hidden'
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={() => { onPin(conversation.id, !conversation.pinned); setContextMenu(null) }}
+            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
+          >
+            <Pin className='w-3.5 h-3.5' /> {conversation.pinned ? '取消置顶' : '置顶'}
+          </button>
+          <button
+            onClick={() => { handleStartEdit(); setContextMenu(null) }}
+            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
+          >
+            <Pencil className='w-3.5 h-3.5' /> 编辑标题
+          </button>
+          <div className='my-0.5 divider' />
+          <button
+            onClick={() => { onDelete(); setContextMenu(null) }}
+            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] transition-colors'
+          >
+            <Trash2 className='w-3.5 h-3.5' /> 删除
+          </button>
+        </div>
+      )}
+    </>
   )
 }

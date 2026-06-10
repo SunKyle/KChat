@@ -107,6 +107,9 @@ export function ChatArea() {
       <div
         ref={containerRef}
         onScroll={handleScroll}
+        role='log'
+        aria-live='polite'
+        aria-label='聊天消息'
         className={`flex-1 overflow-y-auto scroll-smooth scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
         <div className='w-full min-h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8'>
@@ -141,7 +144,8 @@ export function ChatArea() {
                   <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>
                     <button
                       onClick={() => {}}
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/90 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-md hover:shadow-sky-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      aria-label='写代码'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
                         <Code className='w-3.5 h-3.5 text-sky-600' />
@@ -150,7 +154,8 @@ export function ChatArea() {
                     </button>
                     <button
                       onClick={() => {}}
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/90 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-md hover:shadow-sky-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      aria-label='学知识'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-emerald-100 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors'>
                         <BookOpen className='w-3.5 h-3.5 text-emerald-600' />
@@ -159,7 +164,8 @@ export function ChatArea() {
                     </button>
                     <button
                       onClick={() => {}}
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-white/90 backdrop-blur-sm hover:bg-white hover:border-sky-400/60 hover:shadow-md hover:shadow-sky-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      aria-label='想创意'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-amber-100 group-hover:bg-amber-500/20 flex items-center justify-center transition-colors'>
                         <Lightbulb className='w-3.5 h-3.5 text-amber-600' />
@@ -169,9 +175,9 @@ export function ChatArea() {
                   </div>
                 </div>
 
-                <div className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted font-caption animate-fade-in-up animation-delay-300'>
+                <div className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted font-caption animate-fade-in-up animation-delay-300' role='status'>
                   <div className='flex items-center gap-1.5'>
-                    <div className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse' />
+                    <div className='w-2 h-2 rounded-full bg-[var(--brand-success)] animate-pulse' />
                     <span>服务正常</span>
                   </div>
                   <div className='w-px h-3 bg-theme-border-primary' />
@@ -214,13 +220,14 @@ export function ChatArea() {
       {showScrollButton && messages.length > 0 && (
         <button
           onClick={scrollToBottom}
+          aria-label='回到底部'
           className={`scroll-btn-enter scroll-btn-glass absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95 ${
             streamingState.isStreaming ? 'scroll-btn-streaming' : ''
           }`}
           title='滚动到底部'
         >
           <ArrowDown className={`w-4 h-4 transition-colors duration-200 ${
-            streamingState.isStreaming ? 'text-sky-500' : 'theme-text-secondary hover:text-sky-500'
+            streamingState.isStreaming ? 'theme-brand-primary' : 'theme-text-secondary hover:text-[var(--brand-primary)]'
           }`} />
         </button>
       )}

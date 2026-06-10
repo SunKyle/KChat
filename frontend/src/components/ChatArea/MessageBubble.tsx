@@ -137,7 +137,7 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className='font-tiny font-weight-medium theme-text-muted'>
+          <span className='text-[11px] text-[var(--text-timestamp)] opacity-70'>
             {formatTimestamp(message.timestamp)}
           </span>
 

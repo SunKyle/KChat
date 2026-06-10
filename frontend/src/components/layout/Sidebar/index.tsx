@@ -160,7 +160,7 @@ export function Sidebar({
   }
 
   return (
-    <div className='flex flex-col h-full relative'>
+    <div role='navigation' aria-label='会话导航' className='flex flex-col h-full relative'>
       <div className={`flex flex-col h-full overflow-hidden`}>
         <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
           <div
@@ -190,7 +190,7 @@ export function Sidebar({
             <div className='relative flex-1 group/search'>
               <Search
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
-                  searchQuery ? 'text-sky-500/70' : 'text-sky-400/80'
+                  searchQuery ? 'theme-brand-primary' : 'theme-text-muted'
                 }`}
                 aria-hidden='true'
               />
@@ -209,10 +209,10 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-9 pr-16 py-2 bg-sky-50/70 border border-sky-200/50 rounded-xl font-secondary text-[13px] theme-text-primary placeholder-sky-400/50 focus:outline-none focus:bg-white focus:border-sky-300 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/8 transition-all duration-200'
+                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-placeholder focus:outline-none focus:bg-[var(--bg-glass-hover)] focus:border-[var(--accent-sky)]/40 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/10 transition-all duration-200 shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)]'
               />
               {!searchQuery && (
-                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-white/60 text-sky-500/70 border border-sky-200/40 backdrop-blur-sm group-hover/search:opacity-0 transition-opacity duration-200'>
+                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-[var(--bg-glass)] theme-brand-primary/70 border border-[var(--bg-glass-border)] backdrop-blur-md shadow-[0_1px_2px_rgba(14,165,233,0.05)] group-hover/search:opacity-0 transition-opacity duration-200'>
                   ⌘K
                 </kbd>
               )}
@@ -220,16 +220,16 @@ export function Sidebar({
                 <button
                   onClick={() => setSearchQuery('')}
                   aria-label='清除搜索'
-                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-lg hover:bg-sky-100 hover:text-sky-600 transition-all duration-300 focus-ring hover:rotate-90'
+                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-[var(--bg-hover)] hover:theme-brand-primary transition-all duration-300 focus-ring hover:rotate-90'
                 >
-                  <X className='w-3.5 h-3.5 text-sky-400' aria-hidden='true' />
+                  <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
                 </button>
               )}
             </div>
             <button
               onClick={createConversation}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-xl bg-sky-50/70 text-sky-500 border border-sky-200/50 hover:bg-sky-500 hover:text-white hover:border-sky-500 hover:shadow-md hover:shadow-sky-500/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
+              className='flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--bg-glass)] backdrop-blur-md theme-brand-primary border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)] hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:backdrop-blur-none hover:shadow-md hover:shadow-[var(--brand-primary)]/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
             >
               <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
             </button>
@@ -262,7 +262,7 @@ export function Sidebar({
               <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
             </div>
           ) : (
-            <div className='space-y-2'>
+            <div role='list' className='space-y-2'>
               {filteredGrouped.map(({ group, items }) => (
                 <div key={group} className='space-y-1'>
                   {!collapsed && (
@@ -270,7 +270,7 @@ export function Sidebar({
                       onClick={() => toggleGroup(group)}
                       aria-expanded={expandedGroups.has(group)}
                       aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='group/header w-full flex items-center justify-between px-2.5 py-1.5 font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
+                      className='group/header w-full flex items-center justify-between px-2.5 py-1.5 min-h-[36px] font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
                     >
                       <span className='flex items-center gap-1.5'>
                         <ChevronRight
@@ -336,7 +336,7 @@ export function Sidebar({
                       {profile?.nickname || '用户'}
                     </p>
                     <span
-                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-600 dark:text-amber-400 text-[10px] font-semibold leading-none backdrop-blur-sm'
+                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-900 dark:text-amber-200 text-[10px] font-semibold leading-none backdrop-blur-sm'
                       title='Premium Plan'
                     >
                       <Crown className='w-2.5 h-2.5' aria-hidden='true' />
