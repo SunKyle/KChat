@@ -195,7 +195,7 @@ export function ConversationItem({
           </div>
         )}
         <div
-          className={`flex items-center gap-1 ${isEditing || isStreaming || isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
+          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
         >
           {isEditing ? (
             <>
