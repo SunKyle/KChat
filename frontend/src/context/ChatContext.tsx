@@ -407,6 +407,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Only fetch from server when no cache exists (first visit to this conversation)
       // Cached data is already up-to-date — it's refreshed on stream completion
       if (!cachedMessages && !isStreaming) {
+        dispatch({ type: 'SET_LOADING', payload: true })
         try {
           const data = await conversations.get(conv.id)
           if (stateRef.current.activeConversation?.id === conv.id) {
@@ -415,6 +416,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error('Failed to load messages:', error)
           dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false })
         }
       }
     },
