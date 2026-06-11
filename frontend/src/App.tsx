@@ -97,14 +97,13 @@ function AppContent() {
         >
           <div className='flex flex-col h-full card-float-solid mx-4 lg:mx-6'>
             <Header onSettingsClick={() => openSettings('profile')} />
-            {showSettings ? (
+            <div className={`flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
+              <ChatArea />
+              {activeConversation && <InputArea />}
+            </div>
+            {showSettings && (
               <div className='flex-1 overflow-y-auto p-6'>
                 <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
-              </div>
-            ) : (
-              <div className='flex-1 flex flex-col overflow-hidden'>
-                <ChatArea />
-                {activeConversation && <InputArea />}
               </div>
             )}
           </div>

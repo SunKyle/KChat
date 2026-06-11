@@ -20,41 +20,46 @@ export function ChatArea() {
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const currentConversationId = activeConversation?.id ?? null
-  const [prevConversationId, setPrevConversationId] = useState<string | null>(null)
   const [isScrolling, setIsScrolling] = useState(false)
+
+  // Track pre-existing message count for stagger animation
   const mountedMsgCountRef = useRef(0)
-  const prevConvIdForCountRef = useRef<string | null>(null)
+  const prevConvIdRef = useRef<string | null>(null)
+  const prevScrollConvIdRef = useRef<string | null>(null)
 
-  // Track mounted message count: only apply stagger animation to pre-existing messages
-  if (prevConvIdForCountRef.current !== currentConversationId) {
-    mountedMsgCountRef.current = messages.length
-    prevConvIdForCountRef.current = currentConversationId ?? null
-  }
-
-  // Conversation switch transition
+  // 1) Conversation switch detection & scroll — smooth scroll on switch, no stagger for cached messages
   useEffect(() => {
-    if (activeConversation && activeConversation.id !== prevConversationId) {
-      setIsTransitioning(true)
-      const timer = setTimeout(() => {
-        setIsTransitioning(false)
-        setPrevConversationId(activeConversation.id)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [activeConversation, prevConversationId])
+    const convId = currentConversationId
 
-  // Auto-scroll: instant during streaming, smooth otherwise
+    if (convId && convId !== prevScrollConvIdRef.current) {
+      // Conversation switched: cached messages are "new to this view" → no stagger animation
+      mountedMsgCountRef.current = 0
+      prevScrollConvIdRef.current = convId
+
+      // Reset scroll position first, then smoothly scroll to bottom
+      if (containerRef.current) {
+        containerRef.current.scrollTop = 0
+      }
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else if (convId === prevScrollConvIdRef.current) {
+      // Same conversation update (e.g., streaming): existing messages stay put
+      mountedMsgCountRef.current = messages.length
+    }
+
+    prevConvIdRef.current = convId
+  }, [messages, currentConversationId])
+
+  // 2) Streaming auto-scroll — instant scroll as content streams in
   useEffect(() => {
-    if (!showScrollButton && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: streamingState.isStreaming ? 'instant' : 'smooth',
-      })
+    if (streamingState.isStreaming && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'instant' })
     }
-  }, [messages, streamingState, showScrollButton])
+  }, [messages, streamingState.isStreaming])
 
-  // Force scroll to bottom when triggered (e.g., on send message)
+  // 3) Force scroll to bottom on send message
   useEffect(() => {
     if (scrollTrigger > 0 && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -211,9 +216,7 @@ export function ChatArea() {
             </div>
           ) : (
             <div className='py-6 font-ai-message w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto'>
-              <div
-                className={`w-full px-2 sm:px-4 lg:px-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
-              >
+              <div className='w-full px-2 sm:px-4 lg:px-6'>
                 {messages.map((message, index) => {
                   const isLastAssistantMessage =
                     message.role === 'assistant' &&
