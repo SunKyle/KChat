@@ -138,7 +138,7 @@ export function ChatArea() {
         aria-label='聊天消息'
         className={`flex-1 overflow-y-auto scroll-smooth scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
       >
-        <div className='w-full min-h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8'>
+        <div className={`w-full min-h-full flex flex-col items-center ${messages.length > 0 ? 'justify-start' : 'justify-center'} px-4 sm:px-6 lg:px-8`}>
           {isLoading ? (
             <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full p-6 space-y-4'>
               <MessageSkeleton />
