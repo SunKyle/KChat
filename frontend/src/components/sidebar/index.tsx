@@ -7,8 +7,6 @@ import {
   X,
   Settings,
   Crown,
-  FileText,
-  ListTodo,
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { useUser } from '../../context/UserContext'
@@ -21,7 +19,6 @@ interface SidebarProps {
   onToggle?: () => void
   onDeleteClick?: (id: string, title: string) => void
   onConversationClick?: () => void
-  onNoteTodoClick?: () => void
 }
 
 export function Sidebar({
@@ -29,7 +26,6 @@ export function Sidebar({
   onToggle: _onToggle,
   onDeleteClick,
   onConversationClick,
-  onNoteTodoClick,
 }: SidebarProps) {
   // 从localStorage恢复展开状态
   const getInitialExpandedGroups = (): Set<string> => {
@@ -322,39 +318,6 @@ export function Sidebar({
             </div>
           )}
         </div>
-
-        {collapsed && <div className='mx-3 divider' />}
-
-        {!collapsed && (
-          <div className='px-4 pb-3'>
-            <button
-              onClick={onNoteTodoClick}
-              aria-label='笔记和待办'
-              className='w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-primary)] transition-all duration-200 group'
-            >
-              <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-green-100'>
-                <FileText className='w-4 h-4 text-blue-600' />
-              </div>
-              <div className='flex-1 text-left'>
-                <p className='font-conversation-name theme-text-primary'>笔记与待办</p>
-                <p className='text-xs theme-text-muted'>记录和管理您的任务</p>
-              </div>
-              <ListTodo className='w-4 h-4 theme-text-muted group-hover:theme-brand-primary transition-colors' />
-            </button>
-          </div>
-        )}
-
-        {collapsed && (
-          <button
-            onClick={onNoteTodoClick}
-            aria-label='笔记和待办'
-            className='p-3 mx-3 rounded-xl bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] hover:bg-[var(--bg-hover)] transition-all duration-200'
-          >
-            <FileText className='w-5 h-5 theme-text-secondary' />
-          </button>
-        )}
-
-        {collapsed && <div className='mx-3 divider' />}
 
         <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
           <div className='w-full'>

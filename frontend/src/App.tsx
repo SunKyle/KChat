@@ -60,10 +60,6 @@ function AppContent() {
     setDeleteConfirm({ id, title })
   }
 
-  const handleNoteTodoClick = () => {
-    setNoteTodoDrawerOpen(true)
-  }
-
   const handleConfirmDelete = () => {
     if (deleteConfirm) {
       remove(deleteConfirm.id)
@@ -97,7 +93,6 @@ function AppContent() {
               onToggle={toggleCollapsed}
               onDeleteClick={handleDeleteClick}
               onConversationClick={() => closeSettings()}
-              onNoteTodoClick={handleNoteTodoClick}
             />
           </div>
         </aside>
