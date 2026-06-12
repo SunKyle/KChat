@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useChat } from '../../context/ChatContext'
 import { useUser } from '../../context/UserContext'
+import { useConversation } from '../../hooks/useConversation'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 
@@ -50,17 +51,10 @@ export function Sidebar({
   const searchInputRef = useRef<HTMLInputElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const {
-    conversations,
-    activeConversation,
-    setActiveConversation,
-    createConversation,
-    updateConversation,
-    pinConversation,
-    getStreamingState,
-    getHasNewReply,
-    resetNewReply,
-  } = useChat()
+  const { conversations, activeConversation, getStreamingState, getHasNewReply, resetNewReply } =
+    useChat()
+
+  const { create, update, pin, select } = useConversation()
 
   const { profile } = useUser()
 
@@ -172,9 +166,11 @@ export function Sidebar({
           >
             {/* Logo with soft glow */}
             <div className='relative flex-shrink-0'>
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
-                collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
-              }`} />
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
+                  collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
+                }`}
+              />
               <img
                 src='/kchat-icon.svg'
                 alt='KChat'
@@ -231,7 +227,7 @@ export function Sidebar({
               )}
             </div>
             <button
-              onClick={createConversation}
+              onClick={create}
               aria-label='创建新对话'
               className='flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--bg-glass)] backdrop-blur-md theme-brand-primary border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)] hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:backdrop-blur-none hover:shadow-md hover:shadow-[var(--brand-primary)]/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
             >
@@ -302,12 +298,12 @@ export function Sidebar({
                         hasNewReply={getHasNewReply(conversation.id)}
                         onClick={() => {
                           resetNewReply(conversation.id)
-                          setActiveConversation(conversation)
+                          select(conversation)
                           onConversationClick?.()
                         }}
                         onDelete={() => handleDelete(conversation.id, conversation.title)}
-                        onUpdate={updateConversation}
-                        onPin={pinConversation}
+                        onUpdate={update}
+                        onPin={pin}
                         collapsed={collapsed}
                       />
                     ))}

@@ -13,6 +13,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
+import { useConversation } from './hooks/useConversation'
 
 function AppContent() {
   const {
@@ -24,7 +25,8 @@ function AppContent() {
     toggleSidebar,
   } = useSidebar()
   const { showSettings, settingsTab, openSettings, closeSettings } = useSettings()
-  const { deleteConversation, activeConversation } = useChat()
+  const { activeConversation } = useChat()
+  const { remove } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
   const [noteTodoDrawerOpen, setNoteTodoDrawerOpen] = useState(false)
   const [isLg, setIsLg] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024)
@@ -62,7 +64,7 @@ function AppContent() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirm) {
-      deleteConversation(deleteConfirm.id)
+      remove(deleteConfirm.id)
       setDeleteConfirm(null)
     }
   }

@@ -1,6 +1,7 @@
 import { Cpu, ChevronDown, Check, Settings } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
+import { useModel } from '../../hooks/useModel'
 import { ThemeToggle } from '../common/ThemeToggle'
 
 interface HeaderProps {
@@ -8,8 +9,12 @@ interface HeaderProps {
 }
 
 export function Header({ onSettingsClick }: HeaderProps) {
-  const { activeConversation, currentModel, availableModels, setCurrentModel } = useChat()
+  const { activeConversation } = useChat()
+  const { getCurrentModel, getAvailableModels, select } = useModel()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
+
+  const currentModel = getCurrentModel()
+  const availableModels = getAvailableModels()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const isOnline = true
 
@@ -19,7 +24,11 @@ export function Header({ onSettingsClick }: HeaderProps) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (isModelDropdownOpen && buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+      if (
+        isModelDropdownOpen &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
         setIsModelDropdownOpen(false)
       }
     }
@@ -67,7 +76,11 @@ export function Header({ onSettingsClick }: HeaderProps) {
           </button>
 
           {isModelDropdownOpen && (
-            <div role='listbox' aria-label='模型列表' className='absolute top-full right-0 sm:left-0 w-48 sm:w-56 mt-1.5 bg-[var(--bg-dropdown)] rounded-xl border theme-border-secondary shadow-xl shadow-[var(--shadow-color-primary)] overflow-hidden z-50'>
+            <div
+              role='listbox'
+              aria-label='模型列表'
+              className='absolute top-full right-0 sm:left-0 w-48 sm:w-56 mt-1.5 bg-[var(--bg-dropdown)] rounded-xl border theme-border-secondary shadow-xl shadow-[var(--shadow-color-primary)] overflow-hidden z-50'
+            >
               <div className='p-1'>
                 {availableModels.map((model) => (
                   <button
@@ -75,7 +88,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
                     role='option'
                     aria-selected={model === currentModel}
                     onClick={() => {
-                      setCurrentModel(model)
+                      select(model)
                       setIsModelDropdownOpen(false)
                     }}
                     className={`w-full px-3 py-2 text-left text-sm sm:text-base flex items-center justify-between rounded-lg transition-all duration-150 ${
@@ -107,12 +120,22 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <ThemeToggle />
           <div className='flex items-center gap-1.5 sm:gap-2'>
             {isOnline ? (
-              <div role='status' aria-label={isOnline ? '服务已连接' : '服务离线'} className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-status-connected)] rounded-full'>
+              <div
+                role='status'
+                aria-label={isOnline ? '服务已连接' : '服务离线'}
+                className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-status-connected)] rounded-full'
+              >
                 <div className='w-2 h-2 rounded-full bg-sky-500 shadow-sm shadow-[var(--brand-primary)]/30 animate-pulse' />
-                <span className='font-secondary text-xs sm:text-sm theme-brand-primary'>已连接</span>
+                <span className='font-secondary text-xs sm:text-sm theme-brand-primary'>
+                  已连接
+                </span>
               </div>
             ) : (
-              <div role='status' aria-label={isOnline ? '服务已连接' : '服务离线'} className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-hover)] rounded-full'>
+              <div
+                role='status'
+                aria-label={isOnline ? '服务已连接' : '服务离线'}
+                className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-hover)] rounded-full'
+              >
                 <div className='w-2 h-2 rounded-full bg-gray-400' />
                 <span className='font-secondary text-xs sm:text-sm theme-text-muted'>离线</span>
               </div>

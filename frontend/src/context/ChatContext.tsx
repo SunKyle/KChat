@@ -27,6 +27,8 @@ interface ChatContextType {
   getHasNewReply: (conversationId: string) => boolean
   resetNewReply: (conversationId: string) => void
   triggerScrollToBottom: () => void
+  dispatch: React.Dispatch<ChatAction>
+  stateRef: React.MutableRefObject<ChatState>
 }
 
 type ChatAction =
@@ -707,6 +709,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         getHasNewReply,
         resetNewReply,
         triggerScrollToBottom,
+        dispatch,
+        stateRef,
       }}
     >
       {children}
