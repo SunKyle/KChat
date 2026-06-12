@@ -38,6 +38,20 @@ function AppContent() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const edgeThreshold = 20
+      const isNearRightEdge = e.clientX >= window.innerWidth - edgeThreshold
+      
+      if (isNearRightEdge && !noteTodoDrawerOpen) {
+        setNoteTodoDrawerOpen(true)
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [noteTodoDrawerOpen])
+
   const handleSidebarEnter = useCallback(() => {
     setSidebarCollapsed(false)
   }, [setSidebarCollapsed])
