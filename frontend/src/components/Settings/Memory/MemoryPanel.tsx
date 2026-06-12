@@ -12,9 +12,9 @@ import {
   Search,
   Database,
 } from 'lucide-react'
-import { memory } from '../../api/memory'
-import { MEMORY_TYPES } from '../../types'
-import type { Memory, MemoryType } from '../../types'
+import { memory } from '../../../api/memory'
+import { MEMORY_TYPES } from '../../../types'
+import type { Memory, MemoryType } from '../../../types'
 
 const typeIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   KNOWLEDGE: BookOpen,

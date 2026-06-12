@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Send, Square, Image, Trash2, Paperclip, Code, Loader2 } from 'lucide-react'
-import { useChat } from '../../context/ChatContext'
-import { images } from '../../api'
+import { useChat } from '../../../context/ChatContext'
+import { images } from '../../../api'
 
 export function InputArea() {
   const [input, setInput] = useState('')

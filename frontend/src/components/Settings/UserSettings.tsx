@@ -5,7 +5,7 @@ import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
 import { ModelSettings } from './ModelSettings'
-import { MemoryPanel } from '../Memory/MemoryPanel'
+import { MemoryPanel } from './Memory/MemoryPanel'
 import { useUser } from '../../context/UserContext'
 
 type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'

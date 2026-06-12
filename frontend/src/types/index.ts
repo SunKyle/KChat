@@ -127,7 +127,7 @@ export interface Memory {
   isRule?: boolean
 }
 
-export type IconName = import('../components/Icon').IconName
+export type IconName = import('../components/common/Icon').IconName
 
 export interface MemoryTypeInfo {
   type: MemoryType

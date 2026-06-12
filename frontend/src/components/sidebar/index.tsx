@@ -10,8 +10,8 @@ import {
   FileText,
   ListTodo,
 } from 'lucide-react'
-import { useChat } from '../../../context/ChatContext'
-import { useUser } from '../../../context/UserContext'
+import { useChat } from '../../context/ChatContext'
+import { useUser } from '../../context/UserContext'
 import { ConversationItem } from './ConversationItem'
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 

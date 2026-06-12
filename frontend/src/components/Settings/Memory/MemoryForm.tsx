@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { MEMORY_TYPES } from '../../types'
-import type { Memory, MemoryType } from '../../types'
-import { Icon } from '../Icon'
+import { MEMORY_TYPES } from '../../../types'
+import type { Memory, MemoryType } from '../../../types'
+import { Icon } from '../../common/Icon'
 
 interface MemoryFormProps {
   memory: Memory | null

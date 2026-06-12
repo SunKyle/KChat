@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
-import type { Conversation } from '../../../types'
+import type { Conversation } from '../../types'
 
 interface ConversationItemProps {
   conversation: Conversation

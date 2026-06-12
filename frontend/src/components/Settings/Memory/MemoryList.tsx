@@ -1,6 +1,6 @@
-import { MEMORY_TYPES } from '../../types'
-import type { Memory } from '../../types'
-import { Icon } from '../Icon'
+import { MEMORY_TYPES } from '../../../types'
+import type { Memory } from '../../../types'
+import { Icon } from '../../common/Icon'
 
 interface MemoryListProps {
   memories: Memory[]

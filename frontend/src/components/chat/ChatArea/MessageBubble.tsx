@@ -1,8 +1,8 @@
 import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react'
-import type { Message } from '../../types'
+import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { useState, memo } from 'react'
-import { useUser } from '../../context/UserContext'
+import { useUser } from '../../../context/UserContext'
 
 interface MessageBubbleProps {
   message: Message
