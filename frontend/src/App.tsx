@@ -6,8 +6,10 @@ import { ChatArea } from './components/ChatArea'
 import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
 import { ConfirmDialog } from './components/common/ConfirmDialog'
+import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/Settings/UserSettings'
-import { useState, useRef, useCallback } from 'react'
+import { NoteTodoPanel } from './components/NoteTodo/NoteTodoPanel'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
@@ -24,7 +26,16 @@ function AppContent() {
   const { showSettings, settingsTab, openSettings, closeSettings } = useSettings()
   const { deleteConversation, activeConversation } = useChat()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
+  const [noteTodoDrawerOpen, setNoteTodoDrawerOpen] = useState(false)
+  const [isLg, setIsLg] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024)
   const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const handler = (e: MediaQueryListEvent) => setIsLg(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const handleSidebarEnter = useCallback(() => {
     if (collapseTimerRef.current) {
@@ -43,6 +54,10 @@ function AppContent() {
 
   const handleDeleteClick = (id: string, title: string) => {
     setDeleteConfirm({ id, title })
+  }
+
+  const handleNoteTodoClick = () => {
+    setNoteTodoDrawerOpen(true)
   }
 
   const handleConfirmDelete = () => {
@@ -71,12 +86,15 @@ function AppContent() {
           onMouseEnter={handleSidebarEnter}
           onMouseLeave={handleSidebarLeave}
         >
-          <div className={`h-full card-float-solid ${sidebarWidth} transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[width]`}>
+          <div
+            className={`h-full card-float-solid ${sidebarWidth} transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[width]`}
+          >
             <Sidebar
               collapsed={sidebarCollapsed}
               onToggle={() => {}}
               onDeleteClick={handleDeleteClick}
               onConversationClick={() => closeSettings()}
+              onNoteTodoClick={handleNoteTodoClick}
             />
           </div>
         </aside>
@@ -93,9 +111,13 @@ function AppContent() {
         </button>
 
         <div
-          className={`flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms] ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}
+          className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
+          style={isLg ? {
+            paddingLeft: sidebarCollapsed ? 112 : 336,
+            paddingRight: noteTodoDrawerOpen ? 448 : 48,
+          } : undefined}
         >
-          <div className='flex flex-col h-full card-float-solid mx-4 lg:mx-6'>
+          <div className='flex flex-col h-full card-float-solid'>
             <Header onSettingsClick={() => openSettings('profile')} />
             <div className={`flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
               <ChatArea />
@@ -120,6 +142,10 @@ function AppContent() {
         onCancel={() => setDeleteConfirm(null)}
         type='danger'
       />
+
+      <NoteTodoPanel isOpen={noteTodoDrawerOpen} onClose={() => setNoteTodoDrawerOpen(false)} />
+
+      <ToastContainer />
     </>
   )
 }
