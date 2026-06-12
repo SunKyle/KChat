@@ -5,7 +5,7 @@ import { Sidebar } from './components/layout/Sidebar'
 import { ChatArea } from './components/ChatArea'
 import { InputArea } from './components/InputArea'
 import { Header } from './components/layout/Header'
-import { ConfirmDialog } from './components/common/ConfirmDialog'
+import { Modal } from './components/common/Modal'
 import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/Settings/UserSettings'
 import { NoteTodoPanel } from './components/NoteTodo/NoteTodoPanel'
@@ -112,10 +112,14 @@ function AppContent() {
 
         <div
           className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
-          style={isLg ? {
-            paddingLeft: sidebarCollapsed ? 112 : 336,
-            paddingRight: noteTodoDrawerOpen ? 448 : 48,
-          } : undefined}
+          style={
+            isLg
+              ? {
+                  paddingLeft: sidebarCollapsed ? 112 : 336,
+                  paddingRight: noteTodoDrawerOpen ? 448 : 48,
+                }
+              : undefined
+          }
         >
           <div className='flex flex-col h-full card-float-solid'>
             <Header onSettingsClick={() => openSettings('profile')} />
@@ -132,14 +136,14 @@ function AppContent() {
         </div>
       </div>
 
-      <ConfirmDialog
+      <Modal
         isOpen={deleteConfirm !== null}
         title='删除对话'
         message={deleteConfirm ? `确定要删除"${deleteConfirm.title}"吗？此操作无法撤销。` : ''}
         confirmText='删除'
         cancelText='取消'
         onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteConfirm(null)}
+        onClose={() => setDeleteConfirm(null)}
         type='danger'
       />
 

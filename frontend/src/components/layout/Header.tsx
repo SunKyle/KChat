@@ -1,7 +1,7 @@
 import { Cpu, ChevronDown, Check, Settings } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
-import { ThemeToggle } from '../ui/ThemeToggle'
+import { ThemeToggle } from '../common/ThemeToggle'
 
 interface HeaderProps {
   onSettingsClick?: () => void
