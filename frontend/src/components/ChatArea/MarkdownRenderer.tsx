@@ -1,13 +1,13 @@
 import ReactMarkdown from 'react-markdown'
 import { CodeBlock } from './CodeBlock'
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { ZoomIn, X, Download } from 'lucide-react'
 
 interface MarkdownRendererProps {
   content: string
 }
 
-export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
 
@@ -187,4 +187,4 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       </div>
     </>
   )
-}
+})

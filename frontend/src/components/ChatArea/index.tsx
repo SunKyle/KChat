@@ -19,6 +19,7 @@ export function ChatArea() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollRafRef = useRef<number>(0)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const currentConversationId = activeConversation?.id ?? null
   const [isScrolling, setIsScrolling] = useState(false)
@@ -52,10 +53,13 @@ export function ChatArea() {
     prevConvIdRef.current = convId
   }, [messages, currentConversationId])
 
-  // 2) Streaming auto-scroll — instant scroll as content streams in
+  // 2) Streaming auto-scroll — rAF-throttled to avoid excessive reflows
   useEffect(() => {
     if (streamingState.isStreaming && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'instant' })
+      cancelAnimationFrame(scrollRafRef.current)
+      scrollRafRef.current = requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
+      })
     }
   }, [messages, streamingState.isStreaming])
 
@@ -94,6 +98,7 @@ export function ChatArea() {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
       }
+      cancelAnimationFrame(scrollRafRef.current)
     }
   }, [])
 
