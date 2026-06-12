@@ -162,25 +162,35 @@ export function Sidebar({
       <div className={`flex flex-col h-full overflow-hidden`}>
         <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
           <div
-            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center gap-2'}`}
+            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between w-full'}`}
           >
-            {/* Logo with soft glow */}
-            <div className='relative flex-shrink-0'>
-              <div
-                className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
-                  collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
-                }`}
-              />
-              <img
-                src='/kchat-icon.svg'
-                alt='KChat'
-                className={`relative ${collapsed ? 'w-6 h-6' : 'w-7 h-7'} object-contain transition-transform duration-300 ease-out group-hover/logo:rotate-12`}
-              />
+            <div className='flex items-center gap-2'>
+              <div className='relative flex-shrink-0'>
+                <div
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
+                    collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
+                  }`}
+                />
+                <img
+                  src='/kchat-icon.svg'
+                  alt='KChat'
+                  className={`relative ${collapsed ? 'w-6 h-6' : 'w-7 h-7'} object-contain transition-transform duration-300 ease-out group-hover/logo:rotate-12`}
+                />
+              </div>
+              {!collapsed && (
+                <h1 className='font-logo bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
+                  KChat
+                </h1>
+              )}
             </div>
             {!collapsed && (
-              <h1 className='font-logo bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
-                KChat
-              </h1>
+              <button
+                onClick={_onToggle}
+                aria-label='收起侧边栏'
+                className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200 focus-ring flex-shrink-0'
+              >
+                <ChevronRight className='w-4 h-4 rotate-180' aria-hidden='true' />
+              </button>
             )}
           </div>
         </div>
