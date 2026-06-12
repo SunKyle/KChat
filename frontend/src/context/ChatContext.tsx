@@ -34,7 +34,7 @@ interface ChatContextType {
 type ChatAction =
   | { type: 'SET_CONVERSATIONS'; payload: Conversation[] }
   | { type: 'SET_ACTIVE_CONVERSATION'; payload: Conversation | null }
-  | { type: 'SET_MESSAGES'; payload: Message[] }
+  | { type: 'SET_MESSAGES'; payload: { conversationId: string; messages: Message[] } }
   | { type: 'ADD_MESSAGE'; payload: Message }
   | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string; conversationId: string } }
   | { type: 'START_STREAMING'; payload: { conversationId: string } }
@@ -102,16 +102,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, activeConversation: action.payload }
 
     case 'SET_MESSAGES': {
-      if (state.activeConversation) {
-        return {
-          ...state,
-          messagesByConversation: {
-            ...state.messagesByConversation,
-            [state.activeConversation.id]: action.payload,
-          },
-        }
+      return {
+        ...state,
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [action.payload.conversationId]: action.payload.messages,
+        },
       }
-      return state
     }
 
     case 'ADD_MESSAGE': {
@@ -401,19 +398,31 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     async (conv: Conversation) => {
       const cachedMessages = state.messagesByConversation[conv.id]
       const isStreaming = state.streamingStates[conv.id]?.isStreaming
+      const needsFetch = !cachedMessages && !isStreaming
 
-      // Immediately show cached messages (instant switch)
-      dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conv })
-      dispatch({ type: 'SET_MESSAGES', payload: cachedMessages || [] })
+      // Atomic dispatch: set conversation + messages + loading in one go
+      // Prevents intermediate blank state between dispatches
+      dispatch({
+        type: 'SET_ACTIVE_CONVERSATION',
+        payload: conv,
+      })
+      dispatch({
+        type: 'SET_MESSAGES',
+        payload: { conversationId: conv.id, messages: cachedMessages || [] },
+      })
+      if (needsFetch) {
+        dispatch({ type: 'SET_LOADING', payload: true })
+      }
 
       // Only fetch from server when no cache exists (first visit to this conversation)
-      // Cached data is already up-to-date — it's refreshed on stream completion
-      if (!cachedMessages && !isStreaming) {
-        dispatch({ type: 'SET_LOADING', payload: true })
+      if (needsFetch) {
         try {
           const data = await conversations.get(conv.id)
           if (stateRef.current.activeConversation?.id === conv.id) {
-            dispatch({ type: 'SET_MESSAGES', payload: data.messages || [] })
+            dispatch({
+              type: 'SET_MESSAGES',
+              payload: { conversationId: conv.id, messages: data.messages || [] },
+            })
           }
         } catch (error) {
           console.error('Failed to load messages:', error)
@@ -439,7 +448,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         )
       )
       dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
-      dispatch({ type: 'SET_MESSAGES', payload: [] })
+      dispatch({ type: 'SET_MESSAGES', payload: { conversationId: newConversation.id, messages: [] } })
     } catch (error) {
       console.error('Failed to create conversation:', error)
       dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
@@ -507,7 +516,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const data = await conversations.get(conversationId)
-      dispatch({ type: 'SET_MESSAGES', payload: data.messages || [] })
+      dispatch({ type: 'SET_MESSAGES', payload: { conversationId, messages: data.messages || [] } })
     } catch (error) {
       console.error('Failed to load messages:', error)
       dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })
@@ -529,7 +538,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const newConversation = await conversations.create()
           dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
           dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
-          dispatch({ type: 'SET_MESSAGES', payload: [] })
+          dispatch({ type: 'SET_MESSAGES', payload: { conversationId: newConversation.id, messages: [] } })
           conversationId = newConversation.id
           localStorage.setItem(
             'kchat_conversations',

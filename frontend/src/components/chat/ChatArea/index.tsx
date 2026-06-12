@@ -229,12 +229,15 @@ export function ChatArea() {
                     streamingState.isStreaming
 
                   const isPreExisting = index < mountedMsgCountRef.current
+                  // Cap stagger animation to first 15 messages to avoid
+                  // all messages being invisible (opacity:0) in large conversations
+                  const shouldAnimate = isPreExisting && index < 15
 
                   return (
                     <div
                       key={message.id}
-                      className={isPreExisting ? 'animate-message-in' : ''}
-                      style={isPreExisting ? { animationDelay: `${index * 50}ms` } : undefined}
+                      className={shouldAnimate ? 'animate-message-in' : ''}
+                      style={shouldAnimate ? { animationDelay: `${index * 50}ms` } : undefined}
                     >
                       <MessageBubble
                         message={message}
