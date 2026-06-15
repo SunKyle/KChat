@@ -38,20 +38,6 @@ function AppContent() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const edgeThreshold = 20
-      const isNearRightEdge = e.clientX >= window.innerWidth - edgeThreshold
-      
-      if (isNearRightEdge && !noteTodoDrawerOpen) {
-        setNoteTodoDrawerOpen(true)
-      }
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [noteTodoDrawerOpen])
-
   const handleSidebarEnter = useCallback(() => {
     setSidebarCollapsed(false)
   }, [setSidebarCollapsed])
@@ -80,7 +66,7 @@ function AppContent() {
         <aside
           className={`
           fixed left-4 top-20 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 transition-all duration-300 ease-in-out
-          lg:left-6 lg:top-6 lg:bottom-6
+          lg:left-4 lg:top-4 lg:bottom-4
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
           onMouseEnter={handleSidebarEnter}
@@ -109,12 +95,12 @@ function AppContent() {
         </button>
 
         <div
-          className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-6 lg:pb-6 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
+          className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4 lg:pb-4 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
           style={
             isLg
               ? {
-                  paddingLeft: sidebarCollapsed ? 112 : 336,
-                  paddingRight: noteTodoDrawerOpen ? 448 : 48,
+                  paddingLeft: sidebarCollapsed ? 96 : 320,
+                  paddingRight: noteTodoDrawerOpen ? 432 : 52,
                 }
               : undefined
           }
@@ -145,7 +131,7 @@ function AppContent() {
         type='danger'
       />
 
-      <NoteTodoPanel isOpen={noteTodoDrawerOpen} onClose={() => setNoteTodoDrawerOpen(false)} />
+      <NoteTodoPanel isOpen={noteTodoDrawerOpen} onClose={() => setNoteTodoDrawerOpen(false)} onOpen={() => setNoteTodoDrawerOpen(true)} />
 
       <ToastContainer />
     </>

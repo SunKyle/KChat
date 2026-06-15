@@ -22,6 +22,7 @@ import { DetailPreview } from './DetailPreview'
 interface NoteTodoPanelProps {
   isOpen: boolean
   onClose: () => void
+  onOpen: () => void
 }
 
 const mockNotes: Note[] = [
@@ -122,7 +123,7 @@ interface FormState {
   dueDate: string
 }
 
-export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
+export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const { success, info } = useToast()
   const [mode, setMode] = useState<NoteTodoMode>('note')
   const [notes, setNotes] = useLocalStorage<Note[]>('kchat_notes', mockNotes)
@@ -587,7 +588,8 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
   return (
     <>
       <div
-        className={`fixed right-6 top-6 bottom-6 w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-4 top-4 bottom-4 w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-20px)] cursor-pointer'}`}
+        onClick={!isOpen ? onOpen : undefined}
       >
         <div className='h-full card-float-solid flex flex-col overflow-hidden'>
           {renderHeader()}
