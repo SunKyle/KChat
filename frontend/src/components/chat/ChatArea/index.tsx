@@ -108,7 +108,7 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className='flex-1 flex items-center justify-center relative overflow-hidden rounded-[var(--radius-xl)]'>
+      <div className='flex-1 flex items-center justify-center relative overflow-hidden rounded-b-[var(--radius-xl)]'>
         <div className='absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-indigo-50' />
         
         <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-sky-400/10 via-indigo-500/5 to-purple-500/5 rounded-full blur-3xl' />
