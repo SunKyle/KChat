@@ -437,28 +437,35 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   }))
 
   const renderHeader = () => (
-    <div className='flex-shrink-0 flex items-center justify-between px-4 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
-      <div className='flex items-center gap-1'>
+    <div className='flex-shrink-0 flex items-center justify-between px-3 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
+      <div className='relative flex items-center bg-[var(--bg-input)] rounded-lg p-0.5'>
+        <div
+          className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] bg-[var(--brand-primary)] rounded-md shadow-md shadow-[var(--brand-primary)]/25 transition-all duration-300 ease-out ${mode === 'note' ? 'left-0.5' : 'left-1/2'}`}
+        />
         <button
           onClick={() => handleModeChange('note')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${mode === 'note' ? 'bg-[var(--brand-primary)]/12 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}
+          className='relative flex items-center gap-1 px-3 py-1 text-[12px] font-semibold transition-colors duration-200 rounded-md'
+          style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
         >
-          <FileText className='w-4 h-4' />
+          <FileText className='w-3 h-3' />
           笔记
           <span
-            className={`ml-1 w-5 h-5 flex items-center justify-center text-[10px] font-semibold rounded-full ${mode === 'note' ? 'bg-white/80 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}
+            style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
           >
             {notes.length}
           </span>
         </button>
         <button
           onClick={() => handleModeChange('todo')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${mode === 'todo' ? 'bg-[var(--brand-primary)]/12 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}
+          className='relative flex items-center gap-1 px-3 py-1 text-[12px] font-semibold transition-colors duration-200 rounded-md'
+          style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
         >
-          <ListTodo className='w-4 h-4' />
+          <ListTodo className='w-3 h-3' />
           待办
           <span
-            className={`ml-1 w-5 h-5 flex items-center justify-center text-[10px] font-semibold rounded-full ${mode === 'todo' ? 'bg-white/80 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}
+            style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
           >
             {todos.length}
           </span>
@@ -478,24 +485,24 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     <div className='flex-shrink-0 p-3 border-b border-[var(--border-divider)]'>
       <div className='flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]/60' />
+          <Search className='absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]/60' />
           <input
             type='text'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'}
-            className='w-full pl-8 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[12px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
           />
         </div>
         {mode === 'todo' && (
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value as 'all' | 'pending' | 'completed')}
-            className='h-8 px-2 pr-6 bg-[var(--bg-input)] border border-transparent rounded-lg text-[12px] font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
             style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
               backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 6px center',
+              backgroundPosition: 'right 4px center',
             }}
           >
             <option value='all'>全部 ({todos.length})</option>
@@ -509,11 +516,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         )}
         <button
           onClick={handleOpenCreateForm}
-          className='flex items-center gap-1 px-3 py-2 rounded-lg bg-[#0EA5E9] text-white text-[12px] font-semibold hover:bg-[#0284C7] transition-all'
+          className='flex items-center justify-center px-3 py-2 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all'
           aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
         >
           <Plus className='w-3.5 h-3.5' />
-          新建
         </button>
       </div>
 
