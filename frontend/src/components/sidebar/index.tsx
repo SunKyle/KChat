@@ -287,7 +287,7 @@ export function Sidebar({
                           }`}
                           aria-hidden='true'
                         />
-                        <span className='group-hover/header:theme-text-secondary transition-colors'>
+                        <span className='group-hover/header:theme-text-secondary transition-colors flex items-center gap-1'>
                           {group}
                         </span>
                       </span>

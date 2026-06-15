@@ -134,7 +134,7 @@ export function ConversationItem({
         {/* 置顶图钉 */}
         {conversation.pinned && (
           <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400/90 flex items-center justify-center shadow-sm'>
-            <Pin className='w-[7px] h-[7px] text-white' fill='white' />
+            <Pin className='w-[7px] h-[7px] text-white' fill='currentColor' />
           </div>
         )}
       </div>
@@ -237,6 +237,7 @@ export function ConversationItem({
                       ? 'theme-accent-amber'
                       : 'theme-text-muted hover:theme-text-secondary'
                   }`}
+                  fill={conversation.pinned ? 'currentColor' : 'none'}
                   aria-hidden='true'
                 />
               </button>
@@ -278,7 +279,7 @@ export function ConversationItem({
             onClick={() => { onPin(conversation.id, !conversation.pinned); setContextMenu(null) }}
             className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
           >
-            <Pin className='w-3.5 h-3.5' /> {conversation.pinned ? '取消置顶' : '置顶'}
+            <Pin className='w-3.5 h-3.5' fill={conversation.pinned ? 'currentColor' : 'none'} /> {conversation.pinned ? '取消置顶' : '置顶'}
           </button>
           <button
             onClick={() => { handleStartEdit(); setContextMenu(null) }}

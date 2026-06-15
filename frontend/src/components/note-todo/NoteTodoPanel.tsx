@@ -663,6 +663,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       onSelect={(todo) => setSelectedTodo(todo)}
                       onToggle={(id) => handleToggleTodo(id)}
                       onEdit={(todo) => handleEditTodo(todo)}
+                      onDelete={(id) => handleDeleteTodo(id)}
                       formatDateFull={formatDateFull}
                       formatDate={formatDate}
                       isOverdue={isOverdue}
