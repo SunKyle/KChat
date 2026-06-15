@@ -487,9 +487,29 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             className='w-full pl-8 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[12px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
           />
         </div>
+        {mode === 'todo' && (
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as 'all' | 'pending' | 'completed')}
+            className='h-8 px-2 pr-6 bg-[var(--bg-input)] border border-transparent rounded-lg text-[12px] font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 6px center',
+            }}
+          >
+            <option value='all'>全部 ({todos.length})</option>
+            <option value='pending'>
+              进行中 ({todos.filter((t) => t.status === 'pending').length})
+            </option>
+            <option value='completed'>
+              已完成 ({todos.filter((t) => t.status === 'completed').length})
+            </option>
+          </select>
+        )}
         <button
           onClick={handleOpenCreateForm}
-          className='flex items-center gap-1 px-3 py-2 rounded-lg bg-[#8B5CF6] text-white text-[12px] font-semibold hover:bg-[#7C3AED] transition-all'
+          className='flex items-center gap-1 px-3 py-2 rounded-lg bg-[#0EA5E9] text-white text-[12px] font-semibold hover:bg-[#0284C7] transition-all'
           aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
         >
           <Plus className='w-3.5 h-3.5' />
@@ -537,33 +557,6 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {mode === 'todo' && (
-        <div className='flex items-center gap-0.5 mt-3 bg-[var(--bg-hover)]/30 rounded-lg p-0.5'>
-          {[
-            { key: 'all' as const, label: '全部', count: todos.length },
-            {
-              key: 'pending' as const,
-              label: '进行中',
-              count: todos.filter((t) => t.status === 'pending').length,
-            },
-            {
-              key: 'completed' as const,
-              label: '已完成',
-              count: todos.filter((t) => t.status === 'completed').length,
-            },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 px-2 py-1.5 rounded-md text-[11px] font-medium transition-all ${activeTab === tab.key ? 'bg-[var(--bg-sidebar)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
-            >
-              {tab.label}
-              <span className='ml-1 opacity-50'>{tab.count}</span>
-            </button>
-          ))}
         </div>
       )}
     </div>
