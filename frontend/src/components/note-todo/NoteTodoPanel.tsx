@@ -1,5 +1,14 @@
 import { useState, useCallback, useEffect } from 'react'
-import { FileText, ListTodo, Plus, Search, X, ChevronDown, Trash2, ChevronRight } from 'lucide-react'
+import {
+  FileText,
+  ListTodo,
+  Plus,
+  Search,
+  X,
+  ChevronDown,
+  Trash2,
+  ChevronRight,
+} from 'lucide-react'
 import { useToast } from '../../hooks/useToast'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useDebounce } from '../../hooks/useDebounce'
@@ -20,7 +29,8 @@ const mockNotes: Note[] = [
     id: '1',
     userId: 'default',
     title: '项目会议记录',
-    content: '讨论了Q3产品路线图，确定了三个核心功能的开发优先级：\n\n## 一、项目定位\nKChat是一个基于大模型的智能对话平台，致力于为用户提供高效、智能、个性化的AI对话体验。\n\n## 二、核心功能\n- 多模态对话\n- 智能推荐引擎\n- 记忆体（Agent）\n- 知识图谱\n- RAG检索增强生成\n- 笔记与待办管理',
+    content:
+      '讨论了Q3产品路线图，确定了三个核心功能的开发优先级：\n\n## 一、项目定位\nKChat是一个基于大模型的智能对话平台，致力于为用户提供高效、智能、个性化的AI对话体验。\n\n## 二、核心功能\n- 多模态对话\n- 智能推荐引擎\n- 记忆体（Agent）\n- 知识图谱\n- RAG检索增强生成\n- 笔记与待办管理',
     category: '工作',
     tags: ['会议', '项目'],
     pinned: true,
@@ -31,7 +41,8 @@ const mockNotes: Note[] = [
     id: '2',
     userId: 'default',
     title: '学习笔记 - React Hooks',
-    content: 'useState: 用于管理组件状态\nuseEffect: 用于处理副作用\nuseContext: 用于跨组件传递数据',
+    content:
+      'useState: 用于管理组件状态\nuseEffect: 用于处理副作用\nuseContext: 用于跨组件传递数据',
     category: '学习',
     tags: ['React', '前端'],
     pinned: false,
@@ -178,7 +189,9 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
         pinned: false,
         description: editingTodo.description,
         priority: editingTodo.priority,
-        dueDate: editingTodo.dueDate ? new Date(editingTodo.dueDate).toISOString().split('T')[0] : '',
+        dueDate: editingTodo.dueDate
+          ? new Date(editingTodo.dueDate).toISOString().split('T')[0]
+          : '',
       })
     } else {
       setFormState({
@@ -196,7 +209,8 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
   }, [editingNote, editingTodo])
 
   const filteredNotes = notes.filter((n) => {
-    const matchesSearch = n.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+    const matchesSearch =
+      n.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
       n.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
       n.tags.some((t) => t.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
     const matchesTag = filterTags.length === 0 || filterTags.some((ft) => n.tags.includes(ft))
@@ -222,24 +236,33 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
 
   const handleUpdateNote = useCallback(() => {
     if (!editingNote) return
-    setNotes((prev) => prev.map((n) => n.id === editingNote.id ? ({
-      ...n,
-      title: formState.title || '无标题',
-      content: formState.content,
-      category: formState.category,
-      tags: formState.tags,
-      pinned: formState.pinned,
-      updatedAt: new Date().toISOString(),
-    } as Note) : n))
+    setNotes((prev) =>
+      prev.map((n) =>
+        n.id === editingNote.id
+          ? ({
+              ...n,
+              title: formState.title || '无标题',
+              content: formState.content,
+              category: formState.category,
+              tags: formState.tags,
+              pinned: formState.pinned,
+              updatedAt: new Date().toISOString(),
+            } as Note)
+          : n
+      )
+    )
     setIsFormOpen(false)
     setEditingNote(null)
     success('笔记更新成功')
   }, [editingNote, formState, setNotes, success])
 
-  const handleDeleteNote = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id)
-    if (note) setDeleteConfirm({ type: 'note', id, title: note.title })
-  }, [notes])
+  const handleDeleteNote = useCallback(
+    (id: string) => {
+      const note = notes.find((n) => n.id === id)
+      if (note) setDeleteConfirm({ type: 'note', id, title: note.title })
+    },
+    [notes]
+  )
 
   const confirmDeleteNote = useCallback(() => {
     if (!deleteConfirm || deleteConfirm.type !== 'note') return
@@ -270,24 +293,33 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
 
   const handleUpdateTodo = useCallback(() => {
     if (!editingTodo) return
-    setTodos((prev) => prev.map((t) => t.id === editingTodo.id ? ({
-      ...t,
-      title: formState.title || '未命名待办',
-      description: formState.description,
-      priority: formState.priority,
-      dueDate: formState.dueDate || null,
-      category: formState.category,
-      updatedAt: new Date().toISOString(),
-    } as Todo) : t))
+    setTodos((prev) =>
+      prev.map((t) =>
+        t.id === editingTodo.id
+          ? ({
+              ...t,
+              title: formState.title || '未命名待办',
+              description: formState.description,
+              priority: formState.priority,
+              dueDate: formState.dueDate || null,
+              category: formState.category,
+              updatedAt: new Date().toISOString(),
+            } as Todo)
+          : t
+      )
+    )
     setIsFormOpen(false)
     setEditingTodo(null)
     success('待办更新成功')
   }, [editingTodo, formState, setTodos, success])
 
-  const handleDeleteTodo = useCallback((id: string) => {
-    const todo = todos.find((t) => t.id === id)
-    if (todo) setDeleteConfirm({ type: 'todo', id, title: todo.title })
-  }, [todos])
+  const handleDeleteTodo = useCallback(
+    (id: string) => {
+      const todo = todos.find((t) => t.id === id)
+      if (todo) setDeleteConfirm({ type: 'todo', id, title: todo.title })
+    },
+    [todos]
+  )
 
   const confirmDeleteTodo = useCallback(() => {
     if (!deleteConfirm || deleteConfirm.type !== 'todo') return
@@ -297,22 +329,27 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
     success('待办已删除')
   }, [deleteConfirm, setTodos, selectedTodo, success])
 
-  const handleToggleTodo = useCallback((id: string) => {
-    setTodos((prev) => prev.map((t) => {
-      if (t.id === id) {
-        const newStatus = t.status === 'pending' ? 'completed' : 'pending'
-        const message = newStatus === 'completed' ? '任务已完成！' : '任务已恢复'
-        setTimeout(() => info(message), 50)
-        return {
-          ...t,
-          status: newStatus,
-          completedAt: newStatus === 'completed' ? new Date().toISOString() : null,
-          updatedAt: new Date().toISOString(),
-        }
-      }
-      return t
-    }))
-  }, [info])
+  const handleToggleTodo = useCallback(
+    (id: string) => {
+      setTodos((prev) =>
+        prev.map((t) => {
+          if (t.id === id) {
+            const newStatus = t.status === 'pending' ? 'completed' : 'pending'
+            const message = newStatus === 'completed' ? '任务已完成！' : '任务已恢复'
+            setTimeout(() => info(message), 50)
+            return {
+              ...t,
+              status: newStatus,
+              completedAt: newStatus === 'completed' ? new Date().toISOString() : null,
+              updatedAt: new Date().toISOString(),
+            }
+          }
+          return t
+        })
+      )
+    },
+    [info]
+  )
 
   const handleOpenCreateForm = useCallback(() => {
     setEditingNote(null)
@@ -378,7 +415,13 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
   }
 
   const getContentPreview = (content: string) => {
-    const stripped = content.replace(/#{1,6}\s/g, '').replace(/[*_~`]/g, '').replace(/>\s/g, '').replace(/^\s*[-+]\s/gm, '').replace(/\n+/g, ' ').trim()
+    const stripped = content
+      .replace(/#{1,6}\s/g, '')
+      .replace(/[*_~`]/g, '')
+      .replace(/>\s/g, '')
+      .replace(/^\s*[-+]\s/gm, '')
+      .replace(/\n+/g, ' ')
+      .trim()
     return stripped.length > 80 ? stripped.substring(0, 80) + '…' : stripped
   }
 
@@ -393,20 +436,38 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
   }))
 
   const renderHeader = () => (
-    <div className='flex-shrink-0 flex items-center justify-between px-4 h-12 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
+    <div className='flex-shrink-0 flex items-center justify-between px-4 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
       <div className='flex items-center gap-1'>
-        <button onClick={() => handleModeChange('note')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200 ${mode === 'note' ? 'bg-[var(--brand-primary)]/[0.1] text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+        <button
+          onClick={() => handleModeChange('note')}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${mode === 'note' ? 'bg-[var(--brand-primary)]/12 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}
+        >
           <FileText className='w-4 h-4' />
           笔记
-          <span className={`text-[12px] font-normal ${mode === 'note' ? 'opacity-70' : 'opacity-50'}`}>{notes.length}</span>
+          <span
+            className={`ml-1 w-5 h-5 flex items-center justify-center text-[10px] font-semibold rounded-full ${mode === 'note' ? 'bg-white/80 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+          >
+            {notes.length}
+          </span>
         </button>
-        <button onClick={() => handleModeChange('todo')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200 ${mode === 'todo' ? 'bg-[var(--brand-primary)]/[0.1] text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+        <button
+          onClick={() => handleModeChange('todo')}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${mode === 'todo' ? 'bg-[var(--brand-primary)]/12 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}
+        >
           <ListTodo className='w-4 h-4' />
           待办
-          <span className={`text-[12px] font-normal ${mode === 'todo' ? 'opacity-70' : 'opacity-50'}`}>{todos.length}</span>
+          <span
+            className={`ml-1 w-5 h-5 flex items-center justify-center text-[10px] font-semibold rounded-full ${mode === 'todo' ? 'bg-white/80 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+          >
+            {todos.length}
+          </span>
         </button>
       </div>
-      <button onClick={onClose} className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors' aria-label='收起'>
+      <button
+        onClick={onClose}
+        className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
+        aria-label='收起'
+      >
         <ChevronRight className='w-4 h-4 text-[var(--text-muted)]' />
       </button>
     </div>
@@ -416,29 +477,59 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
     <div className='flex-shrink-0 p-3 border-b border-[var(--border-divider)]'>
       <div className='flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]' />
-          <input type='text' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'} className='w-full pl-9 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 transition-colors' />
+          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]/60' />
+          <input
+            type='text'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'}
+            className='w-full pl-8 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[12px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+          />
         </div>
-        <button onClick={handleOpenCreateForm} className='flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--brand-primary)] text-white text-[12px] font-medium hover:brightness-110 transition-all' aria-label={mode === 'note' ? '新建笔记' : '新建待办'}>
+        <button
+          onClick={handleOpenCreateForm}
+          className='flex items-center gap-1 px-3 py-2 rounded-lg bg-[#8B5CF6] text-white text-[12px] font-semibold hover:bg-[#7C3AED] transition-all'
+          aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
+        >
           <Plus className='w-3.5 h-3.5' />
           新建
         </button>
       </div>
 
       {mode === 'note' && allTags.length > 0 && (
-        <div className='mt-3'>
-          <button onClick={() => setFilterExpanded(!filterExpanded)} className='flex items-center gap-1 text-[10px] font-medium text-[var(--text-muted)]/60 uppercase tracking-widest mb-1.5 px-0.5 hover:text-[var(--text-muted)] transition-colors'>
-            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`} />
+        <div className='mt-4'>
+          <button
+            onClick={() => setFilterExpanded(!filterExpanded)}
+            className='flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-muted)]/50 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-muted)] transition-colors'
+          >
+            <ChevronDown
+              className={`w-3 h-3 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
+            />
             筛选标签
-            {filterTags.length > 0 && <span className='text-[var(--brand-primary)] normal-case tracking-normal'> ({filterTags.length})</span>}
+            {filterTags.length > 0 && (
+              <span className='text-[var(--brand-primary)] normal-case tracking-normal font-medium'>
+                ({filterTags.length})
+              </span>
+            )}
           </button>
           {filterExpanded && (
-            <div className='flex items-center gap-1.5 flex-wrap'>
-              <button onClick={() => setFilterTags([])} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/[0.12] text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}>
+            <div className='flex items-center gap-2 flex-wrap'>
+              <button
+                onClick={() => setFilterTags([])}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/60'}`}
+              >
                 全部
               </button>
               {allTags.map(({ name, count }) => (
-                <button key={name} onClick={() => setFilterTags((prev) => prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name])} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/[0.12] text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/50'}`}>
+                <button
+                  key={name}
+                  onClick={() =>
+                    setFilterTags((prev) =>
+                      prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/60'}`}
+                >
                   {name}
                   <span className='ml-1 opacity-50'>{count}</span>
                 </button>
@@ -450,8 +541,24 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
 
       {mode === 'todo' && (
         <div className='flex items-center gap-0.5 mt-3 bg-[var(--bg-hover)]/30 rounded-lg p-0.5'>
-          {[{ key: 'all' as const, label: '全部', count: todos.length }, { key: 'pending' as const, label: '进行中', count: todos.filter((t) => t.status === 'pending').length }, { key: 'completed' as const, label: '已完成', count: todos.filter((t) => t.status === 'completed').length }].map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex-1 px-2 py-1.5 rounded-md text-[11px] font-medium transition-all ${activeTab === tab.key ? 'bg-[var(--bg-sidebar)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+          {[
+            { key: 'all' as const, label: '全部', count: todos.length },
+            {
+              key: 'pending' as const,
+              label: '进行中',
+              count: todos.filter((t) => t.status === 'pending').length,
+            },
+            {
+              key: 'completed' as const,
+              label: '已完成',
+              count: todos.filter((t) => t.status === 'completed').length,
+            },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 px-2 py-1.5 rounded-md text-[11px] font-medium transition-all ${activeTab === tab.key ? 'bg-[var(--bg-sidebar)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+            >
               {tab.label}
               <span className='ml-1 opacity-50'>{tab.count}</span>
             </button>
@@ -463,18 +570,25 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
 
   const renderNewFormHeader = () => (
     <div className='flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-divider)]'>
-      <button onClick={handleCancelForm} className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'>
+      <button
+        onClick={handleCancelForm}
+        className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
+      >
         <ChevronDown className='w-4 h-4 rotate-90' />
         返回
       </button>
-      <span className='text-[13px] font-medium text-[var(--text-secondary)]'>新建{mode === 'note' ? '笔记' : '待办'}</span>
+      <span className='text-[13px] font-medium text-[var(--text-secondary)]'>
+        新建{mode === 'note' ? '笔记' : '待办'}
+      </span>
       <div className='w-12' />
     </div>
   )
 
   return (
     <>
-      <div className={`fixed right-6 top-6 bottom-6 w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div
+        className={`fixed right-6 top-6 bottom-6 w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         <div className='h-full card-float-solid flex flex-col overflow-hidden'>
           {renderHeader()}
           <div className='flex-1 flex flex-col overflow-hidden'>
@@ -485,10 +599,16 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
                 formatDateFull={formatDateFull}
                 formatDate={formatDate}
                 isOverdue={isOverdue}
-                onNoteBack={() => { setSelectedNote(null); if (isFormOpen) handleCancelForm(); }}
+                onNoteBack={() => {
+                  setSelectedNote(null)
+                  if (isFormOpen) handleCancelForm()
+                }}
                 onNoteEdit={() => handleEditNote(selectedNote!)}
                 onNoteDelete={() => handleDeleteNote(selectedNote!.id)}
-                onTodoBack={() => { setSelectedTodo(null); if (isFormOpen) handleCancelForm(); }}
+                onTodoBack={() => {
+                  setSelectedTodo(null)
+                  if (isFormOpen) handleCancelForm()
+                }}
                 onTodoToggle={() => handleToggleTodo(selectedTodo!.id)}
                 onTodoEdit={() => handleEditTodo(selectedTodo!)}
                 onTodoDelete={() => handleDeleteTodo(selectedTodo!.id)}
@@ -552,7 +672,10 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
 
       {deleteConfirm && (
         <div className='fixed inset-0 z-[60] flex items-center justify-center'>
-          <div className='absolute inset-0 bg-[var(--bg-overlay)]' onClick={() => setDeleteConfirm(null)} />
+          <div
+            className='absolute inset-0 bg-[var(--bg-overlay)]'
+            onClick={() => setDeleteConfirm(null)}
+          />
           <div className='relative bg-[var(--bg-sidebar)] rounded-xl shadow-xl p-5 w-full max-w-sm mx-4 animate-fade-in-up border border-[var(--border-divider)]'>
             <div className='flex items-start gap-3 mb-4'>
               <div className='w-9 h-9 bg-[var(--brand-danger)]/[0.08] rounded-full flex items-center justify-center flex-shrink-0'>
@@ -562,14 +685,29 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
                 <h3 className='text-[15px] font-semibold text-[var(--text-primary)]'>确认删除</h3>
                 <p className='text-[12px] text-[var(--text-muted)] mt-0.5'>此操作无法撤销</p>
               </div>
-              <button onClick={() => setDeleteConfirm(null)} className='p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors'>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className='p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+              >
                 <X className='w-3.5 h-3.5 text-[var(--text-muted)]' />
               </button>
             </div>
-            <p className='text-[13px] text-[var(--text-secondary)] mb-5 pl-12'>确定要删除「{deleteConfirm.title}」吗？</p>
+            <p className='text-[13px] text-[var(--text-secondary)] mb-5 pl-12'>
+              确定要删除「{deleteConfirm.title}」吗？
+            </p>
             <div className='flex items-center justify-end gap-2'>
-              <button onClick={() => setDeleteConfirm(null)} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-[13px] font-medium hover:bg-[var(--bg-input)] transition-colors'>取消</button>
-              <button onClick={deleteConfirm.type === 'note' ? confirmDeleteNote : confirmDeleteTodo} className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-[13px] font-medium hover:bg-[var(--brand-danger)]/90 transition-colors'>删除</button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-[13px] font-medium hover:bg-[var(--bg-input)] transition-colors'
+              >
+                取消
+              </button>
+              <button
+                onClick={deleteConfirm.type === 'note' ? confirmDeleteNote : confirmDeleteTodo}
+                className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-[13px] font-medium hover:bg-[var(--brand-danger)]/90 transition-colors'
+              >
+                删除
+              </button>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { FileText, Star, Edit3, Trash2 } from 'lucide-react'
+import { FileText, Edit3, Trash2 } from 'lucide-react'
 import type { Note } from '../../types/note-todo'
 
 interface NoteListItemProps {
@@ -20,60 +20,73 @@ function NoteListItem({
 }: NoteListItemProps) {
   return (
     <div
-      className='group relative rounded-lg border border-transparent bg-transparent hover:bg-[var(--bg-hover)] hover:shadow-md hover:shadow-[var(--shadow-color)]/10 transition-all duration-200 cursor-pointer overflow-hidden'
+      className='group relative rounded-xl border border-[var(--border-divider)] bg-white hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
-      <div className='p-3'>
-        <div className='flex items-center justify-between gap-2 min-w-0'>
-          <div className='flex items-center gap-1.5 min-w-0'>
-            {note.pinned && (
-              <div className='w-5 h-5 rounded-full bg-[var(--accent-amber)]/10 flex items-center justify-center flex-shrink-0'>
-                <Star className='w-3 h-3 text-[var(--accent-amber)] fill-current' />
-              </div>
-            )}
-            <h3 className='text-sm font-medium text-[var(--text-primary)] truncate'>
+      <div className='p-4'>
+        <div className='flex items-start min-w-0'>
+          <div className='flex-1 min-w-0'>
+            <h3 className='text-base font-semibold text-[var(--text-primary)] leading-tight'>
               {note.title || '无标题'}
             </h3>
+            <p className='text-sm text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed'>
+              {getContentPreview(note.content)}
+            </p>
+            <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
+              <div className='flex items-center gap-2 flex-wrap'>
+                {note.category === '工作' && (
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
+                    {note.category}
+                  </span>
+                )}
+                {note.category === '学习' && (
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#059669]'>
+                    {note.category}
+                  </span>
+                )}
+                {note.category === '生活' && (
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#FCE7F3] text-[#EC4899]'>
+                    {note.category}
+                  </span>
+                )}
+                {note.category === '默认' && (
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
+                    {note.category}
+                  </span>
+                )}
+                {note.tags.slice(0, 2).map((tag) => (
+                  <span key={tag} className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <span className='text-xs text-[var(--text-muted)]/60 flex-shrink-0'>
+                {formatDateFull(note.updatedAt)}
+              </span>
+            </div>
           </div>
-          <span className='text-xs text-[var(--text-muted)]/50 flex-shrink-0'>
-            {formatDateFull(note.updatedAt)}
-          </span>
-        </div>
-        <p className='text-xs text-[var(--text-muted)] line-clamp-2 mt-1.5 leading-relaxed'>
-          {getContentPreview(note.content)}
-        </p>
-        <div className='flex items-center gap-1.5 mt-2 flex-wrap'>
-          <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] border border-[var(--brand-primary)]/20'>
-            {note.category}
-          </span>
-          {note.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className='inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-secondary)]'>
-              #{tag}
-            </span>
-          ))}
         </div>
       </div>
-      <div className='absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--bg-hover)]/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none' />
-      <div className='absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label='编辑'
         >
-          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+          <Edit3 className='w-4 h-4 text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
           aria-label='删除'
         >
-          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+          <Trash2 className='w-4 h-4 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
         </button>
       </div>
     </div>
@@ -109,16 +122,16 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
   }
 
   return (
-    <div className='px-3 pt-3 pb-4 space-y-2'>
+    <div className='px-4 pt-4 pb-6 space-y-3'>
       {pinnedNotes.length > 0 && (
         <div>
-          <div className='flex items-center gap-1.5 px-1 pt-1 pb-2'>
-            <div className='w-[3px] h-3.5 rounded-full bg-[var(--accent-amber)]' />
-            <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-widest uppercase'>
+          <div className='flex items-center gap-2 px-0.5 pb-3'>
+            <div className='w-1 h-4 rounded-full bg-[#F59E0B]' />
+            <span className='text-[11px] font-semibold text-[#F59E0B] tracking-wider uppercase'>
               置顶
             </span>
           </div>
-          <div className='space-y-2'>
+          <div className='space-y-3'>
             {pinnedNotes.map((note) => (
               <NoteListItem
                 key={note.id}
@@ -136,14 +149,14 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
       {unpinnedNotes.length > 0 && (
         <div>
           {pinnedNotes.length > 0 && (
-            <div className='flex items-center gap-1.5 px-1 pt-2 pb-2'>
-              <div className='w-[3px] h-3.5 rounded-full bg-[var(--text-muted)]/30' />
-              <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-widest uppercase'>
+            <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
+              <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
+              <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-wider uppercase'>
                 全部笔记
               </span>
             </div>
           )}
-          <div className='space-y-2'>
+          <div className='space-y-3'>
             {unpinnedNotes.map((note) => (
               <NoteListItem
                 key={note.id}

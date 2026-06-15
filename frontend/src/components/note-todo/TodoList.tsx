@@ -19,45 +19,61 @@ interface TodoListItemProps {
 
 function TodoListItem({ todo, onSelect, onToggle, onEdit, formatDateFull, formatDate, isOverdue }: TodoListItemProps) {
   return (
-    <div className='group relative rounded-lg border border-transparent bg-transparent hover:bg-[var(--bg-hover)] hover:shadow-md hover:shadow-[var(--shadow-color)]/10 transition-all duration-200 cursor-pointer overflow-hidden' onClick={onSelect}>
-      <div className='p-3 flex items-start gap-3'>
+    <div className='group relative rounded-xl border border-[var(--border-divider)] bg-white hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden' onClick={onSelect}>
+      <div className='p-4 flex items-start gap-3'>
         <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className='flex-shrink-0 mt-0.5 transition-all hover:scale-110' aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为完成'}>
-          {todo.status === 'completed' ? (<CheckCircle2 className='w-[18px] h-[18px] text-[var(--brand-primary)]' />) : (<Circle className='w-[18px] h-[18px] text-[var(--text-muted)]/50 hover:text-[var(--brand-primary)]' />)}
+          {todo.status === 'completed' ? (<CheckCircle2 className='w-[20px] h-[20px] text-[var(--brand-primary)]' />) : (<Circle className='w-[20px] h-[20px] text-[var(--text-muted)]/40 hover:text-[var(--brand-primary)]' />)}
         </button>
         <div className='flex-1 min-w-0'>
-          <div className='flex items-center justify-between gap-2'>
-            <h3 className={`text-sm font-medium truncate ${todo.status === 'completed' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-              {todo.title}
-            </h3>
-            <span className='text-xs text-[var(--text-muted)]/50 flex-shrink-0'>
+          <h3 className={`text-base font-semibold leading-tight ${todo.status === 'completed' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+            {todo.title}
+          </h3>
+          {todo.description && (<p className='text-sm text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed'>
+            {todo.description}
+          </p>)}
+          <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
+              {todo.category === '工作' && (
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
+                  {todo.category}
+                </span>
+              )}
+              {todo.category === '学习' && (
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#059669]'>
+                  {todo.category}
+                </span>
+              )}
+              {todo.category === '生活' && (
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#FCE7F3] text-[#EC4899]'>
+                  {todo.category}
+                </span>
+              )}
+              {todo.category === '默认' && (
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
+                  {todo.category}
+                </span>
+              )}
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}>
+                {priorityMeta[todo.priority].label}优先级
+              </span>
+              {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
+                <Calendar className='w-3 h-3' />
+                {formatDate(todo.dueDate)}
+              </span>)}
+              {isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FEF2F2] text-[#DC2626]'>
+                <Clock className='w-3 h-3' />
+                已过期
+              </span>)}
+            </div>
+            <span className='text-xs text-[var(--text-muted)]/60 flex-shrink-0'>
               {formatDateFull(todo.updatedAt)}
             </span>
           </div>
-          {todo.description && (<p className='text-xs text-[var(--text-muted)] line-clamp-2 mt-1 leading-relaxed'>
-            {todo.description}
-          </p>)}
-          <div className='flex items-center gap-1.5 mt-1.5 flex-wrap'>
-            <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-secondary)] text-[var(--text-secondary)]'>
-              {todo.category}
-            </span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor} ${priorityMeta[todo.priority].borderColor}`}>
-              {priorityMeta[todo.priority].label}
-            </span>
-            {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-muted)]'>
-              <Calendar className='w-3 h-3' />
-              {formatDate(todo.dueDate)}
-            </span>)}
-            {isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--brand-danger)]/10 text-[var(--brand-danger)]'>
-              <Clock className='w-3 h-3' />
-              已过期
-            </span>)}
-          </div>
         </div>
       </div>
-      <div className='absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--bg-hover)]/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none' />
-      <div className='absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
-        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all' aria-label='编辑'>
-          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all' aria-label='编辑'>
+          <Edit3 className='w-4 h-4 text-[var(--text-secondary)]' />
         </button>
       </div>
     </div>
@@ -93,18 +109,18 @@ export function TodoList({ todos, activeTab, onSelect, onToggle, onEdit, formatD
     </div>)
   }
 
-  return (<div className='px-3 pt-3 pb-4 space-y-2'>
-    {pendingTodos.length > 0 && (<div className='space-y-2'>
+  return (<div className='px-4 pt-4 pb-6 space-y-3'>
+    {pendingTodos.length > 0 && (<div className='space-y-3'>
       {pendingTodos.map((todo) => (<TodoListItem key={todo.id} todo={todo} onSelect={() => onSelect(todo)} onToggle={() => onToggle(todo.id)} onEdit={() => onEdit(todo)} formatDateFull={formatDateFull} formatDate={formatDate} isOverdue={isOverdue}/>))}
     </div>)}
     {completedTodos.length > 0 && (<div>
-      <div className='flex items-center gap-1.5 px-1 pt-2 pb-2'>
-        <div className='w-[3px] h-3.5 rounded-full bg-[var(--text-muted)]/30' />
-        <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-widest uppercase'>
+      <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
+        <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
+        <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-wider uppercase'>
           已完成
         </span>
       </div>
-      <div className='space-y-2'>
+      <div className='space-y-3'>
         {completedTodos.map((todo) => (<TodoListItem key={todo.id} todo={todo} onSelect={() => onSelect(todo)} onToggle={() => onToggle(todo.id)} onEdit={() => onEdit(todo)} formatDateFull={formatDateFull} formatDate={formatDate} isOverdue={isOverdue}/>))}
       </div>
     </div>)}
