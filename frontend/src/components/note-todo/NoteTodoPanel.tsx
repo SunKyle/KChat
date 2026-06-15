@@ -516,10 +516,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         )}
         <button
           onClick={handleOpenCreateForm}
-          className='flex items-center justify-center px-3 py-2 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all'
+          className='flex items-center justify-center w-9 h-9 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all'
           aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
         >
-          <Plus className='w-3.5 h-3.5' />
+          <Plus className='w-4 h-4' />
         </button>
       </div>
 
