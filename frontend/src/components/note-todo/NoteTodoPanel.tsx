@@ -524,13 +524,13 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
       </div>
 
       {mode === 'note' && allTags.length > 0 && (
-        <div className='mt-4'>
+        <div className='mt-3'>
           <button
             onClick={() => setFilterExpanded(!filterExpanded)}
-            className='flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-muted)]/50 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-muted)] transition-colors'
+            className='flex items-center gap-1.5 text-[12px] font-semibold text-[var(--text-muted)]/60 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
           >
             <ChevronDown
-              className={`w-3 h-3 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
             />
             筛选标签
             {filterTags.length > 0 && (
@@ -540,10 +540,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             )}
           </button>
           {filterExpanded && (
-            <div className='flex items-center gap-2 flex-wrap'>
+            <div className='flex items-center gap-1.5 flex-wrap'>
               <button
                 onClick={() => setFilterTags([])}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/60'}`}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
               >
                 全部
               </button>
@@ -555,10 +555,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]
                     )
                   }
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]/60'}`}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
                 >
                   {name}
-                  <span className='ml-1 opacity-50'>{count}</span>
+                  <span className='ml-1 opacity-50 text-[10px]'>{count}</span>
                 </button>
               ))}
             </div>
