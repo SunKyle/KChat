@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Trash2,
   ChevronRight,
+  ChevronLeft,
 } from 'lucide-react'
 import { useToast } from '../../hooks/useToast'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
@@ -573,15 +574,15 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   )
 
   const renderNewFormHeader = () => (
-    <div className='flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-divider)]'>
+    <div className='flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--border-divider)]'>
       <button
         onClick={handleCancelForm}
         className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
       >
-        <ChevronDown className='w-4 h-4 rotate-90' />
+        <ChevronLeft className='w-4 h-4' />
         返回
       </button>
-      <span className='text-[13px] font-medium text-[var(--text-secondary)]'>
+      <span className='text-[15px] font-semibold text-[var(--text-primary)]'>
         新建{mode === 'note' ? '笔记' : '待办'}
       </span>
       <div className='w-12' />
