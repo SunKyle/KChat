@@ -1,4 +1,4 @@
-import { FileText, Edit3, Trash2 } from 'lucide-react'
+import { FileText, Pin, Edit3, Trash2 } from 'lucide-react'
 import type { Note } from '../../types/note-todo'
 
 interface NoteListItemProps {
@@ -125,8 +125,8 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
     <div className='px-4 pt-4 pb-6 space-y-3'>
       {pinnedNotes.length > 0 && (
         <div>
-          <div className='flex items-center gap-2 px-0.5 pb-3'>
-            <div className='w-1 h-4 rounded-full bg-[#F59E0B]' />
+          <div className='flex items-center gap-1.5 px-0.5 pb-3'>
+            <Pin className='w-3.5 h-3.5 text-[#F59E0B] fill-current' />
             <span className='text-[11px] font-semibold text-[#F59E0B] tracking-wider uppercase'>
               置顶
             </span>
