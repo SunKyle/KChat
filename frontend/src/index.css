@@ -1546,7 +1546,7 @@ input[type='search']::-webkit-search-decoration {
 
 .divider {
   height: 1px;
-  background-color: var(--border-primary);
+  background-color: var(--border-divider);
   border: none;
 }
 

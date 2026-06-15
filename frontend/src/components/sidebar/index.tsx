@@ -156,9 +156,11 @@ export function Sidebar({
   return (
     <div role='navigation' aria-label='会话导航' className='flex flex-col h-full relative'>
       <div className={`flex flex-col h-full overflow-hidden`}>
-        <div className={`px-4 pt-3 pb-2 ${collapsed ? 'flex flex-col items-center pb-3' : ''}`}>
+        <div
+          className={`px-4 h-14 flex items-center ${collapsed ? 'flex-col justify-center' : ''}`}
+        >
           <div
-            className={`group/logo ${collapsed ? 'mb-2' : 'mb-2'} ${collapsed ? 'flex flex-col items-center' : 'flex items-center justify-between w-full'}`}
+            className={`group/logo w-full ${collapsed ? 'flex items-center justify-center' : 'flex items-center justify-between'}`}
           >
             <div className='flex items-center gap-2'>
               <div className='relative flex-shrink-0'>
