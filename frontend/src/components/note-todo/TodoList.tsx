@@ -72,8 +72,8 @@ function TodoListItem({ todo, onSelect, onToggle, onEdit, formatDateFull, format
         </div>
       </div>
       <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
-        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all' aria-label='编辑'>
-          <Edit3 className='w-4 h-4 text-[var(--text-secondary)]' />
+        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all' aria-label='编辑'>
+          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
         </button>
       </div>
     </div>
