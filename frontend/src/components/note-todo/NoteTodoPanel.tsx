@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { FileText, ListTodo, Plus, Search, X, ChevronDown, Trash2 } from 'lucide-react'
+import { FileText, ListTodo, Plus, Search, X, ChevronDown, Trash2, ChevronRight } from 'lucide-react'
 import { useToast } from '../../hooks/useToast'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useDebounce } from '../../hooks/useDebounce'
@@ -406,8 +406,8 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
           <span className={`text-[12px] font-normal ${mode === 'todo' ? 'opacity-70' : 'opacity-50'}`}>{todos.length}</span>
         </button>
       </div>
-      <button onClick={onClose} className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors' aria-label='关闭'>
-        <X className='w-4 h-4 text-[var(--text-muted)]' />
+      <button onClick={onClose} className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors' aria-label='收起'>
+        <ChevronRight className='w-4 h-4 text-[var(--text-muted)]' />
       </button>
     </div>
   )
@@ -519,7 +519,7 @@ export function NoteTodoPanel({ isOpen, onClose }: NoteTodoPanelProps) {
             ) : (
               <>
                 {renderSearchBar()}
-                <div className='flex-1 overflow-y-auto'>
+                <div className='flex-1 overflow-y-auto scrollbar-hidden'>
                   {mode === 'note' ? (
                     <NoteList
                       notes={filteredNotes}

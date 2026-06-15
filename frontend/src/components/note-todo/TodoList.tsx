@@ -2,9 +2,9 @@ import { ListTodo, CheckCircle2, Circle, Edit3, Calendar, Clock } from 'lucide-r
 import type { Todo } from '../../types/note-todo'
 
 const priorityMeta = {
-  high: { label: '高', dot: 'bg-[var(--brand-danger)]', text: 'text-[var(--brand-danger)]' },
-  medium: { label: '中', dot: 'bg-[var(--accent-amber)]', text: 'text-[var(--accent-amber)]' },
-  low: { label: '低', dot: 'bg-[var(--brand-success)]', text: 'text-[var(--brand-success)]' },
+  high: { label: '高', bgColor: 'bg-[var(--brand-danger)]/15', textColor: 'text-[var(--brand-danger)]', borderColor: 'border-[var(--brand-danger)]/30' },
+  medium: { label: '中', bgColor: 'bg-[var(--accent-amber)]/15', textColor: 'text-[var(--accent-amber)]', borderColor: 'border-[var(--accent-amber)]/30' },
+  low: { label: '低', bgColor: 'bg-[var(--brand-success)]/15', textColor: 'text-[var(--brand-success)]', borderColor: 'border-[var(--brand-success)]/30' },
 } as const
 
 interface TodoListItemProps {
@@ -19,47 +19,45 @@ interface TodoListItemProps {
 
 function TodoListItem({ todo, onSelect, onToggle, onEdit, formatDateFull, formatDate, isOverdue }: TodoListItemProps) {
   return (
-    <div className='group relative rounded-xl border border-[var(--border-divider)] bg-[var(--bg-sidebar)] hover:border-[var(--border-primary)] hover:shadow-sm transition-all cursor-pointer' onClick={onSelect}>
-      <div className='p-3.5 flex items-start gap-3'>
-        <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className='flex-shrink-0 mt-0.5 transition-colors' aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为完成'}>
-          {todo.status === 'completed' ? (<CheckCircle2 className='w-[18px] h-[18px] text-[var(--brand-primary)]' />) : (<Circle className='w-[18px] h-[18px] text-[var(--text-muted)]/50' />)}
+    <div className='group relative rounded-lg border border-transparent bg-transparent hover:bg-[var(--bg-hover)] hover:shadow-md hover:shadow-[var(--shadow-color)]/10 transition-all duration-200 cursor-pointer overflow-hidden' onClick={onSelect}>
+      <div className='p-3 flex items-start gap-3'>
+        <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className='flex-shrink-0 mt-0.5 transition-all hover:scale-110' aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为完成'}>
+          {todo.status === 'completed' ? (<CheckCircle2 className='w-[18px] h-[18px] text-[var(--brand-primary)]' />) : (<Circle className='w-[18px] h-[18px] text-[var(--text-muted)]/50 hover:text-[var(--brand-primary)]' />)}
         </button>
         <div className='flex-1 min-w-0'>
           <div className='flex items-center justify-between gap-2'>
-            <h3 className={`text-[13px] font-semibold truncate ${todo.status === 'completed' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+            <h3 className={`text-sm font-medium truncate ${todo.status === 'completed' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
               {todo.title}
             </h3>
-            <span className='text-[10px] text-[var(--text-muted)]/60 flex-shrink-0'>
+            <span className='text-xs text-[var(--text-muted)]/50 flex-shrink-0'>
               {formatDateFull(todo.updatedAt)}
             </span>
           </div>
-          {todo.description && (<p className='text-[12px] text-[var(--text-muted)] line-clamp-2 mt-0.5 leading-relaxed'>
+          {todo.description && (<p className='text-xs text-[var(--text-muted)] line-clamp-2 mt-1 leading-relaxed'>
             {todo.description}
           </p>)}
-          <div className='flex items-center gap-1.5 mt-2 flex-wrap'>
-            <span className='px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-full text-[10px] font-medium'>
+          <div className='flex items-center gap-1.5 mt-1.5 flex-wrap'>
+            <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-secondary)] text-[var(--text-secondary)]'>
               {todo.category}
             </span>
-            <span className='flex items-center gap-1 text-[10px] font-medium'>
-              <span className={`inline-block w-1.5 h-1.5 rounded-full ${priorityMeta[todo.priority].dot}`} />
-              <span className={priorityMeta[todo.priority].text}>
-                {priorityMeta[todo.priority].label}
-              </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor} ${priorityMeta[todo.priority].borderColor}`}>
+              {priorityMeta[todo.priority].label}
             </span>
-            {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (<span className='text-[10px] text-[var(--text-muted)] flex items-center gap-0.5'>
+            {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-muted)]'>
               <Calendar className='w-3 h-3' />
               {formatDate(todo.dueDate)}
             </span>)}
-            {isOverdue(todo.dueDate, todo.status) && (<span className='text-[10px] text-[var(--brand-danger)] flex items-center gap-0.5 font-medium'>
+            {isOverdue(todo.dueDate, todo.status) && (<span className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--brand-danger)]/10 text-[var(--brand-danger)]'>
               <Clock className='w-3 h-3' />
               已过期
             </span>)}
           </div>
         </div>
       </div>
-      <div className='absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity'>
-        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-1 rounded-md bg-[var(--bg-sidebar)] hover:bg-[var(--bg-hover)] border border-[var(--border-divider)]' aria-label='编辑'>
-          <Edit3 className='w-3 h-3 text-[var(--text-muted)]' />
+      <div className='absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--bg-hover)]/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none' />
+      <div className='absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all' aria-label='编辑'>
+          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
         </button>
       </div>
     </div>

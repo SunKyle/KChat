@@ -20,57 +20,60 @@ function NoteListItem({
 }: NoteListItemProps) {
   return (
     <div
-      className='group relative rounded-xl border border-[var(--border-divider)] bg-[var(--bg-sidebar)] hover:border-[var(--border-primary)] hover:shadow-sm transition-all cursor-pointer'
+      className='group relative rounded-lg border border-transparent bg-transparent hover:bg-[var(--bg-hover)] hover:shadow-md hover:shadow-[var(--shadow-color)]/10 transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
-      <div className='p-3.5'>
-        <div className='flex items-start justify-between gap-2 mb-1.5'>
+      <div className='p-3'>
+        <div className='flex items-center justify-between gap-2 min-w-0'>
           <div className='flex items-center gap-1.5 min-w-0'>
             {note.pinned && (
-              <Star className='w-3.5 h-3.5 text-[var(--accent-amber)] fill-current flex-shrink-0' />
+              <div className='w-5 h-5 rounded-full bg-[var(--accent-amber)]/10 flex items-center justify-center flex-shrink-0'>
+                <Star className='w-3 h-3 text-[var(--accent-amber)] fill-current' />
+              </div>
             )}
-            <h3 className='text-[13px] font-semibold text-[var(--text-primary)] truncate'>
+            <h3 className='text-sm font-medium text-[var(--text-primary)] truncate'>
               {note.title || '无标题'}
             </h3>
           </div>
-          <span className='text-[10px] text-[var(--text-muted)]/60 flex-shrink-0 mt-0.5'>
+          <span className='text-xs text-[var(--text-muted)]/50 flex-shrink-0'>
             {formatDateFull(note.updatedAt)}
           </span>
         </div>
-        <p className='text-[12px] text-[var(--text-muted)] line-clamp-2 leading-relaxed'>
+        <p className='text-xs text-[var(--text-muted)] line-clamp-2 mt-1.5 leading-relaxed'>
           {getContentPreview(note.content)}
         </p>
-        <div className='flex items-center gap-1.5 mt-2.5 flex-wrap'>
-          <span className='px-2 py-0.5 bg-[var(--brand-primary)]/[0.08] text-[var(--brand-primary)] rounded-full text-[10px] font-medium'>
+        <div className='flex items-center gap-1.5 mt-2 flex-wrap'>
+          <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] border border-[var(--brand-primary)]/20'>
             {note.category}
           </span>
           {note.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className='px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-muted)] rounded-full text-[10px]'>
+            <span key={tag} className='inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-secondary)]'>
               #{tag}
             </span>
           ))}
         </div>
       </div>
-      <div className='absolute top-2.5 right-2.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
+      <div className='absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--bg-hover)]/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none' />
+      <div className='absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1 rounded-md bg-[var(--bg-sidebar)] hover:bg-[var(--bg-hover)] border border-[var(--border-divider)]'
+          className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label='编辑'
         >
-          <Edit3 className='w-3 h-3 text-[var(--text-muted)]' />
+          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1 rounded-md bg-[var(--bg-sidebar)] hover:bg-[var(--bg-hover)] border border-[var(--border-divider)]'
+          className='p-1.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
           aria-label='删除'
         >
-          <Trash2 className='w-3 h-3 text-[var(--text-muted)]' />
+          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
         </button>
       </div>
     </div>
