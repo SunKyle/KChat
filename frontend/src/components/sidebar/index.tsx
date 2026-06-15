@@ -217,7 +217,7 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] rounded-xl font-secondary text-[13px] theme-text-primary placeholder-theme-text-placeholder focus:outline-none focus:bg-[var(--bg-glass-hover)] focus:border-[var(--accent-sky)]/40 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/10 transition-all duration-200 shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)]'
+                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] rounded-lg font-secondary text-[13px] theme-text-primary placeholder-theme-text-placeholder focus:outline-none focus:bg-[var(--bg-glass-hover)] focus:border-[var(--accent-sky)]/40 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/10 transition-all duration-200 shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)]'
               />
               {!searchQuery && (
                 <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-[var(--bg-glass)] theme-brand-primary/70 border border-[var(--bg-glass-border)] backdrop-blur-md shadow-[0_1px_2px_rgba(14,165,233,0.05)] group-hover/search:opacity-0 transition-opacity duration-200'>
@@ -237,7 +237,7 @@ export function Sidebar({
             <button
               onClick={create}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--bg-glass)] backdrop-blur-md theme-brand-primary border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)] hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:backdrop-blur-none hover:shadow-md hover:shadow-[var(--brand-primary)]/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
+              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--bg-glass)] backdrop-blur-md theme-brand-primary border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)] hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:backdrop-blur-none hover:shadow-md hover:shadow-[var(--brand-primary)]/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
             >
               <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
             </button>
