@@ -363,6 +363,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     setIsFormOpen(true)
   }, [])
 
+  const handlePinNote = useCallback((note: Note) => {
+    setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, pinned: !n.pinned } : n)))
+  }, [])
+
   const handleEditTodo = useCallback((todo: Todo) => {
     setEditingTodo(todo)
     setIsFormOpen(true)
@@ -647,6 +651,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       onSelect={(note) => setSelectedNote(note)}
                       onEdit={(note) => handleEditNote(note)}
                       onDelete={(id) => handleDeleteNote(id)}
+                      onPin={(note) => handlePinNote(note)}
                       formatDateFull={formatDateFull}
                       getContentPreview={getContentPreview}
                       onOpenCreate={handleOpenCreateForm}

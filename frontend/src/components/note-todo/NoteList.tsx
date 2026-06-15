@@ -6,6 +6,7 @@ interface NoteListItemProps {
   onSelect: () => void
   onEdit: () => void
   onDelete: () => void
+  onPin: () => void
   formatDateFull: (dateString: string) => string
   getContentPreview: (content: string) => string
 }
@@ -15,6 +16,7 @@ function NoteListItem({
   onSelect,
   onEdit,
   onDelete,
+  onPin,
   formatDateFull,
   getContentPreview,
 }: NoteListItemProps) {
@@ -55,7 +57,10 @@ function NoteListItem({
                   </span>
                 )}
                 {note.tags.slice(0, 2).map((tag) => (
-                  <span key={tag} className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
+                  <span
+                    key={tag}
+                    className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'
+                  >
                     {tag}
                   </span>
                 ))}
@@ -68,6 +73,18 @@ function NoteListItem({
         </div>
       </div>
       <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onPin()
+          }}
+          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          aria-label={note.pinned ? '取消置顶' : '置顶'}
+        >
+          <Pin
+            className={`w-4 h-4 transition-all ${note.pinned ? 'text-[#F59E0B] fill-current' : 'text-[var(--text-secondary)]'}`}
+          />
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -98,12 +115,22 @@ interface NoteListProps {
   onSelect: (note: Note) => void
   onEdit: (note: Note) => void
   onDelete: (id: string) => void
+  onPin: (note: Note) => void
   formatDateFull: (dateString: string) => string
   getContentPreview: (content: string) => string
   onOpenCreate: () => void
 }
 
-export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, getContentPreview, onOpenCreate }: NoteListProps) {
+export function NoteList({
+  notes,
+  onSelect,
+  onEdit,
+  onDelete,
+  onPin,
+  formatDateFull,
+  getContentPreview,
+  onOpenCreate,
+}: NoteListProps) {
   const pinnedNotes = notes.filter((n) => n.pinned)
   const unpinnedNotes = notes.filter((n) => !n.pinned)
 
@@ -114,7 +141,10 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
           <FileText className='w-6 h-6 text-[var(--text-muted)]/50' />
         </div>
         <p className='text-[14px] text-[var(--text-muted)]'>暂无笔记</p>
-        <button onClick={onOpenCreate} className='mt-3 px-4 py-1.5 rounded-lg text-[12px] font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'>
+        <button
+          onClick={onOpenCreate}
+          className='mt-3 px-4 py-1.5 rounded-lg text-[12px] font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'
+        >
           新建笔记
         </button>
       </div>
@@ -139,6 +169,7 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
                 onSelect={() => onSelect(note)}
                 onEdit={() => onEdit(note)}
                 onDelete={() => onDelete(note.id)}
+                onPin={() => onPin(note)}
                 formatDateFull={formatDateFull}
                 getContentPreview={getContentPreview}
               />
@@ -164,6 +195,7 @@ export function NoteList({ notes, onSelect, onEdit, onDelete, formatDateFull, ge
                 onSelect={() => onSelect(note)}
                 onEdit={() => onEdit(note)}
                 onDelete={() => onDelete(note.id)}
+                onPin={() => onPin(note)}
                 formatDateFull={formatDateFull}
                 getContentPreview={getContentPreview}
               />
