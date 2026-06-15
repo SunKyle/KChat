@@ -78,11 +78,11 @@ function NoteListItem({
             e.stopPropagation()
             onPin()
           }}
-          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label={note.pinned ? '取消置顶' : '置顶'}
         >
           <Pin
-            className={`w-4 h-4 transition-all ${note.pinned ? 'text-[#F59E0B] fill-current' : 'text-[var(--text-secondary)]'}`}
+            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[#F59E0B] fill-current' : 'text-[var(--text-secondary)]'}`}
           />
         </button>
         <button
@@ -90,20 +90,20 @@ function NoteListItem({
             e.stopPropagation()
             onEdit()
           }}
-          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label='编辑'
         >
-          <Edit3 className='w-4 h-4 text-[var(--text-secondary)]' />
+          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onDelete()
           }}
-          className='p-2 rounded-lg bg-white/90 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
           aria-label='删除'
         >
-          <Trash2 className='w-4 h-4 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
         </button>
       </div>
     </div>
