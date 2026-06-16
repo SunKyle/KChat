@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Eye, EyeOff, Save, Maximize2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -20,6 +20,11 @@ export function FullscreenMarkdownEditor({
   const [editorTitle, setEditorTitle] = useState(title)
   const [editorContent, setEditorContent] = useState(content)
   const [showPreview, setShowPreview] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
 
   const handleSave = () => {
     onSave(editorTitle, editorContent)
@@ -140,11 +145,11 @@ export function FullscreenMarkdownEditor({
                 value={editorTitle}
                 onChange={(e) => setEditorTitle(e.target.value)}
                 placeholder='输入标题...'
-                className='px-6 py-4 text-xl font-semibold bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-none'
+                className='w-full px-6 py-4 text-xl font-semibold bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border-none'
               />
               {/* 内容编辑 */}
               <textarea
-                ref={(el) => el?.focus()}
+                ref={textareaRef}
                 className='markdown-textarea flex-1 w-full px-6 py-4 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-mono text-sm leading-relaxed'
                 value={editorContent}
                 onChange={(e) => setEditorContent(e.target.value)}
