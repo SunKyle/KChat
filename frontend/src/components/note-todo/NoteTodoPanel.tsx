@@ -599,21 +599,26 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     </div>
   )
 
-  const renderNewFormHeader = () => (
-    <div className='flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--border-divider)]'>
-      <button
-        onClick={handleCancelForm}
-        className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
-      >
-        <ChevronLeft className='w-4 h-4' />
-        返回
-      </button>
-      <span className='text-[15px] font-semibold text-[var(--text-primary)]'>
-        新建{mode === 'note' ? '笔记' : '待办'}
-      </span>
-      <div className='w-12' />
-    </div>
-  )
+  const renderNewFormHeader = () => {
+    const isEditing = editingNote || editingTodo
+    const title = isEditing
+      ? `编辑${mode === 'note' ? '笔记' : '待办'}`
+      : `新建${mode === 'note' ? '笔记' : '待办'}`
+
+    return (
+      <div className='flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--border-divider)]'>
+        <button
+          onClick={handleCancelForm}
+          className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
+        >
+          <ChevronLeft className='w-4 h-4' />
+          返回
+        </button>
+        <span className='text-[15px] font-semibold text-[var(--text-primary)]'>{title}</span>
+        <div className='w-12' />
+      </div>
+    )
+  }
 
   const renderLoading = () => (
     <div className='flex-1 flex items-center justify-center'>
