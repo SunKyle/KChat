@@ -19,7 +19,7 @@ export function FullscreenMarkdownEditor({
 }: FullscreenMarkdownEditorProps) {
   const [editorTitle, setEditorTitle] = useState(title)
   const [editorContent, setEditorContent] = useState(content)
-  const [showPreview, setShowPreview] = useState(false)
+  const [editorMode, setEditorMode] = useState<'edit' | 'split' | 'preview'>('split')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -38,6 +38,20 @@ export function FullscreenMarkdownEditor({
     }
     if (e.key === 'Escape') {
       onClose()
+    }
+  }
+
+  const toggleMode = () => {
+    switch (editorMode) {
+      case 'edit':
+        setEditorMode('split')
+        break
+      case 'split':
+        setEditorMode('preview')
+        break
+      case 'preview':
+        setEditorMode('edit')
+        break
     }
   }
 
@@ -109,18 +123,23 @@ export function FullscreenMarkdownEditor({
             </div>
             {/* 预览切换 */}
             <button
-              onClick={() => setShowPreview(!showPreview)}
+              onClick={toggleMode}
               className='flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg-input)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors'
             >
-              {showPreview ? (
+              {editorMode === 'preview' ? (
                 <>
                   <EyeOff className='w-4 h-4' />
                   编辑
                 </>
-              ) : (
+              ) : editorMode === 'edit' ? (
                 <>
                   <Eye className='w-4 h-4' />
                   预览
+                </>
+              ) : (
+                <>
+                  <Eye className='w-4 h-4' />
+                  分屏
                 </>
               )}
             </button>
@@ -137,7 +156,7 @@ export function FullscreenMarkdownEditor({
 
         {/* 编辑区域 */}
         <div className='flex-1 flex overflow-hidden'>
-          {!showPreview && (
+          {editorMode !== 'preview' && (
             <div className='flex-1 flex flex-col overflow-hidden'>
               {/* 标题输入 */}
               <input
@@ -159,92 +178,93 @@ export function FullscreenMarkdownEditor({
               />
             </div>
           )}
-          {/* 预览区域 */}
-          <div className='flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg-card)]'>
-            <h1 className='text-2xl font-bold text-[var(--text-primary)] mb-4'>
-              {editorTitle || '预览'}
-            </h1>
-            <ReactMarkdown
-              components={{
-                code({ node, inline, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  return !inline && match ? (
-                    <SyntaxHighlighter style={oneLight} language={match[1]} PreTag='div' {...props}>
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code
-                      className='px-1.5 py-0.5 bg-[var(--bg-hover)] rounded text-sm font-mono'
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  )
-                },
-                h1: ({ children }) => (
-                  <h1
-                    className='text-2xl font-bold text-[var(--text-primary)] mt-6 mb-3'
-                    children={children}
-                  />
-                ),
-                h2: ({ children }) => (
-                  <h2
-                    className='text-xl font-semibold text-[var(--text-primary)] mt-5 mb-2'
-                    children={children}
-                  />
-                ),
-                h3: ({ children }) => (
-                  <h3
-                    className='text-lg font-semibold text-[var(--text-primary)] mt-4 mb-2'
-                    children={children}
-                  />
-                ),
-                h4: ({ children }) => (
-                  <h4
-                    className='text-base font-semibold text-[var(--text-primary)] mt-3 mb-1'
-                    children={children}
-                  />
-                ),
-                p: ({ children }) => (
-                  <p
-                    className='text-[var(--text-secondary)] mb-3 leading-relaxed'
-                    children={children}
-                  />
-                ),
-                ul: ({ children }) => (
-                  <ul className='list-disc list-inside mb-3 space-y-1' children={children} />
-                ),
-                ol: ({ children }) => (
-                  <ol className='list-decimal list-inside mb-3 space-y-1' children={children} />
-                ),
-                li: ({ children }) => (
-                  <li className='text-[var(--text-secondary)]' children={children} />
-                ),
-                blockquote: ({ children }) => (
-                  <blockquote
-                    className='border-l-4 border-[var(--brand-primary)] pl-4 italic text-[var(--text-muted)] my-3'
-                    children={children}
-                  />
-                ),
-                a: ({ href, children }) => (
-                  <a
-                    href={href}
-                    className='text-[var(--brand-primary)] hover:underline'
-                    children={children}
-                  />
-                ),
-                strong: ({ children }) => (
-                  <strong
-                    className='font-semibold text-[var(--text-primary)]'
-                    children={children}
-                  />
-                ),
-                em: ({ children }) => <em className='italic' children={children} />,
+          {editorMode !== 'edit' && (
+            <div className='flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg-card)]'>
+              <h1 className='text-2xl font-bold text-[var(--text-primary)] mb-4'>
+                {editorTitle || '预览'}
+              </h1>
+              <ReactMarkdown
+                components={{
+                  code({ node, inline, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return !inline && match ? (
+                      <SyntaxHighlighter style={oneLight} language={match[1]} PreTag='div' {...props}>
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code
+                        className='px-1.5 py-0.5 bg-[var(--bg-hover)] rounded text-sm font-mono'
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    )
+                  },
+                  h1: ({ children }) => (
+                    <h1
+                      className='text-2xl font-bold text-[var(--text-primary)] mt-6 mb-3'
+                      children={children}
+                    />
+                  ),
+                  h2: ({ children }) => (
+                    <h2
+                      className='text-xl font-semibold text-[var(--text-primary)] mt-5 mb-2'
+                      children={children}
+                    />
+                  ),
+                  h3: ({ children }) => (
+                    <h3
+                      className='text-lg font-semibold text-[var(--text-primary)] mt-4 mb-2'
+                      children={children}
+                    />
+                  ),
+                  h4: ({ children }) => (
+                    <h4
+                      className='text-base font-semibold text-[var(--text-primary)] mt-3 mb-1'
+                      children={children}
+                    />
+                  ),
+                  p: ({ children }) => (
+                    <p
+                      className='text-[var(--text-secondary)] mb-3 leading-relaxed'
+                      children={children}
+                    />
+                  ),
+                  ul: ({ children }) => (
+                    <ul className='list-disc list-inside mb-3 space-y-1' children={children} />
+                  ),
+                  ol: ({ children }) => (
+                    <ol className='list-decimal list-inside mb-3 space-y-1' children={children} />
+                  ),
+                  li: ({ children }) => (
+                    <li className='text-[var(--text-secondary)]' children={children} />
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote
+                      className='border-l-4 border-[var(--brand-primary)] pl-4 italic text-[var(--text-muted)] my-3'
+                      children={children}
+                    />
+                  ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      className='text-[var(--brand-primary)] hover:underline'
+                      children={children}
+                    />
+                  ),
+                  strong: ({ children }) => (
+                    <strong
+                      className='font-semibold text-[var(--text-primary)]'
+                      children={children}
+                    />
+                  ),
+                  em: ({ children }) => <em className='italic' children={children} />,
               }}
             >
               {editorContent}
             </ReactMarkdown>
           </div>
+          )}
         </div>
 
         {/* 底部提示 */}
