@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Eye, EyeOff, Save, Maximize2 } from 'lucide-react'
+import { X, Eye, Edit3, Columns3, Save, Maximize2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -8,7 +8,8 @@ interface FullscreenMarkdownEditorProps {
   title: string
   content: string
   onClose: () => void
-  onSave: (title: string, content: string) => void
+  onSave?: (title: string, content: string) => void
+  initialMode?: 'edit' | 'split' | 'preview'
 }
 
 export function FullscreenMarkdownEditor({
@@ -16,18 +17,19 @@ export function FullscreenMarkdownEditor({
   content,
   onClose,
   onSave,
+  initialMode = 'split',
 }: FullscreenMarkdownEditorProps) {
   const [editorTitle, setEditorTitle] = useState(title)
   const [editorContent, setEditorContent] = useState(content)
-  const [editorMode, setEditorMode] = useState<'edit' | 'split' | 'preview'>('split')
+  const [editorMode, setEditorMode] = useState<'edit' | 'split' | 'preview'>(initialMode)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    textareaRef.current?.focus()
-  }, [])
+    if (initialMode === 'edit' || initialMode === 'split') textareaRef.current?.focus()
+  }, [initialMode])
 
   const handleSave = () => {
-    onSave(editorTitle, editorContent)
+    if (onSave) onSave(editorTitle, editorContent)
     onClose()
   }
 
@@ -93,7 +95,7 @@ export function FullscreenMarkdownEditor({
   }
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+    <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm'>
       <div className='w-[90vw] h-[85vh] bg-[var(--bg-primary)] rounded-2xl shadow-2xl flex flex-col overflow-hidden'>
         {/* 工具栏 */}
         <div className='flex items-center justify-between px-6 py-4 border-b border-[var(--border-divider)] bg-[var(--bg-secondary)]'>
@@ -108,7 +110,6 @@ export function FullscreenMarkdownEditor({
             <h2 className='text-lg font-semibold text-[var(--text-primary)]'>Markdown 编辑器</h2>
           </div>
           <div className='flex items-center gap-2'>
-            {/* 格式化按钮 */}
             <div className='flex items-center gap-1 bg-[var(--bg-input)] rounded-lg p-1'>
               {toolbarButtons.map((btn) => (
                 <button
@@ -121,29 +122,27 @@ export function FullscreenMarkdownEditor({
                 </button>
               ))}
             </div>
-            {/* 预览切换 */}
             <button
               onClick={toggleMode}
               className='flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg-input)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors'
             >
               {editorMode === 'preview' ? (
                 <>
-                  <EyeOff className='w-4 h-4' />
-                  编辑
-                </>
-              ) : editorMode === 'edit' ? (
-                <>
                   <Eye className='w-4 h-4' />
                   预览
                 </>
+              ) : editorMode === 'edit' ? (
+                <>
+                  <Edit3 className='w-4 h-4' />
+                  编辑
+                </>
               ) : (
                 <>
-                  <Eye className='w-4 h-4' />
+                  <Columns3 className='w-4 h-4' />
                   分屏
                 </>
               )}
             </button>
-            {/* 保存按钮 */}
             <button
               onClick={handleSave}
               className='flex items-center gap-2 px-5 py-2 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all'
@@ -267,7 +266,6 @@ export function FullscreenMarkdownEditor({
           )}
         </div>
 
-        {/* 底部提示 */}
         <div className='px-6 py-3 border-t border-[var(--border-divider)] bg-[var(--bg-secondary)]'>
           <div className='flex items-center justify-between text-xs text-[var(--text-muted)]'>
             <div className='flex items-center gap-4'>

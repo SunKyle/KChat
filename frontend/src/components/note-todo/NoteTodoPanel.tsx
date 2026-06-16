@@ -123,6 +123,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
   const [filterTags, setFilterTags] = useState<string[]>([])
   const [filterExpanded, setFilterExpanded] = useState(true)
+  const [fullscreenNote, setFullscreenNote] = useState<Note | null>(null)
   const [showFullscreenEditor, setShowFullscreenEditor] = useState(false)
 
   const [formState, setFormState] = useState<FormState>({
@@ -652,6 +653,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 }}
                 onNoteEdit={() => handleEditNote(selectedNote!)}
                 onNoteDelete={() => handleDeleteNote(selectedNote!.id)}
+                onNoteExpand={() => {
+                  if (selectedNote) {
+                    setFullscreenNote(selectedNote)
+                    setShowFullscreenEditor(true)
+                  }
+                }}
                 onTodoBack={() => {
                   setSelectedTodo(null)
                   if (isFormOpen) handleCancelForm()
@@ -765,12 +772,37 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
       {showFullscreenEditor && (
         <FullscreenMarkdownEditor
-          title={formState.title}
-          content={formState.content}
-          onClose={() => setShowFullscreenEditor(false)}
-          onSave={(title, content) => {
-            setFormState((prev) => ({ ...prev, title, content }))
+          title={fullscreenNote ? fullscreenNote.title : formState.title}
+          content={fullscreenNote ? fullscreenNote.content : formState.content}
+          initialMode={fullscreenNote ? 'preview' : 'split'}
+          onClose={() => {
             setShowFullscreenEditor(false)
+            setFullscreenNote(null)
+          }}
+          onSave={async (title, content) => {
+            if (fullscreenNote) {
+              try {
+                const request: UpdateNoteRequest = {
+                  title: title || '无标题',
+                  content,
+                  category: fullscreenNote.category,
+                  tags: fullscreenNote.tags,
+                  pinned: fullscreenNote.pinned,
+                }
+                const updatedNote = await noteApi.update(fullscreenNote.id, request)
+                const converted = convertNote(updatedNote)
+                setNotes((prev) => prev.map((n) => (n.id === fullscreenNote.id ? converted : n)))
+                setSelectedNote(converted)
+                successRef.current('笔记已保存')
+              } catch (err) {
+                console.error('Failed to save note:', err)
+                errorRef.current('保存笔记失败')
+              }
+            } else {
+              setFormState((prev) => ({ ...prev, title, content }))
+            }
+            setShowFullscreenEditor(false)
+            setFullscreenNote(null)
           }}
         />
       )}

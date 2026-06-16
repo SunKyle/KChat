@@ -10,8 +10,10 @@ import {
   Clock,
   Copy,
   Check,
+  Maximize2,
 } from 'lucide-react'
 import type { Note, Todo } from '../../types/note-todo'
+import { MarkdownRenderer } from '../chat/ChatArea/MarkdownRenderer'
 
 const priorityMeta = {
   high: { label: '高', text: 'text-[var(--brand-danger)]' },
@@ -25,9 +27,10 @@ interface NotePreviewProps {
   onBack: () => void
   onEdit: () => void
   onDelete: () => void
+  onExpand: () => void
 }
 
-function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePreviewProps) {
+function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand }: NotePreviewProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -52,6 +55,14 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePre
           返回
         </button>
         <div className='flex items-center gap-0.5'>
+          <button
+            onClick={onExpand}
+            className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
+            aria-label='全屏预览'
+            title='全屏预览'
+          >
+            <Maximize2 className='w-4 h-4 text-[var(--text-muted)]' />
+          </button>
           <button
             onClick={handleCopy}
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
@@ -99,8 +110,8 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePre
             </span>
           ))}
         </div>
-        <div className='text-[13px] text-[var(--text-secondary)] leading-[1.75] whitespace-pre-wrap break-words'>
-          {note.content}
+        <div className='text-[13px] leading-[1.75] break-words'>
+          <MarkdownRenderer content={note.content} />
         </div>
       </div>
     </div>
@@ -213,6 +224,7 @@ interface DetailPreviewProps {
   onNoteBack: () => void
   onNoteEdit: () => void
   onNoteDelete: () => void
+  onNoteExpand: () => void
   onTodoBack: () => void
   onTodoToggle: () => void
   onTodoEdit: () => void
@@ -228,6 +240,7 @@ export function DetailPreview({
   onNoteBack,
   onNoteEdit,
   onNoteDelete,
+  onNoteExpand,
   onTodoBack,
   onTodoToggle,
   onTodoEdit,
@@ -241,6 +254,7 @@ export function DetailPreview({
         onBack={onNoteBack}
         onEdit={onNoteEdit}
         onDelete={onNoteDelete}
+        onExpand={onNoteExpand}
       />
     )
   }
