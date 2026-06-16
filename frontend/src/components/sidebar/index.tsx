@@ -195,11 +195,9 @@ export function Sidebar({
 
         {!collapsed && (
           <div className='flex items-center gap-2 mt-2 px-4 sidebar-search-enter'>
-            <div className='relative flex-1 group/search'>
+            <div className='relative flex-1'>
               <Search
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
-                  searchQuery ? 'theme-brand-primary' : 'theme-text-muted'
-                }`}
+                className='absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]/60'
                 aria-hidden='true'
               />
               <input
@@ -217,27 +215,22 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-9 pr-16 py-2 bg-[var(--bg-glass)] backdrop-blur-md border border-[var(--bg-glass-border)] rounded-lg font-secondary text-[13px] theme-text-primary placeholder-theme-text-placeholder focus:outline-none focus:bg-[var(--bg-glass-hover)] focus:border-[var(--accent-sky)]/40 focus:ring-2 focus:ring-sky-400/15 focus:shadow-sm focus:shadow-sky-500/10 transition-all duration-200 shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)]'
+                className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
               />
-              {!searchQuery && (
-                <kbd className='absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 h-5 rounded-md text-[10px] font-mono font-medium leading-none bg-[var(--bg-glass)] theme-brand-primary/70 border border-[var(--bg-glass-border)] backdrop-blur-md shadow-[0_1px_2px_rgba(14,165,233,0.05)] group-hover/search:opacity-0 transition-opacity duration-200'>
-                  ⌘K
-                </kbd>
-              )}
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
                   aria-label='清除搜索'
-                  className='absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-[var(--bg-hover)] hover:theme-brand-primary transition-all duration-300 focus-ring hover:rotate-90'
+                  className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
                 >
-                  <X className='w-3.5 h-3.5 theme-text-muted' aria-hidden='true' />
+                  <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
                 </button>
               )}
             </div>
             <button
               onClick={create}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--bg-glass)] backdrop-blur-md theme-brand-primary border border-[var(--bg-glass-border)] shadow-[0_1px_4px_var(--shadow-color-secondary),0_0_0_0.5px_var(--border-secondary)] hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] hover:backdrop-blur-none hover:shadow-md hover:shadow-[var(--brand-primary)]/20 active:scale-[0.95] transition-all duration-200 focus-ring flex-shrink-0'
+              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all flex-shrink-0'
             >
               <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
             </button>
