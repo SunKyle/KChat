@@ -41,6 +41,15 @@ export const chat = {
     })
   },
 
+  summarize: async (content: string, model: string): Promise<{ title: string; summary: string }> => {
+    return request('/chat/summarize', {
+      method: 'POST',
+      body: JSON.stringify({ content, model }),
+      timeout: 120000,
+      retries: 0,
+    })
+  },
+
   stream: async (
     requestData: ChatRequest,
     onMessage: (content: string) => void,

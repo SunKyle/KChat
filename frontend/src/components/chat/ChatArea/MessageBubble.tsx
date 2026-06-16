@@ -1,8 +1,12 @@
-import { User, Bot, Copy, RotateCcw, Check } from 'lucide-react'
+import { User, Bot, Copy, RotateCcw, Check, PenLine, Loader2 } from 'lucide-react'
 import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { useState, memo } from 'react'
 import { useUser } from '../../../context/UserContext'
+import { useModel } from '../../../hooks/useModel'
+import { useToast } from '../../../hooks/useToast'
+import { chat as chatApi } from '../../../api/chat'
+import { noteApi } from '../../../api/note-todo'
 
 interface MessageBubbleProps {
   message: Message
@@ -18,8 +22,12 @@ export const MessageBubble = memo(function MessageBubble({
 }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
   const { profile } = useUser()
+  const { getCurrentModel } = useModel()
+  const toast = useToast()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -46,6 +54,29 @@ export const MessageBubble = memo(function MessageBubble({
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('复制失败:', err)
+    }
+  }
+
+  const handleSaveAsNote = async () => {
+    if (saving || saved) return
+    setSaving(true)
+    try {
+      const model = getCurrentModel()
+      const { title, summary } = await chatApi.summarize(message.content, model)
+      await noteApi.create({
+        title,
+        content: summary,
+        category: 'AI对话',
+        tags: ['ai-reply'],
+      })
+      setSaved(true)
+      toast.success('已保存为笔记')
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      console.error('保存为笔记失败:', err)
+      toast.error('保存为笔记失败，请重试')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -142,7 +173,7 @@ export const MessageBubble = memo(function MessageBubble({
           </span>
 
           {!isUser && !isThinking && (
-            <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
+            <div className='relative flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
               <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
                 {copied ? (
                   <Check className='w-[14px] h-[14px] text-green-400' />
@@ -151,10 +182,31 @@ export const MessageBubble = memo(function MessageBubble({
                 )}
               </button>
               {onRegenerate && (
-                <button onClick={onRegenerate} className='icon-btn'>
+                <button onClick={onRegenerate} className='icon-btn' title='重新生成'>
                   <RotateCcw className='w-[14px] h-[14px]' />
                 </button>
               )}
+              <div className='relative'>
+                <button
+                  onClick={handleSaveAsNote}
+                  className='icon-btn peer'
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <Loader2 className='w-[14px] h-[14px] animate-spin' />
+                  ) : saved ? (
+                    <Check className='w-[14px] h-[14px] text-green-400' />
+                  ) : (
+                    <PenLine className='w-[14px] h-[14px]' />
+                  )}
+                </button>
+                {!saving && !saved && (
+                  <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    AI 总结并保存为笔记
+                    <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>

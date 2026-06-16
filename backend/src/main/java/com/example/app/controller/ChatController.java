@@ -1,8 +1,13 @@
 package com.example.app.controller;
 
+import com.example.app.client.OllamaClient;
+import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.ConversationDTO;
+import com.example.app.dto.SummarizeRequest;
+import com.example.app.dto.SummarizeResponse;
+import com.example.app.entity.ModelConfig;
 import com.example.app.service.ChatService;
 import com.example.app.service.ConversationService;
 import com.example.app.service.ModelConfigService;
@@ -14,6 +19,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 
 import java.util.List;
 
@@ -47,20 +56,15 @@ public class ChatController {
      */
     private final ChatService chatService;
 
-    /**
-     * 流式服务，处理 SSE 流式响应
-     */
     private final StreamingService streamingService;
 
-    /**
-     * 对话服务，管理对话的 CRUD
-     */
     private final ConversationService conversationService;
 
-    /**
-     * 模型配置服务，管理模型列表
-     */
     private final ModelConfigService modelConfigService;
+
+    private final OllamaClient ollamaClient;
+
+    private final OpenAICompatibleClient openAICompatibleClient;
 
     /**
      * 创建新对话
@@ -159,6 +163,72 @@ public class ChatController {
     public ResponseEntity<List<String>> listModels() {
         List<String> models = modelConfigService.listModels();
         return ResponseEntity.ok(models);
+    }
+
+    /**
+     * 将 AI 回复内容总结为 Markdown 笔记
+     *
+     * @param request 包含原始内容和当前选中模型
+     * @return 标题 + 精炼后的 Markdown 笔记内容
+     */
+    @PostMapping("/chat/summarize")
+    public ResponseEntity<SummarizeResponse> summarize(@Valid @RequestBody SummarizeRequest request) {
+        String model = request.getModel();
+        String content = request.getContent();
+
+        String systemPrompt = """
+                你是一个专业的笔记整理助手。请将用户提供的 AI 对话回复内容整理为一份结构清晰的 Markdown 笔记。
+                
+                要求：
+                1. 首先输出笔记标题（不超过50字，不加 # 号，单独一行）
+                2. 然后用 --- 分隔线隔开
+                3. 接着输出整理后的 Markdown 笔记正文
+                
+                笔记正文格式规范：
+                - 使用合适的 Markdown 标题层级（##、###）组织内容结构
+                - 保留关键信息、代码示例、要点列表
+                - 对重要概念使用**加粗**标记
+                - 如有代码，使用 ```语言 代码块格式
+                - 保持语言与原文一致
+                - 去除对话式的寒暄和冗余表述，只保留核心知识内容
+                """;
+
+        String llmResponse;
+
+        ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
+        if (customConfig != null) {
+            // 自定义/云端模型 (OpenAI, Anthropic, etc.)
+            String actualModelId = model.substring(customConfig.getName().length() + 1);
+            llmResponse = openAICompatibleClient.chatCompletion(
+                    actualModelId,
+                    customConfig.getBaseUrl(),
+                    customConfig.getApiKey(),
+                    systemPrompt,
+                    content);
+        } else {
+            // Ollama 本地模型
+            List<ChatMessage> messages = List.of(
+                    SystemMessage.from(systemPrompt),
+                    UserMessage.from(content));
+            llmResponse = ollamaClient.generate(messages, model);
+        }
+
+        // 解析 LLM 响应：按 --- 分隔提取标题和内容
+        String title;
+        String summary;
+        String[] parts = llmResponse.split("---", 2);
+        if (parts.length >= 2) {
+            title = parts[0].trim().replaceAll("^#+\\s*", "");
+            summary = parts[1].trim();
+        } else {
+            title = content.length() > 50 ? content.substring(0, 50) + "..." : content;
+            summary = llmResponse.trim();
+        }
+
+        return ResponseEntity.ok(SummarizeResponse.builder()
+                .title(title)
+                .summary(summary)
+                .build());
     }
 
 }

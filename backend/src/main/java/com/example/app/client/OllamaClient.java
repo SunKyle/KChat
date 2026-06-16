@@ -19,6 +19,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,6 +44,7 @@ public class OllamaClient {
                     key -> dev.langchain4j.model.ollama.OllamaChatModel.builder()
                             .baseUrl(ollamaConfig.getBaseUrl())
                             .modelName(key)
+                            .timeout(Duration.ofMinutes(2))
                             .build());
             Response<AiMessage> response = modelInstance.generate(messages);
             return response.content().text();

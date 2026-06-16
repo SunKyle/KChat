@@ -164,6 +164,93 @@ public class OpenAICompatibleClient {
         }
     }
 
+    /**
+     * 同步调用 OpenAI 兼容 API，返回完整响应文本
+     */
+    public String chatCompletion(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String systemPrompt,
+            String userContent) {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(2, TimeUnit.MINUTES)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        try {
+            ArrayNode messagesArray = objectMapper.createArrayNode();
+
+            if (systemPrompt != null && !systemPrompt.isBlank()) {
+                ObjectNode systemMessage = objectMapper.createObjectNode();
+                systemMessage.put("role", "system");
+                systemMessage.put("content", systemPrompt);
+                messagesArray.add(systemMessage);
+            }
+
+            ObjectNode userMessage = objectMapper.createObjectNode();
+            userMessage.put("role", "user");
+            userMessage.put("content", userContent);
+            messagesArray.add(userMessage);
+
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", modelId);
+            requestBody.set("messages", messagesArray);
+            requestBody.put("stream", false);
+            requestBody.put("max_tokens", 4096);
+            requestBody.put("temperature", 0.3);
+
+            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
+            RequestBody body = RequestBody.create(
+                    requestBodyStr,
+                    MediaType.parse("application/json"));
+
+            String fullUrl = buildFullUrl(baseUrl, "/v1/chat/completions");
+
+            Request request = new Request.Builder()
+                    .url(fullUrl)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .post(body)
+                    .build();
+
+            log.info("=== Starting synchronous OpenAI compatible request ===");
+            log.info("Model ID: {}", modelId);
+            log.info("Full URL: {}", fullUrl);
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "No response body";
+                    log.error("API request failed with code {}: {}", response.code(), errorBody);
+                    throw new RuntimeException("API请求失败: " + response.code() + ". " + errorBody);
+                }
+
+                ResponseBody responseBody = response.body();
+                if (responseBody == null) {
+                    throw new RuntimeException("API返回空响应");
+                }
+
+                String responseBodyStr = responseBody.string();
+                JsonNode node = objectMapper.readTree(responseBodyStr);
+                JsonNode choices = node.get("choices");
+                if (choices != null && choices.isArray() && choices.size() > 0) {
+                    JsonNode message = choices.get(0).get("message");
+                    if (message != null && message.has("content")) {
+                        return message.get("content").asText();
+                    }
+                }
+
+                log.error("Failed to parse response: {}", responseBodyStr);
+                throw new RuntimeException("无法解析API响应");
+            }
+
+        } catch (IOException e) {
+            log.error("Synchronous chat completion failed", e);
+            throw new RuntimeException("API调用失败: " + e.getMessage(), e);
+        }
+    }
+
     public void streamChatCompletion(
             String modelId,
             String baseUrl,
