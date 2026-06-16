@@ -498,7 +498,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}
             style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
           >
-            {todos.length}
+            {todos.filter((t) => t.status === 'pending').length}
           </span>
         </button>
       </div>
