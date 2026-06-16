@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   FileText,
   ListTodo,
@@ -9,11 +9,20 @@ import {
   Trash2,
   ChevronRight,
   ChevronLeft,
+  Loader2,
 } from 'lucide-react'
 import { useToast } from '../../hooks/useToast'
-import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useDebounce } from '../../hooks/useDebounce'
-import type { Note, Todo, NoteTodoMode } from '../../types/note-todo'
+import type {
+  Note,
+  Todo,
+  NoteTodoMode,
+  CreateNoteRequest,
+  UpdateNoteRequest,
+  CreateTodoRequest,
+  UpdateTodoRequest,
+} from '../../types/note-todo'
+import { noteApi, todoApi } from '../../api/note-todo'
 import { NoteList } from './NoteList'
 import { TodoList } from './TodoList'
 import { NoteForm } from './NoteForm'
@@ -25,86 +34,6 @@ interface NoteTodoPanelProps {
   onClose: () => void
   onOpen: () => void
 }
-
-const mockNotes: Note[] = [
-  {
-    id: '1',
-    userId: 'default',
-    title: '项目会议记录',
-    content:
-      '讨论了Q3产品路线图，确定了三个核心功能的开发优先级：\n\n## 一、项目定位\nKChat是一个基于大模型的智能对话平台，致力于为用户提供高效、智能、个性化的AI对话体验。\n\n## 二、核心功能\n- 多模态对话\n- 智能推荐引擎\n- 记忆体（Agent）\n- 知识图谱\n- RAG检索增强生成\n- 笔记与待办管理',
-    category: '工作',
-    tags: ['会议', '项目'],
-    pinned: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    userId: 'default',
-    title: '学习笔记 - React Hooks',
-    content:
-      'useState: 用于管理组件状态\nuseEffect: 用于处理副作用\nuseContext: 用于跨组件传递数据',
-    category: '学习',
-    tags: ['React', '前端'],
-    pinned: false,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    userId: 'default',
-    title: '购物清单',
-    content: '- 牛奶\n- 面包\n- 鸡蛋\n- 水果',
-    category: '生活',
-    tags: ['日常'],
-    pinned: false,
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    updatedAt: new Date(Date.now() - 172800000).toISOString(),
-  },
-]
-
-const mockTodos: Todo[] = [
-  {
-    id: '1',
-    userId: 'default',
-    title: '完成用户认证模块',
-    description: '实现登录、注册和密码重置功能',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 86400000).toISOString(),
-    category: '工作',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    completedAt: null,
-  },
-  {
-    id: '2',
-    userId: 'default',
-    title: '代码审查',
-    description: '审查团队成员提交的PR',
-    status: 'pending',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 172800000).toISOString(),
-    category: '工作',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    completedAt: null,
-  },
-  {
-    id: '3',
-    userId: 'default',
-    title: '健身打卡',
-    description: '完成30分钟有氧运动',
-    status: 'completed',
-    priority: 'low',
-    dueDate: null,
-    category: '生活',
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
-    updatedAt: new Date(Date.now() - 259200000).toISOString(),
-    completedAt: new Date(Date.now() - 259200000).toISOString(),
-  },
-]
 
 interface DeleteConfirmState {
   type: 'note' | 'todo'
@@ -124,11 +53,65 @@ interface FormState {
   dueDate: string
 }
 
+// 转换后端日期格式为前端 ISO 格式
+function convertDate(date: string | null): string | null {
+  if (!date) return null
+  // 后端返回格式: 2024-01-01T10:00:00 或数组格式
+  if (Array.isArray(date)) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = date
+    return new Date(year, month - 1, day, hour, minute, second).toISOString()
+  }
+  return new Date(date).toISOString()
+}
+
+// 转换后端 Note 为前端格式
+function convertNote(note: any): Note {
+  return {
+    id: note.id,
+    userId: note.userId,
+    title: note.title,
+    content: note.content || '',
+    category: note.category || '默认',
+    tags: note.tags || [],
+    pinned: note.pinned || false,
+    createdAt: convertDate(note.createdAt) || new Date().toISOString(),
+    updatedAt: convertDate(note.updatedAt) || new Date().toISOString(),
+  }
+}
+
+// 转换后端 Todo 为前端格式
+function convertTodo(todo: any): Todo {
+  return {
+    id: todo.id,
+    userId: todo.userId,
+    title: todo.title,
+    description: todo.description || '',
+    status: todo.status || 'pending',
+    priority: todo.priority || 'medium',
+    dueDate: convertDate(todo.dueDate),
+    category: todo.category || '默认',
+    createdAt: convertDate(todo.createdAt) || new Date().toISOString(),
+    updatedAt: convertDate(todo.updatedAt) || new Date().toISOString(),
+    completedAt: convertDate(todo.completedAt),
+  }
+}
+
 export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
-  const { success, info } = useToast()
+  const { success, info, error } = useToast()
+  const errorRef = useRef(error)
+  const infoRef = useRef(info)
+  const successRef = useRef(success)
+
+  useEffect(() => {
+    errorRef.current = error
+    infoRef.current = info
+    successRef.current = success
+  }, [error, info, success])
+
   const [mode, setMode] = useState<NoteTodoMode>('note')
-  const [notes, setNotes] = useLocalStorage<Note[]>('kchat_notes', mockNotes)
-  const [todos, setTodos] = useLocalStorage<Todo[]>('kchat_todos', mockTodos)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -153,6 +136,28 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   })
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
+
+  // 从后端加载数据
+  const loadData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const [notesData, todosData] = await Promise.all([noteApi.getAll(), todoApi.getAll()])
+      setNotes(notesData.map(convertNote))
+      setTodos(todosData.map(convertTodo))
+    } catch (err) {
+      console.error('Failed to load data:', err)
+      errorRef.current('数据加载失败，请稍后重试')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // 初始化加载
+  useEffect(() => {
+    if (isOpen) {
+      loadData()
+    }
+  }, [isOpen, loadData])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -219,44 +224,45 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     return matchesSearch && matchesTag
   })
 
-  const handleCreateNote = useCallback(() => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      userId: 'default',
-      title: formState.title || '无标题',
-      content: formState.content,
-      category: formState.category,
-      tags: formState.tags,
-      pinned: formState.pinned,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const handleCreateNote = useCallback(async () => {
+    try {
+      const request: CreateNoteRequest = {
+        title: formState.title || '无标题',
+        content: formState.content,
+        category: formState.category,
+        tags: formState.tags,
+        pinned: formState.pinned,
+      }
+      const newNote = await noteApi.create(request)
+      setNotes((prev) => [convertNote(newNote), ...prev])
+      setIsFormOpen(false)
+      successRef.current('笔记创建成功')
+    } catch (err) {
+      console.error('Failed to create note:', err)
+      errorRef.current('创建笔记失败')
     }
-    setNotes((prev) => [newNote, ...prev])
-    setIsFormOpen(false)
-    success('笔记创建成功')
-  }, [formState, setNotes, success])
+  }, [formState])
 
-  const handleUpdateNote = useCallback(() => {
+  const handleUpdateNote = useCallback(async () => {
     if (!editingNote) return
-    setNotes((prev) =>
-      prev.map((n) =>
-        n.id === editingNote.id
-          ? ({
-              ...n,
-              title: formState.title || '无标题',
-              content: formState.content,
-              category: formState.category,
-              tags: formState.tags,
-              pinned: formState.pinned,
-              updatedAt: new Date().toISOString(),
-            } as Note)
-          : n
-      )
-    )
-    setIsFormOpen(false)
-    setEditingNote(null)
-    success('笔记更新成功')
-  }, [editingNote, formState, setNotes, success])
+    try {
+      const request: UpdateNoteRequest = {
+        title: formState.title || '无标题',
+        content: formState.content,
+        category: formState.category,
+        tags: formState.tags,
+        pinned: formState.pinned,
+      }
+      const updatedNote = await noteApi.update(editingNote.id, request)
+      setNotes((prev) => prev.map((n) => (n.id === editingNote.id ? convertNote(updatedNote) : n)))
+      setIsFormOpen(false)
+      setEditingNote(null)
+      successRef.current('笔记更新成功')
+    } catch (err) {
+      console.error('Failed to update note:', err)
+      errorRef.current('更新笔记失败')
+    }
+  }, [editingNote, formState])
 
   const handleDeleteNote = useCallback(
     (id: string) => {
@@ -266,54 +272,59 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     [notes]
   )
 
-  const confirmDeleteNote = useCallback(() => {
+  const confirmDeleteNote = useCallback(async () => {
     if (!deleteConfirm || deleteConfirm.type !== 'note') return
-    setNotes((prev) => prev.filter((n) => n.id !== deleteConfirm.id))
-    if (selectedNote?.id === deleteConfirm.id) setSelectedNote(null)
-    setDeleteConfirm(null)
-    success('笔记已删除')
-  }, [deleteConfirm, setNotes, selectedNote, success])
-
-  const handleCreateTodo = useCallback(() => {
-    const newTodo: Todo = {
-      id: Date.now().toString(),
-      userId: 'default',
-      title: formState.title || '未命名待办',
-      description: formState.description,
-      status: 'pending',
-      priority: formState.priority,
-      dueDate: formState.dueDate || null,
-      category: formState.category,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      completedAt: null,
+    try {
+      await noteApi.delete(deleteConfirm.id)
+      setNotes((prev) => prev.filter((n) => n.id !== deleteConfirm.id))
+      if (selectedNote?.id === deleteConfirm.id) setSelectedNote(null)
+      setDeleteConfirm(null)
+      successRef.current('笔记已删除')
+    } catch (err) {
+      console.error('Failed to delete note:', err)
+      errorRef.current('删除笔记失败')
     }
-    setTodos((prev) => [newTodo, ...prev])
-    setIsFormOpen(false)
-    success('待办创建成功')
-  }, [formState, setTodos, success])
+  }, [deleteConfirm, selectedNote])
 
-  const handleUpdateTodo = useCallback(() => {
+  const handleCreateTodo = useCallback(async () => {
+    try {
+      const request: CreateTodoRequest = {
+        title: formState.title || '未命名待办',
+        description: formState.description,
+        priority: formState.priority,
+        dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
+        category: formState.category,
+      }
+      const newTodo = await todoApi.create(request)
+      setTodos((prev) => [convertTodo(newTodo), ...prev])
+      setIsFormOpen(false)
+      successRef.current('待办创建成功')
+    } catch (err) {
+      console.error('Failed to create todo:', err)
+      errorRef.current('创建待办失败')
+    }
+  }, [formState])
+
+  const handleUpdateTodo = useCallback(async () => {
     if (!editingTodo) return
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === editingTodo.id
-          ? ({
-              ...t,
-              title: formState.title || '未命名待办',
-              description: formState.description,
-              priority: formState.priority,
-              dueDate: formState.dueDate || null,
-              category: formState.category,
-              updatedAt: new Date().toISOString(),
-            } as Todo)
-          : t
-      )
-    )
-    setIsFormOpen(false)
-    setEditingTodo(null)
-    success('待办更新成功')
-  }, [editingTodo, formState, setTodos, success])
+    try {
+      const request: UpdateTodoRequest = {
+        title: formState.title || '未命名待办',
+        description: formState.description,
+        priority: formState.priority,
+        dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
+        category: formState.category,
+      }
+      const updatedTodo = await todoApi.update(editingTodo.id, request)
+      setTodos((prev) => prev.map((t) => (t.id === editingTodo.id ? convertTodo(updatedTodo) : t)))
+      setIsFormOpen(false)
+      setEditingTodo(null)
+      successRef.current('待办更新成功')
+    } catch (err) {
+      console.error('Failed to update todo:', err)
+      errorRef.current('更新待办失败')
+    }
+  }, [editingTodo, formState])
 
   const handleDeleteTodo = useCallback(
     (id: string) => {
@@ -323,35 +334,39 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     [todos]
   )
 
-  const confirmDeleteTodo = useCallback(() => {
+  const confirmDeleteTodo = useCallback(async () => {
     if (!deleteConfirm || deleteConfirm.type !== 'todo') return
-    setTodos((prev) => prev.filter((t) => t.id !== deleteConfirm.id))
-    if (selectedTodo?.id === deleteConfirm.id) setSelectedTodo(null)
-    setDeleteConfirm(null)
-    success('待办已删除')
-  }, [deleteConfirm, setTodos, selectedTodo, success])
+    try {
+      await todoApi.delete(deleteConfirm.id)
+      setTodos((prev) => prev.filter((t) => t.id !== deleteConfirm.id))
+      if (selectedTodo?.id === deleteConfirm.id) setSelectedTodo(null)
+      setDeleteConfirm(null)
+      successRef.current('待办已删除')
+    } catch (err) {
+      console.error('Failed to delete todo:', err)
+      errorRef.current('删除待办失败')
+    }
+  }, [deleteConfirm, selectedTodo])
 
-  const handleToggleTodo = useCallback(
-    (id: string) => {
+  const handleToggleTodo = useCallback(async (id: string) => {
+    try {
+      const updatedTodo = await todoApi.toggle(id)
+      const convertedTodo = convertTodo(updatedTodo)
+      const message = convertedTodo.status === 'completed' ? '任务已完成！' : '任务已恢复'
       setTodos((prev) =>
         prev.map((t) => {
           if (t.id === id) {
-            const newStatus = t.status === 'pending' ? 'completed' : 'pending'
-            const message = newStatus === 'completed' ? '任务已完成！' : '任务已恢复'
-            setTimeout(() => info(message), 50)
-            return {
-              ...t,
-              status: newStatus,
-              completedAt: newStatus === 'completed' ? new Date().toISOString() : null,
-              updatedAt: new Date().toISOString(),
-            }
+            return convertedTodo
           }
           return t
         })
       )
-    },
-    [info]
-  )
+      setTimeout(() => infoRef.current(message), 50)
+    } catch (err) {
+      console.error('Failed to toggle todo:', err)
+      errorRef.current('切换状态失败')
+    }
+  }, [])
 
   const handleOpenCreateForm = useCallback(() => {
     setEditingNote(null)
@@ -364,8 +379,17 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     setIsFormOpen(true)
   }, [])
 
-  const handlePinNote = useCallback((note: Note) => {
-    setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, pinned: !n.pinned } : n)))
+  const handlePinNote = useCallback(async (note: Note) => {
+    try {
+      const request: UpdateNoteRequest = {
+        pinned: !note.pinned,
+      }
+      const updatedNote = await noteApi.update(note.id, request)
+      setNotes((prev) => prev.map((n) => (n.id === note.id ? convertNote(updatedNote) : n)))
+    } catch (err) {
+      console.error('Failed to pin note:', err)
+      errorRef.current('置顶操作失败')
+    }
   }, [])
 
   const handleEditTodo = useCallback((todo: Todo) => {
@@ -589,6 +613,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     </div>
   )
 
+  const renderLoading = () => (
+    <div className='flex-1 flex items-center justify-center'>
+      <Loader2 className='w-6 h-6 text-[var(--brand-primary)] animate-spin' />
+    </div>
+  )
+
   return (
     <>
       <div
@@ -598,7 +628,9 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         <div className='h-full card-float-solid flex flex-col overflow-hidden'>
           {renderHeader()}
           <div className='flex-1 flex flex-col overflow-hidden'>
-            {selectedNote || selectedTodo ? (
+            {isLoading ? (
+              renderLoading()
+            ) : selectedNote || selectedTodo ? (
               <DetailPreview
                 selectedNote={selectedNote}
                 selectedTodo={selectedTodo}

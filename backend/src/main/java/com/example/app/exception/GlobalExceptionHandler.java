@@ -25,6 +25,15 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "INVALID_INPUT", errors);
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        log.error("Runtime exception occurred: ", ex);
+        if (ex.getMessage().contains("not found")) {
+            return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
+        }
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralExceptions(Exception ex) {
         log.error("Unhandled exception occurred: ", ex);
