@@ -162,6 +162,15 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     }
   }, [isOpen, loadData])
 
+  // 监听外部创建笔记事件（如 AI 回复保存为笔记）
+  useEffect(() => {
+    const handleNoteCreated = () => {
+      if (isOpen) loadData()
+    }
+    window.addEventListener('note-created', handleNoteCreated)
+    return () => window.removeEventListener('note-created', handleNoteCreated)
+  }, [isOpen, loadData])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {

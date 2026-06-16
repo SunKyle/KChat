@@ -71,6 +71,7 @@ export const MessageBubble = memo(function MessageBubble({
       })
       setSaved(true)
       toast.success('已保存为笔记')
+      window.dispatchEvent(new CustomEvent('note-created'))
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
       console.error('保存为笔记失败:', err)
