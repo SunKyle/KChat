@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   ChevronLeft,
   Star,
@@ -7,6 +8,8 @@ import {
   Circle,
   Calendar,
   Clock,
+  Copy,
+  Check,
 } from 'lucide-react'
 import type { Note, Todo } from '../../types/note-todo'
 
@@ -25,6 +28,19 @@ interface NotePreviewProps {
 }
 
 function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePreviewProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    const content = `${note.title}\n\n${note.content}`
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <div className='flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-divider)]'>
@@ -36,6 +52,18 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePre
           返回
         </button>
         <div className='flex items-center gap-0.5'>
+          <button
+            onClick={handleCopy}
+            className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
+            aria-label={copied ? '已复制' : '复制'}
+            title={copied ? '已复制' : '复制'}
+          >
+            {copied ? (
+              <Check className='w-4 h-4 text-[var(--brand-success)]' />
+            ) : (
+              <Copy className='w-4 h-4 text-[var(--text-muted)]' />
+            )}
+          </button>
           <button
             onClick={onEdit}
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
