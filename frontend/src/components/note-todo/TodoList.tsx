@@ -4,21 +4,21 @@ import type { Todo } from '../../types/note-todo'
 const priorityMeta = {
   high: {
     label: '高',
-    bgColor: 'bg-[var(--brand-danger)]/15',
-    textColor: 'text-[var(--brand-danger)]',
-    borderColor: 'border-[var(--brand-danger)]/30',
+    bgColor: 'bg-red-100',
+    textColor: 'text-red-600',
+    borderColor: 'border-red-300',
   },
   medium: {
     label: '中',
-    bgColor: 'bg-[var(--accent-amber)]/15',
-    textColor: 'text-[var(--accent-amber)]',
-    borderColor: 'border-[var(--accent-amber)]/30',
+    bgColor: 'bg-amber-100',
+    textColor: 'text-amber-600',
+    borderColor: 'border-amber-300',
   },
   low: {
     label: '低',
-    bgColor: 'bg-[var(--brand-success)]/15',
-    textColor: 'text-[var(--brand-success)]',
-    borderColor: 'border-[var(--brand-success)]/30',
+    bgColor: 'bg-green-100',
+    textColor: 'text-green-600',
+    borderColor: 'border-green-300',
   },
 } as const
 
@@ -76,6 +76,11 @@ function TodoListItem({
           )}
           <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
             <div className='flex items-center gap-2 flex-wrap'>
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}
+              >
+                {priorityMeta[todo.priority].label}优先级
+              </span>
               {todo.category === '工作' && (
                 <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
                   {todo.category}
@@ -96,11 +101,6 @@ function TodoListItem({
                   {todo.category}
                 </span>
               )}
-              <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}
-              >
-                {priorityMeta[todo.priority].label}优先级
-              </span>
               {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
                 <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
                   <Calendar className='w-3 h-3' />
