@@ -199,7 +199,7 @@ export function InputArea() {
           const isThinking = streamingState.isStreaming && !isOutputting
           return (
             <div
-              className={`relative z-10 -mt-3 flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
+              className={`relative z-10 -mt-3 flex flex-col card-float-solid bg-transparent mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
                 isThinking
                   ? 'input-glow-thinking'
                   : isOutputting

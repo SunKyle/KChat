@@ -108,8 +108,7 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className='flex-1 flex items-center justify-center relative overflow-hidden rounded-b-[var(--radius-xl)]'>
-        <div className='absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-indigo-50' />
+      <div className='flex-1 flex items-center justify-center relative'>
         
         <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-sky-400/10 via-indigo-500/5 to-purple-500/5 rounded-full blur-3xl' />
         <div className='absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tr from-amber-400/5 via-pink-500/5 to-emerald-500/5 rounded-full blur-3xl' />
@@ -275,7 +274,7 @@ export function ChatArea() {
         <button
           onClick={scrollToBottom}
           aria-label='回到底部'
-          className={`scroll-btn-enter scroll-btn-glass absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95 ${
+          className={`scroll-btn-enter scroll-btn-glass absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95 ${
             streamingState.isStreaming ? 'scroll-btn-streaming' : ''
           }`}
           title='滚动到底部'

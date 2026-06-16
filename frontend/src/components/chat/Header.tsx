@@ -47,7 +47,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-secondary'>
+    <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-secondary'>
       <div className='flex items-center gap-3'>
         {activeConversation ? (
           <h1 className='font-secondary font-medium theme-text-primary truncate max-w-lg'>

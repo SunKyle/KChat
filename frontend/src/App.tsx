@@ -105,14 +105,15 @@ function AppContent() {
               : undefined
           }
         >
-          <div className='flex flex-col h-full card-float-solid'>
+          <div className='flex flex-col h-full card-float-solid relative overflow-hidden'>
+            <div className='absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-indigo-50 pointer-events-none' />
             <Header onSettingsClick={() => openSettings('profile')} />
-            <div className={`flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
+            <div className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
               <ChatArea />
               {activeConversation && <InputArea />}
             </div>
             {showSettings && (
-              <div className='flex-1 overflow-y-auto p-6'>
+              <div className='relative flex-1 overflow-y-auto p-6'>
                 <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
               </div>
             )}
