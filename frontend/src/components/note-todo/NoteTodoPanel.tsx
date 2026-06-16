@@ -376,6 +376,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   const handleEditNote = useCallback((note: Note) => {
     setEditingNote(note)
+    setSelectedNote(null)
     setIsFormOpen(true)
   }, [])
 
@@ -394,6 +395,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   const handleEditTodo = useCallback((todo: Todo) => {
     setEditingTodo(todo)
+    setSelectedTodo(null)
     setIsFormOpen(true)
   }, [])
 

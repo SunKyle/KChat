@@ -81,24 +81,19 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete }: NotePre
         </div>
       </div>
       <div className='flex-1 overflow-y-auto p-4'>
-        <div className='flex items-center gap-2 mb-2'>
-          {note.pinned && (
-            <Star className='w-4 h-4 text-[var(--accent-amber)] fill-current flex-shrink-0' />
-          )}
-          <h2 className='text-[16px] font-semibold text-[var(--text-primary)] leading-snug'>
-            {note.title}
-          </h2>
-        </div>
+        <h2 className='text-[16px] font-semibold text-[var(--text-primary)] leading-snug mb-4'>
+          {note.title}
+        </h2>
         <div className='flex items-center gap-2 mb-4 text-[11px] text-[var(--text-muted)] flex-wrap'>
           <span>{formatDateFull(note.updatedAt)}</span>
           <span className='w-1 h-1 rounded-full bg-[var(--text-muted)]/30' />
-          <span className='px-2 py-0.5 bg-[var(--brand-primary)]/[0.08] text-[var(--brand-primary)] rounded-full text-[10px] font-medium'>
+          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
             {note.category}
           </span>
           {note.tags.map((tag) => (
             <span
               key={tag}
-              className='px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-muted)] rounded-full text-[10px]'
+              className='px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'
             >
               #{tag}
             </span>
