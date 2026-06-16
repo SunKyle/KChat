@@ -28,6 +28,7 @@ import { TodoList } from './TodoList'
 import { NoteForm } from './NoteForm'
 import { TodoForm } from './TodoForm'
 import { DetailPreview } from './DetailPreview'
+import { FullscreenMarkdownEditor } from './FullscreenMarkdownEditor'
 
 interface NoteTodoPanelProps {
   isOpen: boolean
@@ -122,6 +123,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
   const [filterTags, setFilterTags] = useState<string[]>([])
   const [filterExpanded, setFilterExpanded] = useState(true)
+  const [showFullscreenEditor, setShowFullscreenEditor] = useState(false)
 
   const [formState, setFormState] = useState<FormState>({
     title: '',
@@ -669,6 +671,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                     isEditing={!!editingNote}
                     onCancel={handleCancelForm}
                     onSubmit={editingNote ? handleUpdateNote : handleCreateNote}
+                    onOpenFullscreen={() => setShowFullscreenEditor(true)}
                   />
                 ) : (
                   <TodoForm
@@ -758,6 +761,18 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {showFullscreenEditor && (
+        <FullscreenMarkdownEditor
+          title={formState.title}
+          content={formState.content}
+          onClose={() => setShowFullscreenEditor(false)}
+          onSave={(title, content) => {
+            setFormState((prev) => ({ ...prev, title, content }))
+            setShowFullscreenEditor(false)
+          }}
+        />
       )}
     </>
   )
