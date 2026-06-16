@@ -56,7 +56,12 @@ export function FullscreenMarkdownEditor({
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const selectedText = editorContent.substring(start, end)
-    const newText = editorContent.substring(0, start) + before + selectedText + after + editorContent.substring(end)
+    const newText =
+      editorContent.substring(0, start) +
+      before +
+      selectedText +
+      after +
+      editorContent.substring(end)
 
     setEditorContent(newText)
 
@@ -70,7 +75,7 @@ export function FullscreenMarkdownEditor({
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
-      <div className='w-[90vw] max-w-5xl h-[85vh] bg-[var(--bg-primary)] rounded-2xl shadow-2xl flex flex-col overflow-hidden'>
+      <div className='w-[90vw] h-[85vh] bg-[var(--bg-primary)] rounded-2xl shadow-2xl flex flex-col overflow-hidden'>
         {/* 工具栏 */}
         <div className='flex items-center justify-between px-6 py-4 border-b border-[var(--border-divider)] bg-[var(--bg-secondary)]'>
           <div className='flex items-center gap-4'>
@@ -151,37 +156,84 @@ export function FullscreenMarkdownEditor({
           )}
           {/* 预览区域 */}
           <div className='flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg-card)]'>
-            <h1 className='text-2xl font-bold text-[var(--text-primary)] mb-4'>{editorTitle || '预览'}</h1>
+            <h1 className='text-2xl font-bold text-[var(--text-primary)] mb-4'>
+              {editorTitle || '预览'}
+            </h1>
             <ReactMarkdown
               components={{
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '')
                   return !inline && match ? (
-                    <SyntaxHighlighter
-                      style={oneLight}
-                      language={match[1]}
-                      PreTag='div'
-                      {...props}
-                    >
+                    <SyntaxHighlighter style={oneLight} language={match[1]} PreTag='div' {...props}>
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className='px-1.5 py-0.5 bg-[var(--bg-hover)] rounded text-sm font-mono' {...props}>
+                    <code
+                      className='px-1.5 py-0.5 bg-[var(--bg-hover)] rounded text-sm font-mono'
+                      {...props}
+                    >
                       {children}
                     </code>
                   )
                 },
-                h1: ({ children }) => <h1 className='text-2xl font-bold text-[var(--text-primary)] mt-6 mb-3' children={children} />,
-                h2: ({ children }) => <h2 className='text-xl font-semibold text-[var(--text-primary)] mt-5 mb-2' children={children} />,
-                h3: ({ children }) => <h3 className='text-lg font-semibold text-[var(--text-primary)] mt-4 mb-2' children={children} />,
-                h4: ({ children }) => <h4 className='text-base font-semibold text-[var(--text-primary)] mt-3 mb-1' children={children} />,
-                p: ({ children }) => <p className='text-[var(--text-secondary)] mb-3 leading-relaxed' children={children} />,
-                ul: ({ children }) => <ul className='list-disc list-inside mb-3 space-y-1' children={children} />,
-                ol: ({ children }) => <ol className='list-decimal list-inside mb-3 space-y-1' children={children} />,
-                li: ({ children }) => <li className='text-[var(--text-secondary)]' children={children} />,
-                blockquote: ({ children }) => <blockquote className='border-l-4 border-[var(--brand-primary)] pl-4 italic text-[var(--text-muted)] my-3' children={children} />,
-                a: ({ href, children }) => <a href={href} className='text-[var(--brand-primary)] hover:underline' children={children} />,
-                strong: ({ children }) => <strong className='font-semibold text-[var(--text-primary)]' children={children} />,
+                h1: ({ children }) => (
+                  <h1
+                    className='text-2xl font-bold text-[var(--text-primary)] mt-6 mb-3'
+                    children={children}
+                  />
+                ),
+                h2: ({ children }) => (
+                  <h2
+                    className='text-xl font-semibold text-[var(--text-primary)] mt-5 mb-2'
+                    children={children}
+                  />
+                ),
+                h3: ({ children }) => (
+                  <h3
+                    className='text-lg font-semibold text-[var(--text-primary)] mt-4 mb-2'
+                    children={children}
+                  />
+                ),
+                h4: ({ children }) => (
+                  <h4
+                    className='text-base font-semibold text-[var(--text-primary)] mt-3 mb-1'
+                    children={children}
+                  />
+                ),
+                p: ({ children }) => (
+                  <p
+                    className='text-[var(--text-secondary)] mb-3 leading-relaxed'
+                    children={children}
+                  />
+                ),
+                ul: ({ children }) => (
+                  <ul className='list-disc list-inside mb-3 space-y-1' children={children} />
+                ),
+                ol: ({ children }) => (
+                  <ol className='list-decimal list-inside mb-3 space-y-1' children={children} />
+                ),
+                li: ({ children }) => (
+                  <li className='text-[var(--text-secondary)]' children={children} />
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote
+                    className='border-l-4 border-[var(--brand-primary)] pl-4 italic text-[var(--text-muted)] my-3'
+                    children={children}
+                  />
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    className='text-[var(--brand-primary)] hover:underline'
+                    children={children}
+                  />
+                ),
+                strong: ({ children }) => (
+                  <strong
+                    className='font-semibold text-[var(--text-primary)]'
+                    children={children}
+                  />
+                ),
                 em: ({ children }) => <em className='italic' children={children} />,
               }}
             >
