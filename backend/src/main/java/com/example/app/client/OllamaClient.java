@@ -149,15 +149,10 @@ public class OllamaClient {
 
     private String buildPrompt(List<ChatMessage> messages) {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder
-                .append("""
-                        You are a helpful assistant. The following is a conversation history. Please respond to the user's latest question based on the provided context.
-
-                        """);
 
         for (ChatMessage message : messages) {
             if (message instanceof dev.langchain4j.data.message.SystemMessage) {
-                promptBuilder.append("System: ").append(message.text()).append("\n");
+                promptBuilder.append(message.text()).append("\n\n");
             } else if (message instanceof dev.langchain4j.data.message.UserMessage) {
                 promptBuilder.append("User: ").append(message.text()).append("\n");
             } else if (message instanceof dev.langchain4j.data.message.AiMessage) {
@@ -166,7 +161,7 @@ public class OllamaClient {
                 promptBuilder.append(message.text()).append("\n");
             }
         }
-        promptBuilder.append("\nAssistant: ");
+        promptBuilder.append("Assistant: ");
         return promptBuilder.toString();
     }
 

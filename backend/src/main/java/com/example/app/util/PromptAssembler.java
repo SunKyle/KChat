@@ -26,13 +26,11 @@ public class PromptAssembler {
      * - 引导 LLM 将这些事实作为用户的背景知识，而非对话历史
      * - 不直接暴露内部实现细节给 LLM
      */
-    private static final String SYSTEM_PROMPT = """
-            你是一个智能助手，请根据提供的信息回答用户问题。
-            {language_instruction}
-            用户的长期记忆：
-            {long_term_memory}
+    private static final String SYSTEM_PROMPT_TEMPLATE = """
+            你是一个智能助手。{language_clause}请根据以下用户背景信息回答问题。
 
-            请记住这些信息，并在回答时考虑用户的背景和偏好。
+            用户背景：
+            {long_term_memory}
             """;
 
     /**
@@ -75,14 +73,14 @@ public class PromptAssembler {
         List<ChatMessage> messages = new ArrayList<>();
 
         // 构建语言指令
-        String languageInstruction = buildLanguageInstruction(language);
+        String languageClause = buildLanguageClause(language);
 
         // 构建长期记忆文本
         String longTermMemoryText = formatLongTermMemory(longTermMemory);
 
         // 始终注入 System Prompt（包含语言指令和记忆信息）
-        String systemPrompt = SYSTEM_PROMPT
-                .replace("{language_instruction}", languageInstruction)
+        String systemPrompt = SYSTEM_PROMPT_TEMPLATE
+                .replace("{language_clause}", languageClause)
                 .replace("{long_term_memory}", longTermMemoryText);
         messages.add(SystemMessage.from(systemPrompt));
 
@@ -106,17 +104,17 @@ public class PromptAssembler {
     }
 
     /**
-     * 根据语言偏好构建语言指令
+     * 根据语言偏好构建语言从句，嵌入到 system prompt 句子中
      *
      * @param language 语言代码（如 "zh-CN"、"en"）
-     * @return 语言指令字符串
+     * @return 语言从句字符串，如 "请使用中文（简体）回复。"
      */
-    private String buildLanguageInstruction(String language) {
+    private String buildLanguageClause(String language) {
         if (language == null || language.isBlank()) {
             return "";
         }
         String languageName = LANGUAGE_NAMES.getOrDefault(language, language);
-        return "请务必使用 " + languageName + " 回复用户。\n";
+        return "请使用 " + languageName + " 回复。";
     }
 
     /**
