@@ -22,12 +22,13 @@ public class PromptAssembler {
      *
      * 设计考虑：
      * - 使用占位符 {long_term_memory} 注入召回的语义片段
+     * - 使用占位符 {language_instruction} 注入语言偏好指令
      * - 引导 LLM 将这些事实作为用户的背景知识，而非对话历史
      * - 不直接暴露内部实现细节给 LLM
      */
     private static final String SYSTEM_PROMPT = """
             你是一个智能助手，请根据提供的信息回答用户问题。
-
+            {language_instruction}
             用户的长期记忆：
             {long_term_memory}
 
@@ -35,30 +36,55 @@ public class PromptAssembler {
             """;
 
     /**
+     * 语言代码到自然语言描述的映射
+     */
+    private static final java.util.Map<String, String> LANGUAGE_NAMES = java.util.Map.ofEntries(
+            java.util.Map.entry("zh-CN", "中文（简体）"),
+            java.util.Map.entry("zh-TW", "中文（繁體）"),
+            java.util.Map.entry("en", "English"),
+            java.util.Map.entry("en-US", "English"),
+            java.util.Map.entry("en-GB", "English"),
+            java.util.Map.entry("ja", "日本語"),
+            java.util.Map.entry("ko", "한국어"),
+            java.util.Map.entry("fr", "Français"),
+            java.util.Map.entry("de", "Deutsch"),
+            java.util.Map.entry("es", "Español"),
+            java.util.Map.entry("ru", "Русский")
+    );
+
+    /**
      * 组装最终发送给 LLM 的消息序列
      *
      * 拼接顺序（优先级从高到低）：
-     * 1. SystemMessage (包含长期记忆)：设定全局认知基调
+     * 1. SystemMessage (包含语言指令和长期记忆)：设定全局认知基调
      * 2. ShortTermMemory (对话历史)：维持会话连贯性
      * 3. UserMessage (当前输入)：触发执行任务
      *
      * @param shortTermMemory 短期记忆（对话历史）
      * @param longTermMemory 长期记忆（召回的知识片段）
      * @param userMessage 当前用户输入
+     * @param language 用户语言偏好（如 "zh-CN", "en"），为 null 时不注入语言指令
      * @return 组装好的消息列表
      */
     public List<ChatMessage> assemble(
             List<ChatMessage> shortTermMemory,
             List<MemoryDTO> longTermMemory,
-            String userMessage) {
+            String userMessage,
+            String language) {
 
         List<ChatMessage> messages = new ArrayList<>();
 
+        // 构建语言指令
+        String languageInstruction = buildLanguageInstruction(language);
+
+        // 构建长期记忆文本
         String longTermMemoryText = formatLongTermMemory(longTermMemory);
-        if (!longTermMemoryText.isEmpty()) {
-            String systemPrompt = SYSTEM_PROMPT.replace("{long_term_memory}", longTermMemoryText);
-            messages.add(SystemMessage.from(systemPrompt));
-        }
+
+        // 始终注入 System Prompt（包含语言指令和记忆信息）
+        String systemPrompt = SYSTEM_PROMPT
+                .replace("{language_instruction}", languageInstruction)
+                .replace("{long_term_memory}", longTermMemoryText);
+        messages.add(SystemMessage.from(systemPrompt));
 
         if (shortTermMemory != null) {
             messages.addAll(shortTermMemory);
@@ -67,6 +93,30 @@ public class PromptAssembler {
         messages.add(UserMessage.from(userMessage));
 
         return messages;
+    }
+
+    /**
+     * 向后兼容的无语言参数版本
+     */
+    public List<ChatMessage> assemble(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage) {
+        return assemble(shortTermMemory, longTermMemory, userMessage, null);
+    }
+
+    /**
+     * 根据语言偏好构建语言指令
+     *
+     * @param language 语言代码（如 "zh-CN"、"en"）
+     * @return 语言指令字符串
+     */
+    private String buildLanguageInstruction(String language) {
+        if (language == null || language.isBlank()) {
+            return "";
+        }
+        String languageName = LANGUAGE_NAMES.getOrDefault(language, language);
+        return "请务必使用 " + languageName + " 回复用户。\n";
     }
 
     /**

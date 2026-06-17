@@ -78,6 +78,11 @@ public class StreamingService {
     private final AutoMemoryExtractor autoMemoryExtractor;
 
     /**
+     * 用户配置服务，用于获取语言偏好
+     */
+    private final UserProfileService userProfileService;
+
+    /**
      * 处理流式聊天请求
      * 
      * @param request 聊天请求
@@ -112,6 +117,9 @@ public class StreamingService {
         final List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
         log.info("[STREAM] Recalled {} long-term memory items", longTermMemory.size());
 
+        final String userLanguage = userProfileService.getLanguage(userId);
+        log.info("[STREAM] User language preference: {}", userLanguage);
+
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
             final boolean[] completed = { false };
@@ -130,7 +138,7 @@ public class StreamingService {
 
                 List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(finalConversationId);
                 List<ChatMessage> messages = chatWorkflowService.assembleMessages(
-                        shortTermMemory, longTermMemory, userMessage);
+                        shortTermMemory, longTermMemory, userMessage, userLanguage);
 
                 boolean hasImages = imageUrls != null && !imageUrls.isEmpty();
                 streamOllamaResponse(messages, imageUrls, model, emitter, fullResponse, completed);

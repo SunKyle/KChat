@@ -50,6 +50,11 @@ public class ChatService {
     private final AutoMemoryExtractor autoMemoryExtractor;
 
     /**
+     * 用户配置服务，用于获取语言偏好
+     */
+    private final UserProfileService userProfileService;
+
+    /**
      * 处理用户聊天请求，生成 AI 响应
      * 
      * 执行流程：
@@ -79,8 +84,9 @@ public class ChatService {
         List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
         log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
 
-        // 4. 组装消息为 LLM 可理解的格式
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage);
+        // 4. 查询用户语言偏好，组装消息为 LLM 可理解的格式
+        String language = userProfileService.getLanguage(userId);
+        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage, language);
         
         // 5. 调用 LLM 生成响应
         String aiResponse = ollamaClient.generate(messages, model);

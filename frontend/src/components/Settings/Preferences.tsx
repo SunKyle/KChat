@@ -1,4 +1,4 @@
-import { Monitor, Bell, Mail, Volume2, Smartphone } from 'lucide-react'
+import { Monitor, Bell, Mail, Volume2, Smartphone, Languages } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -65,6 +65,26 @@ export function Preferences() {
 
   if (!profile) return null
 
+  const languages = [
+    { value: 'zh-CN', label: '中文（简体）' },
+    { value: 'zh-TW', label: '中文（繁體）' },
+    { value: 'en', label: 'English' },
+    { value: 'ja', label: '日本語' },
+    { value: 'ko', label: '한국어' },
+    { value: 'fr', label: 'Français' },
+    { value: 'de', label: 'Deutsch' },
+    { value: 'es', label: 'Español' },
+    { value: 'ru', label: 'Русский' },
+  ]
+
+  const handleLanguageChange = async (language: string) => {
+    try {
+      await updatePreferences({ language })
+    } catch (err) {
+      console.error('Failed to update language:', err)
+    }
+  }
+
   const themes = [
     { id: 'dark' as const, label: '深色模式', description: '适合夜间使用' },
     { id: 'light' as const, label: '浅色模式', description: '适合白天使用' },
@@ -104,7 +124,36 @@ export function Preferences() {
         </div>
       </div>
 
-      <div className='card-float-solid rounded-2xl p-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+        <div className='card-float-solid rounded-2xl p-6'>
+          <div className='flex items-center gap-2 mb-4'>
+            <Languages className='w-[18px] h-[18px] theme-text-muted' />
+            <h3 className='font-medium theme-text-primary'>语言偏好</h3>
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium theme-text-secondary mb-3'>
+              AI 回复语言
+            </label>
+            <p className='text-xs theme-text-muted mb-3'>
+              设置后，AI 将使用您选择的语言进行回复
+            </p>
+            <select
+              value={profile.preferences.language || 'zh-CN'}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              disabled={isLoading}
+              className='w-full max-w-xs px-3 py-2 rounded-lg border theme-border-primary theme-bg-card theme-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40 transition-all disabled:opacity-50'
+            >
+              {languages.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <Bell className='w-[18px] h-[18px] theme-text-muted' />
           <h3 className='font-medium theme-text-primary'>通知设置</h3>
@@ -179,6 +228,7 @@ export function Preferences() {
             />
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

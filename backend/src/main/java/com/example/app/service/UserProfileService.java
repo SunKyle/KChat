@@ -42,6 +42,19 @@ public class UserProfileService {
         return toUserProfileDTO(profile, apiKeys, devices);
     }
 
+    /**
+     * 获取用户语言偏好（轻量级查询，不加载关联数据）
+     *
+     * @param userId 用户 ID
+     * @return 语言代码（如 "zh-CN"），默认 "zh-CN"
+     */
+    public String getLanguage(String userId) {
+        String language = userProfileRepository.findByUserId(userId)
+                .map(UserProfile::getLanguage)
+                .orElse("zh-CN");
+        return (language != null && !language.isBlank()) ? language : "zh-CN";
+    }
+
     @Transactional
     public UserProfile createDefaultProfile(String userId) {
         UserProfile profile = UserProfile.builder()

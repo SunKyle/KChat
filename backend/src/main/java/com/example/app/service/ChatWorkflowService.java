@@ -106,6 +106,23 @@ public class ChatWorkflowService {
     }
 
     /**
+     * 组装消息为 LLM 可理解的格式（带语言偏好）
+     * 
+     * @param shortTermMemory 短期记忆（对话历史）
+     * @param longTermMemory 长期记忆（语义召回结果）
+     * @param userMessage 当前用户消息
+     * @param language 用户语言偏好
+     * @return 组装后的消息列表
+     */
+    public List<ChatMessage> assembleMessages(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage,
+            String language) {
+        return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage, language);
+    }
+
+    /**
      * 更新短期记忆，添加用户消息和 AI 回复
      * 
      * @param conversationId 对话 ID
