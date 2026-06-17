@@ -239,49 +239,64 @@ export function InputArea() {
                     }
                     className='hidden'
                   />
-                  <button
-                    onClick={() => generalFileInputRef.current?.click()}
-                    disabled={
-                      uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
-                    }
-                    className={`flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
-                      uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
-                        ? 'opacity-40 cursor-not-allowed'
-                        : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-sky-600 cursor-pointer'
-                    }`}
-                    title='上传文件（包括图片）'
-                    aria-label='上传文件'
-                  >
-                    {uploading ? (
-                      <Loader2 className='w-4 h-4 theme-text-muted animate-spin' />
-                    ) : (
-                      <Paperclip className='w-4 h-4 text-[var(--text-toolbar)]' />
-                    )}
-                  </button>
+                  <div className='relative'>
+                    <button
+                      onClick={() => generalFileInputRef.current?.click()}
+                      disabled={
+                        uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
+                      }
+                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
+                        uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-sky-600 cursor-pointer'
+                      }`}
+                      aria-label='上传文件'
+                    >
+                      {uploading ? (
+                        <Loader2 className='w-4 h-4 theme-text-muted animate-spin' />
+                      ) : (
+                        <Paperclip className='w-4 h-4 text-[var(--text-toolbar)]' />
+                      )}
+                    </button>
+                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                      上传文件
+                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                    </span>
+                  </div>
 
                   {/* 代码按钮 */}
-                  <button
-                    className='flex items-center justify-center w-9 h-9 rounded-md hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-600 text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
-                    title='插入代码'
-                    aria-label='插入代码'
-                  >
-                    <Code className='w-4 h-4' />
-                  </button>
+                  <div className='relative'>
+                    <button
+                      className='peer flex items-center justify-center w-9 h-9 rounded-md hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-600 text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
+                      aria-label='插入代码'
+                    >
+                      <Code className='w-4 h-4' />
+                    </button>
+                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                      插入代码
+                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                    </span>
+                  </div>
 
                   {/* 生成图片按钮 */}
-                  <button
-                    onClick={() => setInput('生成图片：')}
-                    disabled={streamingState.isStreaming}
-                    className={`flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
-                      streamingState.isStreaming
-                        ? 'opacity-40 cursor-not-allowed'
-                        : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-emerald-600 text-[var(--text-toolbar)] cursor-pointer'
-                    }`}
-                    title='生成图片'
-                    aria-label='生成图片'
-                  >
-                    <Image className='w-4 h-4' />
-                  </button>
+                  <div className='relative'>
+                    <button
+                      onClick={() => setInput('生成图片：')}
+                      disabled={streamingState.isStreaming}
+                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
+                        streamingState.isStreaming
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-emerald-600 text-[var(--text-toolbar)] cursor-pointer'
+                      }`}
+                      aria-label='生成图片'
+                    >
+                      <Image className='w-4 h-4' />
+                    </button>
+                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                      生成图片
+                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                    </span>
+                  </div>
                 </div>
 
                 {/* 右侧：提示文字和发送按钮 */}
@@ -310,6 +325,7 @@ export function InputArea() {
                   )}
 
                   {/* 发送/停止按钮 — 三态平滑过渡 */}
+                  <div className='relative'>
                   <button
                     onClick={() => {
                       if (streamingState.isStreaming) {
@@ -319,7 +335,7 @@ export function InputArea() {
                       }
                     }}
                     disabled={!hasContent && !streamingState.isStreaming}
-                    className={`group/send relative flex items-center justify-center w-8 h-8 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
+                    className={`peer group/send relative flex items-center justify-center w-8 h-8 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                       isThinking
                         ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
                         : isOutputting
@@ -330,9 +346,6 @@ export function InputArea() {
                               ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     }`}
-                    title={
-                      streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'
-                    }
                     aria-label={
                       streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'
                     }
@@ -382,6 +395,11 @@ export function InputArea() {
                       )}
                     </span>
                   </button>
+                  <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    {streamingState.isStreaming ? '中断回答' : '发送消息'}
+                    <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                  </span>
+                  </div>
                 </div>
               </div>
             </div>
