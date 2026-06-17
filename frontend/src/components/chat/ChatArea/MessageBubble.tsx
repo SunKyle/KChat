@@ -174,7 +174,7 @@ export const MessageBubble = memo(function MessageBubble({
           </span>
 
           {!isUser && !isThinking && (
-            <div className='relative flex items-center gap-1 opacity-0 group-hover:opacity-100 micro-transition'>
+            <div className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
               <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
                 {copied ? (
                   <Check className='w-[14px] h-[14px] text-green-400' />
@@ -194,7 +194,7 @@ export const MessageBubble = memo(function MessageBubble({
                   disabled={saving}
                 >
                   {saving ? (
-                    <Loader2 className='w-[14px] h-[14px] animate-spin' />
+                    <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
                   ) : saved ? (
                     <Check className='w-[14px] h-[14px] text-green-400' />
                   ) : (
