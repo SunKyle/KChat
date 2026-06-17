@@ -107,32 +107,32 @@ export const MessageBubble = memo(function MessageBubble({
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
-          className={`relative inline-block max-w-[85%] transition-all ${
+          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all ${
             isUser ? 'theme-text-primary' : 'bg-transparent theme-text-primary'
           }`}
         >
           {isThinking && !message.content ? (
-            <div className='flex items-center gap-2 py-1'>
-              <span className='theme-text-muted font-secondary font-weight-medium'>
+            <div className='flex items-center py-2 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
+              <span className='text-[13px] text-[var(--text-muted)] font-secondary pl-3'>
                 AI 正在思考
               </span>
-              <div className='flex items-center gap-1'>
+              <div className='flex items-center gap-[6px] ml-2 pr-4'>
                 <span
-                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
+                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0ms',
                   }}
                 />
                 <span
-                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
+                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.2s',
                   }}
                 />
                 <span
-                  className='w-[5px] h-[5px] rounded-full theme-text-muted'
+                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
                   style={{
                     animation: 'thinking-dot 1.4s ease-in-out infinite',
                     animationDelay: '0.4s',
@@ -169,7 +169,7 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className='text-[11px] text-[var(--text-timestamp)] opacity-70'>
+          <span className={`text-[11px] text-[var(--text-timestamp)] opacity-70 ${isThinking && !message.content ? 'pl-3' : ''}`}>
             {formatTimestamp(message.timestamp)}
           </span>
 
