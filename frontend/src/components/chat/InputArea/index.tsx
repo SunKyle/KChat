@@ -130,11 +130,11 @@ export function InputArea() {
       <div className='max-w-3xl mx-auto relative group'>
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
-          <div className='flex flex-wrap gap-2 mb-3'>
+          <div className='flex flex-wrap gap-2 mb-4 mx-4 lg:mx-6'>
             {uploadingImages.map((imageUrl, index) => (
               <div
                 key={index}
-                className='relative w-16 h-16 rounded-lg overflow-hidden border theme-border-secondary hover:border-[var(--accent-sky)]/50 transition-all duration-200 shadow-sm hover:shadow-md'
+                className='relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 hover:border-[var(--accent-sky)]/50 transition-all duration-200 shadow-sm hover:shadow-md'
               >
                 <img
                   src={imageUrl}
@@ -143,7 +143,7 @@ export function InputArea() {
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className='absolute top-1 right-1 w-7 h-7 backdrop-blur-sm bg-[var(--bg-card)]/90 rounded-full flex items-center justify-center hover:bg-[var(--brand-danger)]/10 hover:text-[var(--brand-danger)] transition-colors'
+                  className='absolute top-1 right-1 w-7 h-7 backdrop-blur-md bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
                   aria-label='移除图片'
                 >
                   <Trash2 className='w-[14px] h-[14px]' />
