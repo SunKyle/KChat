@@ -69,6 +69,22 @@ memory:
     idle-timeout-minutes: 10
     auto-extract-enabled: true
 
+prompt:
+  security:
+    max-input-length: 4096
+    min-input-length: 1
+    enable-sanitize: true
+  token:
+    max-tokens: 8192
+    encoding-type: cl100k_base
+  metrics:
+    enabled: true
+    collect-interval-seconds: 60
+  template:
+    default-id: default-system-prompt
+    cache-enabled: true
+    cache-ttl-seconds: 300
+
 logging:
   level:
     root: INFO

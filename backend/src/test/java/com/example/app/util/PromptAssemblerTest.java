@@ -21,7 +21,8 @@ class PromptAssemblerTest {
 
     @BeforeEach
     void setUp() {
-        promptAssembler = new PromptAssembler();
+        TokenEstimator tokenEstimator = new SimpleTokenEstimator();
+        promptAssembler = new PromptAssembler(tokenEstimator);
     }
 
     @Test

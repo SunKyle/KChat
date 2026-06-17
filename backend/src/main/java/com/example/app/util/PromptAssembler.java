@@ -1,9 +1,13 @@
 package com.example.app.util;
 
 import com.example.app.dto.MemoryDTO;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -15,7 +19,20 @@ import java.util.List;
  * 负责将短期记忆、长期记忆和用户输入组装成 LLM 可理解的消息序列
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class PromptAssembler {
+
+    /**
+     * 默认最大 Token 限制
+     */
+    @Value("${prompt.token.max-tokens:8192}")
+    private int defaultMaxTokens;
+
+    /**
+     * Token 估算器
+     */
+    private final TokenEstimator tokenEstimator;
 
     /**
      * 核心 System Prompt 模板
@@ -104,6 +121,38 @@ public class PromptAssembler {
     }
 
     /**
+     * 组装消息并自动截断到 Token 限制
+     *
+     * @param shortTermMemory 短期记忆（对话历史）
+     * @param longTermMemory 长期记忆（召回的知识片段）
+     * @param userMessage 当前用户输入
+     * @param language 用户语言偏好
+     * @param maxTokens 最大 Token 限制
+     * @return 组装并截断后的消息列表
+     */
+    public List<ChatMessage> assembleWithTruncation(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage,
+            String language,
+            int maxTokens) {
+        
+        List<ChatMessage> messages = assemble(shortTermMemory, longTermMemory, userMessage, language);
+        return truncateToTokenLimit(messages, maxTokens);
+    }
+
+    /**
+     * 组装消息并自动截断到默认 Token 限制
+     */
+    public List<ChatMessage> assembleWithTruncation(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage,
+            String language) {
+        return assembleWithTruncation(shortTermMemory, longTermMemory, userMessage, language, defaultMaxTokens);
+    }
+
+    /**
      * 根据语言偏好构建语言从句，嵌入到 system prompt 句子中
      *
      * @param language 语言代码（如 "zh-CN"、"en"）
@@ -140,59 +189,137 @@ public class PromptAssembler {
     }
 
     /**
-     * 粗略计算 Token 数量
-     *
-     * 估算方法：
-     * - 基于 1 Token ≈ 4 字符的经验估算
-     * - 仅适用于中文，英文通常是 1 Token ≈ 0.75 词
-     *
-     * 用途：
-     * - 防止超出 LLM 上下文窗口限制
-     * - 为截断策略提供依据
+     * 计算 Token 数量（使用 TokenEstimator）
      *
      * @param messages 消息列表
      * @return 估算的 Token 数量
      */
     public int calculateTokenCount(List<ChatMessage> messages) {
-        int count = 0;
-        for (ChatMessage message : messages) {
-            count += message.text().length() / 4;
-        }
-        return count;
+        return tokenEstimator.estimate(messages);
     }
 
     /**
-     * 截断消息序列以适应 Token 限制
+     * 计算单个消息的 Token 数量
+     *
+     * @param message 消息
+     * @return 估算的 Token 数量
+     */
+    public int calculateTokenCount(ChatMessage message) {
+        return tokenEstimator.estimate(message);
+    }
+
+    /**
+     * 智能截断消息序列以适应 Token 限制
      *
      * 截断策略：
-     * - 保留最近的对话（LIFO），优先舍弃早期的历史记录
-     * - 保证最新的交互上下文不丢失
-     * - SystemMessage 总是保留（如果有）
-     *
-     * 技术债务：
-     * - 当前实现未区分 SystemMessage 和其他消息，可能会截断 SystemMessage
-     * - 建议改进：总是保留 SystemMessage，只截断历史对话
+     * - 始终保留 SystemMessage（系统指令是核心配置）
+     * - 始终保留当前用户输入（最后一条 UserMessage）
+     * - 从后往前保留历史对话，优先保留最近的交互
+     * - 确保整体不超过 Token 限制
      *
      * @param messages 原始消息列表
      * @param maxTokens 最大 Token 限制
      * @return 截断后的消息列表
      */
     public List<ChatMessage> truncateToTokenLimit(List<ChatMessage> messages, int maxTokens) {
-        List<ChatMessage> result = new ArrayList<>();
-        int currentTokens = 0;
+        if (messages == null || messages.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            ChatMessage message = messages.get(i);
-            int messageTokens = message.text().length() / 4;
+        // 分离消息类型
+        List<ChatMessage> systemMessages = new ArrayList<>();
+        List<ChatMessage> historyMessages = new ArrayList<>();
+        ChatMessage lastUserMessage = null;
 
-            if (currentTokens + messageTokens <= maxTokens) {
-                result.add(0, message);
-                currentTokens += messageTokens;
+        for (int i = 0; i < messages.size(); i++) {
+            ChatMessage msg = messages.get(i);
+            if (msg instanceof SystemMessage) {
+                systemMessages.add(msg);
+            } else if (msg instanceof UserMessage && i == messages.size() - 1) {
+                lastUserMessage = msg;
             } else {
-                break;
+                historyMessages.add(msg);
             }
         }
 
+        // 计算必须保留的消息的 Token 消耗
+        int systemTokens = tokenEstimator.estimate(systemMessages);
+        int userTokens = lastUserMessage != null ? tokenEstimator.estimate(lastUserMessage) : 0;
+        int mandatoryTokens = systemTokens + userTokens;
+
+        log.debug("Token breakdown - System: {}, User: {}, Mandatory: {}, Max: {}", 
+                systemTokens, userTokens, mandatoryTokens, maxTokens);
+
+        // 如果必须保留的消息已经超过限制，需要进行极端处理
+        if (mandatoryTokens > maxTokens) {
+            log.warn("Mandatory tokens ({}) exceed max tokens ({})", mandatoryTokens, maxTokens);
+            
+            // 尝试只保留最重要的部分
+            List<ChatMessage> minimalResult = new ArrayList<>();
+            
+            // 保留至少一条 SystemMessage
+            if (!systemMessages.isEmpty()) {
+                minimalResult.add(systemMessages.get(0));
+            }
+            
+            // 如果还有空间，保留用户消息
+            int remainingAfterSystem = maxTokens - tokenEstimator.estimate(minimalResult);
+            if (lastUserMessage != null && tokenEstimator.estimate(lastUserMessage) <= remainingAfterSystem) {
+                minimalResult.add(lastUserMessage);
+            }
+            
+            log.warn("Returning minimal message set due to token constraints");
+            return minimalResult;
+        }
+
+        // 计算可用于历史消息的 Token 额度
+        int availableTokens = maxTokens - mandatoryTokens;
+        
+        // 从后往前选择历史消息（优先保留最近的）
+        List<ChatMessage> selectedHistory = new ArrayList<>();
+        int currentHistoryTokens = 0;
+        
+        for (int i = historyMessages.size() - 1; i >= 0; i--) {
+            ChatMessage msg = historyMessages.get(i);
+            int msgTokens = tokenEstimator.estimate(msg);
+            
+            if (currentHistoryTokens + msgTokens <= availableTokens) {
+                selectedHistory.add(0, msg);
+                currentHistoryTokens += msgTokens;
+            } else {
+                log.debug("Skipping message due to token limit");
+            }
+        }
+
+        // 组装最终结果
+        List<ChatMessage> result = new ArrayList<>();
+        result.addAll(systemMessages);
+        result.addAll(selectedHistory);
+        if (lastUserMessage != null) {
+            result.add(lastUserMessage);
+        }
+
+        int totalTokens = tokenEstimator.estimate(result);
+        log.debug("Truncated to {} messages, total tokens: {}", result.size(), totalTokens);
+
         return result;
+    }
+
+    /**
+     * 判断是否需要截断
+     *
+     * @param messages 消息列表
+     * @param maxTokens 最大 Token 限制
+     * @return true 如果需要截断
+     */
+    public boolean needsTruncation(List<ChatMessage> messages, int maxTokens) {
+        return calculateTokenCount(messages) > maxTokens;
+    }
+
+    /**
+     * 获取默认最大 Token 限制
+     */
+    public int getDefaultMaxTokens() {
+        return defaultMaxTokens;
     }
 }
