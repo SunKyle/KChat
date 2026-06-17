@@ -39,17 +39,32 @@ public class AutoMemoryExtractor {
      * @return 提取的记忆数量，未触发提取返回 0
      */
     public int tryExtract(String conversationId, String userId) {
-        if (!config.isEnabled() || !config.isAutoExtractEnabled()) {
+        log.info("[记忆提取] 尝试提取 - 会话: {}, 用户: {}", conversationId, userId);
+        
+        if (!config.isEnabled()) {
+            log.info("[记忆提取] 未触发 - 记忆提取功能已禁用");
+            return 0;
+        }
+        
+        if (!config.isAutoExtractEnabled()) {
+            log.info("[记忆提取] 未触发 - 自动提取已禁用");
             return 0;
         }
 
         int messageCount = messageCounter.increment(conversationId);
+        int threshold = config.getMessageThreshold();
+        
+        log.info("[记忆提取] 当前消息数: {}, 触发阈值: {}", messageCount, threshold);
 
-        if (messageCount >= config.getMessageThreshold()) {
+        if (messageCount >= threshold) {
+            log.info("[记忆提取] 达到阈值，开始提取...");
             messageCounter.reset(conversationId);
-            return extractAndSave(conversationId, userId);
+            int extracted = extractAndSave(conversationId, userId);
+            log.info("[记忆提取] 提取完成 - 保存了 {} 条记忆", extracted);
+            return extracted;
         }
 
+        log.info("[记忆提取] 未达到阈值，等待更多消息...");
         return 0;
     }
 

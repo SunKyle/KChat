@@ -63,11 +63,12 @@ memory:
     vector-dimension: 384
   extractor:
     enabled: true
-    message-threshold: 1
-    min-confidence: 30
-    min-importance: 3
-    idle-timeout-minutes: 10
+    message-threshold: 5
+    min-confidence: 50
+    min-importance: 4
+    idle-timeout-minutes: 5
     auto-extract-enabled: true
+    context-window-size: 20
 
 prompt:
   security:

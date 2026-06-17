@@ -65,7 +65,7 @@
   - `programmatic` TR-5.2: 版本号自动递增
   - `programmatic` TR-5.3: 禁用的模板不被使用
 
-## [ ] Task 6: 实现 PromptTemplateService
+## [x] Task 6: 实现 PromptTemplateService
 - **Priority**: P1
 - **Depends On**: Task 5
 - **Description**: 

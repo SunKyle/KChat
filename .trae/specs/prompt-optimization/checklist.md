@@ -17,7 +17,7 @@
 - [x] Checkpoint 12: TokenEstimator 接口创建完成
 - [x] Checkpoint 13: TiktokenEstimator 实现精确 Token 计算（通过 DefaultTokenEstimator 内部类实现）
 - [x] Checkpoint 14: SimpleTokenEstimator 实现降级方案
-- [ ] Checkpoint 15: Token 计算误差 < 5%
+- [x] Checkpoint 15: Token 计算误差 < 5%
 
 ## 模板管理验证
 - [x] Checkpoint 16: PromptTemplate 实体类创建完成
@@ -27,9 +27,9 @@
 - [x] Checkpoint 20: PromptTemplateService 实现模板版本管理
 - [x] Checkpoint 21: PromptTemplateService 实现模板缓存
 - [x] Checkpoint 22: PromptTemplateController 创建完成
-- [ ] Checkpoint 23: POST /api/prompt-templates 接口正常工作
-- [ ] Checkpoint 24: GET /api/prompt-templates 接口正常工作
-- [ ] Checkpoint 25: GET /api/prompt-templates/active 接口正常工作
+- [x] Checkpoint 23: POST /api/prompt-templates 接口正常工作
+- [x] Checkpoint 24: GET /api/prompt-templates 接口正常工作
+- [x] Checkpoint 25: GET /api/prompt-templates/active 接口正常工作
 
 ## 监控指标验证
 - [x] Checkpoint 26: PromptMetrics 实体类创建完成
@@ -57,7 +57,7 @@
 - [ ] Checkpoint 44: 架构文档更新完成
 
 ## 集成验证
-- [ ] Checkpoint 45: 所有新组件正确集成到现有系统
-- [ ] Checkpoint 46: 现有 API 接口保持兼容
+- [x] Checkpoint 45: 所有新组件正确集成到现有系统
+- [x] Checkpoint 46: 现有 API 接口保持兼容
 - [ ] Checkpoint 47: 端到端流程测试通过
 - [ ] Checkpoint 48: 安全漏洞扫描通过

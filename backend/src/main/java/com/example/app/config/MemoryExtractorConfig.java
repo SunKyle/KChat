@@ -62,4 +62,15 @@ public class MemoryExtractorConfig {
      * 关闭后只有手动调用才会触发记忆提取
      */
     private boolean autoExtractEnabled = true;
+
+    /**
+     * 上下文窗口大小
+     * 每次提取时保留的历史消息数量
+     *
+     * 设计考虑：
+     * - 过小可能丢失重要上下文信息
+     * - 过大会增加 LLM 调用成本和延迟
+     * - 建议值：10-30
+     */
+    private int contextWindowSize = 20;
 }
