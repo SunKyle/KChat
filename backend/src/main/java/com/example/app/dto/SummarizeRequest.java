@@ -17,4 +17,6 @@ public class SummarizeRequest {
 
     @NotBlank(message = "模型不能为空")
     private String model;
+
+    private String userId;
 }

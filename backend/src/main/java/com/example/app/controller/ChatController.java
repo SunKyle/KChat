@@ -12,6 +12,7 @@ import com.example.app.service.ChatService;
 import com.example.app.service.ConversationService;
 import com.example.app.service.ModelConfigService;
 import com.example.app.service.StreamingService;
+import com.example.app.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,8 @@ public class ChatController {
     private final OllamaClient ollamaClient;
 
     private final OpenAICompatibleClient openAICompatibleClient;
+
+    private final UserProfileService userProfileService;
 
     /**
      * 创建新对话
@@ -175,12 +178,17 @@ public class ChatController {
     public ResponseEntity<SummarizeResponse> summarize(@Valid @RequestBody SummarizeRequest request) {
         String model = request.getModel();
         String content = request.getContent();
+        String userId = request.getUserId() != null ? request.getUserId() : "default";
+
+        // 查询用户语言偏好
+        String language = userProfileService.getLanguage(userId);
+        String languageInstruction = buildSummarizeLanguageInstruction(language);
 
         String systemPrompt = """
                 你是一个专业的笔记整理助手。请将用户提供的 AI 对话回复内容整理为一份结构清晰的 Markdown 笔记。
-                
+                %s
                 要求：
-                1. 首先输出笔记标题（不超过50字，不加 # 号，单独一行）
+                1. 首先输出笔记标题（不超过50字，纯文本，不加 # 号、不加 ** 加粗或任何 Markdown 格式，单独一行）
                 2. 然后用 --- 分隔线隔开
                 3. 接着输出整理后的 Markdown 笔记正文
                 
@@ -189,9 +197,8 @@ public class ChatController {
                 - 保留关键信息、代码示例、要点列表
                 - 对重要概念使用**加粗**标记
                 - 如有代码，使用 ```语言 代码块格式
-                - 保持语言与原文一致
                 - 去除对话式的寒暄和冗余表述，只保留核心知识内容
-                """;
+                """.formatted(languageInstruction);
 
         String llmResponse;
 
@@ -218,7 +225,7 @@ public class ChatController {
         String summary;
         String[] parts = llmResponse.split("---", 2);
         if (parts.length >= 2) {
-            title = parts[0].trim().replaceAll("^#+\\s*", "");
+            title = parts[0].trim().replaceAll("^#+\\s*", "").replaceAll("\\*\\*", "");
             summary = parts[1].trim();
         } else {
             title = content.length() > 50 ? content.substring(0, 50) + "..." : content;
@@ -229,6 +236,28 @@ public class ChatController {
                 .title(title)
                 .summary(summary)
                 .build());
+    }
+
+    private static final java.util.Map<String, String> SUMMARIZE_LANGUAGE_NAMES = java.util.Map.ofEntries(
+            java.util.Map.entry("zh-CN", "中文（简体）"),
+            java.util.Map.entry("zh-TW", "中文（繁體）"),
+            java.util.Map.entry("en", "English"),
+            java.util.Map.entry("en-US", "English"),
+            java.util.Map.entry("en-GB", "English"),
+            java.util.Map.entry("ja", "日本語"),
+            java.util.Map.entry("ko", "한국어"),
+            java.util.Map.entry("fr", "Français"),
+            java.util.Map.entry("de", "Deutsch"),
+            java.util.Map.entry("es", "Español"),
+            java.util.Map.entry("ru", "Русский")
+    );
+
+    private String buildSummarizeLanguageInstruction(String language) {
+        if (language == null || language.isBlank()) {
+            return "";
+        }
+        String languageName = SUMMARIZE_LANGUAGE_NAMES.getOrDefault(language, language);
+        return "请使用 " + languageName + " 输出笔记的标题和正文。\n";
     }
 
 }

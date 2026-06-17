@@ -1,4 +1,8 @@
-import { X, Pin, Maximize2 } from 'lucide-react'
+import { X, Pin, Maximize2, Sparkles, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useModel } from '../../hooks/useModel'
+import { useToast } from '../../hooks/useToast'
+import { chat as chatApi } from '../../api/chat'
 
 interface FormState {
   title: string
@@ -31,6 +35,33 @@ export function NoteForm({
   onSubmit,
   onOpenFullscreen,
 }: NoteFormProps) {
+  const [aiSummarizing, setAiSummarizing] = useState(false)
+  const { getCurrentModel } = useModel()
+  const toast = useToast()
+
+  const handleAISummarize = async () => {
+    if (aiSummarizing || !formState.content.trim()) {
+      if (!formState.content.trim()) toast.warning('请先输入内容')
+      return
+    }
+    setAiSummarizing(true)
+    try {
+      const model = getCurrentModel()
+      const { title, summary } = await chatApi.summarize(formState.content, model)
+      setFormState((prev) => ({
+        ...prev,
+        title: !prev.title.trim() ? title : prev.title,
+        content: summary,
+      }))
+      toast.success('AI 整理完成')
+    } catch (err) {
+      console.error('AI 总结失败:', err)
+      toast.error('AI 整理失败，请重试')
+    } finally {
+      setAiSummarizing(false)
+    }
+  }
+
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (
       e.key === 'Enter' &&
@@ -81,6 +112,26 @@ export function NoteForm({
               >
                 <Maximize2 className='w-4 h-4 text-[var(--text-muted)]' />
               </button>
+              <div className='absolute right-9 top-2'>
+                <button
+                  onClick={handleAISummarize}
+                  disabled={aiSummarizing}
+                  className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors peer disabled:opacity-50'
+                  aria-label='AI 整理'
+                >
+                  {aiSummarizing ? (
+                    <Loader2 className='w-4 h-4 text-[var(--brand-primary)] animate-spin' />
+                  ) : (
+                    <Sparkles className='w-4 h-4 text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-colors' />
+                  )}
+                </button>
+                {!aiSummarizing && (
+                  <span className='absolute bottom-full right-0 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    AI 整理为 Markdown 笔记
+                    <span className='absolute top-full right-3 border-4 border-transparent border-t-gray-800' />
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div>
