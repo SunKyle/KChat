@@ -113,10 +113,10 @@ export const MessageBubble = memo(function MessageBubble({
         >
           {isThinking && !message.content ? (
             <div className='flex items-center py-2 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
-              <span className='text-[13px] text-[var(--text-muted)] font-secondary pl-3'>
+              <span className='text-[13px] text-[var(--text-muted)] font-secondary'>
                 AI 正在思考
               </span>
-              <div className='flex items-center gap-[6px] ml-2 pr-4'>
+              <div className='flex items-center gap-[6px] ml-3 pr-4'>
                 <span
                   className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
                   style={{
@@ -169,7 +169,7 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className={`text-[11px] text-[var(--text-timestamp)] opacity-70 ${isThinking && !message.content ? 'pl-3' : ''}`}>
+          <span className='text-[11px] text-[var(--text-timestamp)] opacity-70'>
             {formatTimestamp(message.timestamp)}
           </span>
 
