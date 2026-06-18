@@ -5,6 +5,7 @@ import { useState, memo } from 'react'
 import { useUser } from '../../../context/UserContext'
 import { useModel } from '../../../hooks/useModel'
 import { useToast } from '../../../hooks/useToast'
+import { useChat } from '../../../context/ChatContext'
 import { chat as chatApi } from '../../../api/chat'
 import { noteApi } from '../../../api/note-todo'
 
@@ -28,6 +29,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
+  const { startSummarizing, endSummarizing } = useChat()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -60,6 +62,7 @@ export const MessageBubble = memo(function MessageBubble({
   const handleSaveAsNote = async () => {
     if (saving || saved) return
     setSaving(true)
+    startSummarizing(message.conversationId)
     try {
       const model = getCurrentModel()
       const { title, summary } = await chatApi.summarize(message.content, model)
@@ -78,6 +81,7 @@ export const MessageBubble = memo(function MessageBubble({
       toast.error('保存为笔记失败，请重试')
     } finally {
       setSaving(false)
+      endSummarizing(message.conversationId)
     }
   }
 

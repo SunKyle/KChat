@@ -29,6 +29,9 @@ interface ChatContextType {
   triggerScrollToBottom: () => void
   dispatch: React.Dispatch<ChatAction>
   stateRef: React.MutableRefObject<ChatState>
+  getSummarizingState: (conversationId: string) => boolean
+  startSummarizing: (conversationId: string) => void
+  endSummarizing: (conversationId: string) => void
 }
 
 type ChatAction =
@@ -66,12 +69,15 @@ type ChatAction =
   | { type: 'SET_AVAILABLE_MODELS'; payload: string[] }
   | { type: 'SCROLL_TO_BOTTOM' }
   | { type: 'RESET_SCROLL_TRIGGER' }
+  | { type: 'START_SUMMARIZING'; payload: string }
+  | { type: 'END_SUMMARIZING'; payload: string }
 
 interface ChatState {
   conversations: Conversation[]
   activeConversation: Conversation | null
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
+  summarizingStates: Record<string, boolean>
   newReplies: Record<string, boolean>
   error: string | null
   isLoading: boolean
@@ -85,6 +91,7 @@ const initialState: ChatState = {
   activeConversation: null,
   messagesByConversation: {},
   streamingStates: {},
+  summarizingStates: {},
   newReplies: {},
   error: null,
   isLoading: false,
@@ -307,6 +314,24 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
     case 'RESET_SCROLL_TRIGGER':
       return { ...state, scrollTrigger: 0 }
+
+    case 'START_SUMMARIZING':
+      return {
+        ...state,
+        summarizingStates: {
+          ...state.summarizingStates,
+          [action.payload]: true,
+        },
+      }
+
+    case 'END_SUMMARIZING': {
+      const newSummarizingStates = { ...state.summarizingStates }
+      delete newSummarizingStates[action.payload]
+      return {
+        ...state,
+        summarizingStates: newSummarizingStates,
+      }
+    }
 
     default:
       return state
@@ -679,6 +704,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SCROLL_TO_BOTTOM' })
   }, [])
 
+  const getSummarizingState = useCallback(
+    (conversationId: string): boolean => {
+      return state.summarizingStates[conversationId] || false
+    },
+    [state.summarizingStates]
+  )
+
+  const startSummarizing = useCallback((conversationId: string) => {
+    dispatch({ type: 'START_SUMMARIZING', payload: conversationId })
+  }, [])
+
+  const endSummarizing = useCallback((conversationId: string) => {
+    dispatch({ type: 'END_SUMMARIZING', payload: conversationId })
+  }, [])
+
   const streamingState = state.activeConversation
     ? state.streamingStates[state.activeConversation.id] || initialState.streamingStates['']
     : initialState.streamingStates['']
@@ -720,6 +760,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         triggerScrollToBottom,
         dispatch,
         stateRef,
+        getSummarizingState,
+        startSummarizing,
+        endSummarizing,
       }}
     >
       {children}
