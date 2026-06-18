@@ -406,7 +406,6 @@ export function Sidebar({
                 contactText='编辑资料'
                 onContactClick={handleEditProfile}
                 enableTilt
-                behindGlowEnabled={false}
                 innerGradient='linear-gradient(145deg, #1e293bcc 0%, #0ea5e944 100%)'
               />
             </motion.div>

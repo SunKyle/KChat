@@ -17,7 +17,7 @@ interface ChatContextType {
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
   pinConversation: (id: string, pinned: boolean) => Promise<void>
-  sendMessage: (content: string, imageUrls?: string[]) => Promise<void>
+  sendMessage: (content: string, imageUrls?: string[], webSearch?: boolean) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
@@ -30,6 +30,7 @@ interface ChatContextType {
   dispatch: React.Dispatch<ChatAction>
   stateRef: React.MutableRefObject<ChatState>
   getSummarizingState: (conversationId: string) => boolean
+  getSearchResults: (conversationId: string) => import('../types').WebSearchResultData | null
   startSummarizing: (conversationId: string) => void
   endSummarizing: (conversationId: string) => void
 }
@@ -48,6 +49,10 @@ type ChatAction =
   | {
       type: 'STREAM_CHUNK'
       payload: { conversationId: string; messageId: string; content: string; accumulated: string }
+    }
+  | {
+      type: 'SET_SEARCH_RESULTS'
+      payload: { conversationId: string; results: import('../types').WebSearchResultData }
     }
   | {
       type: 'END_STREAMING'
@@ -78,6 +83,7 @@ interface ChatState {
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
   summarizingStates: Record<string, boolean>
+  searchResultsByConversation: Record<string, import('../types').WebSearchResultData>
   newReplies: Record<string, boolean>
   error: string | null
   isLoading: boolean
@@ -92,6 +98,7 @@ const initialState: ChatState = {
   messagesByConversation: {},
   streamingStates: {},
   summarizingStates: {},
+  searchResultsByConversation: {},
   newReplies: {},
   error: null,
   isLoading: false,
@@ -213,6 +220,15 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         },
       }
     }
+
+    case 'SET_SEARCH_RESULTS':
+      return {
+        ...state,
+        searchResultsByConversation: {
+          ...state.searchResultsByConversation,
+          [action.payload.conversationId]: action.payload.results,
+        },
+      }
 
     case 'END_STREAMING':
       return {
@@ -553,7 +569,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string, imageUrls: string[] = []) => {
+    async (content: string, imageUrls: string[] = [], webSearch = false) => {
       if (!content.trim() && imageUrls.length === 0) return
 
       // Optimistic conversation creation: create inline if no active conversation
@@ -599,6 +615,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         model: state.currentModel,
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
         userId: 'default',
+        webSearch,
       }
 
       const tempMessageId = crypto.randomUUID()
@@ -654,7 +671,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             })
             abortControllersRef.current[conversationId] = null
           },
-          abortController
+          abortController,
+          (results) => {
+            dispatch({
+              type: 'SET_SEARCH_RESULTS',
+              payload: { conversationId, results: results as import('../types').WebSearchResultData },
+            })
+          }
         )
       } catch (error) {
         console.error('Failed to send message:', error)
@@ -711,6 +734,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [state.summarizingStates]
   )
 
+  const getSearchResults = useCallback(
+    (conversationId: string) => {
+      return state.searchResultsByConversation[conversationId] || null
+    },
+    [state.searchResultsByConversation]
+  )
+
   const startSummarizing = useCallback((conversationId: string) => {
     dispatch({ type: 'START_SUMMARIZING', payload: conversationId })
   }, [])
@@ -761,6 +791,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch,
         stateRef,
         getSummarizingState,
+        getSearchResults,
         startSummarizing,
         endSummarizing,
       }}

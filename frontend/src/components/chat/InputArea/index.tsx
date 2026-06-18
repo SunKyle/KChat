@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
-import { Send, Square, Image, Trash2, Paperclip, Code, Loader2 } from 'lucide-react'
+import { Send, Square, Image, Trash2, Paperclip, Code, Loader2, Globe } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { images } from '../../../api'
+import { useWebSearch } from '../../../hooks/useWebSearch'
 
 export function InputArea() {
   const [input, setInput] = useState('')
@@ -12,6 +13,7 @@ export function InputArea() {
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
   const { sendMessage, streamingState, stopStreaming } = useChat()
+  const { webSearchEnabled, toggleWebSearch } = useWebSearch()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -120,7 +122,7 @@ export function InputArea() {
     setInput('')
     setUploadingImages([])
 
-    sendMessage(currentInput, currentImages)
+    sendMessage(currentInput, currentImages, webSearchEnabled)
   }
 
   const hasContent = input.trim() || uploadingImages.length > 0
@@ -294,6 +296,29 @@ export function InputArea() {
                     </button>
                     <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
                       生成图片
+                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
+                    </span>
+                  </div>
+
+                  {/* 联网搜索按钮 */}
+                  <div className='relative'>
+                    <button
+                      onClick={toggleWebSearch}
+                      disabled={streamingState.isStreaming}
+                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 active:scale-90 ${
+                        streamingState.isStreaming
+                          ? 'opacity-40 cursor-not-allowed'
+                          : webSearchEnabled
+                            ? 'bg-sky-100 text-sky-600 hover:bg-sky-200 cursor-pointer'
+                            : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
+                      }`}
+                      aria-label={webSearchEnabled ? '关闭联网搜索' : '开启联网搜索'}
+                      aria-pressed={webSearchEnabled}
+                    >
+                      <Globe className='w-4 h-4 transition-colors duration-200' />
+                    </button>
+                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                      {webSearchEnabled ? '已开启联网搜索' : '开启联网搜索'}
                       <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                     </span>
                   </div>

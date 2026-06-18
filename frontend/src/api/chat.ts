@@ -55,7 +55,8 @@ export const chat = {
     onMessage: (content: string) => void,
     onComplete: (messageId: string) => void,
     onError: (error: Error) => void,
-    controller?: AbortController
+    controller?: AbortController,
+    onSearchResults?: (results: unknown) => void
   ): Promise<void> => {
     return requestSSE(
       '/chat/stream',
@@ -66,7 +67,8 @@ export const chat = {
       onMessage,
       onComplete,
       onError,
-      controller
+      controller,
+      onSearchResults
     )
   },
 

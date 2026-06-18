@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { CodeBlock } from './CodeBlock'
 import { useState, memo } from 'react'
 import { ZoomIn, X, Download } from 'lucide-react'
@@ -71,6 +72,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
       )}
       <div className='markdown-body'>
         <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
           components={{
             code({ node: _node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '')
@@ -166,17 +168,26 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
             em: ({ children }) => <em className='italic theme-text-primary'>{children}</em>,
             hr: () => <hr className='border-theme-border-primary my-4' />,
             table: ({ children }) => (
-              <div className='overflow-x-auto my-3'>
-                <table className='min-w-full border theme-border-primary'>{children}</table>
+              <div className='overflow-x-auto my-3 rounded-lg border border-[var(--border-divider)]'>
+                <table className='min-w-full border-collapse text-sm'>{children}</table>
               </div>
             ),
+            thead: ({ children }) => (
+              <thead className='bg-[var(--bg-hover)]'>{children}</thead>
+            ),
+            tbody: ({ children }) => <tbody>{children}</tbody>,
+            tr: ({ children }) => (
+              <tr className='border-b border-[var(--border-divider)] last:border-b-0 even:bg-[var(--bg-hover)]/30'>
+                {children}
+              </tr>
+            ),
             th: ({ children }) => (
-              <th className='border theme-border-primary px-3 py-2 theme-bg-hover theme-text-primary'>
+              <th className='border-r border-[var(--border-divider)] last:border-r-0 px-4 py-2.5 text-left font-semibold theme-text-primary'>
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className='border theme-border-primary px-3 py-2 theme-text-primary'>
+              <td className='border-r border-[var(--border-divider)] last:border-r-0 px-4 py-2 theme-text-primary'>
                 {children}
               </td>
             ),

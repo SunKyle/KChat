@@ -160,7 +160,16 @@ public class PromptAssembler {
             List<MemoryDTO> longTermMemory,
             String userMessage,
             String language) {
-        return assemble(shortTermMemory, longTermMemory, userMessage, language, null);
+        return assemble(shortTermMemory, longTermMemory, userMessage, language, null, null);
+    }
+
+    public List<ChatMessage> assemble(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage,
+            String language,
+            String searchContext) {
+        return assemble(shortTermMemory, longTermMemory, userMessage, language, null, searchContext);
     }
 
     /**
@@ -178,7 +187,8 @@ public class PromptAssembler {
             List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
-            String conversationId) {
+            String conversationId,
+            String searchContext) {
 
         long startTime = System.currentTimeMillis();
         String sessionId = conversationId != null ? conversationId : "anonymous";
@@ -213,7 +223,7 @@ public class PromptAssembler {
 
             // 4. 动态加载系统模板（从数据库或使用默认模板）
             log.info("[步骤 4/7] 系统提示词 - 使用模板: {} 构建...", defaultTemplateName);
-            String systemPrompt = buildSystemPrompt(languageClause, longTermMemoryText);
+            String systemPrompt = buildSystemPrompt(languageClause, longTermMemoryText, searchContext);
             int systemPromptTokens = calculateTokenCount(SystemMessage.from(systemPrompt));
             log.info("[步骤 4/7] 系统提示词 - Token数量: {}", systemPromptTokens);
             log.info("[步骤 4/7] 系统提示词 - 内容预览（前200字符）: {}",
@@ -291,7 +301,7 @@ public class PromptAssembler {
     /**
      * 构建系统提示词（动态加载或使用默认模板）
      */
-    private String buildSystemPrompt(String languageClause, String longTermMemoryText) {
+    private String buildSystemPrompt(String languageClause, String longTermMemoryText, String searchContext) {
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
         params.put("long_term_memory", longTermMemoryText);
@@ -306,6 +316,15 @@ public class PromptAssembler {
             systemPrompt = FALLBACK_SYSTEM_PROMPT_TEMPLATE
                     .replace("{language_clause}", languageClause)
                     .replace("{long_term_memory}", longTermMemoryText);
+        }
+
+        // 注入网络搜索结果和当前时间
+        if (searchContext != null && !searchContext.isBlank()) {
+            String now = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Shanghai"))
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss EEEE"));
+            systemPrompt = systemPrompt + "\n\n当前时间：" + now
+                    + "\n\n网络搜索结果：\n" + searchContext
+                    + "\n\n请基于以上网络搜索结果回答用户问题。如果搜索结果不足以回答问题，请结合你的知识进行补充。";
         }
 
         // 确保系统提示词不为空
@@ -363,7 +382,7 @@ public class PromptAssembler {
             List<ChatMessage> shortTermMemory,
             List<MemoryDTO> longTermMemory,
             String userMessage) {
-        return assemble(shortTermMemory, longTermMemory, userMessage, null, null);
+        return assemble(shortTermMemory, longTermMemory, userMessage, null, null, null);
     }
 
     /**
@@ -403,7 +422,7 @@ public class PromptAssembler {
         log.info("[Prompt截断] - 最大Token限制: {}", maxTokens);
 
         // 先组装完整消息
-        List<ChatMessage> messages = assemble(shortTermMemory, longTermMemory, userMessage, language, conversationId);
+        List<ChatMessage> messages = assemble(shortTermMemory, longTermMemory, userMessage, language, conversationId, null);
         int tokensBefore = calculateTokenCount(messages);
 
         log.info("[Prompt截断] - 截断前Token数: {}", tokensBefore);

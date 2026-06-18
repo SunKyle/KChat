@@ -22,6 +22,7 @@ export interface ChatRequest {
   model?: string
   imageUrls?: string[]
   userId?: string
+  webSearch?: boolean
 }
 
 export interface ChatResponse {
@@ -29,6 +30,20 @@ export interface ChatResponse {
   content: string
   role: 'assistant'
   conversationId: string
+}
+
+export interface SearchSnippet {
+  title: string
+  url: string
+  snippet: string
+}
+
+export interface WebSearchResultData {
+  query: string
+  snippets: SearchSnippet[]
+  timestamp: number
+  status: 'success' | 'no_results' | 'error' | 'disabled'
+  errorMessage?: string
 }
 
 export interface StreamingState {

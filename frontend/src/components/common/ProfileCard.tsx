@@ -316,17 +316,15 @@ const ProfileCardComponent = ({
             <div className='pc-shine' />
             <div className='pc-glare' />
             <div className='pc-content pc-avatar-content'>
-              {avatarUrl && (
-                <img
-                  className='avatar'
-                  src={avatarUrl}
-                  alt={`${name} avatar`}
-                  loading='lazy'
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none'
-                  }}
-                />
-              )}
+              <img
+                className='avatar'
+                src={avatarUrl || ''}
+                alt={`${name || 'User'} avatar`}
+                loading='lazy'
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
               {showUserInfo && (
                 <div className='pc-user-info'>
                   <div className='pc-user-details'>

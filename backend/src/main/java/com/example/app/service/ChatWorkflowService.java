@@ -122,6 +122,15 @@ public class ChatWorkflowService {
         return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage, language);
     }
 
+    public List<ChatMessage> assembleMessages(
+            List<ChatMessage> shortTermMemory,
+            List<MemoryDTO> longTermMemory,
+            String userMessage,
+            String language,
+            String searchContext) {
+        return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage, language, null, searchContext);
+    }
+
     /**
      * 更新短期记忆，添加用户消息和 AI 回复
      * 

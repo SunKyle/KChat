@@ -21,8 +21,9 @@ export const BorderBeam = ({
 }: BorderBeamProps) => {
   return (
     <div
-      className={`pointer-events-none absolute inset-0 rounded-[inherit] ${className ?? ''}`}
+      className={`pointer-events-none absolute rounded-[inherit] ${className ?? ''}`}
       style={{
+        inset: `${-borderWidth}px`,
         border: `${borderWidth}px solid transparent`,
         maskClip: 'padding-box, border-box',
         maskComposite: 'intersect',

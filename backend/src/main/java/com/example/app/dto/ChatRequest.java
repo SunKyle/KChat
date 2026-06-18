@@ -22,4 +22,6 @@ public class ChatRequest {
     private List<String> imageUrls;
     
     private String userId;
+
+    private boolean webSearch = false;
 }

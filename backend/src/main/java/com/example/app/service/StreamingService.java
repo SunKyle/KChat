@@ -2,9 +2,13 @@ package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
+import com.example.app.config.WebSearchConfig;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.dto.WebSearchResult;
+import com.example.app.dto.WebSearchResult.SearchSnippet;
 import com.example.app.entity.ModelConfig;
+import com.example.app.service.WebSearchService;
 import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * 流式响应服务，负责处理 SSE 流式消息传输
@@ -83,6 +88,16 @@ public class StreamingService {
     private final UserProfileService userProfileService;
 
     /**
+     * 网络搜索服务
+     */
+    private final WebSearchService webSearchService;
+
+    /**
+     * 网络搜索配置
+     */
+    private final WebSearchConfig webSearchConfig;
+
+    /**
      * 处理流式聊天请求
      * 
      * @param request 聊天请求
@@ -128,17 +143,67 @@ public class StreamingService {
                 long llmStartTime = System.currentTimeMillis();
                 log.info("[STREAM] Starting LLM generation...");
 
+                // 网络搜索
+                String searchContext = null;
+                WebSearchResult searchResultObj = null;
+                if (request.isWebSearch() && webSearchConfig.isEnabled()) {
+                    log.info("[STREAM] Web search enabled, querying: {}", userMessage);
+                    try {
+                        searchResultObj = webSearchService.search(userMessage);
+                        if (searchResultObj.getSnippets() != null && !searchResultObj.getSnippets().isEmpty()) {
+                            searchContext = searchResultObj.getSnippets().stream()
+                                    .map(s -> "- [" + s.getTitle() + "](" + s.getUrl() + "): " + s.getSnippet())
+                                    .collect(Collectors.joining("\n"));
+                        }
+
+                        // Always send search results to frontend
+                        try {
+                            String resultsJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                                    .writeValueAsString(searchResultObj);
+                            emitter.send(SseEmitter.event().name("search_results")
+                                    .data(resultsJson));
+                        } catch (Exception e) {
+                            log.warn("[STREAM] Failed to send search results: {}", e.getMessage());
+                        }
+                    } catch (Exception e) {
+                        log.warn("[STREAM] Web search failed: {}", e.getMessage());
+                        // Send error status to frontend
+                        try {
+                            WebSearchResult errorResult = WebSearchResult.builder()
+                                    .query(userMessage)
+                                    .snippets(List.of())
+                                    .timestamp(System.currentTimeMillis())
+                                    .status("error")
+                                    .errorMessage(e.getMessage())
+                                    .build();
+                            String resultsJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                                    .writeValueAsString(errorResult);
+                            emitter.send(SseEmitter.event().name("search_results")
+                                    .data(resultsJson));
+                        } catch (Exception ex) {
+                            log.warn("[STREAM] Failed to send search error: {}", ex.getMessage());
+                        }
+                    }
+                }
+
                 ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
 
                 if (customConfig != null) {
-                    handleCustomModel(customConfig, model, userMessage, imageUrls, emitter,
+                    String timeContext = searchContext != null
+                            ? "\n当前时间：" + java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Shanghai"))
+                                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss EEEE"))
+                            : "";
+                    String messageWithContext = searchContext != null
+                            ? userMessage + timeContext + "\n\n[网络搜索上下文]\n" + searchContext
+                            : userMessage;
+                    handleCustomModel(customConfig, model, messageWithContext, imageUrls, emitter,
                             finalConversationId, aiMessageId, userId, fullResponse, completed, llmStartTime, startTime);
                     return;
                 }
 
                 List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(finalConversationId);
                 List<ChatMessage> messages = chatWorkflowService.assembleMessages(
-                        shortTermMemory, longTermMemory, userMessage, userLanguage);
+                        shortTermMemory, longTermMemory, userMessage, userLanguage, searchContext);
 
                 boolean hasImages = imageUrls != null && !imageUrls.isEmpty();
                 streamOllamaResponse(messages, imageUrls, model, emitter, fullResponse, completed);

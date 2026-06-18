@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useModel } from '../../hooks/useModel'
 import { useToast } from '../../hooks/useToast'
 import { chat as chatApi } from '../../api/chat'
+import { BorderBeam } from '../ui/border-beam'
 
 interface FormState {
   title: string
@@ -97,6 +98,7 @@ export function NoteForm({
             内容
             </label>
             <div className='relative'>
+              {aiSummarizing && <BorderBeam size={100} duration={4} className="z-10" />}
               <textarea
                 value={formState.content}
                 onChange={(e) => setFormState((p) => ({ ...p, content: e.target.value }))}

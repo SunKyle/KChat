@@ -86,6 +86,12 @@ prompt:
     cache-enabled: true
     cache-ttl-seconds: 300
 
+websearch:
+  enabled: true
+  timeout-seconds: 5
+  max-results: 5
+  engine: duckduckgo
+
 logging:
   level:
     root: INFO

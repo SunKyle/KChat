@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MessageCircle, ArrowDown, Code, BookOpen, Lightbulb, Sparkles } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
+import { SearchResultsCard } from './SearchResultsCard'
 import { MessageSkeleton } from '../../common/Skeleton'
 import { ErrorCard } from '../../common/ErrorCard'
 
@@ -12,6 +13,7 @@ export function ChatArea() {
     streamingState,
     error,
     clearError,
+    getSearchResults,
     isLoading,
     stopStreaming,
     scrollTrigger,
@@ -238,6 +240,9 @@ export function ChatArea() {
           ) : (
             <div className='py-6 font-ai-message w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto'>
               <div className='w-full px-2 sm:px-4 lg:px-6'>
+                {activeConversation && (
+                  <SearchResultsCard results={getSearchResults(activeConversation.id)} />
+                )}
                 {messages.map((message, index) => {
                   const isLastAssistantMessage =
                     message.role === 'assistant' &&

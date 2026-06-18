@@ -1,9 +1,12 @@
 package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
+import com.example.app.config.WebSearchConfig;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.dto.WebSearchResult;
+import com.example.app.service.WebSearchService;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 聊天服务类，负责处理同步聊天请求的完整流程
@@ -55,6 +59,16 @@ public class ChatService {
     private final UserProfileService userProfileService;
 
     /**
+     * 网络搜索服务
+     */
+    private final WebSearchService webSearchService;
+
+    /**
+     * 网络搜索配置
+     */
+    private final WebSearchConfig webSearchConfig;
+
+    /**
      * 处理用户聊天请求，生成 AI 响应
      * 
      * 执行流程：
@@ -84,9 +98,24 @@ public class ChatService {
         List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
         log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
 
-        // 4. 查询用户语言偏好，组装消息为 LLM 可理解的格式
+        // 4. 网络搜索
+        String searchContext = null;
+        if (request.isWebSearch() && webSearchConfig.isEnabled()) {
+            try {
+                WebSearchResult searchResult = webSearchService.search(userMessage);
+                if (!searchResult.getSnippets().isEmpty()) {
+                    searchContext = searchResult.getSnippets().stream()
+                            .map(s -> "- [" + s.getTitle() + "](" + s.getUrl() + "): " + s.getSnippet())
+                            .collect(Collectors.joining("\n"));
+                }
+            } catch (Exception e) {
+                log.warn("Web search failed: {}", e.getMessage());
+            }
+        }
+
+        // 5. 查询用户语言偏好，组装消息为 LLM 可理解的格式
         String language = userProfileService.getLanguage(userId);
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage, language);
+        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage, language, searchContext);
         
         // 5. 调用 LLM 生成响应
         String aiResponse = ollamaClient.generate(messages, model);

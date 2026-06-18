@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light'
 
@@ -236,6 +237,7 @@ export function FullscreenMarkdownEditor({
                 {editorTitle || '预览'}
               </h1>
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 components={{
                   code({ node, inline, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
@@ -311,7 +313,31 @@ export function FullscreenMarkdownEditor({
                     />
                   ),
                   em: ({ children }) => <em className='italic' children={children} />,
-              }}
+                  table: ({ children }) => (
+                    <div className='overflow-x-auto my-3 rounded-lg border border-[var(--border-divider)]'>
+                      <table className='min-w-full border-collapse text-sm'>{children}</table>
+                    </div>
+                  ),
+                  thead: ({ children }) => (
+                    <thead className='bg-[var(--bg-hover)]'>{children}</thead>
+                  ),
+                  tbody: ({ children }) => <tbody>{children}</tbody>,
+                  tr: ({ children }) => (
+                    <tr className='border-b border-[var(--border-divider)] last:border-b-0 even:bg-[var(--bg-hover)]/30'>
+                      {children}
+                    </tr>
+                  ),
+                  th: ({ children }) => (
+                    <th className='border-r border-[var(--border-divider)] last:border-r-0 px-4 py-2.5 text-left font-semibold text-[var(--text-primary)]'>
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className='border-r border-[var(--border-divider)] last:border-r-0 px-4 py-2 text-[var(--text-primary)]'>
+                      {children}
+                    </td>
+                  ),
+                }}
             >
               {editorContent}
             </ReactMarkdown>
