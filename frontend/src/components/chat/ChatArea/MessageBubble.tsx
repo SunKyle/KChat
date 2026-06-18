@@ -63,6 +63,10 @@ export const MessageBubble = memo(function MessageBubble({
     if (saving || saved) return
     setSaving(true)
     startSummarizing(message.conversationId)
+
+    // 确保光晕至少显示 2 秒
+    const minGlow = new Promise<void>((r) => setTimeout(r, 2000))
+
     try {
       const model = getCurrentModel()
       const { title, summary } = await chatApi.summarize(message.content, model)
@@ -81,6 +85,7 @@ export const MessageBubble = memo(function MessageBubble({
       toast.error('保存为笔记失败，请重试')
     } finally {
       setSaving(false)
+      await minGlow
       endSummarizing(message.conversationId)
     }
   }

@@ -1617,3 +1617,13 @@ input[type='search']::-webkit-search-decoration {
 .animate-pulse-slow {
   animation: pulse-slow 1.5s ease-in-out infinite;
 }
+
+/* ============================================
+   Border Beam — animated border glow
+   ============================================ */
+
+@keyframes border-beam-travel {
+  100% {
+    offset-distance: 100%;
+  }
+}

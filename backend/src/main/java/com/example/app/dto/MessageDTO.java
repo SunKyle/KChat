@@ -20,6 +20,7 @@ import java.util.List;
 public class MessageDTO {
 
     private String id;
+    private String conversationId;
     private String content;
     private String role;
     private String timestamp;
@@ -39,6 +40,7 @@ public class MessageDTO {
         }
         return MessageDTO.builder()
                 .id(message.getId())
+                .conversationId(message.getConversationId())
                 .content(message.getContent())
                 .role(message.getRole())
                 .timestamp(message.getTimestamp().format(FORMATTER))
