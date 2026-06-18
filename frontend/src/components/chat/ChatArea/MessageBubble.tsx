@@ -7,6 +7,7 @@ import { useModel } from '../../../hooks/useModel'
 import { useToast } from '../../../hooks/useToast'
 import { chat as chatApi } from '../../../api/chat'
 import { noteApi } from '../../../api/note-todo'
+import ElectricBorder from '../../common/ElectricBorder'
 
 interface MessageBubbleProps {
   message: Message
@@ -85,7 +86,7 @@ export const MessageBubble = memo(function MessageBubble({
     setImageLoaded((prev) => ({ ...prev, [imageUrl]: true }))
   }
 
-  return (
+  const bubbleContent = (
     <div className={`flex gap-4 py-5 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
         className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all micro-transition overflow-hidden ${
@@ -213,5 +214,19 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
       </div>
     </div>
+  )
+
+  return saving ? (
+    <ElectricBorder
+      color='#7df9ff'
+      speed={1}
+      chaos={0.12}
+      borderRadius={16}
+      style={{ overflow: 'visible' }}
+    >
+      {bubbleContent}
+    </ElectricBorder>
+  ) : (
+    bubbleContent
   )
 })

@@ -1,5 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Eye, Edit3, Columns3, Save, Maximize2 } from 'lucide-react'
+import {
+  X,
+  Eye,
+  Edit3,
+  Columns3,
+  Save,
+  Bold,
+  Italic,
+  Strikethrough,
+  Link,
+  Heading,
+  Quote,
+  Code,
+  FileCode,
+  List,
+  ListOrdered,
+  Image,
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -22,6 +40,7 @@ export function FullscreenMarkdownEditor({
   const [editorTitle, setEditorTitle] = useState(title)
   const [editorContent, setEditorContent] = useState(content)
   const [editorMode, setEditorMode] = useState<'edit' | 'split' | 'preview'>(initialMode)
+  const [toolbarTooltip, setToolbarTooltip] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -57,19 +76,6 @@ export function FullscreenMarkdownEditor({
     }
   }
 
-  const toolbarButtons = [
-    { icon: '#', label: '标题', action: () => insertText('# ') },
-    { icon: '**', label: '粗体', action: () => insertText('**', '**') },
-    { icon: '*', label: '斜体', action: () => insertText('*', '*') },
-    { icon: '`', label: '代码', action: () => insertText('`', '`') },
-    { icon: '```', label: '代码块', action: () => insertText('\n```\n', '\n```\n') },
-    { icon: '>', label: '引用', action: () => insertText('> ') },
-    { icon: '-', label: '列表', action: () => insertText('- ') },
-    { icon: '1.', label: '有序', action: () => insertText('1. ') },
-    { icon: '[', label: '链接', action: () => insertText('[', '](url)') },
-    { icon: '![]', label: '图片', action: () => insertText('![', '](image-url)') },
-  ]
-
   const insertText = (before: string, after: string = '') => {
     const textarea = document.querySelector('.markdown-textarea') as HTMLTextAreaElement
     if (!textarea) return
@@ -94,6 +100,28 @@ export function FullscreenMarkdownEditor({
     }, 0)
   }
 
+  const toolbarGroups = [
+    [
+      { label: '粗体', icon: Bold, action: () => insertText('**', '**') },
+      { label: '斜体', icon: Italic, action: () => insertText('*', '*') },
+      { label: '删除线', icon: Strikethrough, action: () => insertText('~~', '~~') },
+    ],
+    [
+      { label: '标题', icon: Heading, action: () => insertText('## ') },
+      { label: '引用', icon: Quote, action: () => insertText('> ') },
+      { label: '链接', icon: Link, action: () => insertText('[', '](url)') },
+    ],
+    [
+      { label: '代码', icon: Code, action: () => insertText('`', '`') },
+      { label: '代码块', icon: FileCode, action: () => insertText('\n```\n', '\n```\n') },
+    ],
+    [
+      { label: '无序列表', icon: List, action: () => insertText('- ') },
+      { label: '有序列表', icon: ListOrdered, action: () => insertText('1. ') },
+      { label: '图片', icon: Image, action: () => insertText('![', '](image-url)') },
+    ],
+  ]
+
   return (
     <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm'>
       <div className='w-[90vw] h-[85vh] bg-[var(--bg-primary)] rounded-2xl shadow-2xl flex flex-col overflow-hidden'>
@@ -110,16 +138,41 @@ export function FullscreenMarkdownEditor({
             <h2 className='text-lg font-semibold text-[var(--text-primary)]'>Markdown 编辑器</h2>
           </div>
           <div className='flex items-center gap-2'>
-            <div className='flex items-center gap-1 bg-[var(--bg-input)] rounded-lg p-1'>
-              {toolbarButtons.map((btn) => (
-                <button
-                  key={btn.label}
-                  onClick={btn.action}
-                  className='px-2 py-1.5 rounded-md text-[12px] font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors'
-                  title={btn.label}
-                >
-                  {btn.icon}
-                </button>
+            <div className='flex items-center gap-1 bg-[var(--bg-input)] rounded-lg shadow-sm border border-[var(--border-primary)]/30 px-1 py-1'>
+              {toolbarGroups.map((group, gi) => (
+                <div key={gi} className='flex items-center'>
+                  {gi > 0 && <div className='w-px h-5 bg-[var(--border-divider)] mx-0.5' />}
+                  {group.map((btn) => (
+                    <div
+                      key={btn.label}
+                      className='relative'
+                      onMouseEnter={() => setToolbarTooltip(btn.label)}
+                      onMouseLeave={() => setToolbarTooltip(null)}
+                    >
+                      <button
+                        onClick={btn.action}
+                        className='h-8 w-8 flex items-center justify-center rounded-md transition-colors duration-200 hover:bg-[var(--bg-toolbar-hover)] hover:text-[var(--brand-primary)] text-[var(--text-muted)] focus:outline-none'
+                        aria-label={btn.label}
+                      >
+                        <btn.icon className='h-4 w-4' />
+                      </button>
+                      <AnimatePresence>
+                        {toolbarTooltip === btn.label && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 5 }}
+                            transition={{ duration: 0.15 }}
+                            className='absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 rounded-md text-xs font-medium text-white bg-gray-800 whitespace-nowrap pointer-events-none z-50 shadow-lg'
+                          >
+                            {btn.label}
+                            <span className='absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800' />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </div>
               ))}
             </div>
             <button
