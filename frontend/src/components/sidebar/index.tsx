@@ -8,6 +8,8 @@ import {
   Settings,
   Crown,
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import ProfileCard from '../common/ProfileCard'
 import { useChat } from '../../context/ChatContext'
 import { useUser } from '../../context/UserContext'
 import { useConversation } from '../../hooks/useConversation'
@@ -43,6 +45,9 @@ export function Sidebar({
   const [isScrolling, setIsScrolling] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(getInitialExpandedGroups)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showProfileCard, setShowProfileCard] = useState(false)
+  const [profileCardPos, setProfileCardPos] = useState({ top: 0, left: 0 })
+  const userAreaRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -152,6 +157,28 @@ export function Sidebar({
   const handleDelete = (id: string, title: string) => {
     onDeleteClick?.(id, title)
   }
+
+  const handleUserAreaClick = () => {
+    if (userAreaRef.current) {
+      const rect = userAreaRef.current.getBoundingClientRect()
+      setProfileCardPos({ top: rect.top, left: rect.right })
+    }
+    setShowProfileCard((prev) => !prev)
+  }
+
+  const handleEditProfile = () => {
+    setShowProfileCard(false)
+    window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
+  }
+
+  useEffect(() => {
+    if (!showProfileCard) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowProfileCard(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showProfileCard])
 
   return (
     <div role='navigation' aria-label='会话导航' className='flex flex-col h-full relative'>
@@ -314,9 +341,10 @@ export function Sidebar({
           )}
         </div>
 
-        <div className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        <div ref={userAreaRef} className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
           <div className='w-full'>
             <div
+              onClick={handleUserAreaClick}
               className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center cursor-pointer hover:scale-105 transition-transform duration-200' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}
             >
               <div
@@ -352,6 +380,38 @@ export function Sidebar({
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showProfileCard && (
+          <>
+            <div className='fixed inset-0 z-[999]' onClick={() => setShowProfileCard(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, x: -12 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.92, x: -12 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+              className='fixed z-[1000] profile-card-popup'
+              style={{
+                top: profileCardPos.top - 420,
+                left: profileCardPos.left + 12,
+              }}
+            >
+              <ProfileCard
+                avatarUrl={profile?.avatar}
+                name={profile?.nickname || '用户'}
+                title={profile?.bio || 'KChat 用户'}
+                handle={profile?.email?.split('@')[0] || 'user'}
+                status={profile?.privacy?.onlineStatus ? '在线' : '离线'}
+                contactText='编辑资料'
+                onContactClick={handleEditProfile}
+                enableTilt
+                behindGlowEnabled={false}
+                innerGradient='linear-gradient(145deg, #1e293bcc 0%, #0ea5e944 100%)'
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

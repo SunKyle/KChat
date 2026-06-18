@@ -115,11 +115,9 @@ export function ConversationItem({
               : 'hover:theme-bg-hover/60'
         }`}
       >
-        {/* 流式呼吸光环 — 在外层避免裁切 */}
         {isStreaming && (
           <div className='absolute inset-[3px] rounded-full border-[1.5px] border-[var(--brand-primary)]/40 animate-stream-pulse' />
         )}
-        {/* 头像内圆 */}
         <div
           className={`relative rounded-full flex items-center justify-center micro-transition ${
             isActive
@@ -137,7 +135,6 @@ export function ConversationItem({
             </span>
           )}
         </div>
-        {/* 置顶图钉 */}
         {conversation.pinned && (
           <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400/90 flex items-center justify-center shadow-sm'>
             <Pin className='w-[7px] h-[7px] text-white' fill='currentColor' />
@@ -147,180 +144,185 @@ export function ConversationItem({
     )
   }
 
-  return (
-    <>
+  const renderCardContent = () => (
+    <div
+      onClick={isEditing ? undefined : onClick}
+      onContextMenu={handleContextMenu}
+      onKeyDown={(e) => {
+        if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      tabIndex={0}
+      role='button'
+      aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
+      aria-current={isActive ? 'true' : undefined}
+      className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
+        isActive
+          ? 'bg-[#F0F9FF] border-l-[#0EA5E9] border-y-transparent border-r-transparent'
+          : 'hover:theme-bg-hover/60 border-transparent'
+      } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
+    >
       <div
-        onClick={isEditing ? undefined : onClick}
-        onContextMenu={handleContextMenu}
-        onKeyDown={(e) => {
-          if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault()
-            onClick()
-          }
+        className='flex-1 min-w-0 pr-20 sidebar-content-enter'
+        style={{
+          maskImage:
+            'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
+          WebkitMaskImage:
+            'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
         }}
-        tabIndex={0}
-        role='button'
-        aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
-        aria-current={isActive ? 'true' : undefined}
-        className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
-          isActive
-            ? 'bg-[#F0F9FF] border-l-[#0EA5E9] border-y-transparent border-r-transparent'
-            : 'hover:theme-bg-hover/60 border-transparent'
-        } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
       >
-        {/* 标题区域：延伸到右侧，用 mask 实现渐隐 */}
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type='text'
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleSaveEdit}
+            className='w-full px-2.5 py-1.5 font-secondary theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50'
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <p
+            className={`font-conversation-name truncate transition-colors duration-150 ${
+              isActive
+                ? 'theme-brand-primary font-medium'
+                : hasNewReply
+                  ? 'theme-text-primary font-medium'
+                  : 'theme-text-secondary'
+            }`}
+          >
+            {conversation.title}
+          </p>
+        )}
+      </div>
+      <div className='absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1'>
+        {isStreaming && (
+          <div className='w-[18px] h-[18px] rounded-full flex items-center justify-center'>
+            <div className='w-4 h-4 border-2 border-[var(--brand-primary)]/40 border-t-[var(--brand-primary)] rounded-full animate-spin' />
+          </div>
+        )}
         <div
-          className='flex-1 min-w-0 pr-20 sidebar-content-enter'
-          style={{
-            maskImage:
-              'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
-            WebkitMaskImage:
-              'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
-          }}
+          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
         >
           {isEditing ? (
-            <input
-              ref={inputRef}
-              type='text'
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleSaveEdit}
-              className='w-full px-2.5 py-1.5 font-secondary theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50'
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <p
-              className={`font-conversation-name truncate transition-colors duration-150 ${
-                isActive
-                  ? 'theme-brand-primary font-medium'
-                  : hasNewReply
-                    ? 'theme-text-primary font-medium'
-                    : 'theme-text-secondary'
-              }`}
-            >
-              {conversation.title}
-            </p>
-          )}
-        </div>
-        <div className='absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1'>
-          {isStreaming && (
-            <div className='w-[18px] h-[18px] rounded-full flex items-center justify-center'>
-              <div className='w-4 h-4 border-2 border-[var(--brand-primary)]/40 border-t-[var(--brand-primary)] rounded-full animate-spin' />
-            </div>
-          )}
-          <div
-            className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
-          >
-            {isEditing ? (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleSaveEdit()
-                  }}
-                  aria-label='保存编辑'
-                  className='icon-btn focus-ring'
-                >
-                  <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleCancelEdit()
-                  }}
-                  aria-label='取消编辑'
-                  className='icon-btn focus-ring'
-                >
-                  <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
-                </button>
-              </>
-            ) : !isStreaming ? (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onPin(conversation.id, !conversation.pinned)
-                  }}
-                  aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
-                  aria-pressed={conversation.pinned}
-                  className='icon-btn focus-ring'
-                >
-                  <Pin
-                    className={`w-[15px] h-[15px] transition-colors ${
-                      conversation.pinned
-                        ? 'theme-accent-amber'
-                        : 'theme-text-muted hover:theme-text-secondary'
-                    }`}
-                    fill={conversation.pinned ? 'currentColor' : 'none'}
-                    aria-hidden='true'
-                  />
-                </button>
-                <button
-                  onClick={handleStartEdit}
-                  aria-label='编辑会话标题'
-                  className='icon-btn focus-ring'
-                >
-                  <Pencil
-                    className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
-                    aria-hidden='true'
-                  />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete()
-                  }}
-                  aria-label='删除会话'
-                  className='icon-btn focus-ring'
-                >
-                  <Trash2
-                    className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
-                    aria-hidden='true'
-                  />
-                </button>
-              </>
-            ) : null}
-          </div>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSaveEdit()
+                }}
+                aria-label='保存编辑'
+                className='icon-btn focus-ring'
+              >
+                <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCancelEdit()
+                }}
+                aria-label='取消编辑'
+                className='icon-btn focus-ring'
+              >
+                <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
+              </button>
+            </>
+          ) : !isStreaming ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPin(conversation.id, !conversation.pinned)
+                }}
+                aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
+                aria-pressed={conversation.pinned}
+                className='icon-btn focus-ring'
+              >
+                <Pin
+                  className={`w-[15px] h-[15px] transition-colors ${
+                    conversation.pinned
+                      ? 'theme-accent-amber'
+                      : 'theme-text-muted hover:theme-text-secondary'
+                  }`}
+                  fill={conversation.pinned ? 'currentColor' : 'none'}
+                  aria-hidden='true'
+                />
+              </button>
+              <button
+                onClick={handleStartEdit}
+                aria-label='编辑会话标题'
+                className='icon-btn focus-ring'
+              >
+                <Pencil
+                  className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
+                  aria-hidden='true'
+                />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                aria-label='删除会话'
+                className='icon-btn focus-ring'
+              >
+                <Trash2
+                  className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
+                  aria-hidden='true'
+                />
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
-      {contextMenu && (
-        <div
-          ref={contextMenuRef}
-          className='fixed z-[100] min-w-[140px] py-1 bg-[var(--bg-dropdown)] rounded-lg border theme-border-secondary shadow-lg shadow-[var(--shadow-color-elevated)] overflow-hidden'
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            onClick={() => {
-              onPin(conversation.id, !conversation.pinned)
-              setContextMenu(null)
-            }}
-            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
-          >
-            <Pin className='w-3.5 h-3.5' fill={conversation.pinned ? 'currentColor' : 'none'} />{' '}
-            {conversation.pinned ? '取消置顶' : '置顶'}
-          </button>
-          <button
-            onClick={() => {
-              handleStartEdit()
-              setContextMenu(null)
-            }}
-            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
-          >
-            <Pencil className='w-3.5 h-3.5' /> 编辑标题
-          </button>
-          <div className='my-0.5 divider' />
-          <button
-            onClick={() => {
-              onDelete()
-              setContextMenu(null)
-            }}
-            className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] transition-colors'
-          >
-            <Trash2 className='w-3.5 h-3.5' /> 删除
-          </button>
-        </div>
-      )}
+    </div>
+  )
+
+  const contextMenuContent = contextMenu ? (
+    <div
+      ref={contextMenuRef}
+      className='fixed z-[100] min-w-[140px] py-1 bg-[var(--bg-dropdown)] rounded-lg border theme-border-secondary shadow-lg shadow-[var(--shadow-color-elevated)] overflow-hidden'
+      style={{ left: contextMenu.x, top: contextMenu.y }}
+    >
+      <button
+        onClick={() => {
+          onPin(conversation.id, !conversation.pinned)
+          setContextMenu(null)
+        }}
+        className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
+      >
+        <Pin className='w-3.5 h-3.5' fill={conversation.pinned ? 'currentColor' : 'none'} />{' '}
+        {conversation.pinned ? '取消置顶' : '置顶'}
+      </button>
+      <button
+        onClick={() => {
+          handleStartEdit()
+          setContextMenu(null)
+        }}
+        className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
+      >
+        <Pencil className='w-3.5 h-3.5' /> 编辑标题
+      </button>
+      <div className='my-0.5 divider' />
+      <button
+        onClick={() => {
+          onDelete()
+          setContextMenu(null)
+        }}
+        className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] transition-colors'
+      >
+        <Trash2 className='w-3.5 h-3.5' /> 删除
+      </button>
+    </div>
+  ) : null
+
+  return (
+    <>
+      {renderCardContent()}
+      {contextMenuContent}
     </>
   )
 }

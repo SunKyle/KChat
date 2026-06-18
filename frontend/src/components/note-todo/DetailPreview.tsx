@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   ChevronLeft,
-  Star,
   Edit3,
   Trash2,
   CheckCircle2,

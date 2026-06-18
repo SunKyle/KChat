@@ -7,7 +7,6 @@ import { useModel } from '../../../hooks/useModel'
 import { useToast } from '../../../hooks/useToast'
 import { chat as chatApi } from '../../../api/chat'
 import { noteApi } from '../../../api/note-todo'
-import ElectricBorder from '../../common/ElectricBorder'
 
 interface MessageBubbleProps {
   message: Message
@@ -175,7 +174,9 @@ export const MessageBubble = memo(function MessageBubble({
           </span>
 
           {!isUser && !isThinking && (
-            <div className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+            <div
+              className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            >
               <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
                 {copied ? (
                   <Check className='w-[14px] h-[14px] text-green-400' />
@@ -189,11 +190,7 @@ export const MessageBubble = memo(function MessageBubble({
                 </button>
               )}
               <div className='relative'>
-                <button
-                  onClick={handleSaveAsNote}
-                  className='icon-btn peer'
-                  disabled={saving}
-                >
+                <button onClick={handleSaveAsNote} className='icon-btn peer' disabled={saving}>
                   {saving ? (
                     <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
                   ) : saved ? (
@@ -216,17 +213,5 @@ export const MessageBubble = memo(function MessageBubble({
     </div>
   )
 
-  return saving ? (
-    <ElectricBorder
-      color='#7df9ff'
-      speed={1}
-      chaos={0.12}
-      borderRadius={16}
-      style={{ overflow: 'visible' }}
-    >
-      {bubbleContent}
-    </ElectricBorder>
-  ) : (
-    bubbleContent
-  )
+  return bubbleContent
 })

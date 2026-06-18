@@ -1603,7 +1603,8 @@ input[type='search']::-webkit-search-decoration {
 }
 
 @keyframes pulse-slow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }

@@ -4,6 +4,7 @@ export interface Conversation {
   createdAt: string
   updatedAt?: string
   pinned?: boolean
+  isSummaryNote?: boolean
 }
 
 export interface Message {
