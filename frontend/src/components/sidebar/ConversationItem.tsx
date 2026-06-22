@@ -170,7 +170,7 @@ export function ConversationItem({
       aria-posinset={index != null ? index + 1 : undefined}
       className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
         isActive
-          ? 'bg-[var(--accent-sky)]/10 border-l-[var(--brand-primary)] border-y-transparent border-r-transparent'
+          ? 'bg-[var(--accent-primary)]/10 border-l-[var(--brand-primary)] border-y-transparent border-r-transparent'
           : 'hover:theme-bg-hover/60 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
@@ -191,7 +191,7 @@ export function ConversationItem({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSaveEdit}
-            className='w-full px-2.5 py-1.5 font-secondary theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-sky)]/50'
+            className='w-full px-2.5 py-1.5 font-secondary theme-bg-input border theme-border-primary rounded-lg theme-text-primary focus:outline-none focus:border-[var(--accent-primary)]/50'
             onClick={(e) => e.stopPropagation()}
           />
         ) : (

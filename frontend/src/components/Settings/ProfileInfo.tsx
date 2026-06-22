@@ -104,7 +104,7 @@ export function ProfileInfo() {
               <User className='w-10 h-10 theme-text-muted' />
             )}
           </div>
-          <label className='absolute -bottom-1 -right-1 w-7 h-7 theme-bg-accent-sky rounded-full flex items-center justify-center cursor-pointer hover:bg-[var(--accent-sky)]/80 transition-colors'>
+          <label className='absolute -bottom-1 -right-1 w-7 h-7 theme-bg-accent-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-[var(--accent-primary)]/80 transition-colors'>
             <Camera className='w-4 h-4 text-white' />
             <input
               type='file'

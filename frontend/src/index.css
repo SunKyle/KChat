@@ -99,8 +99,8 @@
 
   --text-primary: #202020;
   --text-secondary: #4a4a4a;
-  --text-muted: #646464;
-  --text-placeholder: #646464;
+  --text-muted: #555555;
+  --text-placeholder: #555555;
 
   --border-primary: #d8d8d8;
   --border-secondary: #ebebeb;
@@ -111,7 +111,7 @@
   --brand-warning: #e8a838;
   --brand-info: #3b82f6;
 
-  --accent-sky: #644a40;
+  --accent-primary: #644a40;
   --accent-emerald: #10b981;
   --accent-amber: #df9b3a;
   --accent-rose: #e54d2e;
@@ -163,7 +163,7 @@
   --brand-warning: #fbbf24;
   --brand-info: #60a5fa;
 
-  --accent-sky: #ffe0c2;
+  --accent-primary: #ffe0c2;
   --accent-emerald: #34d399;
   --accent-amber: #e8a838;
   --accent-rose: #e54d2e;
@@ -882,7 +882,7 @@ html {
 
 /* Focus ring */
 .focus-ring:focus-visible {
-  outline: 2px solid var(--accent-sky);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -1281,11 +1281,11 @@ input[type='search']::-webkit-search-decoration {
   background-color: var(--brand-info);
 }
 
-.theme-accent-sky {
-  color: var(--accent-sky);
+.theme-accent-primary {
+  color: var(--accent-primary);
 }
-.theme-bg-accent-sky {
-  background-color: var(--accent-sky);
+.theme-bg-accent-primary {
+  background-color: var(--accent-primary);
 }
 .theme-accent-emerald {
   color: var(--accent-emerald);
@@ -1490,7 +1490,7 @@ input[type='search']::-webkit-search-decoration {
   justify-content: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: var(--accent-sky);
+  background-color: var(--accent-primary);
   color: #fff;
   border-radius: var(--radius-md);
   font-size: var(--font-secondary);
@@ -1563,7 +1563,7 @@ input[type='search']::-webkit-search-decoration {
 
 .input-field:focus {
   outline: none;
-  border-color: var(--accent-sky);
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 

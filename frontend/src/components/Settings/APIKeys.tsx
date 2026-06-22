@@ -199,7 +199,7 @@ export function APIKeys() {
                     onClick={() => {
                       handleCopyKey(newKey, 'new')
                     }}
-                    className='w-full flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium'
+                    className='w-full flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium'
                   >
                     {copiedKey === 'new' ? (
                       <Eye className='w-4 h-4' />
@@ -236,7 +236,7 @@ export function APIKeys() {
                     <button
                       onClick={handleCreateKey}
                       disabled={!newKeyName.trim() || creatingKey}
-                      className='flex-1 flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+                      className='flex-1 flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
                     >
                       {creatingKey ? (
                         <Loader2 className='w-4 h-4 animate-spin' />

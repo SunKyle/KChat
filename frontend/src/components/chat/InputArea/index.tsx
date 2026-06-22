@@ -136,7 +136,7 @@ export function InputArea() {
             {uploadingImages.map((imageUrl, index) => (
               <div
                 key={index}
-                className='relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 hover:border-[var(--accent-sky)]/50 transition-all duration-200 shadow-sm hover:shadow-md'
+                className='relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 hover:border-[var(--accent-primary)]/50 transition-all duration-200 shadow-sm hover:shadow-md'
               >
                 <img
                   src={imageUrl}

@@ -63,7 +63,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className='flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 bg-[var(--bg-card)] rounded-lg border theme-border-secondary shadow-sm shadow-[var(--shadow-color-secondary)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--accent-sky)]/10 transition-all duration-200 cursor-pointer'
+            className='flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 bg-[var(--bg-card)] rounded-lg border theme-border-secondary shadow-sm shadow-[var(--shadow-color-secondary)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--accent-primary)]/10 transition-all duration-200 cursor-pointer'
             aria-label='选择模型'
             aria-expanded={isModelDropdownOpen}
             aria-haspopup='listbox'

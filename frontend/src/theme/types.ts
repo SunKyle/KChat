@@ -95,8 +95,8 @@ export const lightTheme: ThemeConfig = {
     text: {
       primary: '#202020',
       secondary: '#4a4a4a',
-      muted: '#646464',
-      placeholder: '#646464',
+      muted: '#555555',
+      placeholder: '#555555',
     },
     border: {
       primary: '#d8d8d8',

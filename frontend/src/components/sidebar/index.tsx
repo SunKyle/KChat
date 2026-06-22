@@ -203,7 +203,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo bg-gradient-to-r from-[var(--brand-primary)] via-[var(--accent-sky)] to-[var(--accent-purple)] bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
+                <h1 className='font-logo bg-gradient-to-r from-[var(--brand-primary)] via-[var(--accent-primary)] to-[var(--accent-purple)] bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
                   KChat
                 </h1>
               )}

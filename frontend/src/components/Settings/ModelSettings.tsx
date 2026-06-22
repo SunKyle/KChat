@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, X, Brain, Database, Copy } from 'lucide-react'
 import { modelConfigs } from '../../api'
 import type { ModelConfig, ProviderType } from '../../types'
 import { useChat } from '../../context/ChatContext'
+import { Modal } from '../common/Modal'
 import { PROVIDERS } from '../../types'
 
 export function ModelSettings() {
@@ -14,6 +15,7 @@ export function ModelSettings() {
   const [selectedProvider, setSelectedProvider] = useState<ProviderType>('OPENAI')
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | number | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string | number; name: string } | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -106,15 +108,21 @@ export function ModelSettings() {
     }
   }
 
-  const handleDelete = async (id: string | number, name: string) => {
-    if (!confirm(`确定要删除 "${name}" 吗？`)) return
+  const handleDelete = (id: string | number, name: string) => {
+    setDeleteConfirm({ id, name })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return
     try {
-      await modelConfigs.delete(id)
+      await modelConfigs.delete(deleteConfirm.id)
       loadConfigs()
       await refreshModels()
     } catch (error) {
       console.error('Failed to delete model config:', error)
       alert('删除失败')
+    } finally {
+      setDeleteConfirm(null)
     }
   }
 
@@ -190,7 +198,7 @@ export function ModelSettings() {
 
       {isLoading ? (
         <div className='flex items-center justify-center py-12'>
-          <div className='w-8 h-8 border-3 border-[var(--accent-sky)] border-t-transparent rounded-full animate-spin'></div>
+          <div className='w-8 h-8 border-3 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin'></div>
         </div>
       ) : configs.length === 0 ? (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
@@ -257,7 +265,7 @@ export function ModelSettings() {
                             <button
                               onClick={() => handleToggleEnabled(config)}
                               disabled={updatingId === config.id}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent-sky)]/30 ${
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 ${
                                 config.enabled ? 'bg-[var(--brand-success)]' : 'theme-bg-hover'
                               } ${updatingId === config.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
@@ -320,7 +328,7 @@ export function ModelSettings() {
                       onClick={() => handleProviderChange(provider.type)}
                       className={`relative p-3 rounded-lg border transition-all ${
                         selectedProvider === provider.type
-                          ? 'border-[var(--accent-sky)]/50 bg-[var(--accent-sky)]/10'
+                          ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/10'
                           : 'theme-border-primary hover:theme-border-primary/80'
                       }`}
                     >
@@ -333,7 +341,7 @@ export function ModelSettings() {
                         {provider.displayName}
                       </div>
                       {selectedProvider === provider.type && (
-                        <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--accent-sky)] rounded-full' />
+                        <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--accent-primary)] rounded-full' />
                       )}
                     </button>
                   ))}
@@ -406,7 +414,7 @@ export function ModelSettings() {
                   id='enabled'
                   checked={formData.enabled}
                   onChange={handleChange}
-                  className='w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--accent-sky)] focus:ring-[var(--accent-sky)]/50'
+                  className='w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]/50'
                 />
                 <label htmlFor='enabled' className='text-sm theme-text-muted'>
                   启用此模型
@@ -423,7 +431,7 @@ export function ModelSettings() {
               </button>
               <button
                 onClick={handleSave}
-                className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-sky text-white rounded-lg hover:bg-[var(--accent-sky)]/80 transition-colors text-sm font-medium'
+                className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium'
               >
                 {editingConfig ? '更新' : '保存'}
               </button>
@@ -431,6 +439,16 @@ export function ModelSettings() {
           </div>
         </div>
       )}
+      <Modal
+        isOpen={deleteConfirm !== null}
+        title='删除模型配置'
+        message={deleteConfirm ? `确定要删除 "${deleteConfirm.name}" 吗？此操作不可撤销。` : ''}
+        confirmText='删除'
+        cancelText='取消'
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteConfirm(null)}
+        type='danger'
+      />
     </div>
   )
 }

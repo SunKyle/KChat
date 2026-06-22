@@ -39,7 +39,7 @@ export default function MemoryList({
             key={memory.id}
             className={`p-4 card-inset rounded-lg border transition-all cursor-pointer group ${
               isSelected
-                ? 'border-[var(--accent-sky)] bg-[var(--accent-sky)]/10'
+                ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
                 : 'theme-border-primary hover:theme-bg-hover'
             }`}
             onClick={() => onSelect(memory.id)}

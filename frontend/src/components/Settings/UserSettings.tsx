@@ -105,7 +105,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
                       isActive
-                        ? 'bg-[var(--accent-sky)]/8 text-sky-400'
+                        ? 'bg-[var(--accent-primary)]/8 text-[var(--accent-primary)]'
                         : 'theme-text-secondary hover:theme-bg-hover hover:theme-text-primary'
                     }`}
                   >

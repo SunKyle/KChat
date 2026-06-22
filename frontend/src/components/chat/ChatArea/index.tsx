@@ -117,7 +117,7 @@ export function ChatArea() {
         <div className='absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tr from-[var(--accent-amber)]/5 via-[var(--accent-rose)]/5 to-[var(--brand-success)]/5 rounded-full blur-3xl' />
 
         <div className='relative z-10 text-center px-4'>
-          <div className='mb-6 inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--accent-sky)]/15 to-[var(--accent-purple)]/15 border border-[var(--border-primary)] backdrop-blur-sm shadow-lg'>
+          <div className='mb-6 inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)]/15 to-[var(--accent-purple)]/15 border border-[var(--border-primary)] backdrop-blur-sm shadow-lg'>
             <MessageCircle className='w-10 h-10 text-[var(--brand-primary)]' />
           </div>
           
@@ -195,7 +195,7 @@ export function ChatArea() {
                     <button
                       onClick={() => sendMessage('请帮我写一段代码', [], false)}
                       aria-label='写代码'
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-[var(--brand-primary)]/10 group-hover:bg-[var(--brand-primary)]/20 flex items-center justify-center transition-colors'>
                         <Code className='w-3.5 h-3.5 text-[var(--brand-primary)]' />
@@ -205,7 +205,7 @@ export function ChatArea() {
                     <button
                       onClick={() => sendMessage('请帮我解释一个知识点', [], false)}
                       aria-label='学知识'
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-[var(--brand-success)]/10 group-hover:bg-[var(--brand-success)]/20 flex items-center justify-center transition-colors'>
                         <BookOpen className='w-3.5 h-3.5 text-[var(--brand-success)]' />
@@ -215,7 +215,7 @@ export function ChatArea() {
                     <button
                       onClick={() => sendMessage('请帮我头脑风暴一些创意想法', [], false)}
                       aria-label='想创意'
-                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
+                      className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
                       <div className='w-7 h-7 rounded-md bg-[var(--accent-amber)]/10 group-hover:bg-[var(--accent-amber)]/20 flex items-center justify-center transition-colors'>
                         <Lightbulb className='w-3.5 h-3.5 text-[var(--accent-amber)]' />
