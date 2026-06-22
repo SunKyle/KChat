@@ -42,7 +42,6 @@ export function Sidebar({
     return new Set(['今天', '昨天', '本周', '最近'])
   }
 
-  const [isScrolling, setIsScrolling] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(getInitialExpandedGroups)
   const [searchQuery, setSearchQuery] = useState('')
   const [showProfileCard, setShowProfileCard] = useState(false)
@@ -129,19 +128,19 @@ export function Sidebar({
     return () => clearTimeout(timer)
   }, [activeConversation?.id])
 
-  // 优化滚动监听
+  // 滚动时添加 class 以显示滚动条（用 ref 避免触发重渲染）
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container) return
 
     const handleScrollEvent = () => {
-      setIsScrolling(true)
+      container.classList.add('scrolling')
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
       }
       scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false)
-      }, 2500)
+        container.classList.remove('scrolling')
+      }, 1200)
     }
 
     container.addEventListener('scroll', handleScrollEvent, { passive: true })
@@ -220,7 +219,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo text-[var(--brand-primary)] leading-none sidebar-content-enter tracking-tight'>
+                <h1 className='font-logo text-[var(--brand-primary)] leading-none tracking-tight'>
                   KChat
                 </h1>
               )}
@@ -300,7 +299,7 @@ export function Sidebar({
 
         <div
           ref={scrollContainerRef}
-          className={`flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide ${isScrolling ? 'scrolling' : ''}`}
+          className='flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide'
         >
           {conversations.length === 0 ? (
             <div
@@ -325,39 +324,29 @@ export function Sidebar({
             <div role='listbox' id='conversation-list' className='space-y-3'>
               {filteredGrouped.map(({ group, items }) => (
                 <div key={group} className='space-y-0.5'>
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                        className='overflow-hidden'
-                      >
-                        <button
-                          onClick={() => toggleGroup(group)}
-                          aria-expanded={expandedGroups.has(group)}
-                          aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                          className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
-                        >
-                          <span className='flex items-center gap-1.5'>
-                            <ChevronRight
-                              className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                expandedGroups.has(group) ? 'rotate-90' : ''
-                              }`}
-                              aria-hidden='true'
-                            />
-                            <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
-                              {group}
-                            </span>
-                          </span>
-                          <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
-                            {items.length}
-                          </span>
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {!collapsed && (
+                    <button
+                      onClick={() => toggleGroup(group)}
+                      aria-expanded={expandedGroups.has(group)}
+                      aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
+                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
+                    >
+                      <span className='flex items-center gap-1.5'>
+                        <ChevronRight
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            expandedGroups.has(group) ? 'rotate-90' : ''
+                          }`}
+                          aria-hidden='true'
+                        />
+                        <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
+                          {group}
+                        </span>
+                      </span>
+                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
+                        {items.length}
+                      </span>
+                    </button>
+                  )}
                   {(collapsed || expandedGroups.has(group)) &&
                     items.map((conversation, idx) => (
                       <ConversationItem

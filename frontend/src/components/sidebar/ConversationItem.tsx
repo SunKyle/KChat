@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { Conversation } from '../../types'
@@ -17,7 +17,7 @@ interface ConversationItemProps {
   total?: number
 }
 
-export function ConversationItem({
+export const ConversationItem = memo(function ConversationItem({
   conversation,
   isActive,
   isStreaming,
@@ -169,11 +169,12 @@ export function ConversationItem({
       aria-setsize={total}
       aria-posinset={index != null ? index + 1 : undefined}
       data-conversation-id={conversation.id}
-      className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
+      className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-[background-color,transform] duration-200 ease-out focus-ring border-2 ${
         isActive
           ? 'border-transparent'
           : 'hover:theme-bg-hover hover:translate-x-0.5 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 40px' }}
     >
       {isActive && (
         <motion.div
@@ -182,15 +183,7 @@ export function ConversationItem({
           transition={{ type: 'spring', stiffness: 450, damping: 35 }}
         />
       )}
-      <div
-        className='flex-1 min-w-0 pr-20 sidebar-content-enter relative'
-        style={{
-          maskImage:
-            'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
-          WebkitMaskImage:
-            'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
-        }}
-      >
+      <div className='flex-1 min-w-0 pr-12 relative'>
         {isEditing ? (
           <input
             ref={inputRef}
@@ -344,4 +337,13 @@ export function ConversationItem({
       {contextMenuContent}
     </>
   )
-}
+}, (prev, next) => {
+  return prev.conversation.id === next.conversation.id
+    && prev.conversation.title === next.conversation.title
+    && prev.conversation.pinned === next.conversation.pinned
+    && prev.isActive === next.isActive
+    && prev.isStreaming === next.isStreaming
+    && prev.hasNewReply === next.hasNewReply
+    && prev.isSummarizing === next.isSummarizing
+    && prev.collapsed === next.collapsed
+})
