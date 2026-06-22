@@ -22,7 +22,7 @@ function NoteListItem({
 }: NoteListItemProps) {
   return (
     <div
-      className='group relative rounded-xl border border-[var(--border-divider)] bg-white hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
+      className='group relative rounded-xl border border-[var(--border-divider)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
       <div className='p-4'>
@@ -78,11 +78,11 @@ function NoteListItem({
             e.stopPropagation()
             onPin()
           }}
-          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label={note.pinned ? '取消置顶' : '置顶'}
         >
           <Pin
-            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[#F59E0B] fill-current' : 'text-[var(--text-secondary)]'}`}
+            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--accent-amber)] fill-current' : 'text-[var(--text-secondary)]'}`}
           />
         </button>
         <button
@@ -90,7 +90,7 @@ function NoteListItem({
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label='编辑'
         >
           <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
@@ -100,7 +100,7 @@ function NoteListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
           aria-label='删除'
         >
           <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
@@ -156,8 +156,8 @@ export function NoteList({
       {pinnedNotes.length > 0 && (
         <div>
           <div className='flex items-center gap-1.5 px-0.5 pb-3'>
-            <Pin className='w-3.5 h-3.5 text-[#F59E0B] fill-current' />
-            <span className='text-[11px] font-semibold text-[#F59E0B] tracking-wider uppercase'>
+            <Pin className='w-3.5 h-3.5 text-[var(--accent-amber)] fill-current' />
+            <span className='text-[11px] font-semibold text-[var(--accent-amber)] tracking-wider uppercase'>
               置顶
             </span>
           </div>

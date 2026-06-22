@@ -4,21 +4,21 @@ import type { Todo } from '../../types/note-todo'
 const priorityMeta = {
   high: {
     label: '高',
-    bgColor: 'bg-red-100',
-    textColor: 'text-red-600',
-    borderColor: 'border-red-300',
+    bgColor: 'bg-[var(--brand-danger)]/10',
+    textColor: 'text-[var(--brand-danger)]',
+    borderColor: 'border-[var(--brand-danger)]/30',
   },
   medium: {
     label: '中',
-    bgColor: 'bg-amber-100',
-    textColor: 'text-amber-600',
-    borderColor: 'border-amber-300',
+    bgColor: 'bg-[var(--accent-amber)]/10',
+    textColor: 'text-[var(--accent-amber)]',
+    borderColor: 'border-[var(--accent-amber)]/30',
   },
   low: {
     label: '低',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-600',
-    borderColor: 'border-green-300',
+    bgColor: 'bg-[var(--brand-success)]/10',
+    textColor: 'text-[var(--brand-success)]',
+    borderColor: 'border-[var(--brand-success)]/30',
   },
 } as const
 
@@ -45,7 +45,7 @@ function TodoListItem({
 }: TodoListItemProps) {
   return (
     <div
-      className='group relative rounded-xl border border-[var(--border-divider)] bg-white hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
+      className='group relative rounded-xl border border-[var(--border-divider)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
       <div className='p-4 flex items-start gap-3'>
@@ -108,7 +108,7 @@ function TodoListItem({
                 </span>
               )}
               {isOverdue(todo.dueDate, todo.status) && (
-                <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FEF2F2] text-[#DC2626]'>
+                <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-danger)]/5 text-[var(--brand-danger)]'>
                   <Clock className='w-3 h-3' />
                   已过期
                 </span>
@@ -126,7 +126,7 @@ function TodoListItem({
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
           aria-label='编辑'
         >
           <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
@@ -136,7 +136,7 @@ function TodoListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1.5 rounded-md bg-white/90 backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
           aria-label='删除'
         >
           <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />

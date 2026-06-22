@@ -493,7 +493,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
           <FileText className='w-3 h-3' />
           笔记
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
             style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
           >
             {notes.length}
@@ -507,7 +507,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
           <ListTodo className='w-3 h-3' />
           待办
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
             style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
           >
             {todos.filter((t) => t.status === 'pending').length}
@@ -559,7 +559,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         )}
         <button
           onClick={handleOpenCreateForm}
-          className='flex items-center justify-center w-9 h-9 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all'
+          className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all'
           aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
         >
           <Plus className='w-4 h-4' />

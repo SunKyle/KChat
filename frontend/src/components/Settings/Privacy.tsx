@@ -17,7 +17,7 @@ function Toggle({ enabled, onChange, disabled }: ToggleProps) {
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-[var(--bg-card)] rounded-full shadow transition-transform ${
           enabled ? 'translate-x-5' : 'translate-x-0'
         }`}
       />

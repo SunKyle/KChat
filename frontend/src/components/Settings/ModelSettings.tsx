@@ -262,7 +262,7 @@ export function ModelSettings() {
                               } ${updatingId === config.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                               <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                className={`inline-block h-4 w-4 transform rounded-full bg-[var(--bg-card)] transition-transform ${
                                   config.enabled ? 'translate-x-6' : 'translate-x-1'
                                 } ${updatingId === config.id ? 'animate-pulse' : ''}`}
                               />

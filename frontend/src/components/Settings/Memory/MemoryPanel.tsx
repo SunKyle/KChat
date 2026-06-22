@@ -189,23 +189,23 @@ export function MemoryPanel() {
         <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-nowrap md:flex-nowrap lg:flex-nowrap'>
           {/* 搜索框 */}
           <div className='flex-1 sm:flex-initial md:flex-initial lg:flex-initial relative min-w-[100px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px]'>
-            <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none' />
+            <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
             <input
               type='text'
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder='搜索记忆...'
-              className='w-full sm:w-44 md:w-48 lg:w-56 xl:w-64 pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 transition-all duration-200'
+              className='w-full sm:w-44 md:w-48 lg:w-56 xl:w-64 pl-9 pr-3 py-2 text-sm bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 transition-all duration-200'
             />
           </div>
 
           {/* 下拉框 */}
           <div className='relative min-w-[80px] sm:min-w-[90px] flex-shrink-0'>
-            <Filter className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none' />
+            <Filter className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value as MemoryType | 'ALL')}
-              className='w-full pl-9 pr-7 py-2 text-sm appearance-none cursor-pointer bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 transition-all duration-200'
+              className='w-full pl-9 pr-7 py-2 text-sm appearance-none cursor-pointer bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 transition-all duration-200'
             >
               <option value='ALL'>全部</option>
               {MEMORY_TYPES.map((t) => (
@@ -215,7 +215,7 @@ export function MemoryPanel() {
               ))}
             </select>
             {/* 下拉箭头 */}
-            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
             </svg>
           </div>
@@ -256,16 +256,16 @@ export function MemoryPanel() {
           </button>
         </div>
       ) : (
-        <div className='w-full bg-white rounded-xl border border-gray-100 overflow-hidden'>
+        <div className='w-full bg-[var(--bg-card)] rounded-xl border border-[var(--border-secondary)] overflow-hidden'>
           {/* 记忆列表 */}
-          <div className='w-full divide-y divide-gray-50'>
+          <div className='w-full divide-y divide-[var(--border-secondary)]'>
             {filteredMemories.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center w-full">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
-                  <Database className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--bg-input)] flex items-center justify-center mb-3">
+                  <Database className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--text-muted)]" />
                 </div>
-                <h3 className="text-sm font-medium text-gray-600">暂无记忆</h3>
-                <p className="text-xs text-gray-400 mt-1">
+                <h3 className="text-sm font-medium text-[var(--text-secondary)]">暂无记忆</h3>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
                   {searchQuery ? "没有找到匹配的记忆" : "开始对话后，系统会自动提取记忆"}
                 </p>
               </div>
@@ -281,7 +281,7 @@ export function MemoryPanel() {
                   <div
                     key={memory.id}
                     className={`group relative px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3 transition-colors cursor-pointer w-full ${
-                      isSelected ? 'bg-[var(--accent-sky)]/5' : 'hover:bg-gray-50/50'
+                      isSelected ? 'bg-[var(--accent-sky)]/5' : 'hover:bg-[var(--bg-input)]/50'
                     }`}
                     onClick={() =>
                       setSelectedMemories((prev) =>
@@ -300,7 +300,7 @@ export function MemoryPanel() {
                           </svg>
                         </div>
                       ) : selectedMemories.length > 0 ? (
-                        <div className='w-4 h-4 rounded-md border border-gray-300' />
+                        <div className='w-4 h-4 rounded-md border border-[var(--border-primary)]' />
                       ) : null}
                     </div>
 
@@ -312,7 +312,7 @@ export function MemoryPanel() {
                     {/* 内容区域 */}
                     <div className='min-w-0 flex-1'>
                       <div className='flex items-start justify-between gap-2'>
-                        <h4 className='text-sm font-medium text-gray-800 leading-relaxed line-clamp-2'>
+                        <h4 className='text-sm font-medium text-[var(--text-primary)] leading-relaxed line-clamp-2'>
                           {memory.content}
                         </h4>
                         
@@ -323,7 +323,7 @@ export function MemoryPanel() {
                               e.stopPropagation()
                               handleEdit(memory)
                             }}
-                            className='p-1 sm:p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-[var(--accent-sky)]'
+                            className='p-1 sm:p-1.5 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--accent-sky)]'
                             title='编辑'
                           >
                             <Edit2 className='w-3.5 h-3.5 sm:w-4 sm:h-4' />
@@ -333,7 +333,7 @@ export function MemoryPanel() {
                               e.stopPropagation()
                               handleDelete(memory.id)
                             }}
-                            className='p-1 sm:p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500'
+                            className='p-1 sm:p-1.5 rounded-md hover:bg-[var(--brand-danger)]/10 text-[var(--text-muted)] hover:text-[var(--brand-danger)]'
                             title='删除'
                           >
                             <Trash2 className='w-3.5 h-3.5 sm:w-4 sm:h-4' />
@@ -349,7 +349,7 @@ export function MemoryPanel() {
 
                         {/* 规则标记 */}
                         {memory.isRule && (
-                          <span className='px-1.5 sm:px-2 py-0.5 rounded-md text-xs bg-red-50 text-red-500'>
+                          <span className='px-1.5 sm:px-2 py-0.5 rounded-md text-xs bg-[var(--brand-danger)]/10 text-[var(--brand-danger)]'>
                             规则
                           </span>
                         )}
@@ -360,7 +360,7 @@ export function MemoryPanel() {
                             <Star
                               key={i}
                               className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
-                                i < importance ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                                i < importance ? 'text-amber-400 fill-amber-400' : 'text-[var(--border-primary)]'
                               }`}
                             />
                           ))}
@@ -375,7 +375,7 @@ export function MemoryPanel() {
 
           {/* 底部批量操作 */}
           {selectedMemories.length > 0 && (
-            <div className='px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50/50 border-t border-gray-100'>
+            <div className='px-3 sm:px-4 py-2.5 sm:py-3 bg-[var(--bg-input)]/50 border-t border-[var(--border-secondary)]'>
               <div className='flex items-center justify-between flex-wrap gap-2'>
                 <div className='flex items-center gap-2 sm:gap-3'>
                   <label className='flex items-center gap-1.5 sm:gap-2 cursor-pointer'>
@@ -389,11 +389,11 @@ export function MemoryPanel() {
                           setSelectedMemories([])
                         }
                       }}
-                      className='w-4 h-4 rounded border-gray-300 bg-white text-[var(--accent-sky)] focus:ring-[var(--accent-sky)]/50'
+                      className='w-4 h-4 rounded border-[var(--border-primary)] bg-[var(--bg-card)] text-[var(--accent-sky)] focus:ring-[var(--accent-sky)]/50'
                     />
-                    <span className='text-sm text-gray-600'>全选</span>
+                    <span className='text-sm text-[var(--text-secondary)]'>全选</span>
                   </label>
-                  <span className='text-xs text-gray-500'>
+                  <span className='text-xs text-[var(--text-secondary)]'>
                     已选择 {selectedMemories.length} 项
                   </span>
                 </div>
@@ -419,11 +419,11 @@ export function MemoryPanel() {
           }}
         >
           <div
-            className='w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all duration-200 scale-100'
+            className='w-full max-w-lg bg-[var(--bg-card)] rounded-2xl shadow-xl border border-[var(--border-secondary)] overflow-hidden transform transition-all duration-200 scale-100'
             onClick={(e) => e.stopPropagation()}
           >
             {/* 头部 */}
-            <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white'>
+            <div className='flex items-center justify-between px-5 py-4 border-b border-[var(--border-secondary)] bg-gradient-to-r from-[var(--bg-input)] to-[var(--bg-card)]'>
               <div className='flex items-center gap-3'>
                 <div className={`w-8 h-8 rounded-xl ${editingMemory ? 'bg-violet-500' : 'bg-[var(--accent-sky)]'} flex items-center justify-center`}>
                   {editingMemory ? (
@@ -433,10 +433,10 @@ export function MemoryPanel() {
                   )}
                 </div>
                 <div>
-                  <h3 className='text-base font-semibold text-gray-800'>
+                  <h3 className='text-base font-semibold text-[var(--text-primary)]'>
                     {editingMemory ? '编辑记忆' : '添加记忆'}
                   </h3>
-                  <p className='text-xs text-gray-500'>
+                  <p className='text-xs text-[var(--text-secondary)]'>
                     {editingMemory ? '修改已有的记忆内容' : '创建一条新的记忆'}
                   </p>
                 </div>
@@ -446,7 +446,7 @@ export function MemoryPanel() {
                   setShowForm(false)
                   setEditingMemory(null)
                 }}
-                className='p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors'
+                className='p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-muted)]hover:text-[var(--text-secondary)] transition-colors'
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -459,10 +459,10 @@ export function MemoryPanel() {
               {/* 内容字段 */}
               <div className='space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <label className='block text-sm font-medium text-gray-700'>
+                  <label className='block text-sm font-medium text-[var(--text-primary)]'>
                     记忆内容
                   </label>
-                  <span className='text-xs text-gray-400'>
+                  <span className='text-xs text-[var(--text-muted)]'>
                     {(editingMemory?.content || '').length}/500
                   </span>
                 </div>
@@ -480,14 +480,14 @@ export function MemoryPanel() {
                     } as Memory)
                   }}
                   placeholder='输入记忆内容，例如：用户使用Java开发企业应用...'
-                  className='w-full h-28 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 resize-none transition-all duration-200'
+                  className='w-full h-28 px-4 py-3 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-sky)]/60 focus:ring-1.5 focus:ring-[var(--accent-sky)]/30 resize-none transition-all duration-200'
                   maxLength={500}
                 />
               </div>
 
               {/* 类型选择 */}
               <div className='space-y-2.5'>
-                <label className='block text-sm font-medium text-gray-700'>
+                <label className='block text-sm font-medium text-[var(--text-primary)]'>
                   记忆类型
                 </label>
                 <div className='flex flex-wrap gap-2'>
@@ -511,7 +511,7 @@ export function MemoryPanel() {
                         className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                           isSelected
                             ? `${getTypeColor(t.type)} text-white shadow-md scale-[1.02]`
-                            : 'bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+                            : 'bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--border-primary)] hover:bg-[var(--bg-hover)]'
                         }`}
                       >
                         <TypeIcon className='w-3.5 h-3.5' />
@@ -524,7 +524,7 @@ export function MemoryPanel() {
 
               {/* 重要性选择 */}
               <div className='space-y-2.5'>
-                <label className='block text-sm font-medium text-gray-700'>
+                <label className='block text-sm font-medium text-[var(--text-primary)]'>
                   重要性
                 </label>
                 <div className='flex items-center gap-1.5'>
@@ -546,25 +546,25 @@ export function MemoryPanel() {
                         }}
                         className={`p-2.5 rounded-xl transition-all duration-200 ${
                           i < currentImportance
-                            ? 'text-amber-500 bg-amber-50 scale-110'
-                            : 'text-gray-300 hover:text-gray-400 hover:bg-gray-50'
+                            ? 'text-[var(--accent-amber)] bg-[var(--accent-amber)]/10 scale-110'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                         }`}
                       >
                         <Star className={`w-5 h-5 ${i < currentImportance ? 'fill-current' : ''}`} />
                       </button>
                     )
                   })}
-                  <span className='ml-2 text-sm text-gray-500 font-medium'>
+                  <span className='ml-2 text-sm text-[var(--text-secondary)] font-medium'>
                     {(editingMemory?.importance || 3)}/5
                   </span>
-                  <span className='text-xs text-gray-400 ml-1'>
+                  <span className='text-xs text-[var(--text-muted)]ml-1'>
                     ({['最低', '较低', '中等', '较高', '最高'][(editingMemory?.importance || 3) - 1]})
                   </span>
                 </div>
               </div>
 
               {/* 规则标记 */}
-              <div className='flex items-center gap-3 p-3 bg-red-50/50 rounded-xl border border-red-100'>
+              <div className='flex items-center gap-3 p-3 bg-[var(--brand-danger)]/5 rounded-xl border border-[var(--brand-danger)]/20'>
                 <input
                   type='checkbox'
                   id='isRule'
@@ -580,13 +580,13 @@ export function MemoryPanel() {
                       createdAt: editingMemory?.createdAt || '',
                     } as Memory)
                   }}
-                  className='w-4 h-4 rounded border-red-300 bg-white text-red-500 focus:ring-red-500/50 focus:ring-offset-0'
+                  className='w-4 h-4 rounded border-[var(--brand-danger)]/30 bg-[var(--bg-card)] text-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50 focus:ring-offset-0'
                 />
                 <div>
-                  <label htmlFor='isRule' className='text-sm font-medium text-red-700 cursor-pointer'>
+                  <label htmlFor='isRule' className='text-sm font-medium text-[var(--brand-danger)] cursor-pointer'>
                     标记为规则
                   </label>
-                  <p className='text-xs text-red-500 mt-0.5'>
+                  <p className='text-xs text-[var(--brand-danger)] mt-0.5'>
                     规则类型的记忆会在匹配时强制应用
                   </p>
                 </div>
@@ -594,8 +594,8 @@ export function MemoryPanel() {
             </div>
 
             {/* 底部按钮 */}
-            <div className='flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/50'>
-              <div className='text-xs text-gray-500'>
+            <div className='flex items-center justify-between px-5 py-4 border-t border-[var(--border-secondary)] bg-[var(--bg-input)]/50'>
+              <div className='text-xs text-[var(--text-secondary)]'>
                 {editingMemory?.createdAt && (
                   <span>创建于 {formatDate(editingMemory.createdAt)}</span>
                 )}
@@ -606,7 +606,7 @@ export function MemoryPanel() {
                     setShowForm(false)
                     setEditingMemory(null)
                   }}
-                  className='px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all duration-200'
+                  className='px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-xl transition-all duration-200'
                 >
                   取消
                 </button>
@@ -620,7 +620,7 @@ export function MemoryPanel() {
                   className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                     editingMemory?.content.trim()
                       ? 'bg-[var(--accent-sky)] text-white hover:bg-[var(--accent-sky)]/90 shadow-md hover:shadow-lg'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                   }`}
                 >
                   {editingMemory ? '保存修改' : '创建记忆'}

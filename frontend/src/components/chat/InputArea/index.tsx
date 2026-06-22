@@ -146,7 +146,7 @@ export function InputArea() {
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className='absolute top-1 right-1 w-11 h-11 backdrop-blur-md bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
+                  className='absolute top-1 right-1 w-11 h-11 backdrop-blur-md bg-[var(--bg-glass)] rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
                   aria-label='移除图片'
                 >
                   <Trash2 className='w-[14px] h-[14px]' />
@@ -366,7 +366,7 @@ export function InputArea() {
                             ? 'bg-sky-500/80 text-white cursor-wait'
                             : hasContent && charCount <= maxChars
                               ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
-                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-[var(--bg-input)] text-[var(--text-muted)] cursor-not-allowed'
                     }`}
                     aria-label={
                       streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'

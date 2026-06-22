@@ -113,7 +113,7 @@ function AppContent() {
           }
         >
           <div className='flex flex-col h-full card-float-solid relative overflow-hidden'>
-            <div className='absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-indigo-50 pointer-events-none' />
+            <div className='absolute inset-0 bg-gradient-to-br from-[var(--accent-sky)]/5 via-transparent to-[var(--accent-purple)]/5 pointer-events-none' />
             <Header onSettingsClick={() => openSettings('profile')} />
             <div className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
               <ChatArea />
