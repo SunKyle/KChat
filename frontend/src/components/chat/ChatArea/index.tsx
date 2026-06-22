@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { MessageCircle, ArrowDown, Code, BookOpen, Lightbulb, Sparkles } from 'lucide-react'
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { useChat } from '../../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
 import { SearchResultsCard } from './SearchResultsCard'

@@ -881,39 +881,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ============================================
-   Responsive Typography
-   ============================================ */
-
-@media (max-width: 640px) {
-  :root {
-    --font-display: 28px;
-    --font-h1: 24px;
-    --font-h2: 20px;
-    --font-h3: 18px;
-    --font-title: 16px;
-    --font-body-l: 15px;
-    --font-body-m: 14px;
-    --font-secondary: 13px;
-    --font-caption: 11px;
-    --font-tiny: 10px;
-
-    --line-height-display: 36px;
-    --line-height-h1: 32px;
-    --line-height-h2: 28px;
-    --line-height-h3: 26px;
-    --line-height-title: 24px;
-    --line-height-body-l: 26px;
-    --line-height-body-m: 24px;
-    --line-height-secondary: 20px;
-    --line-height-caption: 16px;
-    --line-height-tiny: 14px;
-
-    --font-group-title: 13px;
-    --font-code-block: 12px;
-  }
-}
-
 /* Hide native search clear button to avoid duplicate icons */
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-webkit-search-decoration {
