@@ -114,6 +114,7 @@ export function ConversationItem({
         aria-current={isActive ? 'true' : undefined}
         aria-setsize={total}
         aria-posinset={index != null ? index + 1 : undefined}
+        data-conversation-id={conversation.id}
         className={`relative flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           hasNewReply
             ? 'ring-1.5 ring-[var(--accent-emerald)]/30'
@@ -167,7 +168,8 @@ export function ConversationItem({
       aria-current={isActive ? 'true' : undefined}
       aria-setsize={total}
       aria-posinset={index != null ? index + 1 : undefined}
-      className={`group relative flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
+      data-conversation-id={conversation.id}
+      className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
         isActive
           ? 'border-transparent'
           : 'hover:theme-bg-hover hover:translate-x-0.5 border-transparent'
