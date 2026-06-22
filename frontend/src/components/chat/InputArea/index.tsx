@@ -229,7 +229,7 @@ export function InputArea() {
               {/* 下半部分：工具栏 */}
               <div className='flex items-center justify-between px-4 pt-0.5 pb-2'>
                 {/* 左侧：功能按钮 */}
-                <div className='flex items-center gap-1'>
+                <div className='flex items-center gap-0.5'>
                   {/* 上传文件按钮（包括图片） */}
                   <input
                     ref={generalFileInputRef}
@@ -248,7 +248,7 @@ export function InputArea() {
                       disabled={
                         uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
                       }
-                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 ${
+                      className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
                         uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
                           ? 'opacity-40 cursor-not-allowed'
                           : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-sky-600 cursor-pointer'
@@ -269,7 +269,7 @@ export function InputArea() {
                   {/* 代码按钮 */}
                   <div className='relative'>
                     <button
-                      className='peer flex items-center justify-center w-9 h-9 rounded-md hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-600 text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
+                      className='peer flex items-center justify-center w-8 h-8 rounded-md hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-600 text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
                       aria-label='插入代码'
                     >
                       <Code className='w-4 h-4' />
@@ -284,7 +284,7 @@ export function InputArea() {
                     <button
                       onClick={() => setInput('生成图片：')}
                       disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 ${
+                      className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-emerald-600 text-[var(--text-toolbar)] cursor-pointer'
@@ -303,7 +303,7 @@ export function InputArea() {
                     <button
                       onClick={toggleWebSearch}
                       disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 active:scale-90 ${
+                      className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 active:scale-90 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : webSearchEnabled
@@ -341,7 +341,7 @@ export function InputArea() {
 
                   {/* 键盘提示 */}
                   {!streamingState.isStreaming && (
-                    <span className='font-helper-text theme-text-muted/60 hidden sm:inline'>
+                    <span className='font-helper-text theme-text-muted hidden sm:inline'>
                       Shift + Enter 换行
                     </span>
                   )}
@@ -357,7 +357,7 @@ export function InputArea() {
                       }
                     }}
                     disabled={!hasContent && !streamingState.isStreaming}
-                    className={`peer group/send relative flex items-center justify-center w-11 h-11 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
+                    className={`peer group/send relative flex items-center justify-center w-9 h-9 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                       isThinking
                         ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
                         : isOutputting
@@ -366,7 +366,7 @@ export function InputArea() {
                             ? 'bg-sky-500/80 text-white cursor-wait'
                             : hasContent && charCount <= maxChars
                               ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
-                              : 'bg-[var(--bg-input)] text-[var(--text-muted)] cursor-not-allowed'
+                              : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                     }`}
                     aria-label={
                       streamingState.isStreaming ? '中断回答' : uploading ? '发送中...' : '发送消息'
@@ -407,13 +407,13 @@ export function InputArea() {
                     <span className='relative flex items-center justify-center w-full h-full'>
                       {streamingState.isStreaming ? (
                         <Square
-                          className='w-3 h-3 transition-all duration-300 ease-out'
+                          className='w-2.5 h-2.5 transition-all duration-300 ease-out'
                           fill='currentColor'
                         />
                       ) : uploading ? (
-                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin transition-opacity duration-300' />
+                        <div className='w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin transition-opacity duration-300' />
                       ) : (
-                        <Send className='w-3.5 h-3.5 transition-transform duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5' />
+                        <Send className='w-3 h-3 transition-transform duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5' />
                       )}
                     </span>
                   </button>

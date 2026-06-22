@@ -22,17 +22,17 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   return (
-    <div className='my-3 rounded-xl overflow-hidden border theme-border-primary'>
-      <div className='flex items-center justify-between px-4 py-2.5 bg-[var(--bg-code)] border-b border-[var(--border-secondary)]'>
-        <span className='text-sm font-semibold text-gray-400'>{language}</span>
+    <div className='my-3 rounded-xl overflow-hidden border border-[var(--border-primary)]'>
+      <div className='flex items-center justify-between px-4 py-2.5 bg-[#21252b] border-b border-white/[0.08]'>
+        <span className='text-xs font-semibold text-[var(--text-muted)]'>{language}</span>
         <button
           onClick={handleCopy}
-          className='flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors'
+          className='flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
         >
           {copied ? (
             <>
-              <Check className='w-3.5 h-3.5 text-green-400' />
-              <span className='text-green-400'>已复制</span>
+              <Check className='w-3.5 h-3.5 text-[var(--accent-emerald)]' />
+              <span className='text-[var(--accent-emerald)]'>已复制</span>
             </>
           ) : (
             <>
@@ -48,8 +48,8 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         customStyle={{
           margin: 0,
           borderRadius: 0,
-          fontSize: 'var(--font-code-base)',
-          background: 'var(--bg-code)',
+          fontSize: 'var(--font-code)',
+          background: '#282c34',
         }}
         showLineNumbers={true}
         wrapLines={true}

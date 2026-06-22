@@ -69,7 +69,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             aria-haspopup='listbox'
           >
             <Cpu className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-brand-primary' />
-            <span className='font-secondary text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none'>
+            <span className='text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none' style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
               {currentModel}
             </span>
             <ChevronDown className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted' />
@@ -91,11 +91,12 @@ export function Header({ onSettingsClick }: HeaderProps) {
                       select(model)
                       setIsModelDropdownOpen(false)
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm sm:text-base flex items-center justify-between rounded-lg transition-all duration-150 ${
+                    className={`w-full px-3 py-2 text-left text-xs sm:text-sm flex items-center justify-between rounded-lg transition-all duration-150 ${
                       model === currentModel
                         ? 'bg-[var(--bg-hover)] theme-brand-primary'
                         : 'theme-text-secondary hover:bg-[var(--bg-dropdown-hover)]'
                     }`}
+                    style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}
                   >
                     <span className='capitalize'>{model}</span>
                     {model === currentModel && <Check className='w-4 h-4 theme-brand-primary' />}

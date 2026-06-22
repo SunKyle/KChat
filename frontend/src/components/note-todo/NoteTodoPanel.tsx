@@ -132,20 +132,20 @@ function NoteTodoSearchBar({
     <div className='flex-shrink-0 p-3 border-b border-[var(--border-divider)]'>
       <div className='flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]/60' />
+          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]' />
           <input
             type='text'
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'}
-            className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
           />
         </div>
         {mode === 'todo' && (
           <select
             value={activeTab}
             onChange={(e) => onTabChange(e.target.value as 'all' | 'pending' | 'completed')}
-            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
               backgroundRepeat: 'no-repeat',
@@ -159,7 +159,7 @@ function NoteTodoSearchBar({
         )}
         <button
           onClick={onCreateClick}
-          className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all'
+          className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200'
           aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
         >
           <Plus className='w-4 h-4' />
