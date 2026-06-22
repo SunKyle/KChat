@@ -30,8 +30,9 @@ interface ChatContextType {
   dispatch: React.Dispatch<ChatAction>
   stateRef: React.MutableRefObject<ChatState>
   getSummarizingState: (conversationId: string) => boolean
+  summarizingMessageId: string | null
   getSearchResults: (conversationId: string) => import('../types').WebSearchResultData | null
-  startSummarizing: (conversationId: string) => void
+  startSummarizing: (conversationId: string, messageId: string) => void
   endSummarizing: (conversationId: string) => void
 }
 
@@ -83,6 +84,7 @@ interface ChatState {
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
   summarizingStates: Record<string, boolean>
+  summarizingMessageId: string | null
   searchResultsByConversation: Record<string, import('../types').WebSearchResultData>
   newReplies: Record<string, boolean>
   error: string | null
@@ -98,6 +100,7 @@ const initialState: ChatState = {
   messagesByConversation: {},
   streamingStates: {},
   summarizingStates: {},
+  summarizingMessageId: null,
   searchResultsByConversation: {},
   newReplies: {},
   error: null,
@@ -336,8 +339,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         summarizingStates: {
           ...state.summarizingStates,
-          [action.payload]: true,
+          [action.payload.conversationId]: true,
         },
+        summarizingMessageId: action.payload.messageId,
       }
 
     case 'END_SUMMARIZING': {
@@ -346,6 +350,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         summarizingStates: newSummarizingStates,
+        summarizingMessageId: null,
       }
     }
 
@@ -744,8 +749,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [state.searchResultsByConversation]
   )
 
-  const startSummarizing = useCallback((conversationId: string) => {
-    dispatch({ type: 'START_SUMMARIZING', payload: conversationId })
+  const startSummarizing = useCallback((conversationId: string, messageId: string) => {
+    dispatch({ type: 'START_SUMMARIZING', payload: { conversationId, messageId } })
   }, [])
 
   const endSummarizing = useCallback((conversationId: string) => {
@@ -794,6 +799,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch,
         stateRef,
         getSummarizingState,
+        summarizingMessageId: state.summarizingMessageId,
         getSearchResults,
         startSummarizing,
         endSummarizing,

@@ -29,7 +29,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
-  const { startSummarizing, endSummarizing } = useChat()
+  const { startSummarizing, endSummarizing, summarizingMessageId } = useChat()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -62,7 +62,7 @@ export const MessageBubble = memo(function MessageBubble({
   const handleSaveAsNote = async () => {
     if (saving || saved) return
     setSaving(true)
-    startSummarizing(message.conversationId)
+    startSummarizing(message.conversationId, message.id)
 
     // 确保光晕至少显示 2 秒
     const minGlow = new Promise<void>((r) => setTimeout(r, 2000))
@@ -95,6 +95,7 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   const bubbleContent = (
+    <div>
     <div className={`flex gap-4 py-5 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
         className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all micro-transition overflow-hidden ${
@@ -183,42 +184,61 @@ export const MessageBubble = memo(function MessageBubble({
             {formatTimestamp(message.timestamp)}
           </span>
 
-          {!isUser && !isThinking && (
-            <div
-              className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
-            >
-              <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
-                {copied ? (
-                  <Check className='w-[14px] h-[14px] text-green-400' />
-                ) : (
-                  <Copy className='w-[14px] h-[14px]' />
-                )}
-              </button>
-              {onRegenerate && (
-                <button onClick={onRegenerate} className='icon-btn' title='重新生成'>
-                  <RotateCcw className='w-[14px] h-[14px]' />
-                </button>
-              )}
-              <div className='relative'>
-                <button onClick={handleSaveAsNote} className='icon-btn peer' disabled={saving}>
-                  {saving ? (
-                    <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
-                  ) : saved ? (
+          {summarizingMessageId === message.id ? (
+            <div className='flex items-center gap-2'>
+              <div className='h-1 w-20 rounded-full overflow-hidden bg-[var(--bg-hover)]'>
+                <div
+                  className='h-full rounded-full animate-summarize-progress'
+                  style={{
+                    background: 'linear-gradient(90deg, var(--brand-primary), var(--accent-purple))',
+                    width: '60%',
+                  }}
+                />
+              </div>
+              <span className='text-[11px] text-[var(--brand-primary)] font-secondary whitespace-nowrap'>
+                总结中
+              </span>
+            </div>
+          ) : (
+            !isUser && !isThinking && (
+              <div
+                className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
+              >
+                <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
+                  {copied ? (
                     <Check className='w-[14px] h-[14px] text-green-400' />
                   ) : (
-                    <PenLine className='w-[14px] h-[14px]' />
+                    <Copy className='w-[14px] h-[14px]' />
                   )}
                 </button>
-                {!saving && !saved && (
-                  <span className='tooltip-content'>
-                    AI 总结并保存为笔记
-                  </span>
+                {onRegenerate && (
+                  <button onClick={onRegenerate} className='icon-btn' title='重新生成'>
+                    <RotateCcw className='w-[14px] h-[14px]' />
+                  </button>
                 )}
+                <div className='relative'>
+                  <button onClick={handleSaveAsNote} className='icon-btn peer' disabled={saving}>
+                    {saving ? (
+                      <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
+                    ) : saved ? (
+                      <Check className='w-[14px] h-[14px] text-green-400' />
+                    ) : (
+                      <PenLine className='w-[14px] h-[14px]' />
+                    )}
+                  </button>
+                  {!saving && !saved && (
+                    <span className='tooltip-content'>
+                      AI 总结并保存为笔记
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            )
           )}
         </div>
       </div>
+
+    </div>
     </div>
   )
 

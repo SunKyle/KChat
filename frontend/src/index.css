@@ -1664,7 +1664,24 @@ input[type='search']::-webkit-search-decoration {
 }
 
 /* ============================================
-   Border Beam — animated border glow
+   Summarize Progress Bar — sliding gradient
+   ============================================ */
+
+@keyframes summarize-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-summarize-progress {
+  animation: summarize-progress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ============================================
+   Border Beam — animated border glow (used by NoteForm)
    ============================================ */
 
 @keyframes border-beam-travel {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
 import type { Conversation } from '../../types'
-import { BorderBeam } from '../ui/border-beam'
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -175,7 +174,6 @@ export function ConversationItem({
           : 'hover:theme-bg-hover/60 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
-      {isSummarizing && <BorderBeam />}
       <div
         className='flex-1 min-w-0 pr-20 sidebar-content-enter'
         style={{
