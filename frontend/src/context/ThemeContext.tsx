@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { type ThemeName, themes, getThemeColors } from '../theme/types'
 
 interface ThemeContextType {
@@ -10,6 +10,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 const STORAGE_KEY = 'kchat-theme'
+const TRANSITION_CLASS = 'theme-transitioning'
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeName>(() => {
@@ -19,10 +20,31 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     return 'light'
   })
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const setTheme = useCallback((newTheme: ThemeName) => {
+    const root = document.documentElement
+
+    root.classList.add(TRANSITION_CLASS)
+
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current)
+    }
+
     setThemeState(newTheme)
     localStorage.setItem(STORAGE_KEY, newTheme)
+
+    transitionTimerRef.current = setTimeout(() => {
+      root.classList.remove(TRANSITION_CLASS)
+    }, 350)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
