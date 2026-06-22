@@ -78,7 +78,7 @@ function AppContent() {
           onMouseEnter={handleSidebarEnter}
         >
           <div
-            className={`h-full card-float-solid ${sidebarWidth} transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[width]`}
+            className={`h-full card-float-solid ${sidebarWidth} transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width]`}
           >
             <Sidebar
               collapsed={sidebarCollapsed}

@@ -220,54 +220,64 @@ export function Sidebar({
           </div>
         </div>
 
-        {!collapsed && (
-          <div className='flex items-center gap-2 mt-2 px-4 sidebar-search-enter'>
-            <div className='relative flex-1'>
-              <Search
-                className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]'
-                aria-hidden='true'
-              />
-              <input
-                ref={searchInputRef}
-                type='text'
-                role='combobox'
-                aria-expanded={searchQuery.length > 0}
-                aria-autocomplete='list'
-                aria-controls='conversation-list'
-                aria-haspopup='listbox'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape' && searchQuery) {
-                    e.preventDefault()
-                    setSearchQuery('')
-                  } else if (e.key === 'Escape') {
-                    searchInputRef.current?.blur()
-                  }
-                }}
-                placeholder='搜索会话...'
-                aria-label='搜索会话'
-                className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  aria-label='清除搜索'
-                  className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
-                >
-                  <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
-                </button>
-              )}
-            </div>
-            <button
-              onClick={create}
-              aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200 flex-shrink-0'
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className='overflow-hidden'
             >
-              <MessageSquarePlus className='w-3.5 h-3.5' aria-hidden='true' />
-            </button>
-          </div>
-        )}
+              <div className='flex items-center gap-2 mt-2 px-4'>
+                <div className='relative flex-1'>
+                  <Search
+                    className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]'
+                    aria-hidden='true'
+                  />
+                  <input
+                    ref={searchInputRef}
+                    type='text'
+                    role='combobox'
+                    aria-expanded={searchQuery.length > 0}
+                    aria-autocomplete='list'
+                    aria-controls='conversation-list'
+                    aria-haspopup='listbox'
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape' && searchQuery) {
+                        e.preventDefault()
+                        setSearchQuery('')
+                      } else if (e.key === 'Escape') {
+                        searchInputRef.current?.blur()
+                      }
+                    }}
+                    placeholder='搜索会话...'
+                    aria-label='搜索会话'
+                    className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      aria-label='清除搜索'
+                      className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
+                    >
+                      <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={create}
+                  aria-label='创建新对话'
+                  className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200 flex-shrink-0'
+                >
+                  <MessageSquarePlus className='w-3.5 h-3.5' aria-hidden='true' />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {collapsed && <div className='mx-3 divider' />}
 
@@ -298,29 +308,39 @@ export function Sidebar({
             <div role='listbox' id='conversation-list' className='space-y-3'>
               {filteredGrouped.map(({ group, items }) => (
                 <div key={group} className='space-y-0.5'>
-                  {!collapsed && (
-                    <button
-                      onClick={() => toggleGroup(group)}
-                      aria-expanded={expandedGroups.has(group)}
-                      aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
-                    >
-                      <span className='flex items-center gap-1.5'>
-                        <ChevronRight
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                            expandedGroups.has(group) ? 'rotate-90' : ''
-                          }`}
-                          aria-hidden='true'
-                        />
-                        <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
-                          {group}
-                        </span>
-                      </span>
-                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
-                        {items.length}
-                      </span>
-                    </button>
-                  )}
+                  <AnimatePresence>
+                    {!collapsed && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        className='overflow-hidden'
+                      >
+                        <button
+                          onClick={() => toggleGroup(group)}
+                          aria-expanded={expandedGroups.has(group)}
+                          aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
+                          className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
+                        >
+                          <span className='flex items-center gap-1.5'>
+                            <ChevronRight
+                              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                expandedGroups.has(group) ? 'rotate-90' : ''
+                              }`}
+                              aria-hidden='true'
+                            />
+                            <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
+                              {group}
+                            </span>
+                          </span>
+                          <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
+                            {items.length}
+                          </span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   {(collapsed || expandedGroups.has(group)) &&
                     items.map((conversation, idx) => (
                       <ConversationItem
@@ -364,26 +384,34 @@ export function Sidebar({
                   <User className='w-[18px] h-[18px] theme-text-secondary' />
                 )}
               </div>
-              {!collapsed && (
-                <>
-                  <div className='flex-1 min-w-0 space-y-1 text-left sidebar-content-enter'>
-                    <p className='font-conversation-name theme-text-primary truncate leading-tight'>
-                      {profile?.nickname || '用户'}
-                    </p>
-                    <span
-                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none'
-                      title='Premium Plan'
-                    >
-                      <Crown className='w-2.5 h-2.5' aria-hidden='true' />
-                      Premium
-                    </span>
-                  </div>
-                  <Settings
-                    className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
-                    aria-hidden='true'
-                  />
-                </>
-              )}
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    className='flex items-center gap-2 min-w-0'
+                  >
+                    <div className='flex-1 min-w-0 space-y-1 text-left'>
+                      <p className='font-conversation-name theme-text-primary truncate leading-tight'>
+                        {profile?.nickname || '用户'}
+                      </p>
+                      <span
+                        className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none'
+                        title='Premium Plan'
+                      >
+                        <Crown className='w-2.5 h-2.5' aria-hidden='true' />
+                        Premium
+                      </span>
+                    </div>
+                    <Settings
+                      className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
+                      aria-hidden='true'
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
