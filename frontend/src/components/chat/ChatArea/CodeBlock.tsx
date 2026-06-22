@@ -1,7 +1,8 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { useTheme } from '../../../context/ThemeContext'
 
 interface CodeBlockProps {
   code: string
@@ -10,6 +11,8 @@ interface CodeBlockProps {
 
 export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const handleCopy = async () => {
     try {
@@ -22,8 +25,8 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   return (
-    <div className='my-3 rounded-xl overflow-hidden border border-[var(--border-primary)]'>
-      <div className='flex items-center justify-between px-4 py-2.5 bg-[#21252b] border-b border-white/[0.08]'>
+    <div className='my-3 rounded-xl overflow-hidden'>
+      <div className='flex items-center justify-between px-4 py-2.5 rounded-t-xl border-b border-white/[0.08]'>
         <span className='text-xs font-semibold text-[var(--text-muted)]'>{language}</span>
         <button
           onClick={handleCopy}
@@ -44,12 +47,12 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
       </div>
       <SyntaxHighlighter
         language={language}
-        style={oneDark}
+        style={isDark ? oneDark : oneLight}
         customStyle={{
           margin: 0,
           borderRadius: 0,
           fontSize: 'var(--font-code)',
-          background: '#282c34',
+          background: 'transparent',
         }}
         showLineNumbers={true}
         wrapLines={true}

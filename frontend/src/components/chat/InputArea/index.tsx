@@ -327,7 +327,7 @@ export function InputArea() {
                   {!streamingState.isStreaming && (
                     <span
                       aria-live='polite'
-                      className={`font-helper-text tabular-nums transition-colors duration-200 ${
+                      className={`text-xs tabular-nums transition-colors duration-200 ${
                         charCount > maxChars
                           ? 'text-red-500 font-weight-semibold'
                           : charCount >= maxChars * 0.9
@@ -341,7 +341,7 @@ export function InputArea() {
 
                   {/* 键盘提示 */}
                   {!streamingState.isStreaming && (
-                    <span className='font-helper-text theme-text-muted hidden sm:inline'>
+                    <span className='text-xs theme-text-muted hidden sm:inline'>
                       Shift + Enter 换行
                     </span>
                   )}
@@ -427,7 +427,7 @@ export function InputArea() {
           )
         })()}
         {uploading && (
-          <div className='mt-3 font-helper-text theme-text-muted flex items-center gap-2'>
+          <div className='mt-3 text-xs theme-text-muted flex items-center gap-2'>
             <Loader2 className='w-3 h-3 animate-spin' />
             正在上传图片...
           </div>
