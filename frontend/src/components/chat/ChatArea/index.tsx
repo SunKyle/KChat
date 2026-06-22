@@ -140,33 +140,34 @@ export function ChatArea() {
           </div>
         ) : messages.length === 0 ? (
           <div className='flex flex-col items-center justify-center h-full px-6 py-12 sm:py-20 max-w-2xl mx-auto relative'>
-            <div className='absolute top-1/4 -right-1/4 w-80 h-80 bg-gradient-to-br from-[var(--brand-primary)]/12 via-[var(--accent-purple)]/8 to-[var(--accent-purple)]/3 rounded-full blur-3xl animate-float-slow' />
-            <div className='absolute bottom-1/4 -left-1/4 w-64 h-64 bg-gradient-to-tr from-[var(--accent-amber)]/8 via-[var(--accent-rose)]/8 to-[var(--brand-success)]/5 rounded-full blur-3xl animate-float-slow-delayed' />
+            <div className='absolute top-1/4 -right-1/4 w-96 h-96 bg-gradient-to-br from-[var(--brand-primary)]/15 via-[var(--accent-purple)]/10 to-[var(--accent-purple)]/4 rounded-full blur-3xl animate-float-slow' />
+            <div className='absolute bottom-1/4 -left-1/4 w-80 h-80 bg-gradient-to-tr from-[var(--accent-amber)]/10 via-[var(--accent-rose)]/10 to-[var(--brand-success)]/6 rounded-full blur-3xl animate-float-slow-delayed' />
             <div className='relative z-10 text-center flex flex-col items-center w-full'>
-              <div className='mb-8 sm:mb-12'>
-                <img src='/kchat-icon.svg' alt='KChat' className='w-16 sm:w-20 h-16 sm:h-20 object-contain' />
+              <div className='mb-8 sm:mb-12 relative'>
+                <div className='absolute inset-0 w-24 h-24 sm:w-28 sm:h-28 -top-2 -left-2 bg-gradient-to-br from-[var(--brand-primary)]/30 to-[var(--accent-purple)]/20 rounded-full blur-2xl' />
+                <img src='/kchat-icon.svg' alt='KChat' className='relative w-20 sm:w-24 h-20 sm:h-24 object-contain drop-shadow-lg' />
               </div>
-              <h1 className='text-4xl sm:text-5xl theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>欢迎使用 KChat</h1>
-              <p className='text-lg theme-text-secondary mb-8 sm:mb-10 max-w-sm text-center animate-fade-in-up animation-delay-100'>智能助手随时为您服务，开启高效对话体验</p>
+              <h1 className='text-5xl sm:text-6xl font-logo theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>欢迎使用 KChat</h1>
+              <p className='text-lg sm:text-xl theme-text-secondary mb-10 sm:mb-12 max-w-xs sm:max-w-sm text-center animate-fade-in-up animation-delay-100 leading-relaxed'>智能助手随时为您服务，开启高效对话体验</p>
               <div className='w-full max-w-md animate-fade-in-up animation-delay-200'>
                 <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>
-                  <button onClick={() => sendMessage('请帮我写一段代码', [], false)} aria-label='写代码' className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary text-base rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
-                    <div className='w-7 h-7 rounded-md bg-[var(--brand-primary)]/10 group-hover:bg-[var(--brand-primary)]/20 flex items-center justify-center transition-colors'><Code className='w-3.5 h-3.5 text-[var(--brand-primary)]' /></div>
-                    <span className='hidden sm:inline'>写代码</span>
+                  <button onClick={() => sendMessage('请帮我写一段代码', [], false)} aria-label='写代码' className='group flex items-center gap-2.5 px-4 sm:px-5 py-3 text-theme-text-secondary text-sm sm:text-base rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:bg-white/[0.06] hover:border-[var(--brand-primary)]/30 hover:shadow-lg hover:shadow-[var(--brand-primary)]/8 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
+                    <div className='w-8 h-8 rounded-lg bg-[var(--brand-primary)]/15 group-hover:bg-[var(--brand-primary)]/25 flex items-center justify-center transition-colors'><Code className='w-4 h-4 text-[var(--brand-primary)]' /></div>
+                    <span className='hidden sm:inline font-semibold'>写代码</span>
                   </button>
-                  <button onClick={() => sendMessage('请帮我解释一个知识点', [], false)} aria-label='学知识' className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary text-base rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
-                    <div className='w-7 h-7 rounded-md bg-[var(--brand-success)]/10 group-hover:bg-[var(--brand-success)]/20 flex items-center justify-center transition-colors'><BookOpen className='w-3.5 h-3.5 text-[var(--brand-success)]' /></div>
-                    <span className='hidden sm:inline'>学知识</span>
+                  <button onClick={() => sendMessage('请帮我解释一个知识点', [], false)} aria-label='学知识' className='group flex items-center gap-2.5 px-4 sm:px-5 py-3 text-theme-text-secondary text-sm sm:text-base rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:bg-white/[0.06] hover:border-[var(--brand-success)]/30 hover:shadow-lg hover:shadow-[var(--brand-success)]/8 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
+                    <div className='w-8 h-8 rounded-lg bg-[var(--brand-success)]/15 group-hover:bg-[var(--brand-success)]/25 flex items-center justify-center transition-colors'><BookOpen className='w-4 h-4 text-[var(--brand-success)]' /></div>
+                    <span className='hidden sm:inline font-semibold'>学知识</span>
                   </button>
-                  <button onClick={() => sendMessage('请帮我头脑风暴一些创意想法', [], false)} aria-label='想创意' className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary text-base rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
-                    <div className='w-7 h-7 rounded-md bg-[var(--accent-amber)]/10 group-hover:bg-[var(--accent-amber)]/20 flex items-center justify-center transition-colors'><Lightbulb className='w-3.5 h-3.5 text-[var(--accent-amber)]' /></div>
-                    <span className='hidden sm:inline'>想创意</span>
+                  <button onClick={() => sendMessage('请帮我头脑风暴一些创意想法', [], false)} aria-label='想创意' className='group flex items-center gap-2.5 px-4 sm:px-5 py-3 text-theme-text-secondary text-sm sm:text-base rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:bg-white/[0.06] hover:border-[var(--accent-amber)]/30 hover:shadow-lg hover:shadow-[var(--accent-amber)]/8 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'>
+                    <div className='w-8 h-8 rounded-lg bg-[var(--accent-amber)]/15 group-hover:bg-[var(--accent-amber)]/25 flex items-center justify-center transition-colors'><Lightbulb className='w-4 h-4 text-[var(--accent-amber)]' /></div>
+                    <span className='hidden sm:inline font-semibold'>想创意</span>
                   </button>
                 </div>
               </div>
-              <div className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted text-sm animate-fade-in-up animation-delay-300' role='status'>
+              <div className='mt-12 sm:mt-16 flex items-center gap-4 text-theme-text-muted text-sm animate-fade-in-up animation-delay-300' role='status'>
                 <div className='flex items-center gap-1.5'><div className='w-2 h-2 rounded-full bg-[var(--brand-success)] animate-pulse' /><span>服务正常</span></div>
-                <div className='w-px h-3 bg-theme-border-primary' /><span>响应迅速</span>
+                <div className='w-px h-3 bg-[var(--border-divider)]' /><span>响应迅速</span>
               </div>
             </div>
           </div>

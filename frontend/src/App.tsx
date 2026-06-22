@@ -113,7 +113,13 @@ function AppContent() {
           }
         >
           <div className='flex flex-col h-full card-float-solid relative overflow-hidden'>
-            <div className='absolute inset-0 bg-gradient-to-br from-[var(--accent-primary)]/5 via-transparent to-[var(--accent-purple)]/5 pointer-events-none' />
+            <div className='absolute inset-0 pointer-events-none' style={{
+              background: `
+                radial-gradient(ellipse 60% 50% at 50% 40%, var(--accent-primary-opacity-8, rgba(30,157,241,0.08)) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 80% 60%, var(--accent-purple-opacity-6, rgba(139,92,246,0.06)) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 35% at 20% 30%, var(--accent-amber-opacity-4, rgba(251,191,36,0.04)) 0%, transparent 60%)
+              `
+            }} />
             <Header onSettingsClick={() => openSettings('profile')} />
             <div className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
               <ChatArea />
