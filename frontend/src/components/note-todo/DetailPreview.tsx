@@ -165,7 +165,7 @@ function TodoPreview({
       </div>
       <div className='flex-1 overflow-y-auto p-4'>
         <div className='flex items-start gap-3 mb-4'>
-          <button onClick={onToggle} className='mt-0.5 flex-shrink-0'>
+          <button onClick={onToggle} aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为已完成'} className='mt-0.5 flex-shrink-0'>
             {todo.status === 'completed' ? (
               <CheckCircle2 className='w-5 h-5 text-[var(--brand-primary)]' />
             ) : (

@@ -52,7 +52,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
   }
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4'>
+    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='w-full max-w-lg theme-bg-card rounded-2xl border theme-border-primary shadow-2xl'>
         <div className='flex items-center justify-between p-4 border-b theme-border-primary'>
           <h3 className='font-title'>

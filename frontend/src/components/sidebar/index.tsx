@@ -224,7 +224,7 @@ export function Sidebar({
           <div className='flex items-center gap-2 mt-2 px-4 sidebar-search-enter'>
             <div className='relative flex-1'>
               <Search
-                className='absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]/60'
+                className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]'
                 aria-hidden='true'
               />
               <input
@@ -247,7 +247,7 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+                className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
               />
               {searchQuery && (
                 <button
@@ -262,9 +262,9 @@ export function Sidebar({
             <button
               onClick={create}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all flex-shrink-0'
+              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200 flex-shrink-0'
             >
-              <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+              <MessageSquarePlus className='w-3.5 h-3.5' aria-hidden='true' />
             </button>
           </div>
         )}
@@ -295,15 +295,15 @@ export function Sidebar({
               <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
             </div>
           ) : (
-            <div role='listbox' id='conversation-list' className='space-y-2'>
+            <div role='listbox' id='conversation-list' className='space-y-3'>
               {filteredGrouped.map(({ group, items }) => (
-                <div key={group} className='space-y-1'>
+                <div key={group} className='space-y-0.5'>
                   {!collapsed && (
                     <button
                       onClick={() => toggleGroup(group)}
                       aria-expanded={expandedGroups.has(group)}
                       aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='group/header w-full flex items-center justify-between px-2.5 py-1.5 min-h-[36px] font-group-title theme-text-muted hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
+                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring sidebar-content-enter'
                     >
                       <span className='flex items-center gap-1.5'>
                         <ChevronRight
@@ -312,7 +312,7 @@ export function Sidebar({
                           }`}
                           aria-hidden='true'
                         />
-                        <span className='group-hover/header:theme-text-secondary transition-colors flex items-center gap-1'>
+                        <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
                           {group}
                         </span>
                       </span>
@@ -371,7 +371,7 @@ export function Sidebar({
                       {profile?.nickname || '用户'}
                     </p>
                     <span
-                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none backdrop-blur-sm'
+                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none'
                       title='Premium Plan'
                     >
                       <Crown className='w-2.5 h-2.5' aria-hidden='true' />

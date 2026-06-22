@@ -148,7 +148,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
             ),
             li: ({ children }) => <li className='theme-text-primary'>{children}</li>,
             blockquote: ({ children }) => (
-              <blockquote className='border-l-4 border-primary-500 pl-4 my-3 italic theme-text-secondary'>
+              <blockquote className='border-l-4 border-primary-500 pl-4 my-3 italic theme-text-primary'>
                 {children}
               </blockquote>
             ),

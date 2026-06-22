@@ -170,7 +170,7 @@ function NoteTodoSearchBar({
         <div className='mt-3'>
           <button
             onClick={onFilterToggle}
-            className='flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)]/60 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
+            className='flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
           >
             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`} />
             筛选标签

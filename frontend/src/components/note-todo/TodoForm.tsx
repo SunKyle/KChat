@@ -91,10 +91,10 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
         </div>
       </div>
       <div className='flex-shrink-0 flex items-center justify-end gap-2.5 px-4 py-3 border-t border-[var(--border-divider)]'>
-        <button onClick={onCancel} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
+        <button onClick={onCancel} aria-label='取消' className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
           取消
         </button>
-        <button onClick={onSubmit} className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'>
+        <button onClick={onSubmit} aria-label={isEditing ? '保存' : '创建'} className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'>
           {isEditing ? '保存' : '创建'}
         </button>
       </div>

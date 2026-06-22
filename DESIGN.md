@@ -44,46 +44,46 @@ colors:
 typography:
   display:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-    fontSize: "clamp(24px, 5vw, 32px)"
+    fontSize: "24px / 32px"
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "-0.01em"
   h1:
-    fontSize: "clamp(22px, 4vw, 28px)"
+    fontSize: "22px / 28px"
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.01em"
   h2:
-    fontSize: "clamp(20px, 3vw, 24px)"
+    fontSize: "20px / 24px"
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.01em"
   h3:
-    fontSize: "clamp(18px, 2vw, 20px)"
+    fontSize: "18px / 20px"
     fontWeight: 600
     lineHeight: 1.3
   h4:
-    fontSize: "16px"
+    fontSize: "16px (fixed)"
     fontWeight: 600
     lineHeight: 1.3
   body:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-    fontSize: "clamp(14px, 1.5vw, 15px)"
+    fontSize: "14px / 15px"
     fontWeight: 400
     lineHeight: 1.7
     letterSpacing: "0"
   secondary:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-    fontSize: "clamp(13px, 1vw, 14px)"
+    fontSize: "13px / 14px"
     fontWeight: 400
     lineHeight: 1.7
   caption:
-    fontSize: "clamp(11px, 0.8vw, 12px)"
+    fontSize: "11px / 12px"
     fontWeight: 400
     lineHeight: 1.5
   mono:
     fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', Monaco, 'Consolas', 'Liberation Mono', monospace"
-    fontSize: "clamp(13px, 1vw, 14px)"
+    fontSize: "13px / 14px"
     fontWeight: 400
     lineHeight: 1.5
 rounded:
@@ -190,7 +190,7 @@ The coral operates as a two-tier system: a lighter identity shade for decorative
 **Display Font:** System UI stack (-apple-system, BlinkMacSystemFont, SF Pro Display, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif)
 **Mono Font:** JetBrains Mono (with SF Mono, Fira Code, Monaco, Consolas, Liberation Mono fallbacks)
 
-**Character:** The system font stack is chosen for instant rendering and native OS feel — no web font latency, no FOUT. JetBrains Mono provides a crisp, distinctive code voice that pairs cleanly with the system sans. All sizes are defined as CSS custom properties and respond to viewport width via a single 768px breakpoint (mobile → desktop step-up). No pixel values are hardcoded in components.
+**Character:** The system font stack is chosen for instant rendering and native OS feel — no web font latency, no FOUT. JetBrains Mono provides a crisp, distinctive code voice that pairs cleanly with the system sans. All sizes are defined as CSS custom properties with a fixed `rem` scale (product-appropriate, per the register). A single `@media (min-width: 768px)` breakpoint steps sizes up for tablet/desktop — no fluid `clamp()`, no per-component breakpoints. No pixel values are hardcoded in components.
 
 ### Hierarchy (mobile / desktop)
 - **Display** (600, 24px / 32px, 1.2, -0.01em): Sidebar logo. The largest type on screen — used exactly once.

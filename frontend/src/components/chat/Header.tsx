@@ -47,14 +47,14 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-secondary'>
+    <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary'>
       <div className='flex items-center gap-3'>
         {activeConversation ? (
           <h1 className='font-conversation-name font-semibold theme-text-primary truncate max-w-lg'>
             {activeConversation.title}
           </h1>
         ) : (
-          <h1 className='font-secondary theme-text-muted'>选择或创建对话</h1>
+          <h1 className='font-conversation-name theme-text-muted'>选择或创建对话</h1>
         )}
       </div>
 
@@ -63,13 +63,13 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <button
             ref={buttonRef}
             onClick={handleDropdownToggle}
-            className='flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 bg-[var(--bg-card)] rounded-lg border theme-border-secondary shadow-sm shadow-[var(--shadow-color-secondary)] hover:border-[var(--accent-primary)]/40 hover:shadow-md hover:shadow-[var(--accent-primary)]/10 transition-all duration-200 cursor-pointer'
+            className='flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 bg-[var(--bg-card)] rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm hover:shadow-[var(--brand-primary)]/8 transition-all duration-200 cursor-pointer'
             aria-label='选择模型'
             aria-expanded={isModelDropdownOpen}
             aria-haspopup='listbox'
           >
             <Cpu className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-brand-primary' />
-            <span className='font-secondary font-semibold text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none'>
+            <span className='font-secondary text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none'>
               {currentModel}
             </span>
             <ChevronDown className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted' />
@@ -106,7 +106,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
           )}
         </div>
 
-        <div className='flex items-center gap-2 sm:gap-3 border-l theme-border-secondary pl-3 sm:pl-4'>
+        <div className='flex items-center gap-2 sm:gap-3 border-l theme-border-primary pl-3 sm:pl-4'>
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}

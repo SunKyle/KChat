@@ -129,7 +129,7 @@ function ErrorToastContainer() {
       {errors.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm min-w-[280px] max-w-[400px] animate-slide-in-right ${
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg min-w-[280px] max-w-[400px] animate-slide-in-right ${
             toast.type === 'error'
               ? 'bg-red-500/90 text-white'
               : toast.type === 'warning'

@@ -302,7 +302,7 @@ export function ModelSettings() {
       )}
 
       {showAddModal && (
-        <div className='fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4'>
+        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'>
           <div className='theme-bg-card rounded-2xl w-full max-w-lg border theme-border-primary max-h-[90vh] flex flex-col'>
             <div className='flex items-center justify-between p-4 border-b theme-border-primary flex-shrink-0'>
               <h3 className='text-base font-semibold theme-text-primary'>

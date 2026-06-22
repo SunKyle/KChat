@@ -215,7 +215,7 @@ export function TodoList({
         <div>
           <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
             <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
-            <span className='text-xs font-semibold text-[var(--text-muted)] tracking-wider uppercase'>
+            <span className='text-xs font-semibold text-[var(--text-muted)]'>
               已完成
             </span>
           </div>

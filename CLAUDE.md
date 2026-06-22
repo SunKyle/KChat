@@ -97,22 +97,87 @@ main.tsx
 - All endpoints require `userId` query param (defaults to `'default'`)
 - API modules: `chat.ts`, `models.ts`, `memory.ts`, `user.ts`, `note-todo.ts`
 
-**Styling:**
-- Tailwind CSS 3.4 with custom theme classes (`theme-bg-primary`, `theme-text-primary`, `card-float-solid`, etc.)
-- CSS custom properties for light/dark theme switching defined in `src/index.css` (~1600 lines)
-- Custom effects: `ElectricBorder` (animated neon border), `SummarizeGlow` (glow animation on conversation items)
+## Design System
 
-### Cross-cutting conventions
+The canonical design spec lives in `DESIGN.md` (visual) and `PRODUCT.md` (strategy) at the project root. Read both before modifying any visual surface.
+
+### Color tokens — two-layer architecture
+
+**Layer 1: shadcn/ui convention** (`index.css :root` / `.dark`):
+```css
+--primary: #1e9df1;        /* Twitter blue — the sole accent */
+--background: #ffffff;     /* light; #000000 in dark */
+--foreground: #0f1419;     /* light; #e7e9ea in dark */
+--muted: #E5E5E6;          /* light; #181818 in dark */
+--border: #e1eaef;         /* light; #242628 in dark */
+--destructive: #f4212e;
+--ring: #1da1f2;           /* focus ring */
+```
+
+**Layer 2: KChat compatibility aliases** (map legacy names → reference tokens):
+```css
+--brand-primary: var(--primary);
+--bg-primary: var(--background);
+--text-primary: var(--foreground);
+--text-muted: var(--muted-foreground);
+/* etc. */
+```
+
+Both layers coexist. New code should use reference token names (`var(--primary)`). Existing code using `var(--brand-primary)` continues to work because aliases point to the same values.
+
+### Runtime theme injection (critical to understand)
+
+`ThemeContext.tsx` calls `getThemeColors()` from `theme/types.ts` which reads hardcoded color values from `darkTheme`/`lightTheme` objects, then applies them via `root.style.setProperty()`. These inline styles **override** any CSS `:root {}` declarations. When debugging color issues, always check `theme/types.ts` first — it's the runtime source of truth that can silently override CSS variables.
+
+### Typography
+
+Unified CSS custom property scale in `index.css`. No hardcoded pixel font sizes in any component.
+
+| Token | Mobile (<768px) | Desktop (≥768px) |
+|-------|-----------------|------------------|
+| `--font-display` | 1.5rem (24px) | 2rem (32px) |
+| `--font-h1` – `--font-h4` | 1.375–1rem | 1.75–1rem |
+| `--font-body` | 0.875rem (14px) | 0.9375rem (15px) |
+| `--font-secondary` | 0.8125rem (13px) | 0.875rem (14px) |
+| `--font-caption` | 0.6875rem (11px) | 0.75rem (12px) |
+| `--font-code` | 0.8125rem (13px) | 0.875rem (14px) |
+
+Line heights are unitless: `--leading-display: 1.2`, `--leading-heading: 1.3`, `--leading-body: 1.7`, `--leading-caption: 1.5`, `--leading-code: 1.5`.
+
+Tailwind `fontSize` keys (`xs`–`7xl`) are preserved for backward compatibility but all reference CSS variables (e.g., `text-base` → `var(--font-body)`). Components respond to the 768px breakpoint automatically.
+
+**Font weight rule:** Only 400 (Regular) and 600 (Semibold) are allowed. No 300, 500, 700, 900.
+
+**Font stacks:**
+- Body: `'Open Sans', -apple-system, BlinkMacSystemFont, ...` (Google Font, ~30KB, `display: swap`)
+- Mono: `Menlo, 'JetBrains Mono', 'SF Mono', 'Fira Code', ...`
+- Serif: `Georgia, 'Times New Roman', serif`
+
+### Design bans (enforced)
+
+Per `DESIGN.md` Do's and Don'ts:
+- No gradient text (`background-clip: text`)
+- No side-stripe borders (`border-left` > 1px as colored accent on cards)
+- Glassmorphism only on `.card-float` (input area) and `.scroll-btn-glass` — nowhere else
+- No uppercase tracking-wider eyebrow labels
+- No bounce/spring easing outside error-card animations
+
+### Design tooling
+
+`.impeccable/design.json` is a machine-readable sidecar of DESIGN.md with component HTML/CSS snippets for the live preview panel. Regenerate with `/impeccable document` when DESIGN.md changes.
+
+## Cross-cutting conventions
 
 - **No comments by default** — only add comments for non-obvious constraints, invariants, or workarounds
 - **User ID**: All API calls pass `userId` query param, defaulting to `'default'`
 - **Token auth**: JWT stored in localStorage as `kchat_token`, auto-attached by API client interceptor
 - **i18n**: UI labels are predominantly Chinese, no i18n framework — hardcoded strings
 
-### Key spec documents (in `docs/`)
+## Key spec documents
 
-- `operations-guide.md` — Full setup, startup, troubleshooting guide
-- `backend-architecture.md` / `frontend-architecture.md` — Detailed architecture docs
-- `LONG_TERM_MEMORY_DESIGN.md` — Memory system design rationale
-- `UI_DESIGN_EVALUATION.md` — UI design decisions and evaluation
-- `frontend-refactor-plan.md` — Planned refactoring tasks
+- `PRODUCT.md` — Product strategy, users, brand personality, design principles, anti-references
+- `DESIGN.md` — Visual design system: color tokens, typography scale, elevation, component patterns
+- `docs/operations-guide.md` — Full setup, startup, troubleshooting guide
+- `docs/backend-architecture.md` / `docs/frontend-architecture.md` — Detailed architecture docs
+- `docs/LONG_TERM_MEMORY_DESIGN.md` — Memory system design rationale
+- `docs/frontend-refactor-plan.md` — Planned refactoring tasks

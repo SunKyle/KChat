@@ -25,9 +25,9 @@ const sizeClasses = {
 }
 
 const buttonColorClass = {
-  danger: 'bg-red-500 hover:bg-red-600',
-  warning: 'bg-yellow-500 hover:bg-yellow-600',
-  info: 'bg-blue-500 hover:bg-blue-600',
+  danger: 'bg-[var(--brand-danger)] hover:bg-[var(--brand-danger)]/90',
+  warning: 'bg-[var(--brand-warning)] hover:bg-[var(--brand-warning)]/90',
+  info: 'bg-[var(--brand-info)] hover:bg-[var(--brand-info)]/90',
 }
 
 export function Modal({

@@ -166,9 +166,9 @@ export function ConversationItem({
       aria-current={isActive ? 'true' : undefined}
       aria-setsize={total}
       aria-posinset={index != null ? index + 1 : undefined}
-      className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
+      className={`group relative flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
         isActive
-          ? 'bg-[var(--accent-primary)]/10 border-l-[var(--brand-primary)] border-y-transparent border-r-transparent'
+          ? 'bg-brand-selected border-transparent'
           : 'hover:theme-bg-hover/60 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
@@ -194,6 +194,7 @@ export function ConversationItem({
           />
         ) : (
           <p
+            title={conversation.title}
             className={`font-conversation-name truncate transition-colors duration-150 ${
               isActive
                 ? 'theme-brand-primary font-semibold'
@@ -213,7 +214,7 @@ export function ConversationItem({
           </div>
         )}
         <div
-          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'} micro-transition`}
+          className={`flex items-center gap-0.5 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'} micro-transition`}
         >
           {isEditing ? (
             <>
@@ -223,9 +224,9 @@ export function ConversationItem({
                   handleSaveEdit()
                 }}
                 aria-label='保存编辑'
-                className='icon-btn focus-ring'
+                className='sidebar-action-btn focus-ring'
               >
-                <Check className='w-[15px] h-[15px] theme-accent-emerald' aria-hidden='true' />
+                <Check className='w-3.5 h-3.5 theme-accent-emerald' aria-hidden='true' />
               </button>
               <button
                 onClick={(e) => {
@@ -233,9 +234,9 @@ export function ConversationItem({
                   handleCancelEdit()
                 }}
                 aria-label='取消编辑'
-                className='icon-btn focus-ring'
+                className='sidebar-action-btn focus-ring'
               >
-                <X className='w-[15px] h-[15px] theme-brand-danger' aria-hidden='true' />
+                <X className='w-3.5 h-3.5 theme-brand-danger' aria-hidden='true' />
               </button>
             </>
           ) : !isStreaming ? (
@@ -247,10 +248,10 @@ export function ConversationItem({
                 }}
                 aria-label={conversation.pinned ? '取消置顶' : '置顶会话'}
                 aria-pressed={conversation.pinned}
-                className='icon-btn focus-ring'
+                className='sidebar-action-btn focus-ring'
               >
                 <Pin
-                  className={`w-[15px] h-[15px] transition-colors ${
+                  className={`w-3.5 h-3.5 transition-colors ${
                     conversation.pinned
                       ? 'theme-accent-amber'
                       : 'theme-text-muted hover:theme-text-secondary'
@@ -262,10 +263,10 @@ export function ConversationItem({
               <button
                 onClick={handleStartEdit}
                 aria-label='编辑会话标题'
-                className='icon-btn focus-ring'
+                className='sidebar-action-btn focus-ring'
               >
                 <Pencil
-                  className='w-[15px] h-[15px] theme-text-muted hover:theme-text-secondary'
+                  className='w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary'
                   aria-hidden='true'
                 />
               </button>
@@ -275,10 +276,10 @@ export function ConversationItem({
                   onDelete()
                 }}
                 aria-label='删除会话'
-                className='icon-btn focus-ring'
+                className='sidebar-action-btn focus-ring'
               >
                 <Trash2
-                  className='w-[15px] h-[15px] theme-text-muted hover:theme-brand-danger'
+                  className='w-3.5 h-3.5 theme-text-muted hover:theme-brand-danger'
                   aria-hidden='true'
                 />
               </button>
