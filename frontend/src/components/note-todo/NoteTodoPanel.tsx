@@ -63,7 +63,7 @@ function NoteTodoHeader({
         />
         <button
           onClick={() => onModeChange('note')}
-          className='relative flex items-center gap-1 px-3 py-1 text-xs font-semibold transition-colors duration-200 rounded-md'
+          className='relative flex items-center gap-1 px-3 py-1.5 text-xs font-semibold transition-colors duration-200 rounded-md'
           style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
         >
           <FileText className='w-3 h-3' />
@@ -77,7 +77,7 @@ function NoteTodoHeader({
         </button>
         <button
           onClick={() => onModeChange('todo')}
-          className='relative flex items-center gap-1 px-3 py-1 text-xs font-semibold transition-colors duration-200 rounded-md'
+          className='relative flex items-center gap-1 px-3 py-1.5 text-xs font-semibold transition-colors duration-200 rounded-md'
           style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
         >
           <ListTodo className='w-3 h-3' />

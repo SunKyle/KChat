@@ -22,7 +22,7 @@ function NoteListItem({
 }: NoteListItemProps) {
   return (
     <div
-      className='group relative rounded-xl border border-[var(--border-divider)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--border-primary)] transition-all duration-200 cursor-pointer overflow-hidden'
+      className='group relative rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--brand-primary)]/30 transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
       <div className='p-4'>

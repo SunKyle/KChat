@@ -56,9 +56,9 @@
   /* === Reference Design Tokens (shadcn/ui convention) === */
 
   /* Surfaces */
-  --background: #ffffff;
+  --background: #e8eaed;
   --foreground: #0f1419;
-  --card: #f7f8f8;
+  --card: #fbfbfb;
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
@@ -175,7 +175,7 @@
   /* Surfaces */
   --background: #000000;
   --foreground: #e7e9ea;
-  --card: #17181c;
+  --card: #1a1d23;
   --card-foreground: #d9d9d9;
   --popover: #000000;
   --popover-foreground: #e7e9ea;
@@ -259,7 +259,7 @@
   --text-toolbar: #72767a;
   --text-toolbar-hover: var(--foreground);
   --text-timestamp: rgba(255, 255, 255, 0.3);
-  --border-divider: rgba(255, 255, 255, 0.08);
+  --border-divider: rgba(255, 255, 255, 0.16);
   --bg-status-connected: rgba(29, 161, 242, 0.1);
   --bg-dropdown: var(--popover);
   --bg-dropdown-hover: rgba(255, 255, 255, 0.05);
