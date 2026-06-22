@@ -257,7 +257,7 @@ export async function requestSSE(
   endpoint: string,
   options: RequestOptions = {},
   onMessage: (content: string) => void,
-  onComplete: (messageId: string) => void,
+  onComplete: (messageId: string, title?: string) => void,
   onError: (error: ApiError) => void,
   controller?: AbortController,
   onSearchResults?: (results: unknown) => void
@@ -334,7 +334,7 @@ export async function requestSSE(
           if (eventType === 'message' && parsedData.content) {
             onMessage(parsedData.content)
           } else if (eventType === 'done' && parsedData.messageId) {
-            onComplete(parsedData.messageId)
+            onComplete(parsedData.messageId, parsedData.title)
           } else if (eventType === 'search_results') {
             onSearchResults?.(parsedData)
           }

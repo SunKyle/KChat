@@ -53,7 +53,7 @@ export const chat = {
   stream: async (
     requestData: ChatRequest,
     onMessage: (content: string) => void,
-    onComplete: (messageId: string) => void,
+    onComplete: (messageId: string, title?: string) => void,
     onError: (error: Error) => void,
     controller?: AbortController,
     onSearchResults?: (results: unknown) => void

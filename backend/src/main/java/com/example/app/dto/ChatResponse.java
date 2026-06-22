@@ -18,4 +18,6 @@ public class ChatResponse {
     private String role;
 
     private String conversationId;
+
+    private String title;
 }

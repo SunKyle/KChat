@@ -59,6 +59,21 @@ public class ChatService {
     private final UserProfileService userProfileService;
 
     /**
+     * 用户设置服务
+     */
+    private final UserSettingService userSettingService;
+
+    /**
+     * 对话服务
+     */
+    private final ConversationService conversationService;
+
+    /**
+     * 标题生成服务
+     */
+    private final TitleGenerationService titleGenerationService;
+
+    /**
      * 网络搜索服务
      */
     private final WebSearchService webSearchService;
@@ -129,12 +144,36 @@ public class ChatService {
         // 8. 异步尝试从对话中提取新记忆
         autoMemoryExtractor.tryExtract(conversationId, userId);
 
-        // 构建响应
+        // 9. 尝试生成标题
+        String generatedTitle = tryGenerateTitle(conversationId, userId, userMessage, aiResponse, model);
+
         return ChatResponse.builder()
                 .messageId(UUID.randomUUID().toString())
                 .content(aiResponse)
                 .role("assistant")
                 .conversationId(conversationId)
+                .title(generatedTitle)
                 .build();
+    }
+
+    private String tryGenerateTitle(String conversationId, String userId, String userMessage,
+            String aiResponse, String model) {
+        try {
+            var setting = userSettingService.getOrCreate(userId);
+            if (!setting.getAutoTitle()) return null;
+
+            var conv = conversationService.getConversation(conversationId);
+            if (conv == null || !"新对话".equals(conv.getTitle())) return null;
+
+            String title = titleGenerationService.generateTitle(userMessage, aiResponse, model);
+            if (title.isBlank()) return null;
+
+            conversationService.updateConversation(conversationId, title, null);
+            log.info("[CHAT] Auto-generated title '{}' for conversation {}", title, conversationId);
+            return title;
+        } catch (Exception e) {
+            log.warn("[CHAT] Title generation failed: {}", e.getMessage());
+            return null;
+        }
     }
 }

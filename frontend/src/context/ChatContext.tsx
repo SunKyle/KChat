@@ -648,7 +648,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               },
             })
           },
-          (messageId) => {
+          (messageId, title) => {
             dispatch({
               type: 'UPDATE_MESSAGE',
               payload: { id: tempMessageId, content: streamingContent, conversationId },
@@ -657,6 +657,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               type: 'END_STREAMING',
               payload: { conversationId, messageId },
             })
+            if (title) {
+              dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id: conversationId!, title } })
+            }
             abortControllersRef.current[conversationId] = null
           },
           (error) => {

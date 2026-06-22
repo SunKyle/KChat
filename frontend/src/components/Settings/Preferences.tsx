@@ -1,6 +1,8 @@
-import { Monitor, Bell, Mail, Volume2, Smartphone, Languages } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Monitor, Bell, Mail, Volume2, Smartphone, Languages, MessageSquare } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
 import { useTheme } from '../../context/ThemeContext'
+import { settingsApi } from '../../api/user'
 
 interface ToggleProps {
   enabled: boolean
@@ -29,6 +31,24 @@ function Toggle({ enabled, onChange, disabled }: ToggleProps) {
 export function Preferences() {
   const { profile, updatePreferences, isLoading } = useUser()
   const { setTheme } = useTheme()
+  const [autoTitle, setAutoTitle] = useState(true)
+  const [autoTitleLoading, setAutoTitleLoading] = useState(false)
+
+  useEffect(() => {
+    settingsApi.get().then(s => setAutoTitle(s.autoTitle)).catch(() => {})
+  }, [])
+
+  const handleAutoTitleChange = async (value: boolean) => {
+    setAutoTitleLoading(true)
+    try {
+      await settingsApi.update({ autoTitle: value })
+      setAutoTitle(value)
+    } catch (err) {
+      console.error('Failed to update autoTitle:', err)
+    } finally {
+      setAutoTitleLoading(false)
+    }
+  }
 
   const handleThemeChange = async (theme: 'dark' | 'light' | 'system') => {
     try {
@@ -229,6 +249,25 @@ export function Preferences() {
           </div>
         </div>
       </div>
+      </div>
+
+      <div className='card-float-solid rounded-2xl p-6'>
+        <div className='flex items-center gap-2 mb-4'>
+          <MessageSquare className='w-[18px] h-[18px] theme-text-muted' />
+          <h3 className='font-medium theme-text-primary'>对话设置</h3>
+        </div>
+
+        <div className='flex items-center justify-between'>
+          <div>
+            <div className='text-sm font-medium theme-text-primary'>自动生成标题</div>
+            <div className='text-xs theme-text-muted'>新建对话后，根据对话内容自动生成简短标题</div>
+          </div>
+          <Toggle
+            enabled={autoTitle}
+            onChange={handleAutoTitleChange}
+            disabled={autoTitleLoading}
+          />
+        </div>
       </div>
     </div>
   )

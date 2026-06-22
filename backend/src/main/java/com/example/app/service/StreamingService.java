@@ -88,6 +88,21 @@ public class StreamingService {
     private final UserProfileService userProfileService;
 
     /**
+     * 用户设置服务
+     */
+    private final UserSettingService userSettingService;
+
+    /**
+     * 对话服务
+     */
+    private final ConversationService conversationService;
+
+    /**
+     * 标题生成服务
+     */
+    private final TitleGenerationService titleGenerationService;
+
+    /**
      * 网络搜索服务
      */
     private final WebSearchService webSearchService;
@@ -215,7 +230,7 @@ public class StreamingService {
                 log.info("[STREAM] LLM generation completed in {}ms", llmEndTime - llmStartTime);
 
                 finalizeResponse(finalConversationId, fullResponse.toString(), aiMessageId,
-                        userId, emitter, llmStartTime, startTime);
+                        userId, model, userMessage, emitter, llmStartTime, startTime);
 
             } catch (Exception e) {
                 log.error("[STREAM] Error processing request", e);
@@ -265,7 +280,7 @@ public class StreamingService {
                         actualModelId, config.getBaseUrl(), config.getApiKey(), userMessage,
                         imageUrls, emitter, fullResponse::append,
                         () -> finalizeResponse(conversationId, fullResponse.toString(), aiMessageId,
-                                userId, emitter, llmStartTime, startTime));
+                                userId, modelId, userMessage, emitter, llmStartTime, startTime));
             }
         } catch (StringIndexOutOfBoundsException e) {
             log.error("[STREAM] Invalid model ID format: {}", modelId, e);
@@ -335,7 +350,7 @@ public class StreamingService {
      * @param startTime 请求开始时间
      */
     private void finalizeResponse(String conversationId, String content, String aiMessageId,
-            String userId, SseEmitter emitter, long llmStartTime, long startTime) {
+            String userId, String model, String userMessage, SseEmitter emitter, long llmStartTime, long startTime) {
         try {
             long llmEndTime = System.currentTimeMillis();
             log.info("[STREAM] LLM generation completed in {}ms", llmEndTime - llmStartTime);
@@ -349,7 +364,12 @@ public class StreamingService {
                 autoMemoryExtractor.tryExtract(conversationId, userId);
             });
 
-            emitter.send(SseEmitter.event().name("done").data("{\"messageId\": \"" + aiMessageId + "\"}"));
+            String generatedTitle = tryGenerateTitle(conversationId, userId, userMessage, content, model);
+
+            String doneData = "{\"messageId\": \"" + aiMessageId + "\""
+                    + (generatedTitle != null ? ", \"title\": \"" + JsonUtils.escapeJson(generatedTitle) + "\"" : "")
+                    + "}";
+            emitter.send(SseEmitter.event().name("done").data(doneData));
             log.info("[STREAM] Sent 'done' event to client");
             emitter.complete();
 
@@ -370,6 +390,27 @@ public class StreamingService {
      * @param llmStartTime LLM 开始时间
      * @param startTime 请求开始时间
      */
+    private String tryGenerateTitle(String conversationId, String userId, String userMessage,
+            String aiResponse, String model) {
+        try {
+            var setting = userSettingService.getOrCreate(userId);
+            if (!setting.getAutoTitle()) return null;
+
+            var conv = conversationService.getConversation(conversationId);
+            if (conv == null || !"新对话".equals(conv.getTitle())) return null;
+
+            String title = titleGenerationService.generateTitle(userMessage, aiResponse, model);
+            if (title.isBlank()) return null;
+
+            conversationService.updateConversation(conversationId, title, null);
+            log.info("[STREAM] Auto-generated title '{}' for conversation {}", title, conversationId);
+            return title;
+        } catch (Exception e) {
+            log.warn("[STREAM] Title generation failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
     private void finalizeImageResponse(String conversationId, String imageContent, String aiMessageId,
             SseEmitter emitter, long llmStartTime, long startTime) {
         try {
