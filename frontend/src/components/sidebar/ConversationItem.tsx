@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
+import { motion } from 'framer-motion'
 import type { Conversation } from '../../types'
 
 interface ConversationItemProps {
@@ -118,7 +119,7 @@ export function ConversationItem({
             ? 'ring-1.5 ring-[var(--accent-emerald)]/30'
             : isActive
               ? 'bg-brand-selected'
-              : 'hover:theme-bg-hover/60'
+              : 'hover:theme-bg-hover hover:scale-105'
         }`}
       >
         {isStreaming && (
@@ -168,12 +169,19 @@ export function ConversationItem({
       aria-posinset={index != null ? index + 1 : undefined}
       className={`group relative flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
         isActive
-          ? 'bg-brand-selected border-transparent'
-          : 'hover:theme-bg-hover/60 border-transparent'
+          ? 'border-transparent'
+          : 'hover:theme-bg-hover hover:translate-x-0.5 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
+      {isActive && (
+        <motion.div
+          layoutId='sidebar-active'
+          className='absolute inset-0 bg-brand-selected rounded-lg'
+          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+        />
+      )}
       <div
-        className='flex-1 min-w-0 pr-20 sidebar-content-enter'
+        className='flex-1 min-w-0 pr-20 sidebar-content-enter relative'
         style={{
           maskImage:
             'linear-gradient(to right, black calc(100% - 28px), transparent calc(100% - 4px))',
