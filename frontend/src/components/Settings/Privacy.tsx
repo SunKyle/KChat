@@ -2,18 +2,22 @@ import { Eye, EyeOff, MessageSquare, CheckCircle2, Lock, Shield } from 'lucide-r
 import { useUser } from '../../context/UserContext'
 
 interface ToggleProps {
+  id: string
   enabled: boolean
   onChange: (value: boolean) => void
   disabled?: boolean
 }
 
-function Toggle({ enabled, onChange, disabled }: ToggleProps) {
+function Toggle({ id, enabled, onChange, disabled }: ToggleProps) {
   return (
     <button
+      id={id}
+      role='switch'
+      aria-checked={enabled}
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
       className={`relative w-11 h-6 rounded-full transition-colors ${
-        enabled ? 'bg-sky-500' : 'theme-bg-hover'
+        enabled ? 'bg-[var(--brand-primary)]' : 'theme-bg-hover'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <span
@@ -92,6 +96,7 @@ export function Privacy() {
                 </div>
               </div>
               <Toggle
+                id={`privacy-${option.key}`}
                 enabled={profile.privacy[option.key]}
                 onChange={(value) => handlePrivacyChange(option.key, value)}
                 disabled={isLoading}

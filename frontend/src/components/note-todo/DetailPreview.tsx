@@ -97,7 +97,7 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand 
         <div className='flex items-center gap-2 mb-4 text-[11px] text-[var(--text-muted)] flex-wrap'>
           <span>{formatDateFull(note.updatedAt)}</span>
           <span className='w-1 h-1 rounded-full bg-[var(--text-muted)]/30' />
-          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
+          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
             {note.category}
           </span>
           {note.tags.map((tag) => (

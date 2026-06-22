@@ -125,7 +125,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
                 aria-label={isOnline ? '服务已连接' : '服务离线'}
                 className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-status-connected)] rounded-full'
               >
-                <div className='w-2 h-2 rounded-full bg-sky-500 shadow-sm shadow-[var(--brand-primary)]/30 animate-pulse' />
+                <div className='w-2 h-2 rounded-full bg-[var(--brand-primary)] shadow-sm shadow-[var(--brand-primary)]/30 animate-pulse' />
                 <span className='font-secondary text-xs sm:text-sm theme-brand-primary'>
                   已连接
                 </span>

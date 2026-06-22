@@ -101,7 +101,7 @@ export const MessageBubble = memo(function MessageBubble({
         className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all micro-transition overflow-hidden ${
           isUser
             ? 'theme-bg-card theme-text-secondary'
-            : 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-sm'
+            : 'bg-gradient-to-br from-[var(--brand-primary)] to-[var(--accent-orange)] text-white shadow-sm'
         }`}
       >
         {isUser ? (

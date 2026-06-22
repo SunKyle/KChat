@@ -5,18 +5,22 @@ import { useTheme } from '../../context/ThemeContext'
 import { settingsApi } from '../../api/user'
 
 interface ToggleProps {
+  id: string
   enabled: boolean
   onChange: (value: boolean) => void
   disabled?: boolean
 }
 
-function Toggle({ enabled, onChange, disabled }: ToggleProps) {
+function Toggle({ id, enabled, onChange, disabled }: ToggleProps) {
   return (
     <button
+      id={id}
+      role='switch'
+      aria-checked={enabled}
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
       className={`relative w-11 h-6 rounded-full transition-colors ${
-        enabled ? 'bg-sky-500' : 'theme-bg-hover'
+        enabled ? 'bg-[var(--brand-primary)]' : 'theme-bg-hover'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <span
@@ -129,14 +133,14 @@ export function Preferences() {
                 disabled={isLoading}
                 className={`relative p-3 rounded-lg border transition-all hover-lift ${
                   profile.preferences.theme === theme.id
-                    ? 'border-sky-500/50 bg-sky-500/10'
+                    ? 'border-[var(--brand-primary)]/50 bg-[var(--brand-primary)]/10'
                     : 'theme-border-primary hover:theme-border-primary/80'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <div className='text-sm font-medium theme-text-primary mb-1'>{theme.label}</div>
                 <div className='text-xs theme-text-muted'>{theme.description}</div>
                 {profile.preferences.theme === theme.id && (
-                  <div className='absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full' />
+                  <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--brand-primary)] rounded-full' />
                 )}
               </button>
             ))}
@@ -191,6 +195,7 @@ export function Preferences() {
               </div>
             </div>
             <Toggle
+              id='pref-notify-message'
               enabled={profile.preferences.notifications.message}
               onChange={(value) => handleNotificationChange('message', value)}
               disabled={isLoading}
@@ -208,6 +213,7 @@ export function Preferences() {
               </div>
             </div>
             <Toggle
+              id='pref-notify-email'
               enabled={profile.preferences.notifications.email}
               onChange={(value) => handleNotificationChange('email', value)}
               disabled={isLoading}
@@ -225,6 +231,7 @@ export function Preferences() {
               </div>
             </div>
             <Toggle
+              id='pref-notify-push'
               enabled={profile.preferences.notifications.push}
               onChange={(value) => handleNotificationChange('push', value)}
               disabled={isLoading}
@@ -242,6 +249,7 @@ export function Preferences() {
               </div>
             </div>
             <Toggle
+              id='pref-notify-sound'
               enabled={profile.preferences.notifications.sound}
               onChange={(value) => handleNotificationChange('sound', value)}
               disabled={isLoading}
@@ -263,6 +271,7 @@ export function Preferences() {
             <div className='text-xs theme-text-muted'>新建对话后，根据对话内容自动生成简短标题</div>
           </div>
           <Toggle
+            id='pref-auto-title'
             enabled={autoTitle}
             onChange={handleAutoTitleChange}
             disabled={autoTitleLoading}

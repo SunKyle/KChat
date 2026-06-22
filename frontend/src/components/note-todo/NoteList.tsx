@@ -37,17 +37,17 @@ function NoteListItem({
             <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
               <div className='flex items-center gap-2 flex-wrap'>
                 {note.category === '工作' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
                     {note.category}
                   </span>
                 )}
                 {note.category === '学习' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#059669]'>
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
                     {note.category}
                   </span>
                 )}
                 {note.category === '生活' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#FCE7F3] text-[#EC4899]'>
+                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
                     {note.category}
                   </span>
                 )}

@@ -113,8 +113,8 @@ export function ChatArea() {
     return (
       <div className='flex-1 flex items-center justify-center relative'>
         
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-sky-400/10 via-indigo-500/5 to-purple-500/5 rounded-full blur-3xl' />
-        <div className='absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tr from-amber-400/5 via-pink-500/5 to-emerald-500/5 rounded-full blur-3xl' />
+        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-[var(--brand-primary)]/8 via-[var(--accent-purple)]/5 to-[var(--accent-purple)]/3 rounded-full blur-3xl' />
+        <div className='absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tr from-[var(--accent-amber)]/5 via-[var(--accent-rose)]/5 to-[var(--brand-success)]/5 rounded-full blur-3xl' />
 
         <div className='relative z-10 text-center px-4'>
           <div className='mb-6 inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--accent-sky)]/15 to-[var(--accent-purple)]/15 border border-[var(--border-primary)] backdrop-blur-sm shadow-lg'>
@@ -171,8 +171,8 @@ export function ChatArea() {
             </div>
           ) : messages.length === 0 ? (
             <div className='flex flex-col items-center justify-center px-6 py-12 sm:py-20 max-w-2xl mx-auto relative'>
-              <div className='absolute top-1/4 -right-1/4 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-indigo-500/10 to-purple-500/5 rounded-full blur-3xl animate-float-slow' />
-              <div className='absolute bottom-1/4 -left-1/4 w-64 h-64 bg-gradient-to-tr from-amber-400/10 via-pink-500/10 to-emerald-500/5 rounded-full blur-3xl animate-float-slow-delayed' />
+              <div className='absolute top-1/4 -right-1/4 w-80 h-80 bg-gradient-to-br from-[var(--brand-primary)]/12 via-[var(--accent-purple)]/8 to-[var(--accent-purple)]/3 rounded-full blur-3xl animate-float-slow' />
+              <div className='absolute bottom-1/4 -left-1/4 w-64 h-64 bg-gradient-to-tr from-[var(--accent-amber)]/8 via-[var(--accent-rose)]/8 to-[var(--brand-success)]/5 rounded-full blur-3xl animate-float-slow-delayed' />
 
               <div className='relative z-10 text-center flex flex-col items-center w-full'>
                 <div className='mb-8 sm:mb-12'>
@@ -197,8 +197,8 @@ export function ChatArea() {
                       aria-label='写代码'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
-                      <div className='w-7 h-7 rounded-md bg-sky-100 group-hover:bg-sky-500/20 flex items-center justify-center transition-colors'>
-                        <Code className='w-3.5 h-3.5 text-sky-600' />
+                      <div className='w-7 h-7 rounded-md bg-[var(--brand-primary)]/10 group-hover:bg-[var(--brand-primary)]/20 flex items-center justify-center transition-colors'>
+                        <Code className='w-3.5 h-3.5 text-[var(--brand-primary)]' />
                       </div>
                       <span className='hidden sm:inline'>写代码</span>
                     </button>
@@ -207,8 +207,8 @@ export function ChatArea() {
                       aria-label='学知识'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
-                      <div className='w-7 h-7 rounded-md bg-emerald-100 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors'>
-                        <BookOpen className='w-3.5 h-3.5 text-emerald-600' />
+                      <div className='w-7 h-7 rounded-md bg-[var(--brand-success)]/10 group-hover:bg-[var(--brand-success)]/20 flex items-center justify-center transition-colors'>
+                        <BookOpen className='w-3.5 h-3.5 text-[var(--brand-success)]' />
                       </div>
                       <span className='hidden sm:inline'>学知识</span>
                     </button>
@@ -217,8 +217,8 @@ export function ChatArea() {
                       aria-label='想创意'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
-                      <div className='w-7 h-7 rounded-md bg-amber-100 group-hover:bg-amber-500/20 flex items-center justify-center transition-colors'>
-                        <Lightbulb className='w-3.5 h-3.5 text-amber-600' />
+                      <div className='w-7 h-7 rounded-md bg-[var(--accent-amber)]/10 group-hover:bg-[var(--accent-amber)]/20 flex items-center justify-center transition-colors'>
+                        <Lightbulb className='w-3.5 h-3.5 text-[var(--accent-amber)]' />
                       </div>
                       <span className='hidden sm:inline'>想创意</span>
                     </button>

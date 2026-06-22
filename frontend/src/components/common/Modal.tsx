@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { X } from 'lucide-react'
 
 interface ModalProps {
@@ -44,10 +44,29 @@ export function Modal({
   onConfirm,
   message,
 }: ModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previousActiveElement = useRef<Element | null>(null)
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
+        return
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (!first) return
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
       }
     },
     [onClose]
@@ -55,19 +74,30 @@ export function Modal({
 
   useEffect(() => {
     if (isOpen) {
+      previousActiveElement.current = document.activeElement
       document.addEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'hidden'
+      requestAnimationFrame(() => {
+        const first = dialogRef.current?.querySelector<HTMLElement>(
+          '[autofocus], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        first?.focus()
+      })
     }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
+      if (previousActiveElement.current instanceof HTMLElement) {
+        previousActiveElement.current.focus()
+      }
     }
   }, [isOpen, handleKeyDown])
 
   if (!isOpen) return null
 
   const hasConfirm = typeof onConfirm === 'function'
+  const titleId = title ? `modal-title-${title.replace(/\s+/g, '-')}` : undefined
 
   return (
     <div
@@ -75,18 +105,23 @@ export function Modal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby={titleId}
         className={`theme-bg-card rounded-2xl shadow-2xl w-full ${sizeClasses[size]} ${className} ${autoHeight ? 'max-h-[90vh] flex flex-col' : ''} animate-fade-in ${hasConfirm ? 'max-w-sm' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className='flex items-center justify-between px-6 py-4 border-b theme-border-primary'>
-            <h3 className='font-title'>{title}</h3>
+            <h3 id={titleId} className='font-title'>{title}</h3>
             {!hasConfirm && (
               <button
                 onClick={onClose}
                 className='icon-btn'
+                aria-label='关闭对话框'
               >
-                <X className='w-5 h-5' />
+                <X className='w-5 h-5' aria-hidden='true' />
               </button>
             )}
           </div>

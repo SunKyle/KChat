@@ -192,7 +192,7 @@ export function Sidebar({
             <div className='flex items-center gap-2'>
               <div className='relative flex-shrink-0'>
                 <div
-                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-400 blur-md transition-opacity duration-300 ${
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--accent-amber)]/60 to-[var(--accent-orange)]/60 blur-md transition-opacity duration-300 ${
                     collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
                   }`}
                 />
@@ -203,7 +203,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
+                <h1 className='font-logo bg-gradient-to-r from-[var(--brand-primary)] via-[var(--accent-sky)] to-[var(--accent-purple)] bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
                   KChat
                 </h1>
               )}

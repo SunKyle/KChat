@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
+import { Modal } from '../common/Modal'
 import type { CreateAPIKeyRequest } from '../../types/user'
 
 export function APIKeys() {
@@ -11,6 +12,7 @@ export function APIKeys() {
   const [showKey, setShowKey] = useState<string | null>(null)
   const [creatingKey, setCreatingKey] = useState(false)
   const [newKey, setNewKey] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
 
   const handleCreateKey = async () => {
     if (!newKeyName.trim()) return
@@ -41,14 +43,18 @@ export function APIKeys() {
     }
   }
 
-  const handleDeleteKey = async (keyId: string, keyName: string) => {
-    if (!confirm(`确定要删除 API 密钥 "${keyName}" 吗？此操作不可撤销。`)) {
-      return
-    }
+  const handleDeleteKey = (keyId: string, keyName: string) => {
+    setDeleteConfirm({ id: keyId, name: keyName })
+  }
+
+  const confirmDeleteKey = async () => {
+    if (!deleteConfirm) return
     try {
-      await deleteAPIKey(keyId)
+      await deleteAPIKey(deleteConfirm.id)
     } catch (err) {
       console.error('Failed to delete API key:', err)
+    } finally {
+      setDeleteConfirm(null)
     }
   }
 
@@ -150,7 +156,7 @@ export function APIKeys() {
                   </button>
                 </div>
               </div>
-              <div className='font-mono text-sm bg-slate-900/50 rounded-lg px-3 py-2 break-all'>
+              <div className='font-mono text-sm bg-[var(--bg-code)]/50 rounded-lg px-3 py-2 break-all'>
                 {showKey === apiKey.id ? apiKey.key : formatKey(apiKey.key)}
               </div>
               <div className='flex flex-wrap gap-2 mt-3'>
@@ -186,7 +192,7 @@ export function APIKeys() {
                       </div>
                     </div>
                   </div>
-                  <div className='font-mono text-sm bg-slate-900/50 rounded-lg px-3 py-3 break-all'>
+                  <div className='font-mono text-sm bg-[var(--bg-code)]/50 rounded-lg px-3 py-3 break-all'>
                     {newKey}
                   </div>
                   <button
@@ -246,6 +252,17 @@ export function APIKeys() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={deleteConfirm !== null}
+        title='删除 API 密钥'
+        message={deleteConfirm ? `确定要删除 API 密钥 "${deleteConfirm.name}" 吗？此操作不可撤销。` : ''}
+        confirmText='删除'
+        cancelText='取消'
+        onConfirm={confirmDeleteKey}
+        onClose={() => setDeleteConfirm(null)}
+        type='danger'
+      />
     </div>
   )
 }

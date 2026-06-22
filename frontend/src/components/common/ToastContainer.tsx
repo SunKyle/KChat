@@ -4,6 +4,8 @@ import 'react-toastify/dist/ReactToastify.css'
 export function ToastContainer() {
   return (
     <ToastifyContainer
+      role='alert'
+      aria-live='polite'
       position="top-right"
       autoClose={3000}
       hideProgressBar={false}

@@ -82,17 +82,17 @@ function TodoListItem({
                 {priorityMeta[todo.priority].label}优先级
               </span>
               {todo.category === '工作' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#DBEAFE] text-[#2563EB]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
                   {todo.category}
                 </span>
               )}
               {todo.category === '学习' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#059669]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
                   {todo.category}
                 </span>
               )}
               {todo.category === '生活' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#FCE7F3] text-[#EC4899]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
                   {todo.category}
                 </span>
               )}
