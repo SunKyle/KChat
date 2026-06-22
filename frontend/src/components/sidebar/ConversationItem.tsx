@@ -14,6 +14,8 @@ interface ConversationItemProps {
   onUpdate: (id: string, title: string) => void
   onPin: (id: string, pinned: boolean) => void
   collapsed?: boolean
+  index?: number
+  total?: number
 }
 
 export function ConversationItem({
@@ -27,6 +29,8 @@ export function ConversationItem({
   onUpdate,
   onPin,
   collapsed = false,
+  index,
+  total,
 }: ConversationItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(conversation.title)
@@ -110,6 +114,8 @@ export function ConversationItem({
         title={conversation.title}
         aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
         aria-current={isActive ? 'true' : undefined}
+        aria-setsize={total}
+        aria-posinset={index != null ? index + 1 : undefined}
         className={`relative flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           hasNewReply
             ? 'ring-1.5 ring-[var(--accent-emerald)]/30'
@@ -161,9 +167,11 @@ export function ConversationItem({
       role='button'
       aria-label={`会话: ${conversation.title}${isActive ? ' (当前选中)' : ''}${conversation.pinned ? ' (已置顶)' : ''}`}
       aria-current={isActive ? 'true' : undefined}
+      aria-setsize={total}
+      aria-posinset={index != null ? index + 1 : undefined}
       className={`group relative flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200 ease-out focus-ring border-2 ${
         isActive
-          ? 'bg-[#F0F9FF] border-l-[#0EA5E9] border-y-transparent border-r-transparent'
+          ? 'bg-[var(--accent-sky)]/10 border-l-[var(--brand-primary)] border-y-transparent border-r-transparent'
           : 'hover:theme-bg-hover/60 border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
     >
@@ -209,7 +217,7 @@ export function ConversationItem({
           </div>
         )}
         <div
-          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} micro-transition`}
+          className={`flex items-center gap-1 ${isEditing || isStreaming ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'} micro-transition`}
         >
           {isEditing ? (
             <>

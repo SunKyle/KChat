@@ -163,6 +163,7 @@ export const MessageBubble = memo(function MessageBubble({
                       <img
                         src={imageUrl}
                         alt={`Image ${index + 1}`}
+                        loading='lazy'
                         className={`max-h-64 object-contain rounded-lg transition-opacity ${
                           imageLoaded[imageUrl] ? 'opacity-100' : 'opacity-50'
                         }`}
@@ -178,13 +179,13 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className='text-[11px] text-[var(--text-timestamp)] opacity-70'>
+          <span className='text-[11px] text-[var(--text-timestamp)] opacity-70' title={new Date(message.timestamp).toLocaleString('zh-CN')}>
             {formatTimestamp(message.timestamp)}
           </span>
 
           {!isUser && !isThinking && (
             <div
-              className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
             >
               <button onClick={handleCopy} className='icon-btn' title={copied ? '已复制' : '复制'}>
                 {copied ? (
@@ -209,9 +210,8 @@ export const MessageBubble = memo(function MessageBubble({
                   )}
                 </button>
                 {!saving && !saved && (
-                  <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                  <span className='tooltip-content'>
                     AI 总结并保存为笔记
-                    <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                   </span>
                 )}
               </div>

@@ -230,6 +230,11 @@ export function Sidebar({
               <input
                 ref={searchInputRef}
                 type='text'
+                role='combobox'
+                aria-expanded={searchQuery.length > 0}
+                aria-autocomplete='list'
+                aria-controls='conversation-list'
+                aria-haspopup='listbox'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -257,7 +262,7 @@ export function Sidebar({
             <button
               onClick={create}
               aria-label='创建新对话'
-              className='flex items-center justify-center w-9 h-9 rounded-lg bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-all flex-shrink-0'
+              className='flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all flex-shrink-0'
             >
               <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
             </button>
@@ -290,7 +295,7 @@ export function Sidebar({
               <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
             </div>
           ) : (
-            <div role='list' className='space-y-2'>
+            <div role='listbox' id='conversation-list' className='space-y-2'>
               {filteredGrouped.map(({ group, items }) => (
                 <div key={group} className='space-y-1'>
                   {!collapsed && (
@@ -317,7 +322,7 @@ export function Sidebar({
                     </button>
                   )}
                   {(collapsed || expandedGroups.has(group)) &&
-                    items.map((conversation) => (
+                    items.map((conversation, idx) => (
                       <ConversationItem
                         key={conversation.id}
                         conversation={conversation}
@@ -334,6 +339,8 @@ export function Sidebar({
                         onUpdate={update}
                         onPin={pin}
                         collapsed={collapsed}
+                        index={idx}
+                        total={items.length}
                       />
                     ))}
                 </div>

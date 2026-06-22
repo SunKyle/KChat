@@ -128,7 +128,7 @@ export function InputArea() {
   const hasContent = input.trim() || uploadingImages.length > 0
 
   return (
-    <div className='p-4 pb-6'>
+    <div className='p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]'>
       <div className='max-w-3xl mx-auto relative group'>
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
@@ -141,11 +141,12 @@ export function InputArea() {
                 <img
                   src={imageUrl}
                   alt={`Uploaded ${index + 1}`}
+                  loading='lazy'
                   className='w-full h-full object-cover'
                 />
                 <button
                   onClick={() => handleRemoveImage(index)}
-                  className='absolute top-1 right-1 w-7 h-7 backdrop-blur-md bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
+                  className='absolute top-1 right-1 w-11 h-11 backdrop-blur-md bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
                   aria-label='移除图片'
                 >
                   <Trash2 className='w-[14px] h-[14px]' />
@@ -176,7 +177,7 @@ export function InputArea() {
                     />
                     <span
                       className={`text-[12px] font-medium transition-all duration-500 ${
-                        isOutputting ? 'text-sky-700' : 'text-amber-700'
+                        isOutputting ? 'text-sky-800' : 'text-amber-800'
                       }`}
                     >
                       {isOutputting ? '正在输出...' : '正在思考...'}
@@ -184,7 +185,7 @@ export function InputArea() {
                   </div>
                   <span
                     className={`text-[11px] font-secondary tabular-nums transition-all duration-500 ${
-                      isOutputting ? 'text-sky-600/70' : 'text-amber-600/70'
+                      isOutputting ? 'text-sky-700/80' : 'text-amber-700/80'
                     }`}
                   >
                     {elapsedSeconds}s
@@ -247,7 +248,7 @@ export function InputArea() {
                       disabled={
                         uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
                       }
-                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
+                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 ${
                         uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
                           ? 'opacity-40 cursor-not-allowed'
                           : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-sky-600 cursor-pointer'
@@ -260,9 +261,8 @@ export function InputArea() {
                         <Paperclip className='w-4 h-4 text-[var(--text-toolbar)]' />
                       )}
                     </button>
-                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    <span className='tooltip-content'>
                       上传文件
-                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                     </span>
                   </div>
 
@@ -274,9 +274,8 @@ export function InputArea() {
                     >
                       <Code className='w-4 h-4' />
                     </button>
-                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    <span className='tooltip-content'>
                       插入代码
-                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                     </span>
                   </div>
 
@@ -285,7 +284,7 @@ export function InputArea() {
                     <button
                       onClick={() => setInput('生成图片：')}
                       disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 ${
+                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-emerald-600 text-[var(--text-toolbar)] cursor-pointer'
@@ -294,9 +293,8 @@ export function InputArea() {
                     >
                       <Image className='w-4 h-4' />
                     </button>
-                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    <span className='tooltip-content'>
                       生成图片
-                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                     </span>
                   </div>
 
@@ -305,7 +303,7 @@ export function InputArea() {
                     <button
                       onClick={toggleWebSearch}
                       disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-9 h-9 rounded-md transition-all duration-200 active:scale-90 ${
+                      className={`peer flex items-center justify-center w-11 h-11 rounded-md transition-all duration-200 active:scale-90 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : webSearchEnabled
@@ -317,9 +315,8 @@ export function InputArea() {
                     >
                       <Globe className='w-4 h-4 transition-colors duration-200' />
                     </button>
-                    <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                    <span className='tooltip-content'>
                       {webSearchEnabled ? '已开启联网搜索' : '开启联网搜索'}
-                      <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                     </span>
                   </div>
                 </div>
@@ -360,7 +357,7 @@ export function InputArea() {
                       }
                     }}
                     disabled={!hasContent && !streamingState.isStreaming}
-                    className={`peer group/send relative flex items-center justify-center w-8 h-8 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
+                    className={`peer group/send relative flex items-center justify-center w-11 h-11 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                       isThinking
                         ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
                         : isOutputting
@@ -420,9 +417,8 @@ export function InputArea() {
                       )}
                     </span>
                   </button>
-                  <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                  <span className='tooltip-content'>
                     {streamingState.isStreaming ? '中断回答' : '发送消息'}
-                    <span className='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800' />
                   </span>
                   </div>
                 </div>

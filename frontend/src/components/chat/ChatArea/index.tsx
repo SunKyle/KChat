@@ -17,6 +17,7 @@ export function ChatArea() {
     isLoading,
     stopStreaming,
     scrollTrigger,
+    sendMessage,
   } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -192,7 +193,7 @@ export function ChatArea() {
                 <div className='w-full max-w-md animate-fade-in-up animation-delay-200'>
                   <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>
                     <button
-                      onClick={() => {}}
+                      onClick={() => sendMessage('请帮我写一段代码', [], false)}
                       aria-label='写代码'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
@@ -202,7 +203,7 @@ export function ChatArea() {
                       <span className='hidden sm:inline'>写代码</span>
                     </button>
                     <button
-                      onClick={() => {}}
+                      onClick={() => sendMessage('请帮我解释一个知识点', [], false)}
                       aria-label='学知识'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >
@@ -212,7 +213,7 @@ export function ChatArea() {
                       <span className='hidden sm:inline'>学知识</span>
                     </button>
                     <button
-                      onClick={() => {}}
+                      onClick={() => sendMessage('请帮我头脑风暴一些创意想法', [], false)}
                       aria-label='想创意'
                       className='group flex items-center gap-2 px-3 sm:px-4 py-2.5 text-theme-text-secondary font-secondary rounded-lg border theme-border-primary bg-[var(--bg-card)]/90 backdrop-blur-sm hover:bg-[var(--bg-card)] hover:border-[var(--accent-sky)]/40 hover:shadow-md hover:shadow-[var(--shadow-color-primary)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer'
                     >

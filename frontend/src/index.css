@@ -197,6 +197,10 @@
   box-sizing: border-box;
 }
 
+html {
+  touch-action: manipulation;
+}
+
 /* ============================================
    Keyframe Animations
    ============================================ */
@@ -850,6 +854,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   padding: 6px;
   border-radius: var(--radius-md);
   color: var(--text-muted);
@@ -872,6 +878,44 @@
 .focus-ring:focus-visible {
   outline: 2px solid var(--accent-sky);
   outline-offset: 2px;
+}
+
+/* Tooltip — theme-aware, touch/keyboard accessible */
+.tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-caption);
+  line-height: var(--line-height-caption);
+  color: var(--bg-sidebar);
+  background-color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  scale: 0.95;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out), scale var(--duration-fast) var(--ease-out);
+  z-index: 20;
+  box-shadow: 0 2px 8px var(--shadow-color-elevated);
+}
+
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--text-primary);
+}
+
+.peer:hover ~ .tooltip-content,
+.peer:focus-visible ~ .tooltip-content,
+.peer:active ~ .tooltip-content {
+  opacity: 1;
+  scale: 1;
 }
 
 /* ============================================
@@ -957,6 +1001,7 @@ input[type='search']::-webkit-search-decoration {
 .scrollbar-auto-hide {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+  overscroll-behavior: contain;
 }
 
 .scrollbar-auto-hide:hover::-webkit-scrollbar-thumb,
@@ -1625,5 +1670,39 @@ input[type='search']::-webkit-search-decoration {
 @keyframes border-beam-travel {
   100% {
     offset-distance: 100%;
+  }
+}
+
+/* ============================================
+   prefers-reduced-motion — Respect user preference
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-pulse,
+  .animate-spin,
+  .animate-pulse-slow,
+  .animate-pulse-glow,
+  .animate-float-slow,
+  .animate-float-slow-delayed,
+  .animate-shimmer,
+  .animate-stream-pulse,
+  .animate-stream-bg,
+  .animate-gradient-shift,
+  .animate-thinking-dot,
+  .animate-thinking-wave,
+  .animate-thinking-ring,
+  .animate-pulse-once,
+  .scroll-btn-streaming,
+  .thinking-spinner {
+    animation: none !important;
   }
 }
