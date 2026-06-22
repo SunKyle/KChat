@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState, useCallback } from 'react'
 import { MessageCircle, ArrowDown, Code, BookOpen, Lightbulb, Sparkles } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '../../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
 import { SearchResultsCard } from './SearchResultsCard'
@@ -119,12 +120,18 @@ export function ChatArea() {
         }}
       />
 
-      <div
-        role='log'
-        aria-live='polite'
-        aria-label='聊天消息'
-        className='flex-1 min-h-0'
-      >
+      <AnimatePresence mode='wait'>
+        <motion.div
+          key={activeConversation?.id || 'empty'}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          role='log'
+          aria-live='polite'
+          aria-label='聊天消息'
+          className='flex-1 min-h-0'
+        >
         {isLoading ? (
           <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full p-6 space-y-4'>
             <MessageSkeleton />
@@ -182,7 +189,8 @@ export function ChatArea() {
             />
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
 
       {showScrollButton && messages.length > 0 && (
         <button
