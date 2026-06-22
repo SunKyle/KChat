@@ -73,8 +73,6 @@ export function Sidebar({
   useEffect(() => {
     localStorage.setItem('sidebarExpandedGroups', JSON.stringify([...expandedGroups]))
   }, [expandedGroups])
-
-  // 统一的分组逻辑
   const groupConversationsByList = useCallback((convs: typeof conversations) => {
     const groups: Record<string, typeof conversations> = {}
     const now = new Date()
@@ -111,6 +109,25 @@ export function Sidebar({
   const filteredGrouped = useMemo(() => {
     return groupConversationsByList(filteredConversations)
   }, [filteredConversations, groupConversationsByList])
+
+  // 新增/切换会话时自动展开对应分组并滚动到激活项
+  useEffect(() => {
+    if (!activeConversation || collapsed) return
+
+    const activeGroup = filteredGrouped.find((g) =>
+      g.items.some((item) => item.id === activeConversation.id)
+    )
+    if (activeGroup && !expandedGroups.has(activeGroup.group)) {
+      setExpandedGroups((prev) => new Set([...prev, activeGroup.group]))
+    }
+
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-conversation-id="${activeConversation.id}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [activeConversation?.id])
 
   // 优化滚动监听
   useEffect(() => {
