@@ -134,7 +134,7 @@ export function ErrorCard({
 
           <div className='flex-1 min-w-0'>
             <div className='flex items-start justify-between gap-3'>
-              <h3 className={`font-body-l font-weight-semibold ${config.titleColor}`}>{title}</h3>
+              <h3 className={`text-xl font-weight-semibold ${config.titleColor}`}>{title}</h3>
 
               {showCloseButton && onClose && (
                 <button

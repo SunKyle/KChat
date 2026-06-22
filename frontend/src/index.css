@@ -7,72 +7,13 @@
    ============================================ */
 
 :root {
-  /* --- Font Families --- */
-  --font-family-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
-  --font-family-mono:
-    'JetBrains Mono', 'SF Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
-
-  /* --- Font Weights --- */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* --- Typography Scale (Major Third — 1.25 ratio) --- */
-  --font-display: 32px;
-  --font-h1: 28px;
-  --font-h2: 24px;
-  --font-h3: 20px;
-  --font-title: 18px;
-  --font-body-l: 16px;
-  --font-body-m: 15px;
-  --font-secondary: 14px;
-  --font-caption: 12px;
-  --font-tiny: 11px;
-
   /* --- Line Heights --- */
-  --line-height-display: 40px;
   --line-height-h1: 36px;
   --line-height-h2: 32px;
   --line-height-h3: 28px;
   --line-height-title: 26px;
-  --line-height-body-l: 28px;
-  --line-height-body-m: 26px;
   --line-height-secondary: 22px;
   --line-height-caption: 18px;
-  --line-height-tiny: 16px;
-
-  /* --- Letter Spacing --- */
-  --tracking-tight: -0.01em;
-  --tracking-normal: 0;
-  --tracking-wide: 0.02em;
-  --tracking-wider: 0.05em;
-
-  /* --- Component-specific Typography --- */
-  --font-logo: 17px;
-  --font-tagline: 10px;
-  --font-group-title: 13px;
-  --font-conversation-name: 14px;
-  --font-current-title: 17px;
-  --font-model-name: 13px;
-  --font-status-tag: 12px;
-  --font-ai-message: 15px;
-  --font-user-message: 15px;
-  --font-code-block: 13px;
-  --font-input-text: 15px;
-  --font-placeholder: 15px;
-  --font-helper-text: 12px;
-
-  /* --- Spacing --- */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 20px;
-  --space-2xl: 24px;
-  --space-3xl: 32px;
 
   /* --- Border Radius --- */
   --radius-sm: 6px;
@@ -87,7 +28,6 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 150ms;
   --duration-normal: 200ms;
-  --duration-slow: 300ms;
 
   /* --- Light Theme (default) — Warm Earth --- */
   --bg-primary: #f9f9f9;
@@ -894,7 +834,7 @@ html {
   transform: translateX(-50%);
   padding: 4px 10px;
   border-radius: var(--radius-md);
-  font-size: var(--font-caption);
+  font-size: 12px;
   line-height: var(--line-height-caption);
   color: var(--bg-sidebar);
   background-color: var(--text-primary);
@@ -929,13 +869,13 @@ html {
    ============================================ */
 
 body {
-  font-family: var(--font-family-sans);
-  font-size: var(--font-body-m);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--line-height-body-m);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.7;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  letter-spacing: var(--tracking-normal);
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -1030,17 +970,17 @@ input[type='search']::-webkit-search-decoration {
 
 .markdown-body {
   font-family: inherit;
-  font-size: var(--font-ai-message);
+  font-size: 15px;
   line-height: 1.7;
   color: var(--text-primary);
-  letter-spacing: var(--tracking-normal);
+  letter-spacing: 0;
 }
 
 .markdown-body h1 {
-  font-size: var(--font-h1);
-  font-weight: var(--font-weight-semibold);
+  font-size: 28px;
+  font-weight: 600;
   line-height: var(--line-height-h1);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: -0.01em;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-primary);
   margin-top: 28px;
@@ -1048,10 +988,10 @@ input[type='search']::-webkit-search-decoration {
 }
 
 .markdown-body h2 {
-  font-size: var(--font-h2);
-  font-weight: var(--font-weight-semibold);
+  font-size: 24px;
+  font-weight: 600;
   line-height: var(--line-height-h2);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: -0.01em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid var(--border-secondary);
   margin-top: 24px;
@@ -1059,31 +999,31 @@ input[type='search']::-webkit-search-decoration {
 }
 
 .markdown-body h3 {
-  font-size: var(--font-h3);
-  font-weight: var(--font-weight-semibold);
+  font-size: 20px;
+  font-weight: 600;
   line-height: var(--line-height-h3);
   margin-top: 22px;
   margin-bottom: 12px;
 }
 
 .markdown-body h4 {
-  font-size: var(--font-title);
-  font-weight: var(--font-weight-semibold);
+  font-size: 18px;
+  font-weight: 600;
   line-height: var(--line-height-title);
   margin-top: 20px;
   margin-bottom: 10px;
 }
 
 .markdown-body h5 {
-  font-size: var(--font-body-l);
-  font-weight: var(--font-weight-semibold);
+  font-size: 16px;
+  font-weight: 600;
   margin-top: 18px;
   margin-bottom: 8px;
 }
 
 .markdown-body h6 {
-  font-size: var(--font-body-m);
-  font-weight: var(--font-weight-semibold);
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-secondary);
   margin-top: 16px;
   margin-bottom: 8px;
@@ -1122,17 +1062,17 @@ input[type='search']::-webkit-search-decoration {
 .markdown-body code {
   padding: 2px 6px;
   font-size: 0.88em;
-  font-weight: var(--font-weight-normal);
+  font-weight: 400;
   background-color: var(--bg-hover);
   border-radius: var(--radius-sm);
-  font-family: var(--font-family-mono);
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   color: var(--accent-rose);
 }
 
 .markdown-body pre {
   padding: 0;
   overflow: hidden;
-  font-size: var(--font-code-block);
+  font-size: 14px;
   line-height: 20px;
   background-color: var(--bg-code);
   border-radius: var(--radius-lg);
@@ -1150,7 +1090,7 @@ input[type='search']::-webkit-search-decoration {
 .markdown-body a {
   color: var(--brand-primary);
   text-decoration: none;
-  font-weight: var(--font-weight-medium);
+  font-weight: 500;
   border-bottom: 1px solid transparent;
   transition: border-color var(--duration-fast) var(--ease-out);
 }
@@ -1177,9 +1117,9 @@ input[type='search']::-webkit-search-decoration {
 
 .markdown-body th {
   background-color: var(--bg-hover);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-secondary);
-  letter-spacing: var(--tracking-wide);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
 }
 
 .markdown-body th,
@@ -1319,166 +1259,8 @@ input[type='search']::-webkit-search-decoration {
 }
 
 /* ============================================
-   Typography Utility Classes
+   Typography — managed by Tailwind config (see tailwind.config.js)
    ============================================ */
-
-.font-display {
-  font-size: var(--font-display);
-  line-height: var(--line-height-display);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-tight);
-}
-
-.font-h1 {
-  font-size: var(--font-h1);
-  line-height: var(--line-height-h1);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-tight);
-}
-
-.font-h2 {
-  font-size: var(--font-h2);
-  line-height: var(--line-height-h2);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-tight);
-}
-
-.font-h3 {
-  font-size: var(--font-h3);
-  line-height: var(--line-height-h3);
-  font-weight: var(--font-weight-semibold);
-}
-
-.font-title {
-  font-size: var(--font-title);
-  line-height: var(--line-height-title);
-  font-weight: var(--font-weight-semibold);
-}
-
-.font-body-l {
-  font-size: var(--font-body-l);
-  line-height: var(--line-height-body-l);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-body-m {
-  font-size: var(--font-body-m);
-  line-height: var(--line-height-body-m);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-secondary {
-  font-size: var(--font-secondary);
-  line-height: var(--line-height-secondary);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-caption {
-  font-size: var(--font-caption);
-  line-height: var(--line-height-caption);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-tiny {
-  font-size: var(--font-tiny);
-  line-height: var(--line-height-tiny);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
-
-/* Component-specific fonts */
-.font-logo {
-  font-size: var(--font-logo);
-  font-weight: var(--font-weight-semibold);
-}
-
-.font-tagline {
-  font-size: var(--font-tagline);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.font-group-title {
-  font-size: var(--font-group-title);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.03em;
-}
-
-.font-conversation-name {
-  font-size: var(--font-conversation-name);
-  font-weight: var(--font-weight-medium);
-}
-
-.font-current-title {
-  font-size: var(--font-current-title);
-  font-weight: var(--font-weight-semibold);
-}
-
-.font-model-name {
-  font-size: var(--font-model-name);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
-
-.font-status-tag {
-  font-size: var(--font-status-tag);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
-
-.font-ai-message {
-  font-size: var(--font-ai-message);
-  line-height: 1.7;
-  font-weight: var(--font-weight-normal);
-}
-
-.font-user-message {
-  font-size: var(--font-user-message);
-  line-height: var(--line-height-body-m);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-code-block {
-  font-size: var(--font-code-block);
-  line-height: 20px;
-  font-weight: var(--font-weight-normal);
-  font-family: var(--font-family-mono);
-}
-
-.font-input-text {
-  font-size: var(--font-input-text);
-  line-height: var(--line-height-body-m);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-placeholder {
-  font-size: var(--font-placeholder);
-  line-height: var(--line-height-body-m);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-helper-text {
-  font-size: var(--font-helper-text);
-  line-height: var(--line-height-caption);
-  font-weight: var(--font-weight-normal);
-}
-
-.font-weight-normal {
-  font-weight: var(--font-weight-normal);
-}
-.font-weight-medium {
-  font-weight: var(--font-weight-medium);
-}
-.font-weight-semibold {
-  font-weight: var(--font-weight-semibold);
-}
-.font-weight-bold {
-  font-weight: var(--font-weight-bold);
-}
 
 /* ============================================
    Button System
@@ -1493,8 +1275,8 @@ input[type='search']::-webkit-search-decoration {
   background-color: var(--accent-primary);
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: var(--font-secondary);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: 500;
   transition:
     background-color var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out),
@@ -1526,8 +1308,8 @@ input[type='search']::-webkit-search-decoration {
   background-color: transparent;
   color: var(--text-secondary);
   border-radius: var(--radius-md);
-  font-size: var(--font-secondary);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: 500;
   transition:
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
@@ -1554,7 +1336,7 @@ input[type='search']::-webkit-search-decoration {
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: var(--font-secondary);
+  font-size: 14px;
   line-height: var(--line-height-secondary);
   transition:
     border-color var(--duration-fast) var(--ease-out),
@@ -1586,8 +1368,8 @@ input[type='search']::-webkit-search-decoration {
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font-size: var(--font-caption);
-  font-weight: var(--font-weight-medium);
+  font-size: 12px;
+  font-weight: 500;
   line-height: var(--line-height-caption);
 }
 

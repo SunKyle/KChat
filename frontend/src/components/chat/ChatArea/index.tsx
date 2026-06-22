@@ -124,7 +124,7 @@ export function ChatArea() {
           <h2 className='font-h2 theme-text-primary mb-3 animate-fade-in'>
             选择或创建对话
           </h2>
-          <p className='font-body-m theme-text-secondary max-w-sm mx-auto animate-fade-in animation-delay-100'>
+          <p className='text-lg theme-text-secondary max-w-sm mx-auto animate-fade-in animation-delay-100'>
             从左侧列表选择一个对话，或创建新对话开始聊天
           </p>
 
@@ -186,7 +186,7 @@ export function ChatArea() {
                 <h2 className='font-h2 sm:font-h1 theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>
                   欢迎使用 KChat
                 </h2>
-                <p className='font-body-m theme-text-secondary mb-8 sm:mb-10 max-w-sm text-center animate-fade-in-up animation-delay-100'>
+                <p className='text-lg theme-text-secondary mb-8 sm:mb-10 max-w-sm text-center animate-fade-in-up animation-delay-100'>
                   智能助手随时为您服务，开启高效对话体验
                 </p>
 
@@ -226,7 +226,7 @@ export function ChatArea() {
                 </div>
 
                 <div
-                  className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted font-caption animate-fade-in-up animation-delay-300'
+                  className='mt-10 sm:mt-14 flex items-center gap-4 text-theme-text-muted text-sm animate-fade-in-up animation-delay-300'
                   role='status'
                 >
                   <div className='flex items-center gap-1.5'>
@@ -239,7 +239,7 @@ export function ChatArea() {
               </div>
             </div>
           ) : (
-            <div className='py-6 font-ai-message w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto'>
+            <div className='py-6 text-lg w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto'>
               <div className='w-full px-2 sm:px-4 lg:px-6'>
                 {activeConversation && (
                   <SearchResultsCard results={getSearchResults(activeConversation.id)} />
