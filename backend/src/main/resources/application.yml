@@ -88,9 +88,10 @@ prompt:
 
 websearch:
   enabled: true
-  timeout-seconds: 5
+  timeout-seconds: 8
   max-results: 5
-  engine: duckduckgo
+  engine: bing
+  bing-api-key: ""
 
 logging:
   level:

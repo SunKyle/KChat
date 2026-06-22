@@ -19,45 +19,55 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class WebSearchServiceImpl implements WebSearchService {
 
     private static final Logger log = LoggerFactory.getLogger(WebSearchServiceImpl.class);
-    private static final String DUCKDUCKGO_API = "https://api.duckduckgo.com/";
+    private static final String BING_API = "https://api.bing.microsoft.com/v7.0/search";
+    private static final String BING_HTML = "https://www.bing.com/search";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final WebSearchConfig config;
     private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public WebSearchServiceImpl(WebSearchConfig config) {
         this.config = config;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(config.getTimeoutSeconds()))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
     public WebSearchResult search(String query) {
         if (!config.isEnabled()) {
-            return WebSearchResult.builder()
-                    .query(query)
-                    .snippets(List.of())
-                    .timestamp(System.currentTimeMillis())
-                    .status("disabled")
-                    .build();
+            return buildResult(query, List.of(), "disabled", null);
         }
 
-        List<SearchSnippet> snippets = new ArrayList<>();
+        String searchQuery = extractKeywords(query);
+
+        // Prefer Bing API if key is configured
+        if (config.getBingApiKey() != null && !config.getBingApiKey().isBlank()) {
+            return searchViaBingApi(searchQuery);
+        }
+
+        // Fallback to HTML scraping
+        return searchViaHtmlScraping(searchQuery);
+    }
+
+    private WebSearchResult searchViaBingApi(String query) {
         try {
             String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-            String url = DUCKDUCKGO_API + "?q=" + encodedQuery + "&format=json&no_html=1&no_redirect=1";
+            String url = BING_API + "?q=" + encodedQuery + "&count=" + config.getMaxResults()
+                    + "&mkt=zh-CN&setLang=zh-cn";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(config.getTimeoutSeconds()))
-                    .header("User-Agent", "KChat/1.0")
+                    .header("Ocp-Apim-Subscription-Key", config.getBingApiKey())
                     .GET()
                     .build();
 
@@ -65,72 +75,168 @@ public class WebSearchServiceImpl implements WebSearchService {
 
             if (response.statusCode() == 200) {
                 JsonNode root = objectMapper.readTree(response.body());
+                JsonNode webPages = root.path("webPages").path("value");
+                List<SearchSnippet> snippets = new ArrayList<>();
 
-                String abstractText = root.path("AbstractText").asText(null);
-                String abstractUrl = root.path("AbstractURL").asText(null);
-                if (abstractText != null && !abstractText.isEmpty()) {
-                    snippets.add(SearchSnippet.builder()
-                            .title(root.path("Heading").asText(""))
-                            .url(abstractUrl)
-                            .snippet(abstractText)
-                            .build());
-                }
-
-                JsonNode relatedTopics = root.path("RelatedTopics");
-                if (relatedTopics.isArray()) {
-                    for (JsonNode topic : relatedTopics) {
+                if (webPages.isArray()) {
+                    for (JsonNode page : webPages) {
                         if (snippets.size() >= config.getMaxResults()) break;
-                        String text = topic.path("Text").asText(null);
-                        String firstUrl = topic.path("FirstURL").asText(null);
-                        if (text != null && !text.isEmpty()) {
-                            String[] parts = text.split(" - ", 2);
-                            String title = parts.length > 1 ? parts[0] : "";
-                            String snippet = parts.length > 1 ? parts[1] : text;
-                            snippets.add(SearchSnippet.builder()
-                                    .title(title)
-                                    .url(firstUrl)
-                                    .snippet(snippet)
-                                    .build());
-                        }
+                        snippets.add(SearchSnippet.builder()
+                                .title(page.path("name").asText(""))
+                                .url(page.path("url").asText(""))
+                                .snippet(page.path("snippet").asText(""))
+                                .build());
                     }
                 }
-            } else {
-                log.warn("DuckDuckGo API returned status {}: {}", response.statusCode(), response.body());
-                return WebSearchResult.builder()
-                        .query(query)
-                        .snippets(List.of())
-                        .timestamp(System.currentTimeMillis())
-                        .status("error")
-                        .errorMessage("搜索服务返回异常状态: " + response.statusCode())
-                        .build();
+
+                if (snippets.isEmpty()) {
+                    return buildResult(query, List.of(), "no_results", null);
+                }
+
+                log.info("Bing API search returned {} results", snippets.size());
+                return buildResult(query, snippets, "success", null);
             }
+
+            log.warn("Bing API returned {}: {}", response.statusCode(), response.body());
+            return buildResult(query, List.of(), "error",
+                    "Bing API 返回状态: " + response.statusCode());
+
         } catch (Exception e) {
-            log.warn("Web search failed for query '{}': {}", query, e.getMessage());
-            return WebSearchResult.builder()
-                    .query(query)
-                    .snippets(List.of())
-                    .timestamp(System.currentTimeMillis())
-                    .status("error")
-                    .errorMessage("搜索失败: " + e.getMessage())
+            log.warn("Bing API search failed: {}", e.getMessage());
+            return buildResult(query, List.of(), "error", "搜索失败: " + e.getMessage());
+        }
+    }
+
+    private WebSearchResult searchViaHtmlScraping(String query) {
+        try {
+            String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+            String url = BING_HTML + "?q=" + encodedQuery + "&setlang=zh-cn";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(config.getTimeoutSeconds()))
+                    .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .GET()
                     .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                String html = response.body();
+                List<SearchSnippet> snippets = parseBingHtml(html);
+                if (snippets.isEmpty()) {
+                    return buildResult(query, List.of(), "no_results", null);
+                }
+                log.info("Bing HTML search returned {} results", snippets.size());
+                return buildResult(query, snippets, "success", null);
+            }
+
+            // Try cn.bing.com as fallback
+            log.info("Bing global returned {}, trying cn.bing.com", response.statusCode());
+            url = "https://cn.bing.com/search?q=" + encodedQuery + "&setlang=zh-cn";
+            request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(config.getTimeoutSeconds()))
+                    .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .GET()
+                    .build();
+
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                List<SearchSnippet> snippets = parseBingHtml(response.body());
+                if (!snippets.isEmpty()) {
+                    log.info("cn.bing.com returned {} results", snippets.size());
+                    return buildResult(query, snippets, "success", null);
+                }
+                return buildResult(query, List.of(), "no_results", null);
+            }
+
+            log.warn("cn.bing.com returned {}: {}", response.statusCode(),
+                    response.body().length() > 200 ? response.body().substring(0, 200) : response.body());
+            return buildResult(query, List.of(), "error",
+                    "搜索不可用 (status: " + response.statusCode() + ")。请配置 bing-api-key");
+
+        } catch (Exception e) {
+            log.warn("HTML search failed: {}", e.getMessage());
+            return buildResult(query, List.of(), "error",
+                    "搜索不可用: " + e.getMessage() + "。请配置 bing-api-key");
+        }
+    }
+
+    private String extractKeywords(String query) {
+        String cleaned = query
+                .replaceAll("请(帮我|你)?", "")
+                .replaceAll("[，,。.！!？?]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (cleaned.length() > 50) {
+            String[] sentences = cleaned.split("[。！？!?\\n]");
+            String best = sentences[sentences.length - 1];
+            for (String s : sentences) {
+                if (s.length() > best.length()) best = s;
+            }
+            cleaned = best.length() > 10 ? best.trim() : cleaned.substring(0, Math.min(80, cleaned.length()));
         }
 
-        if (snippets.isEmpty()) {
-            log.info("No search results found for query '{}'", query);
-            return WebSearchResult.builder()
-                    .query(query)
-                    .snippets(List.of())
-                    .timestamp(System.currentTimeMillis())
-                    .status("no_results")
-                    .build();
+        return cleaned;
+    }
+
+    private List<SearchSnippet> parseBingHtml(String html) {
+        List<SearchSnippet> snippets = new ArrayList<>();
+
+        Pattern algoPattern = Pattern.compile(
+                "<li[^>]*class=\"b_algo\"[^>]*>(.*?)</li>",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        Pattern linkPattern = Pattern.compile(
+                "<a[^>]*href=\"(https?://[^\"]+)\"[^>]*>(.+?)</a>",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+        Matcher algoMatcher = algoPattern.matcher(html);
+        while (algoMatcher.find() && snippets.size() < config.getMaxResults()) {
+            String block = algoMatcher.group(1);
+            Matcher linkMatcher = linkPattern.matcher(block);
+            if (linkMatcher.find()) {
+                String url = linkMatcher.group(1);
+                String title = linkMatcher.group(2).replaceAll("<[^>]*>", "").trim();
+                if (url.contains("bing.com") || url.contains("microsoft.com") || url.contains("go.microsoft"))
+                    continue;
+
+                // Extract snippet from <p> or <div class="b_caption">
+                String snippet = "";
+                Pattern snippetP = Pattern.compile(
+                        "<(?:p|div)[^>]*class=\"[^\"]*b_(?:caption|lineclamp|snippet)[^\"]*\"[^>]*>(.+?)</(?:p|div)>",
+                        Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+                Matcher sm = snippetP.matcher(block);
+                if (sm.find()) {
+                    snippet = sm.group(1).replaceAll("<[^>]*>", "").replaceAll("\\s+", " ").trim();
+                }
+
+                snippets.add(SearchSnippet.builder()
+                        .title(cleanHtml(title))
+                        .url(url)
+                        .snippet(cleanHtml(snippet))
+                        .build());
+            }
         }
 
-        log.info("Web search for '{}' returned {} results", query, snippets.size());
+        return snippets;
+    }
+
+    private String cleanHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", "\"").replace("&#x27;", "'").replace("&nbsp;", " ")
+                .replace("&middot;", "·").replace("&mdash;", "—").trim();
+    }
+
+    private WebSearchResult buildResult(String query, List<SearchSnippet> snippets, String status, String error) {
         return WebSearchResult.builder()
-                .query(query)
-                .snippets(snippets)
-                .timestamp(System.currentTimeMillis())
-                .status("success")
-                .build();
+                .query(query).snippets(snippets)
+                .timestamp(System.currentTimeMillis()).status(status)
+                .errorMessage(error).build();
     }
 }

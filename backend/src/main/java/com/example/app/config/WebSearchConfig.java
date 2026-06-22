@@ -8,39 +8,23 @@ import org.springframework.stereotype.Component;
 public class WebSearchConfig {
 
     private boolean enabled = true;
-    private int timeoutSeconds = 5;
+    private int timeoutSeconds = 8;
     private int maxResults = 5;
-    private String engine = "duckduckgo";
+    private String engine = "bing";
+    private String bingApiKey = "";
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+    public int getTimeoutSeconds() { return timeoutSeconds; }
+    public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
 
-    public int getTimeoutSeconds() {
-        return timeoutSeconds;
-    }
+    public int getMaxResults() { return maxResults; }
+    public void setMaxResults(int maxResults) { this.maxResults = maxResults; }
 
-    public void setTimeoutSeconds(int timeoutSeconds) {
-        this.timeoutSeconds = timeoutSeconds;
-    }
+    public String getEngine() { return engine; }
+    public void setEngine(String engine) { this.engine = engine; }
 
-    public int getMaxResults() {
-        return maxResults;
-    }
-
-    public void setMaxResults(int maxResults) {
-        this.maxResults = maxResults;
-    }
-
-    public String getEngine() {
-        return engine;
-    }
-
-    public void setEngine(String engine) {
-        this.engine = engine;
-    }
+    public String getBingApiKey() { return bingApiKey; }
+    public void setBingApiKey(String bingApiKey) { this.bingApiKey = bingApiKey; }
 }
