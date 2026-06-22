@@ -8,6 +8,9 @@ target/
 # Logs
 *.log
 
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
 
