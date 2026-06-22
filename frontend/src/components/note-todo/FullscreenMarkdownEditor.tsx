@@ -164,7 +164,7 @@ export function FullscreenMarkdownEditor({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 5 }}
                             transition={{ duration: 0.15 }}
-                            className='absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 rounded-md text-xs font-medium text-white bg-gray-800 whitespace-nowrap pointer-events-none z-50 shadow-lg'
+                            className='absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 rounded-md text-xs font-semibold text-white bg-gray-800 whitespace-nowrap pointer-events-none z-50 shadow-lg'
                           >
                             {btn.label}
                             <span className='absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800' />
@@ -233,7 +233,7 @@ export function FullscreenMarkdownEditor({
           )}
           {editorMode !== 'edit' && (
             <div className='flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg-card)]'>
-              <h1 className='text-2xl font-bold text-[var(--text-primary)] mb-4'>
+              <h1 className='text-2xl font-semibold text-[var(--text-primary)] mb-4'>
                 {editorTitle || '预览'}
               </h1>
               <ReactMarkdown
@@ -256,7 +256,7 @@ export function FullscreenMarkdownEditor({
                   },
                   h1: ({ children }) => (
                     <h1
-                      className='text-2xl font-bold text-[var(--text-primary)] mt-6 mb-3'
+                      className='text-2xl font-semibold text-[var(--text-primary)] mt-6 mb-3'
                       children={children}
                     />
                   ),

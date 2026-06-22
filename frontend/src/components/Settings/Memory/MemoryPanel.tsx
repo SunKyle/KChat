@@ -183,7 +183,7 @@ export function MemoryPanel() {
       <div className='flex flex-col sm:flex-row md:flex-row lg:flex-row items-start sm:items-center md:items-center lg:items-center justify-between gap-3 mb-4 w-full'>
         <div className='flex items-center gap-2 flex-shrink-0'>
           <Database className='w-5 h-5 theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>记忆列表</h3>
+          <h3 className='font-semibold theme-text-primary'>记忆列表</h3>
         </div>
 
         <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-nowrap md:flex-nowrap lg:flex-nowrap'>
@@ -226,7 +226,7 @@ export function MemoryPanel() {
               setEditingMemory(null)
               setShowForm(true)
             }}
-            className='flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap flex-shrink-0'
+            className='flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap flex-shrink-0'
           >
             <Plus className='w-4 h-4' />
             <span className='hidden sm:inline'>添加</span>
@@ -243,7 +243,7 @@ export function MemoryPanel() {
           <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
             <Search className='w-7 h-7 theme-text-muted' />
           </div>
-          <h3 className='text-base font-medium theme-text-primary mb-1'>暂无记忆</h3>
+          <h3 className='text-base font-semibold theme-text-primary mb-1'>暂无记忆</h3>
           <p className='theme-text-muted text-sm mb-5'>添加你的第一条记忆</p>
           <button
             onClick={() => {
@@ -264,7 +264,7 @@ export function MemoryPanel() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--bg-input)] flex items-center justify-center mb-3">
                   <Database className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--text-muted)]" />
                 </div>
-                <h3 className="text-sm font-medium text-[var(--text-secondary)]">暂无记忆</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-secondary)]">暂无记忆</h3>
                 <p className="text-xs text-[var(--text-muted)] mt-1">
                   {searchQuery ? "没有找到匹配的记忆" : "开始对话后，系统会自动提取记忆"}
                 </p>
@@ -312,7 +312,7 @@ export function MemoryPanel() {
                     {/* 内容区域 */}
                     <div className='min-w-0 flex-1'>
                       <div className='flex items-start justify-between gap-2'>
-                        <h4 className='text-sm font-medium text-[var(--text-primary)] leading-relaxed line-clamp-2'>
+                        <h4 className='text-sm font-semibold text-[var(--text-primary)] leading-relaxed line-clamp-2'>
                           {memory.content}
                         </h4>
                         
@@ -399,7 +399,7 @@ export function MemoryPanel() {
                 </div>
                 <button
                   onClick={handleBatchDelete}
-                  className='flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap'
+                  className='flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap'
                 >
                   <Trash2 className='w-3.5 h-3.5' />
                   删除
@@ -459,7 +459,7 @@ export function MemoryPanel() {
               {/* 内容字段 */}
               <div className='space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <label className='block text-sm font-medium text-[var(--text-primary)]'>
+                  <label className='block text-sm font-semibold text-[var(--text-primary)]'>
                     记忆内容
                   </label>
                   <span className='text-xs text-[var(--text-muted)]'>
@@ -487,7 +487,7 @@ export function MemoryPanel() {
 
               {/* 类型选择 */}
               <div className='space-y-2.5'>
-                <label className='block text-sm font-medium text-[var(--text-primary)]'>
+                <label className='block text-sm font-semibold text-[var(--text-primary)]'>
                   记忆类型
                 </label>
                 <div className='flex flex-wrap gap-2'>
@@ -508,7 +508,7 @@ export function MemoryPanel() {
                             createdAt: editingMemory?.createdAt || '',
                           } as Memory)
                         }}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                           isSelected
                             ? `${getTypeColor(t.type)} text-white shadow-md scale-[1.02]`
                             : 'bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--border-primary)] hover:bg-[var(--bg-hover)]'
@@ -524,7 +524,7 @@ export function MemoryPanel() {
 
               {/* 重要性选择 */}
               <div className='space-y-2.5'>
-                <label className='block text-sm font-medium text-[var(--text-primary)]'>
+                <label className='block text-sm font-semibold text-[var(--text-primary)]'>
                   重要性
                 </label>
                 <div className='flex items-center gap-1.5'>
@@ -554,7 +554,7 @@ export function MemoryPanel() {
                       </button>
                     )
                   })}
-                  <span className='ml-2 text-sm text-[var(--text-secondary)] font-medium'>
+                  <span className='ml-2 text-sm text-[var(--text-secondary)] font-semibold'>
                     {(editingMemory?.importance || 3)}/5
                   </span>
                   <span className='text-xs text-[var(--text-muted)]ml-1'>
@@ -583,7 +583,7 @@ export function MemoryPanel() {
                   className='w-4 h-4 rounded border-[var(--brand-danger)]/30 bg-[var(--bg-card)] text-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50 focus:ring-offset-0'
                 />
                 <div>
-                  <label htmlFor='isRule' className='text-sm font-medium text-[var(--brand-danger)] cursor-pointer'>
+                  <label htmlFor='isRule' className='text-sm font-semibold text-[var(--brand-danger)] cursor-pointer'>
                     标记为规则
                   </label>
                   <p className='text-xs text-[var(--brand-danger)] mt-0.5'>
@@ -606,7 +606,7 @@ export function MemoryPanel() {
                     setShowForm(false)
                     setEditingMemory(null)
                   }}
-                  className='px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-xl transition-all duration-200'
+                  className='px-5 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-xl transition-all duration-200'
                 >
                   取消
                 </button>
@@ -617,7 +617,7 @@ export function MemoryPanel() {
                     }
                   }}
                   disabled={!editingMemory?.content.trim()}
-                  className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
                     editingMemory?.content.trim()
                       ? 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/90 shadow-md hover:shadow-lg'
                       : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'

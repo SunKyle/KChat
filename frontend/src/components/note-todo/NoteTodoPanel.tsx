@@ -175,14 +175,14 @@ function NoteTodoSearchBar({
             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`} />
             筛选标签
             {filterTags.length > 0 && (
-              <span className='text-[var(--brand-primary)] normal-case tracking-normal font-medium'>({filterTags.length})</span>
+              <span className='text-[var(--brand-primary)] normal-case tracking-normal font-semibold'>({filterTags.length})</span>
             )}
           </button>
           {filterExpanded && (
             <div className='flex items-center gap-1.5 flex-wrap'>
               <button
                 onClick={() => onFilterTagsChange([])}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
               >
                 全部
               </button>
@@ -194,7 +194,7 @@ function NoteTodoSearchBar({
                       filterTags.includes(name) ? filterTags.filter((t) => t !== name) : [...filterTags, name]
                     )
                   }
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
                 >
                   {name}
                   <span className='ml-1 opacity-50 text-xs'>{count}</span>
@@ -536,12 +536,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
               确定要删除「{deleteConfirm.title}」吗？
             </p>
             <div className='flex items-center justify-end gap-2'>
-              <button onClick={() => setDeleteConfirm(null)} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-medium hover:bg-[var(--bg-input)] transition-colors'>
+              <button onClick={() => setDeleteConfirm(null)} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
                 取消
               </button>
               <button
                 onClick={deleteConfirm.type === 'note' ? confirmDeleteNote : confirmDeleteTodo}
-                className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-sm font-medium hover:bg-[var(--brand-danger)]/90 transition-colors'
+                className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--brand-danger)]/90 transition-colors'
               >
                 删除
               </button>

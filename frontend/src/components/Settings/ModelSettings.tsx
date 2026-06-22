@@ -185,7 +185,7 @@ export function ModelSettings() {
       <div className='flex items-center justify-between mb-4'>
         <div className='flex items-center gap-2'>
           <Brain className='w-5 h-5 theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>模型列表</h3>
+          <h3 className='font-semibold theme-text-primary'>模型列表</h3>
         </div>
         <button
           onClick={handleOpenAddModal}
@@ -205,7 +205,7 @@ export function ModelSettings() {
           <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
             <Database className='w-7 h-7 theme-text-muted' />
           </div>
-          <h3 className='text-base font-medium theme-text-primary mb-1'>暂无模型配置</h3>
+          <h3 className='text-base font-semibold theme-text-primary mb-1'>暂无模型配置</h3>
           <p className='theme-text-muted text-sm mb-5'>添加你的第一个 AI 模型</p>
           <button
             onClick={handleOpenAddModal}
@@ -229,7 +229,7 @@ export function ModelSettings() {
                     >
                       <span className='text-sm'>{provider.icon}</span>
                     </div>
-                    <h3 className='text-sm font-medium theme-text-secondary'>
+                    <h3 className='text-sm font-semibold theme-text-secondary'>
                       {provider.displayName}
                     </h3>
                     <span className='text-xs theme-text-muted/70 theme-bg-input px-2 py-0.5 rounded-full'>
@@ -244,7 +244,7 @@ export function ModelSettings() {
                           className='group flex items-center justify-between p-4 card-inset rounded-xl border theme-border-primary hover:border-theme-border-secondary transition-colors w-full'
                         >
                           <div className='min-w-0 flex-1'>
-                            <h4 className='text-sm font-medium theme-text-primary truncate'>
+                            <h4 className='text-sm font-semibold theme-text-primary truncate'>
                               {config.name}
                             </h4>
                             <div className='flex items-center gap-2 mt-0.5'>
@@ -318,7 +318,7 @@ export function ModelSettings() {
 
             <div className='p-4 space-y-4 overflow-y-auto'>
               <div>
-                <label className='block text-sm font-medium theme-text-secondary mb-3'>
+                <label className='block text-sm font-semibold theme-text-secondary mb-3'>
                   服务商
                 </label>
                 <div className='grid grid-cols-3 gap-3'>
@@ -332,7 +332,7 @@ export function ModelSettings() {
                           : 'theme-border-primary hover:theme-border-primary/80'
                       }`}
                     >
-                      <div className='text-sm font-medium theme-text-primary mb-1'>
+                      <div className='text-sm font-semibold theme-text-primary mb-1'>
                         <span
                           className={`w-6 h-6 rounded ${provider.color} flex items-center justify-center text-white text-xs flex-shrink-0 inline mr-2`}
                         >
@@ -349,7 +349,7 @@ export function ModelSettings() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
+                <label className='block text-sm font-semibold theme-text-secondary mb-1.5'>
                   名称
                 </label>
                 <input
@@ -363,7 +363,7 @@ export function ModelSettings() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
+                <label className='block text-sm font-semibold theme-text-secondary mb-1.5'>
                   模型 ID
                 </label>
                 <input
@@ -377,7 +377,7 @@ export function ModelSettings() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
+                <label className='block text-sm font-semibold theme-text-secondary mb-1.5'>
                   API 地址
                 </label>
                 <input
@@ -391,7 +391,7 @@ export function ModelSettings() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
+                <label className='block text-sm font-semibold theme-text-secondary mb-1.5'>
                   API Key
                 </label>
                 <input
@@ -431,7 +431,7 @@ export function ModelSettings() {
               </button>
               <button
                 onClick={handleSave}
-                className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium'
+                className='flex items-center gap-1.5 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-semibold'
               >
                 {editingConfig ? '更新' : '保存'}
               </button>

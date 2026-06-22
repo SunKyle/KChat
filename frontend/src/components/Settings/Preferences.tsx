@@ -120,11 +120,11 @@ export function Preferences() {
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <Monitor className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>外观</h3>
+          <h3 className='font-semibold theme-text-primary'>外观</h3>
         </div>
 
         <div>
-          <label className='block text-sm font-medium theme-text-secondary mb-3'>主题模式</label>
+          <label className='block text-sm font-semibold theme-text-secondary mb-3'>主题模式</label>
           <div className='grid grid-cols-3 gap-3'>
             {themes.map((theme) => (
               <button
@@ -137,7 +137,7 @@ export function Preferences() {
                     : 'theme-border-primary hover:theme-border-primary/80'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                <div className='text-sm font-medium theme-text-primary mb-1'>{theme.label}</div>
+                <div className='text-sm font-semibold theme-text-primary mb-1'>{theme.label}</div>
                 <div className='text-xs theme-text-muted'>{theme.description}</div>
                 {profile.preferences.theme === theme.id && (
                   <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--brand-primary)] rounded-full' />
@@ -152,11 +152,11 @@ export function Preferences() {
         <div className='card-float-solid rounded-2xl p-6'>
           <div className='flex items-center gap-2 mb-4'>
             <Languages className='w-[18px] h-[18px] theme-text-muted' />
-            <h3 className='font-medium theme-text-primary'>语言偏好</h3>
+            <h3 className='font-semibold theme-text-primary'>语言偏好</h3>
           </div>
 
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-3'>
+            <label className='block text-sm font-semibold theme-text-secondary mb-3'>
               AI 回复语言
             </label>
             <p className='text-xs theme-text-muted mb-3'>
@@ -180,7 +180,7 @@ export function Preferences() {
         <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <Bell className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>通知设置</h3>
+          <h3 className='font-semibold theme-text-primary'>通知设置</h3>
         </div>
 
         <div className='space-y-4'>
@@ -190,7 +190,7 @@ export function Preferences() {
                 <Bell className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className='text-sm font-medium theme-text-primary'>消息通知</div>
+                <div className='text-sm font-semibold theme-text-primary'>消息通知</div>
                 <div className='text-xs theme-text-muted'>接收新消息时发送通知</div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export function Preferences() {
                 <Mail className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className='text-sm font-medium theme-text-primary'>邮件通知</div>
+                <div className='text-sm font-semibold theme-text-primary'>邮件通知</div>
                 <div className='text-xs theme-text-muted'>发送重要更新到您的邮箱</div>
               </div>
             </div>
@@ -226,7 +226,7 @@ export function Preferences() {
                 <Smartphone className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className='text-sm font-medium theme-text-primary'>推送通知</div>
+                <div className='text-sm font-semibold theme-text-primary'>推送通知</div>
                 <div className='text-xs theme-text-muted'>浏览器推送通知</div>
               </div>
             </div>
@@ -244,7 +244,7 @@ export function Preferences() {
                 <Volume2 className='w-4 h-4 theme-text-muted' />
               </div>
               <div>
-                <div className='text-sm font-medium theme-text-primary'>通知声音</div>
+                <div className='text-sm font-semibold theme-text-primary'>通知声音</div>
                 <div className='text-xs theme-text-muted'>接收通知时播放声音</div>
               </div>
             </div>
@@ -262,12 +262,12 @@ export function Preferences() {
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <MessageSquare className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>对话设置</h3>
+          <h3 className='font-semibold theme-text-primary'>对话设置</h3>
         </div>
 
         <div className='flex items-center justify-between'>
           <div>
-            <div className='text-sm font-medium theme-text-primary'>自动生成标题</div>
+            <div className='text-sm font-semibold theme-text-primary'>自动生成标题</div>
             <div className='text-xs theme-text-muted'>新建对话后，根据对话内容自动生成简短标题</div>
           </div>
           <Toggle

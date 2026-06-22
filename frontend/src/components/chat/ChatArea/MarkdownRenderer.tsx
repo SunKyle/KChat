@@ -127,13 +127,13 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
               )
             },
             h1: ({ children }) => (
-              <h1 className='text-2xl font-bold mt-4 mb-2 theme-text-primary'>{children}</h1>
+              <h1 className='theme-text-primary'>{children}</h1>
             ),
             h2: ({ children }) => (
-              <h2 className='text-xl font-bold mt-3 mb-2 theme-text-primary'>{children}</h2>
+              <h2 className='theme-text-primary'>{children}</h2>
             ),
             h3: ({ children }) => (
-              <h3 className='text-lg font-bold mt-2 mb-1 theme-text-primary'>{children}</h3>
+              <h3 className='theme-text-primary'>{children}</h3>
             ),
             p: ({ children }) => <p className='mb-3 last:mb-0 theme-text-primary'>{children}</p>,
             ul: ({ children }) => (
@@ -163,7 +163,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
               </a>
             ),
             strong: ({ children }) => (
-              <strong className='font-bold theme-text-primary'>{children}</strong>
+              <strong className='font-semibold theme-text-primary'>{children}</strong>
             ),
             em: ({ children }) => <em className='italic theme-text-primary'>{children}</em>,
             hr: () => <hr className='border-theme-border-primary my-4' />,

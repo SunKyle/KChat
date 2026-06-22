@@ -68,7 +68,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
 
         <div className='p-4 space-y-4'>
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-2'>
+            <label className='block text-sm font-semibold theme-text-secondary mb-2'>
               内容 <span className='text-red-400'>*</span>
             </label>
             <textarea
@@ -82,7 +82,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
           </div>
 
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-2'>类型</label>
+            <label className='block text-sm font-semibold theme-text-secondary mb-2'>类型</label>
             <div className='flex flex-wrap gap-2'>
               {MEMORY_TYPES.map((t) => (
                 <button
@@ -102,7 +102,7 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
           </div>
 
           <div>
-            <label className='block text-sm font-medium theme-text-secondary mb-2'>重要性</label>
+            <label className='block text-sm font-semibold theme-text-secondary mb-2'>重要性</label>
             <div className='flex items-center gap-1'>
               {Array.from({ length: 5 }).map((_, i) => (
                 <button

@@ -50,15 +50,13 @@ export const tokens = {
     },
     weights: {
       normal: 400,
-      medium: 500,
       semibold: 600,
-      bold: 700,
     },
     typography: {
       display: {
         fontSize: '32px',
-        lineHeight: '40px',
-        fontWeight: '700',
+        lineHeight: '38px',
+        fontWeight: '600',
       },
       h1: {
         fontSize: '28px',
@@ -67,27 +65,27 @@ export const tokens = {
       },
       h2: {
         fontSize: '24px',
-        lineHeight: '32px',
+        lineHeight: '31px',
         fontWeight: '600',
       },
       h3: {
         fontSize: '20px',
-        lineHeight: '28px',
+        lineHeight: '26px',
         fontWeight: '600',
       },
       title: {
-        fontSize: '18px',
-        lineHeight: '26px',
+        fontSize: '16px',
+        lineHeight: '21px',
         fontWeight: '600',
       },
       bodyL: {
         fontSize: '16px',
-        lineHeight: '30px',
+        lineHeight: '27px',
         fontWeight: '400',
       },
       bodyM: {
         fontSize: '15px',
-        lineHeight: '28px',
+        lineHeight: '26px',
         fontWeight: '400',
       },
       secondary: {
@@ -102,18 +100,18 @@ export const tokens = {
       },
       tiny: {
         fontSize: '11px',
-        lineHeight: '16px',
+        lineHeight: '17px',
         fontWeight: '400',
       },
     },
     components: {
       logo: {
-        fontSize: '18px',
-        fontWeight: '700',
+        fontSize: '32px',
+        fontWeight: '600',
       },
       tagline: {
         fontSize: '11px',
-        fontWeight: '500',
+        fontWeight: '600',
         letterSpacing: '0.15em',
       },
       groupTitle: {
@@ -122,10 +120,10 @@ export const tokens = {
       },
       conversationName: {
         fontSize: '14px',
-        fontWeight: '500',
+        fontWeight: '600',
       },
       currentTitle: {
-        fontSize: '18px',
+        fontSize: '16px',
         fontWeight: '600',
       },
       modelName: {
@@ -133,33 +131,33 @@ export const tokens = {
         fontWeight: '600',
       },
       statusTag: {
-        fontSize: '13px',
-        fontWeight: '500',
+        fontSize: '12px',
+        fontWeight: '600',
       },
       aiMessage: {
-        fontSize: '16px',
-        lineHeight: '30px',
+        fontSize: '15px',
+        lineHeight: '26px',
         fontWeight: '400',
       },
       userMessage: {
         fontSize: '15px',
-        lineHeight: '28px',
+        lineHeight: '26px',
         fontWeight: '400',
       },
       codeBlock: {
-        fontSize: '13px',
-        lineHeight: '20px',
+        fontSize: '14px',
+        lineHeight: '21px',
         fontWeight: '400',
         fontFamily: 'JetBrains Mono, SF Mono, Fira Code, monospace',
       },
       inputText: {
         fontSize: '15px',
-        lineHeight: '28px',
+        lineHeight: '26px',
         fontWeight: '400',
       },
       placeholder: {
         fontSize: '15px',
-        lineHeight: '28px',
+        lineHeight: '26px',
         fontWeight: '400',
       },
       helperText: {

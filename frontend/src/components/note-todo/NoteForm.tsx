@@ -82,7 +82,7 @@ export function NoteForm({
     <div className='flex-1 flex flex-col overflow-hidden'>
       <div className='flex-1 overflow-y-auto p-4 space-y-5'>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
             标题
           </label>
           <input
@@ -94,7 +94,7 @@ export function NoteForm({
           />
         </div>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
             内容
             </label>
             <div className='relative'>
@@ -137,7 +137,7 @@ export function NoteForm({
             </div>
           </div>
           <div>
-            <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>
+            <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
               分类
             </label>
             <div className='flex items-center gap-2'>
@@ -154,7 +154,7 @@ export function NoteForm({
               </select>
               <button
                 onClick={() => setFormState((p) => ({ ...p, pinned: !p.pinned }))}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                   formState.pinned
                     ? 'bg-[var(--accent-amber)]/[0.12] text-[var(--accent-amber)] border border-[var(--accent-amber)]/25'
                     : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]'
@@ -166,13 +166,13 @@ export function NoteForm({
             </div>
           </div>
           <div>
-            <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>标签</label>
+            <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>标签</label>
             {formState.tags.length > 0 && (
               <div className='flex flex-wrap gap-1.5 mb-2.5'>
                 {formState.tags.map((tag) => (
                   <span
                     key={tag}
-                    className='flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-primary)]/[0.08] text-[var(--brand-primary)] rounded-full text-xs font-medium'
+                    className='flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-primary)]/[0.08] text-[var(--brand-primary)] rounded-full text-xs font-semibold'
                   >
                     {tag}
                     <button onClick={() => handleRemoveTag(tag)} className='hover:opacity-70 transition-opacity'>
@@ -195,13 +195,13 @@ export function NoteForm({
         <div className='flex-shrink-0 flex items-center justify-end gap-2.5 px-4 py-3 border-t border-[var(--border-divider)]'>
           <button
             onClick={onCancel}
-            className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-medium hover:bg-[var(--bg-input)] transition-colors'
+            className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'
           >
             取消
           </button>
           <button
             onClick={onSubmit}
-            className='px-5 py-2 rounded-xl text-sm font-medium text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'
+            className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'
           >
             {isEditing ? '保存' : '创建'}
           </button>

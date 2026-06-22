@@ -196,9 +196,9 @@ export function ConversationItem({
           <p
             className={`font-conversation-name truncate transition-colors duration-150 ${
               isActive
-                ? 'theme-brand-primary font-medium'
+                ? 'theme-brand-primary font-semibold'
                 : hasNewReply
-                  ? 'theme-text-primary font-medium'
+                  ? 'theme-text-primary font-semibold'
                   : 'theme-text-secondary'
             }`}
           >

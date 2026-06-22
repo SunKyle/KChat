@@ -97,7 +97,7 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand 
         <div className='flex items-center gap-2 mb-4 text-xs text-[var(--text-muted)] flex-wrap'>
           <span>{formatDateFull(note.updatedAt)}</span>
           <span className='w-1 h-1 rounded-full bg-[var(--text-muted)]/30' />
-          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
+          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
             {note.category}
           </span>
           {note.tags.map((tag) => (
@@ -180,7 +180,7 @@ function TodoPreview({
         </div>
         <div className='flex items-center gap-2 flex-wrap mb-4'>
           <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
               todo.status === 'completed'
                 ? 'bg-[var(--brand-primary)]/[0.08] text-[var(--brand-primary)]'
                 : `${priorityMeta[todo.priority].text} bg-[var(--bg-hover)]`
@@ -188,7 +188,7 @@ function TodoPreview({
           >
             {todo.status === 'completed' ? '已完成' : `${priorityMeta[todo.priority].label}优先级`}
           </span>
-          <span className='px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-full text-xs font-medium'>
+          <span className='px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-full text-xs font-semibold'>
             {todo.category}
           </span>
           {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
@@ -198,7 +198,7 @@ function TodoPreview({
             </span>
           )}
           {isOverdue(todo.dueDate, todo.status) && (
-            <span className='text-xs text-[var(--brand-danger)] flex items-center gap-1 font-medium'>
+            <span className='text-xs text-[var(--brand-danger)] flex items-center gap-1 font-semibold'>
               <Clock className='w-3 h-3' />
               已过期
             </span>

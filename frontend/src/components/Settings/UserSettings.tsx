@@ -110,7 +110,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
                     }`}
                   >
                     <Icon className='w-5 h-5' />
-                    <span className='font-medium'>{tab.label}</span>
+                    <span className='font-semibold'>{tab.label}</span>
                   </button>
                 )
               })}

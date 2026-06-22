@@ -140,7 +140,7 @@ export function Modal({
             </button>
             <button
               onClick={onConfirm}
-              className={`px-5 py-2.5 text-sm text-white rounded-lg font-medium transition-all active:scale-[0.97] ${buttonColorClass[type]}`}
+              className={`px-5 py-2.5 text-sm text-white rounded-lg font-semibold transition-all active:scale-[0.97] ${buttonColorClass[type]}`}
             >
               {confirmText}
             </button>

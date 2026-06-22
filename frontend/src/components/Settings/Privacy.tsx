@@ -80,7 +80,7 @@ export function Privacy() {
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <Lock className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>隐私设置</h3>
+          <h3 className='font-semibold theme-text-primary'>隐私设置</h3>
         </div>
 
         <div className='space-y-4'>
@@ -91,7 +91,7 @@ export function Privacy() {
                   <option.icon className='w-4 h-4 theme-text-muted' />
                 </div>
                 <div>
-                  <div className='text-sm font-medium theme-text-primary'>{option.label}</div>
+                  <div className='text-sm font-semibold theme-text-primary'>{option.label}</div>
                   <div className='text-xs theme-text-muted'>{option.description}</div>
                 </div>
               </div>
@@ -109,14 +109,14 @@ export function Privacy() {
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
           <Shield className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>数据安全</h3>
+          <h3 className='font-semibold theme-text-primary'>数据安全</h3>
         </div>
 
         <div className='space-y-3'>
           <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
             <div className='w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0' />
             <div>
-              <div className='text-sm font-medium theme-text-primary'>数据加密</div>
+              <div className='text-sm font-semibold theme-text-primary'>数据加密</div>
               <div className='text-xs theme-text-muted'>您的所有数据都采用端到端加密传输和存储</div>
             </div>
           </div>
@@ -124,7 +124,7 @@ export function Privacy() {
           <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
             <div className='w-2 h-2 rounded-full bg-green-400 mt-2 flex-shrink-0' />
             <div>
-              <div className='text-sm font-medium theme-text-primary'>安全审计</div>
+              <div className='text-sm font-semibold theme-text-primary'>安全审计</div>
               <div className='text-xs theme-text-muted'>定期进行安全审计，确保数据保护措施有效</div>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function Privacy() {
           <div className='flex items-start gap-3 p-3 rounded-lg theme-bg-hover/50'>
             <div className='w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0' />
             <div>
-              <div className='text-sm font-medium theme-text-primary'>隐私政策</div>
+              <div className='text-sm font-semibold theme-text-primary'>隐私政策</div>
               <div className='text-xs theme-text-muted'>我们承诺不会出售或分享您的个人数据</div>
             </div>
           </div>

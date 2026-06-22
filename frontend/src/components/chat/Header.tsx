@@ -50,7 +50,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
     <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-secondary'>
       <div className='flex items-center gap-3'>
         {activeConversation ? (
-          <h1 className='font-conversation-name font-medium theme-text-primary truncate max-w-lg'>
+          <h1 className='font-conversation-name font-semibold theme-text-primary truncate max-w-lg'>
             {activeConversation.title}
           </h1>
         ) : (
@@ -69,7 +69,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             aria-haspopup='listbox'
           >
             <Cpu className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-brand-primary' />
-            <span className='font-secondary font-medium text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none'>
+            <span className='font-secondary font-semibold text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none'>
               {currentModel}
             </span>
             <ChevronDown className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted' />

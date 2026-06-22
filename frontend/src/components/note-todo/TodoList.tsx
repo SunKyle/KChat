@@ -77,27 +77,27 @@ function TodoListItem({
           <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
             <div className='flex items-center gap-2 flex-wrap'>
               <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}
               >
                 {priorityMeta[todo.priority].label}优先级
               </span>
               {todo.category === '工作' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
                   {todo.category}
                 </span>
               )}
               {todo.category === '学习' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
                   {todo.category}
                 </span>
               )}
               {todo.category === '生活' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
                   {todo.category}
                 </span>
               )}
               {todo.category === '默认' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
                   {todo.category}
                 </span>
               )}
@@ -108,7 +108,7 @@ function TodoListItem({
                 </span>
               )}
               {isOverdue(todo.dueDate, todo.status) && (
-                <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--brand-danger)]/5 text-[var(--brand-danger)]'>
+                <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-danger)]/5 text-[var(--brand-danger)]'>
                   <Clock className='w-3 h-3' />
                   已过期
                 </span>
@@ -184,7 +184,7 @@ export function TodoList({
         <p className='text-sm text-[var(--text-muted)]'>暂无待办</p>
         <button
           onClick={onOpenCreate}
-          className='mt-3 px-4 py-1.5 rounded-lg text-xs font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'
+          className='mt-3 px-4 py-1.5 rounded-lg text-xs font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'
         >
           新建待办
         </button>

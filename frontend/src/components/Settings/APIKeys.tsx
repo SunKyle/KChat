@@ -78,7 +78,7 @@ export function APIKeys() {
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <Key className='w-5 h-5 theme-text-muted' />
-          <h3 className='font-medium theme-text-primary'>API 密钥</h3>
+          <h3 className='font-semibold theme-text-primary'>API 密钥</h3>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -113,7 +113,7 @@ export function APIKeys() {
             >
               <div className='flex items-center justify-between mb-3'>
                 <div>
-                  <div className='font-medium theme-text-primary'>{apiKey.name}</div>
+                  <div className='font-semibold theme-text-primary'>{apiKey.name}</div>
                   <div className='text-xs theme-text-muted'>
                     创建于 {formatDate(apiKey.createdAt)}
                   </div>
@@ -186,7 +186,7 @@ export function APIKeys() {
                   <div className='flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30'>
                     <AlertTriangle className='w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5' />
                     <div>
-                      <div className='text-sm font-medium text-amber-600'>安全提醒</div>
+                      <div className='text-sm font-semibold text-amber-600'>安全提醒</div>
                       <div className='text-xs text-amber-500'>
                         请务必立即复制您的新 API 密钥。出于安全考虑，我们不会再次显示完整密钥。
                       </div>
@@ -199,7 +199,7 @@ export function APIKeys() {
                     onClick={() => {
                       handleCopyKey(newKey, 'new')
                     }}
-                    className='w-full flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium'
+                    className='w-full flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-semibold'
                   >
                     {copiedKey === 'new' ? (
                       <Eye className='w-4 h-4' />
@@ -212,7 +212,7 @@ export function APIKeys() {
               ) : (
                 <div className='space-y-4'>
                   <div>
-                    <label className='block text-sm font-medium theme-text-secondary mb-1.5'>
+                    <label className='block text-sm font-semibold theme-text-secondary mb-1.5'>
                       密钥名称
                     </label>
                     <input
@@ -236,7 +236,7 @@ export function APIKeys() {
                     <button
                       onClick={handleCreateKey}
                       disabled={!newKeyName.trim() || creatingKey}
-                      className='flex-1 flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+                      className='flex-1 flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
                     >
                       {creatingKey ? (
                         <Loader2 className='w-4 h-4 animate-spin' />

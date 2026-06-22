@@ -139,7 +139,7 @@ function ErrorToastContainer() {
               : 'bg-blue-500/90 text-white'
           }`}
         >
-          <span className="text-sm font-medium flex-1">{toast.message}</span>
+          <span className="text-sm font-semibold flex-1">{toast.message}</span>
           <button
             onClick={() => removeError(toast.id)}
             className="p-1 hover:bg-white/20 rounded transition-colors"

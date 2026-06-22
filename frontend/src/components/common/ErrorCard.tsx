@@ -155,7 +155,7 @@ export function ErrorCard({
               <button
                 onClick={onRetry}
                 className={`
-                  mt-4 inline-flex items-center gap-2 text-sm font-medium btn-ghost
+                  mt-4 inline-flex items-center gap-2 text-sm font-semibold btn-ghost
                   px-4 py-2 rounded-lg
                   ${config.buttonBg} ${config.buttonHover} ${config.buttonText}
                   transition-all hover:scale-[1.02] active:scale-[0.98]

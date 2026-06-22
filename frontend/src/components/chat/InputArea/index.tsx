@@ -176,7 +176,7 @@ export function InputArea() {
                       } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
-                      className={`text-xs font-medium transition-all duration-500 ${
+                      className={`text-xs font-semibold transition-all duration-500 ${
                         isOutputting ? 'text-sky-800' : 'text-amber-800'
                       }`}
                     >

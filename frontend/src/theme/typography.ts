@@ -126,7 +126,5 @@ export const fontFamilies = {
 
 export const fontWeights = {
   normal: tokens.font.weights.normal,
-  medium: tokens.font.weights.medium,
   semibold: tokens.font.weights.semibold,
-  bold: tokens.font.weights.bold,
 }

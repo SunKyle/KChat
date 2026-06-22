@@ -30,7 +30,7 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
     <div className='flex-1 flex flex-col overflow-hidden'>
       <div className='flex-1 overflow-y-auto p-4 space-y-5'>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>标题</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>标题</label>
           <input
             type='text'
             value={formState.title}
@@ -40,7 +40,7 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           />
         </div>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>描述</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>描述</label>
           <textarea
             value={formState.description}
             onChange={(e) => setFormState((p) => ({ ...p, description: e.target.value }))}
@@ -50,7 +50,7 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           />
         </div>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>分类与优先级</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>分类与优先级</label>
           <div className='flex items-center gap-2'>
             <select
               value={formState.category}
@@ -68,7 +68,7 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
                 <button
                   key={pr}
                   onClick={() => setFormState((p) => ({ ...p, priority: pr }))}
-                  className={`w-10 py-2.5 rounded-xl text-xs font-medium transition-all border ${
+                  className={`w-10 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
                     formState.priority === pr
                       ? `${priorityMeta[pr].text} border-current/20 bg-[var(--bg-hover)]`
                       : 'text-[var(--text-muted)] border-transparent hover:border-[var(--border-primary)]'
@@ -81,7 +81,7 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           </div>
         </div>
         <div>
-          <label className='block text-xs font-medium text-[var(--text-secondary)] mb-2'>截止日期</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>截止日期</label>
           <input
             type='date'
             value={formState.dueDate}
@@ -91,10 +91,10 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
         </div>
       </div>
       <div className='flex-shrink-0 flex items-center justify-end gap-2.5 px-4 py-3 border-t border-[var(--border-divider)]'>
-        <button onClick={onCancel} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-medium hover:bg-[var(--bg-input)] transition-colors'>
+        <button onClick={onCancel} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
           取消
         </button>
-        <button onClick={onSubmit} className='px-5 py-2 rounded-xl text-sm font-medium text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'>
+        <button onClick={onSubmit} className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'>
           {isEditing ? '保存' : '创建'}
         </button>
       </div>

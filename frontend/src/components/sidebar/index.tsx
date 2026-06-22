@@ -203,7 +203,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo bg-gradient-to-r from-[var(--brand-primary)] via-[var(--accent-primary)] to-[var(--accent-purple)] bg-clip-text text-transparent leading-none sidebar-content-enter tracking-tight'>
+                <h1 className='font-logo text-[var(--brand-primary)] leading-none sidebar-content-enter tracking-tight'>
                   KChat
                 </h1>
               )}
@@ -284,7 +284,7 @@ export function Sidebar({
               </div>
               {!collapsed && (
                 <>
-                  <p className='theme-text-secondary text-sm mb-1 font-medium'>暂无对话</p>
+                  <p className='theme-text-secondary text-sm mb-1 font-semibold'>暂无对话</p>
                   <p className='text-xs theme-text-muted'>点击上方按钮开始</p>
                 </>
               )}

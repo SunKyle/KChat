@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-22T12:00:00.000Z",
+  "title": "Design System: KChat",
+  "extensions": {
+    "colorMeta": {
+      "warm-coral": {
+        "role": "primary",
+        "displayName": "Warm Coral",
+        "canonical": "oklch(50% 0.13 33)",
+        "tonalRamp": [
+          "#3a1e15",
+          "#532d1f",
+          "#6f3d2a",
+          "#8b4d35",
+          "#a45d40",
+          "#c17250",
+          "#cf9179",
+          "#e0b6a5"
+        ]
+      },
+      "warm-coral-light": {
+        "role": "primary",
+        "displayName": "Warm Coral Light (Dark Mode)",
+        "canonical": "oklch(78% 0.08 33)",
+        "tonalRamp": [
+          "#f0b8a0"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Neutral Backgrounds",
+        "tonalRamp": [
+          "#e8e8e8",
+          "#efefef",
+          "#f9f9f9",
+          "#fbfbfb",
+          "#fcfcfc"
+        ]
+      },
+      "neutral-ink": {
+        "role": "neutral",
+        "displayName": "Neutral Ink",
+        "tonalRamp": [
+          "#202020",
+          "#4a4a4a",
+          "#555555"
+        ]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Neutral Borders",
+        "tonalRamp": [
+          "#d8d8d8",
+          "#ebebeb"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body (System Sans)",
+        "purpose": "Primary reading text in messages, settings, notes. Zero-latency native rendering."
+      },
+      "mono": {
+        "displayName": "Code (JetBrains Mono)",
+        "purpose": "Code blocks, inline code, technical content."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Markdown H1 in chat messages. Used sparingly."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Markdown H2, settings section headers."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Markdown H3, modal titles, conversation summaries."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badges, timestamps, input labels, keyboard shortcuts."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-low",
+        "value": "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.03)",
+        "purpose": "Default state for floating cards and dropdowns."
+      },
+      {
+        "name": "ambient-high",
+        "value": "0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.05)",
+        "purpose": "Hover state for floating cards and interactive surfaces."
+      },
+      {
+        "name": "elevated",
+        "value": "0 2px 8px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06)",
+        "purpose": "Modals, dialogs, tooltips."
+      },
+      {
+        "name": "brand-glow",
+        "value": "0 2px 8px rgba(164,93,64,0.3)",
+        "purpose": "Primary button hover glow."
+      },
+      {
+        "name": "focus-ring-glow",
+        "value": "0 0 0 3px rgba(164,93,64,0.1)",
+        "purpose": "Input and interactive element focus ring."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Default easing for state transitions, opacity, transforms. Ease-out-quart shape."
+      },
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "purpose": "Bouncy entrance for error cards, scroll-to-bottom button."
+      },
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Micro-interactions: hover, focus, toggle, press."
+      },
+      {
+        "name": "duration-normal",
+        "value": "200ms",
+        "purpose": "Standard transitions: card hover lift, sidebar expand, fade-in."
+      },
+      {
+        "name": "duration-slow",
+        "value": "300ms",
+        "purpose": "Entrance animations: slide-in-right, fade-in-up."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The sole primary action button. Accessible coral (#a45d40) with white text, 4.9:1 contrast. Used once per screen.",
+      "html": "<button class=\"ds-btn-primary\">Send Message</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; background-color: #a45d40; color: #fff; border: none; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 500; line-height: 1.4; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-primary:hover { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(164,93,64,0.3); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 2px solid #a45d40; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; filter: none; box-shadow: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary text action. Transparent background, subtle hover. Used for cancel, secondary navigation, toolbar actions.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; background-color: transparent; color: #4a4a4a; border: none; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 500; line-height: 1.4; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-ghost:hover { background-color: #efefef; color: #202020; } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: 2px solid #a45d40; outline-offset: 2px; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard text input. Soft gray background, coral focus ring. Used in settings forms, search, and the message composer.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Type a message...\" />",
+      "css": ".ds-input { width: 100%; padding: 8px 12px; background-color: #e8e8e8; color: #202020; border: 1px solid #d8d8d8; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5; transition: border-color 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-input:focus { outline: none; border-color: #a45d40; box-shadow: 0 0 0 3px rgba(164,93,64,0.1); } .ds-input::placeholder { color: #555555; } .ds-input:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Floating Card",
+      "kind": "card",
+      "refersTo": "card-float",
+      "description": "Semi-transparent elevated surface with backdrop blur. Used for the message input area — the only permanent floating element.",
+      "html": "<div class=\"ds-card-float\">Input area content</div>",
+      "css": ".ds-card-float { backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2); background-color: rgba(255, 255, 255, 0.85); border: 1px solid #ebebeb; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.03); transition: box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-card-float:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.05); transform: translateY(-1px); }"
+    },
+    {
+      "name": "Solid Card",
+      "kind": "card",
+      "refersTo": "card-float-solid",
+      "description": "Opaque elevated surface for nested panels and settings cards. Same shadow strategy as floating card, no blur.",
+      "html": "<div class=\"ds-card-solid\">Settings panel content</div>",
+      "css": ".ds-card-solid { background-color: #fbfbfb; border: 1px solid #ebebeb; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.03); transition: box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-card-solid:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.05); }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Compact label for status, count, or category. Full-round, subtle background.",
+      "html": "<span class=\"ds-badge\">Connected</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background-color: #efefef; color: #4a4a4a; border-radius: 9999px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 500; line-height: 1.4; }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-btn",
+      "description": "Square touch target for icon-only actions. 44×44px minimum for accessibility.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"Settings\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z\"/></svg></button>",
+      "css": ".ds-icon-btn { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: transparent; border: none; border-radius: 8px; color: #555555; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-icon-btn:hover { background-color: #efefef; color: #4a4a4a; } .ds-icon-btn:active { transform: scale(0.92); } .ds-icon-btn:focus-visible { outline: 2px solid #a45d40; outline-offset: 2px; }"
+    },
+    {
+      "name": "Inset Card",
+      "kind": "card",
+      "refersTo": "card-inset",
+      "description": "Subtly recessed container for grouped content. Lower elevation than floating cards.",
+      "html": "<div class=\"ds-card-inset\">Inset content</div>",
+      "css": ".ds-card-inset { background-color: #fcfcfc; border: 1px solid #ebebeb; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }"
+    },
+    {
+      "name": "Navigation Item (Sidebar)",
+      "kind": "nav",
+      "refersTo": "sidebar-item",
+      "description": "Conversation list item in the left sidebar. Subtle hover, coral active state using the softer identity shade.",
+      "html": "<div class=\"ds-nav-item ds-nav-item--active\">Chat about design system</div>",
+      "css": ".ds-nav-item { padding: 8px 12px; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.5; color: #555555; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav-item:hover { background-color: #efefef; color: #202020; } .ds-nav-item--active { background-color: rgba(164,93,64,0.1); color: #a45d40; } .ds-nav-item--active:hover { background-color: rgba(164,93,64,0.15); color: #a45d40; }"
+    },
+    {
+      "name": "Tooltip",
+      "kind": "custom",
+      "refersTo": "tooltip-content",
+      "description": "Theme-aware tooltip with arrow. Appears above the trigger on hover/focus.",
+      "html": "<div class=\"ds-tooltip\">Copy message</div>",
+      "css": ".ds-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 4px 10px; background-color: #202020; color: #fbfbfb; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; font-size: 12px; line-height: 1.4; white-space: nowrap; opacity: 0; scale: 0.95; pointer-events: none; transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), scale 150ms cubic-bezier(0.16, 1, 0.3, 1); z-index: 60; box-shadow: 0 2px 8px rgba(0,0,0,0.14); } .ds-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: #202020; } .peer:hover ~ .ds-tooltip, .peer:focus-visible ~ .ds-tooltip { opacity: 1; scale: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Fluid Canvas",
+    "overview": "KChat's visual system treats the screen as a fluid canvas — surfaces breathe, transitions flow, and content glides into place. Nothing snaps or jars. The interface is a calm, warm-lit workspace where the AI conversation is the sole protagonist, and every UI element either supports the conversation or steps aside.\n\nThis is a product design system — design serves the tool, not the other way around. The aesthetic is minimal without being cold, modern without chasing trends, and lively through motion and subtle warmth rather than through decoration. The brand uses a two-tier coral: a lighter identity shade (#c17250) for decorative presence, and a deeper accessible shade (#a45d40) for interactive elements that must meet WCAG AA contrast.\n\nThis system explicitly rejects: flashy gradients, dense information layouts, decorative borders, glassmorphism as a default, oversized typography, and any treatment that makes the tool feel like a marketing page. If an element doesn't help the user chat, think, or navigate, it doesn't belong.",
+    "keyCharacteristics": [
+      "Two-tier warm coral: lighter identity shade (#c17250) for decoration, deeper accessible shade (#a45d40) for interactive elements",
+      "System fonts for zero-latency rendering, JetBrains Mono for code",
+      "Flat surfaces at rest with subtle shadow lift on hover/focus",
+      "Motion that feels like breathing, not bouncing — ease-out quart curves, ≤300ms",
+      "Light and dark themes with semantic token parity",
+      "WCAG AA contrast throughout (body ≥4.5:1, interactive elements ≥4.9:1)"
+    ],
+    "rules": [
+      {
+        "name": "The Two-Tier Rule",
+        "body": "The warm coral operates at two levels: the lighter identity shade (#c17250) for decorative borders, tinted backgrounds, and ambient brand presence; the deeper accessible shade (#a45d40) for all interactive text, buttons, and focus indicators. Never use the identity shade where 4.5:1 contrast is required.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Tint Rule",
+        "body": "Neutral backgrounds carry near-zero chroma. Warmth belongs to the coral accent and to typographic rhythm, not to the body background. No cream, no sand, no parchment, no warm-gray ramp.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Decoration Rule",
+        "body": "Text is always solid, single-color. No gradient text (background-clip: text), no outline text, no glow-blur text shadows. Emphasis comes from weight and size, never from decorative treatment.",
+        "section": "typography"
+      },
+      {
+        "name": "The Single Weight Rule",
+        "body": "Only two weights appear on screen at once: Regular (400) and Semibold (600). No light (300), no bold (700), no black (900). Restraint in weight hierarchy enforces clarity.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces carry zero shadow at rest. Shadows appear only as a response to state: hover, focus, or elevation (modal/dropdown). A resting card with a permanent shadow is a design smell in this system.",
+        "section": "elevation"
+      },
+      {
+        "name": "The 1px Lift Rule",
+        "body": "Hover lift is exactly 1px (translateY(-1px)). More than that feels floaty; less than that feels broken. Combined with the shadow transition, it creates a tactile 'response' without calling attention to itself.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the accessible coral (#a45d40) for buttons, links, focus rings, and any text-on-light-background.",
+      "Do use the identity coral (#c17250) for decorative borders, tinted backgrounds, and ambient brand presence.",
+      "Do use system fonts for UI, JetBrains Mono for code — no web font loading.",
+      "Do limit weight usage to 400 (body) and 600 (emphasis). No light, no bold, no black.",
+      "Do keep shadows dormant at rest and active on hover/focus. The flat-by-default rule applies everywhere.",
+      "Do use 44×44px minimum touch targets for interactive icons — the icon button pattern, not raw icons.",
+      "Do ensure body text hits ≥4.5:1 contrast against its background in both themes.",
+      "Do respect prefers-reduced-motion: reduce — all animations collapse to instant transitions.",
+      "Do use text-wrap: balance on headings, text-wrap: pretty on long-form prose."
+    ],
+    "donts": [
+      "Don't use the identity coral (#c17250) for text or interactive elements — it fails WCAG AA at 3.4:1.",
+      "Don't use gradient text, decorative text shadows, or background-clip: text anywhere.",
+      "Don't use glassmorphism as the default card treatment. Blurred glass is for the input area only.",
+      "Don't use side-stripe borders (border-left > 1px as a colored accent). Use a full border, background tint, or leading indicator instead.",
+      "Don't nest cards inside cards. One elevation level per surface.",
+      "Don't use arbitrary z-index values. Use the semantic scale: dropdown (10) → sticky (20) → modal-backdrop (30) → modal (40) → toast (50) → tooltip (60).",
+      "Don't ship tiny uppercase tracked eyebrows above every section. Use a simple 12px muted heading.",
+      "Don't use identical card grids with icon+heading+text repeated endlessly. Vary the layout rhythm.",
+      "Don't allow text to overflow its container at any breakpoint. Test heading copy at tablet/mobile widths.",
+      "Don't add features, colors, or treatments that weren't asked for. Minimal means minimal."
+    ]
+  }
+}

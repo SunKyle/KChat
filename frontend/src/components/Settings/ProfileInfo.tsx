@@ -128,7 +128,7 @@ export function ProfileInfo() {
 
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center justify-between mb-4'>
-          <h3 className='font-medium theme-text-primary'>基本信息</h3>
+          <h3 className='font-semibold theme-text-primary'>基本信息</h3>
           {editing ? (
             <div className='flex items-center gap-2'>
               <button
