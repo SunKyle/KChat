@@ -6,7 +6,6 @@ interface ConversationItemProps {
   conversation: Conversation
   isActive: boolean
   isStreaming: boolean
-  isSummarizing: boolean
   hasNewReply: boolean
   onClick: () => void
   onDelete: () => void
@@ -21,7 +20,6 @@ export function ConversationItem({
   conversation,
   isActive,
   isStreaming,
-  isSummarizing,
   hasNewReply,
   onClick,
   onDelete,
@@ -137,7 +135,7 @@ export function ConversationItem({
             <div className='w-2 h-2 rounded-full bg-[var(--brand-primary)]' />
           ) : (
             <span
-              className={`font-weight-semibold ${isActive ? 'text-[11px]' : 'font-conversation-name'}`}
+              className={`font-weight-semibold ${isActive ? 'text-xs' : 'font-conversation-name'}`}
             >
               {conversation.title.charAt(0)}
             </span>

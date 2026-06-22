@@ -140,10 +140,10 @@ export function NoteList({
         <div className='w-14 h-14 rounded-full bg-[var(--bg-hover)]/60 flex items-center justify-center mb-4'>
           <FileText className='w-6 h-6 text-[var(--text-muted)]/50' />
         </div>
-        <p className='text-[14px] text-[var(--text-muted)]'>暂无笔记</p>
+        <p className='text-sm text-[var(--text-muted)]'>暂无笔记</p>
         <button
           onClick={onOpenCreate}
-          className='mt-3 px-4 py-1.5 rounded-lg text-[12px] font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'
+          className='mt-3 px-4 py-1.5 rounded-lg text-xs font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/[0.06] transition-colors'
         >
           新建笔记
         </button>
@@ -157,7 +157,7 @@ export function NoteList({
         <div>
           <div className='flex items-center gap-1.5 px-0.5 pb-3'>
             <Pin className='w-3.5 h-3.5 text-[var(--accent-amber)] fill-current' />
-            <span className='text-[11px] font-semibold text-[var(--accent-amber)] tracking-wider uppercase'>
+            <span className='text-xs font-semibold text-[var(--accent-amber)] tracking-wider uppercase'>
               置顶
             </span>
           </div>
@@ -182,7 +182,7 @@ export function NoteList({
           {pinnedNotes.length > 0 && (
             <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
               <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
-              <span className='text-[11px] font-semibold text-[var(--text-muted)] tracking-wider uppercase'>
+              <span className='text-xs font-semibold text-[var(--text-muted)] tracking-wider uppercase'>
                 全部笔记
               </span>
             </div>

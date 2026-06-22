@@ -247,7 +247,7 @@ export function Sidebar({
                 }}
                 placeholder='搜索会话...'
                 aria-label='搜索会话'
-                className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+                className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
               />
               {searchQuery && (
                 <button
@@ -316,7 +316,7 @@ export function Sidebar({
                           {group}
                         </span>
                       </span>
-                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-[10px] font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
+                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
                         {items.length}
                       </span>
                     </button>
@@ -371,7 +371,7 @@ export function Sidebar({
                       {profile?.nickname || '用户'}
                     </p>
                     <span
-                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-900 dark:text-amber-200 text-[10px] font-semibold leading-none backdrop-blur-sm'
+                      className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/30 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none backdrop-blur-sm'
                       title='Premium Plan'
                     >
                       <Crown className='w-2.5 h-2.5' aria-hidden='true' />

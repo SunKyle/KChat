@@ -487,13 +487,13 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         />
         <button
           onClick={() => handleModeChange('note')}
-          className='relative flex items-center gap-1 px-3 py-1 text-[12px] font-semibold transition-colors duration-200 rounded-md'
+          className='relative flex items-center gap-1 px-3 py-1 text-xs font-semibold transition-colors duration-200 rounded-md'
           style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
         >
           <FileText className='w-3 h-3' />
           笔记
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
             style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
           >
             {notes.length}
@@ -501,13 +501,13 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         </button>
         <button
           onClick={() => handleModeChange('todo')}
-          className='relative flex items-center gap-1 px-3 py-1 text-[12px] font-semibold transition-colors duration-200 rounded-md'
+          className='relative flex items-center gap-1 px-3 py-1 text-xs font-semibold transition-colors duration-200 rounded-md'
           style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
         >
           <ListTodo className='w-3 h-3' />
           待办
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-[9px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
+            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
             style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
           >
             {todos.filter((t) => t.status === 'pending').length}
@@ -534,14 +534,14 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'}
-            className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='w-full pl-7 pr-3 py-2 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
           />
         </div>
         {mode === 'todo' && (
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value as 'all' | 'pending' | 'completed')}
-            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-transparent rounded-lg text-[13px] font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
+            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-transparent rounded-lg text-sm font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/30 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
               backgroundRepeat: 'no-repeat',
@@ -570,7 +570,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         <div className='mt-3'>
           <button
             onClick={() => setFilterExpanded(!filterExpanded)}
-            className='flex items-center gap-1.5 text-[12px] font-semibold text-[var(--text-muted)]/60 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
+            className='flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)]/60 uppercase tracking-wider mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
           >
             <ChevronDown
               className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
@@ -586,7 +586,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             <div className='flex items-center gap-1.5 flex-wrap'>
               <button
                 onClick={() => setFilterTags([])}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
               >
                 全部
               </button>
@@ -598,10 +598,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]
                     )
                   }
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
                 >
                   {name}
-                  <span className='ml-1 opacity-50 text-[10px]'>{count}</span>
+                  <span className='ml-1 opacity-50 text-xs'>{count}</span>
                 </button>
               ))}
             </div>
@@ -621,12 +621,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
       <div className='flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--border-divider)]'>
         <button
           onClick={handleCancelForm}
-          className='flex items-center gap-1 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
+          className='flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
         >
           <ChevronLeft className='w-4 h-4' />
           返回
         </button>
-        <span className='text-[15px] font-semibold text-[var(--text-primary)]'>{title}</span>
+        <span className='text-base font-semibold text-[var(--text-primary)]'>{title}</span>
         <div className='w-12' />
       </div>
     )
@@ -748,8 +748,8 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 <Trash2 className='w-4 h-4 text-[var(--brand-danger)]' />
               </div>
               <div className='flex-1'>
-                <h3 className='text-[15px] font-semibold text-[var(--text-primary)]'>确认删除</h3>
-                <p className='text-[12px] text-[var(--text-muted)] mt-0.5'>此操作无法撤销</p>
+                <h3 className='text-base font-semibold text-[var(--text-primary)]'>确认删除</h3>
+                <p className='text-xs text-[var(--text-muted)] mt-0.5'>此操作无法撤销</p>
               </div>
               <button
                 onClick={() => setDeleteConfirm(null)}
@@ -758,19 +758,19 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 <X className='w-3.5 h-3.5 text-[var(--text-muted)]' />
               </button>
             </div>
-            <p className='text-[13px] text-[var(--text-secondary)] mb-5 pl-12'>
+            <p className='text-sm text-[var(--text-secondary)] mb-5 pl-12'>
               确定要删除「{deleteConfirm.title}」吗？
             </p>
             <div className='flex items-center justify-end gap-2'>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-[13px] font-medium hover:bg-[var(--bg-input)] transition-colors'
+                className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-medium hover:bg-[var(--bg-input)] transition-colors'
               >
                 取消
               </button>
               <button
                 onClick={deleteConfirm.type === 'note' ? confirmDeleteNote : confirmDeleteTodo}
-                className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-[13px] font-medium hover:bg-[var(--brand-danger)]/90 transition-colors'
+                className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-sm font-medium hover:bg-[var(--brand-danger)]/90 transition-colors'
               >
                 删除
               </button>

@@ -176,7 +176,7 @@ export function InputArea() {
                       } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
-                      className={`text-[12px] font-medium transition-all duration-500 ${
+                      className={`text-xs font-medium transition-all duration-500 ${
                         isOutputting ? 'text-sky-800' : 'text-amber-800'
                       }`}
                     >
@@ -184,7 +184,7 @@ export function InputArea() {
                     </span>
                   </div>
                   <span
-                    className={`text-[11px] font-secondary tabular-nums transition-all duration-500 ${
+                    className={`text-xs font-secondary tabular-nums transition-all duration-500 ${
                       isOutputting ? 'text-sky-700/80' : 'text-amber-700/80'
                     }`}
                   >
