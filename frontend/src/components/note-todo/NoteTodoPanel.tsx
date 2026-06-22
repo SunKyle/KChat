@@ -59,32 +59,28 @@ function NoteTodoHeader({
     <div className='flex-shrink-0 flex items-center justify-between px-3 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
       <div className='relative flex items-center bg-[var(--bg-input)] rounded-lg p-0.5'>
         <div
-          className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] bg-[var(--brand-primary)] rounded-md shadow-md shadow-[var(--brand-primary)]/25 transition-all duration-300 ease-out ${mode === 'note' ? 'left-0.5' : 'left-1/2'}`}
+          className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] bg-[var(--brand-primary)] rounded-md shadow-sm shadow-[var(--brand-primary)]/20 transition-all duration-300 ease-out ${mode === 'note' ? 'left-0.5' : 'left-1/2'}`}
         />
         <button
           onClick={() => onModeChange('note')}
-          className='relative flex items-center gap-1 px-3 py-1.5 text-xs font-semibold transition-colors duration-200 rounded-md'
-          style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
+          className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${mode === 'note' ? 'text-white' : 'text-[var(--text-muted)]'}`}
         >
-          <FileText className='w-3 h-3' />
+          <FileText className='w-3.5 h-3.5' />
           笔记
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
-            style={{ color: mode === 'note' ? 'white' : 'var(--text-muted)' }}
+            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
           >
             {notesCount}
           </span>
         </button>
         <button
           onClick={() => onModeChange('todo')}
-          className='relative flex items-center gap-1 px-3 py-1.5 text-xs font-semibold transition-colors duration-200 rounded-md'
-          style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
+          className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${mode === 'todo' ? 'text-white' : 'text-[var(--text-muted)]'}`}
         >
-          <ListTodo className='w-3 h-3' />
+          <ListTodo className='w-3.5 h-3.5' />
           待办
           <span
-            className={`ml-1 w-3.5 h-3.5 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-[var(--bg-card)]/20' : 'bg-[var(--bg-hover)]'}`}
-            style={{ color: mode === 'todo' ? 'white' : 'var(--text-muted)' }}
+            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
           >
             {pendingTodosCount}
           </span>
