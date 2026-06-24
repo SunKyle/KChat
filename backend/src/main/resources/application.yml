@@ -99,6 +99,15 @@ logging:
     com.example.app: DEBUG
     com.example.app.service: DEBUG
     com.example.app.controller: DEBUG
+    com.example.app.aspect: DEBUG
     org.hibernate.SQL: WARN
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+
+rate-limit:
+  enabled: true
+  requests-per-minute: 10
+  cache-prefix: "optimize:rate:"
+
+optimization:
+  model: llama3

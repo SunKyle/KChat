@@ -97,6 +97,50 @@ export const chat = {
   },
 }
 
+export interface OptimizationDetail {
+  type: string
+  description: string
+}
+
+export interface OptimizationResponse {
+  success: boolean
+  optimizedContent: string
+  originalContent: string
+  optimizations: OptimizationDetail[]
+  processingTimeMs: number
+  error?: string
+  message?: string
+  retryAfterSeconds?: number
+}
+
+export interface OptimizationRequest {
+  content: string
+  userId?: string
+  optimizationType?: string
+  modelId?: string
+  modelType?: string
+  baseUrl?: string
+  apiKey?: string
+}
+
+export const optimization = {
+  optimize: async (requestData: OptimizationRequest): Promise<OptimizationResponse> => {
+    return request('/chat/optimize', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: requestData.content,
+        userId: requestData.userId || 'default',
+        optimizationType: requestData.optimizationType,
+        modelId: requestData.modelId,
+        modelType: requestData.modelType,
+        baseUrl: requestData.baseUrl,
+        apiKey: requestData.apiKey,
+      }),
+      timeout: 60000,
+    })
+  },
+}
+
 export const images = {
   upload: async (file: File): Promise<{ url: string }> => {
     return uploadFile('/images/upload', file)
