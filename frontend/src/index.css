@@ -128,7 +128,7 @@
   --accent-purple: #8b5cf6;
   --accent-orange: var(--chart-3);
 
-  --bg-code: var(--muted);
+  --bg-code: #f8f9fa;
   --brand-soft: var(--accent);
 
   /* === KChat-Only Tokens (no reference equivalent) === */
@@ -247,7 +247,7 @@
   --accent-purple: #a78bfa;
   --accent-orange: var(--chart-3);
 
-  --bg-code: var(--muted);
+  --bg-code: #1e1e1e;
   --brand-soft: var(--accent);
 
   /* === KChat-Only Dark Tokens === */
@@ -1216,10 +1216,21 @@ input[type='search']::-webkit-search-decoration {
 /* Dark mode: unify SyntaxHighlighter backgrounds & line numbers with app theme */
 .dark .markdown-body pre[class*="language-"],
 .dark .markdown-body code[class*="language-"] {
-  background: var(--card) !important;
+  background: var(--bg-code) !important;
 }
 
 .dark .react-syntax-highlighter-line-number {
+  color: var(--text-muted) !important;
+  opacity: 0.6;
+}
+
+/* Light mode: unify SyntaxHighlighter backgrounds & line numbers */
+.light .markdown-body pre[class*="language-"],
+.light .markdown-body code[class*="language-"] {
+  background: var(--bg-code) !important;
+}
+
+.light .react-syntax-highlighter-line-number {
   color: var(--text-muted) !important;
   opacity: 0.5;
 }
