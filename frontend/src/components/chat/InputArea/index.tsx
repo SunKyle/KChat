@@ -74,10 +74,12 @@ export function InputArea() {
     }
   }, [streamingState.isStreaming])
 
-  // 流式计时器
+  // 计时器（支持流式响应和优化操作）
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null
-    if (streamingState.isStreaming) {
+    const isRunning = streamingState.isStreaming || isOptimizing
+    
+    if (isRunning) {
       const startTime = Date.now()
       setElapsedSeconds(0)
       intervalId = setInterval(() => {
@@ -89,7 +91,7 @@ export function InputArea() {
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
-  }, [streamingState.isStreaming])
+  }, [streamingState.isStreaming, isOptimizing])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -339,34 +341,55 @@ export function InputArea() {
 
         {/* 状态条 — 在输入框背后，从顶部滑出 */}
         <div className='relative z-0 mx-4 lg:mx-6 mb-0'>
-          {showStatusBar &&
+          {(showStatusBar || isOptimizing) &&
             (() => {
               const isOutputting = streamingState.currentContent.length > 0
+              const isThinking = streamingState.isStreaming && !isOutputting
+              const isOptimizingNow = isOptimizing
+              
               return (
                 <div
                   role='status'
                   aria-live='polite'
                   className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
                     isExiting ? 'status-bar-exit' : 'status-bar-enter'
-                  } status-bar-color-transition ${isOutputting ? 'status-bar-outputting' : 'status-bar-thinking'}`}
+                  } status-bar-color-transition ${
+                    isOptimizingNow 
+                      ? 'status-bar-optimizing' 
+                      : isOutputting 
+                        ? 'status-bar-outputting' 
+                        : 'status-bar-thinking'
+                  }`}
                 >
                   <div className='flex items-center gap-2'>
                     <div
                       className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                        isOutputting ? 'bg-sky-500' : 'bg-amber-500'
+                        isOptimizingNow 
+                          ? 'bg-emerald-500' 
+                          : isOutputting 
+                            ? 'bg-sky-500' 
+                            : 'bg-amber-500'
                       } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
                       className={`text-xs font-semibold transition-all duration-500 ${
-                        isOutputting ? 'text-sky-800' : 'text-amber-800'
+                        isOptimizingNow 
+                          ? 'text-emerald-800' 
+                          : isOutputting 
+                            ? 'text-sky-800' 
+                            : 'text-amber-800'
                       }`}
                     >
-                      {isOutputting ? '正在输出...' : '正在思考...'}
+                      {isOptimizingNow ? '正在优化...' : isOutputting ? '正在输出...' : '正在思考...'}
                     </span>
                   </div>
                   <span
                     className={`text-xs font-secondary tabular-nums transition-all duration-500 ${
-                      isOutputting ? 'text-sky-700/80' : 'text-amber-700/80'
+                      isOptimizingNow 
+                        ? 'text-emerald-700/80' 
+                        : isOutputting 
+                          ? 'text-sky-700/80' 
+                          : 'text-amber-700/80'
                     }`}
                   >
                     {elapsedSeconds}s
@@ -381,6 +404,7 @@ export function InputArea() {
           const isOutputting =
             streamingState.isStreaming && streamingState.currentContent.length > 0
           const isThinking = streamingState.isStreaming && !isOutputting
+          const isOptimizingNow = isOptimizing
           return (
             <div
               className={`relative z-10 -mt-3 flex flex-col card-float-solid bg-transparent mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
@@ -388,7 +412,9 @@ export function InputArea() {
                   ? 'input-glow-thinking'
                   : isOutputting
                     ? 'input-glow-outputting'
-                    : 'input-glow-focus'
+                    : isOptimizingNow
+                      ? 'input-glow-optimizing'
+                      : 'input-glow-focus'
               }`}
             >
               {/* 上半部分：文本输入区域 */}
@@ -555,7 +581,7 @@ export function InputArea() {
                     </span>
                   )}
 
-                  {/* 发送/停止按钮 — 三态平滑过渡 */}
+                  {/* 发送/停止按钮 — 四态平滑过渡 */}
                   <div className='relative'>
                     <button
                       onClick={() => {
@@ -565,17 +591,19 @@ export function InputArea() {
                           handleSend()
                         }
                       }}
-                      disabled={!hasContent && !streamingState.isStreaming}
+                      disabled={!hasContent && !streamingState.isStreaming && !isOptimizing}
                       className={`peer group/send relative flex items-center justify-center w-9 h-9 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                         isThinking
                           ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
                           : isOutputting
                             ? 'bg-sky-500 text-white hover:bg-sky-600 hover:scale-105 shadow-md shadow-sky-500/30 cursor-pointer'
-                            : uploading
-                              ? 'bg-sky-500/80 text-white cursor-wait'
-                              : hasContent && charCount <= maxChars
-                                ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
-                                : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
+                            : isOptimizing
+                              ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-md shadow-emerald-500/30 cursor-pointer'
+                              : uploading
+                                ? 'bg-sky-500/80 text-white cursor-wait'
+                                : hasContent && charCount <= maxChars
+                                  ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
+                                  : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                       }`}
                       aria-label={
                         streamingState.isStreaming
@@ -585,11 +613,15 @@ export function InputArea() {
                             : '发送消息'
                       }
                     >
-                      {/* 状态切换时的脉冲光环 — 仅在输出时显示青色呼吸光环 */}
+                      {/* 状态切换时的脉冲光环 */}
                       <span
                         aria-hidden='true'
                         className={`pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 ${
-                          isOutputting ? 'opacity-100 animate-pulse bg-sky-400/40' : 'opacity-0'
+                          isOutputting 
+                            ? 'opacity-100 animate-pulse bg-sky-400/40' 
+                            : isOptimizing 
+                              ? 'opacity-100 animate-pulse bg-emerald-400/40'
+                              : 'opacity-0'
                         }`}
                         style={{ animationDuration: '1.8s' }}
                       />
@@ -601,17 +633,21 @@ export function InputArea() {
                             ? 'thinking'
                             : isOutputting
                               ? 'outputting'
-                              : uploading
-                                ? 'uploading'
-                                : hasContent && charCount <= maxChars
-                                  ? 'ready'
-                                  : 'idle'
+                              : isOptimizing
+                                ? 'optimizing'
+                                : uploading
+                                  ? 'uploading'
+                                  : hasContent && charCount <= maxChars
+                                    ? 'ready'
+                                    : 'idle'
                         }
                         className={`pointer-events-none absolute -inset-1 rounded-full transition-opacity duration-500 ${
                           isThinking
                             ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(245,158,11,0.5)_120deg,transparent_240deg)]'
                             : isOutputting
                               ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(14,165,233,0.5)_120deg,transparent_240deg)]'
+                              : isOptimizing
+                                ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(34,197,94,0.5)_120deg,transparent_240deg)]'
                               : 'opacity-0'
                         }`}
                         style={{ animationDuration: '3s' }}
