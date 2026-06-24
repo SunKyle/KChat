@@ -24,35 +24,27 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
     }
   }
 
-  const codeBgColor = isDark ? '#1e1e1e' : '#f8f9fa'
-  const borderColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
-
   return (
     <div
       className='my-3 rounded-xl overflow-hidden'
       style={{
-        backgroundColor: codeBgColor,
-        border: `1px solid ${borderColor}`,
+        backgroundColor: 'var(--bg-code)',
+        border: '1px solid var(--border-primary)',
       }}
     >
       <div
         className='flex items-center justify-between px-4 py-2.5'
-        style={{ backgroundColor: codeBgColor }}
+        style={{ backgroundColor: 'var(--bg-code)' }}
       >
-        <span className='text-xs font-semibold' style={{ color: isDark ? '#858585' : '#6b7280' }}>
-          {language}
-        </span>
+        <span className='text-xs font-semibold theme-text-muted'>{language}</span>
         <button
           onClick={handleCopy}
-          className='flex items-center gap-1.5 text-xs transition-colors'
-          style={{ color: isDark ? '#858585' : '#6b7280' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? '#e7e9ea' : '#0f1419')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? '#858585' : '#6b7280')}
+          className='flex items-center gap-1.5 text-xs theme-text-muted hover:theme-text-primary transition-colors'
         >
           {copied ? (
             <>
-              <Check className='w-3.5 h-3.5' style={{ color: '#00b87a' }} />
-              <span style={{ color: '#00b87a' }}>已复制</span>
+              <Check className='w-3.5 h-3.5' style={{ color: 'var(--accent-emerald)' }} />
+              <span style={{ color: 'var(--accent-emerald)' }}>已复制</span>
             </>
           ) : (
             <>
@@ -69,7 +61,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
           margin: 0,
           borderRadius: '0 0 0.75rem 0.75rem',
           fontSize: 'var(--font-code)',
-          background: codeBgColor,
+          background: 'var(--bg-code)',
           padding: '16px',
           border: 'none',
         }}
