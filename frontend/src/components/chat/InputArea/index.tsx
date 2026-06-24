@@ -40,12 +40,7 @@ export function InputArea() {
 
   // 内容优化相关状态
   const [isOptimizing, setIsOptimizing] = useState(false)
-  const [optimizedContent, setOptimizedContent] = useState<string | null>(null)
-  const [showOptimizationResult, setShowOptimizationResult] = useState(false)
-  const [optimizationError, setOptimizationError] = useState<string | null>(null)
-  const [optimizationDetails, setOptimizationDetails] = useState<
-    { type: string; description: string }[]
-  >([])
+  const optimizationControllerRef = useRef<AbortController | null>(null)
 
   const charCount = input.length
   const maxChars = 2000
@@ -78,7 +73,7 @@ export function InputArea() {
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null
     const isRunning = streamingState.isStreaming || isOptimizing
-    
+
     if (isRunning) {
       const startTime = Date.now()
       setElapsedSeconds(0)
@@ -163,8 +158,10 @@ export function InputArea() {
     if (!input.trim() || isOptimizing || streamingState.isStreaming) return
 
     setIsOptimizing(true)
-    setOptimizationError(null)
-    setOptimizedContent(null)
+
+    // 创建 AbortController 用于取消请求
+    const controller = new AbortController()
+    optimizationControllerRef.current = controller
 
     try {
       const requestData: OptimizationRequest = {
@@ -175,10 +172,16 @@ export function InputArea() {
 
       const response: OptimizationResponse = await optimization.optimize(requestData)
 
+      // 检查请求是否被取消
+      if (controller.signal.aborted) {
+        console.log('优化已被取消')
+        return
+      }
+
       if (response.success) {
-        setOptimizedContent(response.optimizedContent)
-        setOptimizationDetails(response.optimizations || [])
-        setShowOptimizationResult(true)
+        // 直接将优化结果覆盖到输入框
+        setInput(response.optimizedContent)
+        showToast('优化完成', 'success')
       } else {
         if (response.error === 'RATE_LIMIT_EXCEEDED') {
           const retryTime = response.retryAfterSeconds || 60
@@ -188,11 +191,26 @@ export function InputArea() {
         }
       }
     } catch (error) {
+      // 如果是取消错误，不显示提示
+      if (controller.signal.aborted) {
+        console.log('优化已被取消')
+        return
+      }
       console.error('Optimization error:', error)
       showToast('优化请求失败，请稍后重试', 'error')
     } finally {
       setIsOptimizing(false)
+      optimizationControllerRef.current = null
     }
+  }
+
+  // 停止优化
+  const handleStopOptimization = () => {
+    if (optimizationControllerRef.current) {
+      optimizationControllerRef.current.abort()
+      optimizationControllerRef.current = null
+    }
+    setIsOptimizing(false)
   }
 
   // 根据模型ID检测模型类型
@@ -214,27 +232,6 @@ export function InputArea() {
 
     // 默认使用 OPENAI_COMPATIBLE
     return 'OPENAI_COMPATIBLE'
-  }
-
-  // 应用优化结果
-  const handleApplyOptimization = () => {
-    if (optimizedContent) {
-      setInput(optimizedContent)
-      setShowOptimizationResult(false)
-      setOptimizedContent(null)
-    }
-  }
-
-  // 取消优化结果
-  const handleCancelOptimization = () => {
-    setShowOptimizationResult(false)
-    setOptimizedContent(null)
-    setOptimizationDetails([])
-  }
-
-  // 重新优化
-  const handleReoptimize = () => {
-    handleOptimize()
   }
 
   const hasContent = input.trim() || uploadingImages.length > 0
@@ -268,77 +265,6 @@ export function InputArea() {
           </div>
         )}
 
-        {/* 优化结果展示区域 */}
-        {showOptimizationResult && optimizedContent && (
-          <div className='mx-4 mb-4 lg:mx-6 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl shadow-sm overflow-hidden'>
-            <div className='px-4 py-3 border-b border-[var(--border-color)] flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <Sparkles className='w-4 h-4 text-amber-500' />
-                <span className='text-sm font-medium theme-text-primary'>内容优化结果</span>
-              </div>
-              <button
-                onClick={handleCancelOptimization}
-                className='p-1 hover:bg-[var(--bg-hover)] rounded-md transition-colors'
-                aria-label='关闭优化结果'
-              >
-                <X className='w-4 h-4 theme-text-muted' />
-              </button>
-            </div>
-
-            <div className='p-4'>
-              {/* 优化详情标签 */}
-              {optimizationDetails.length > 0 && (
-                <div className='flex flex-wrap gap-2 mb-3'>
-                  {optimizationDetails.map((detail, index) => (
-                    <span
-                      key={index}
-                      className='px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700'
-                    >
-                      {detail.description}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* 优化后的内容预览 */}
-              <div className='bg-[var(--bg-input)] rounded-lg p-3 mb-4'>
-                <p className='text-sm theme-text-primary whitespace-pre-wrap break-words'>
-                  {optimizedContent}
-                </p>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className='flex items-center gap-2'>
-                <button
-                  onClick={handleApplyOptimization}
-                  className='flex items-center gap-2 px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors text-sm font-medium'
-                >
-                  <Check className='w-4 h-4' />
-                  应用优化
-                </button>
-                <button
-                  onClick={handleReoptimize}
-                  disabled={isOptimizing}
-                  className='flex items-center gap-2 px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-hover)]/80 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                  {isOptimizing ? (
-                    <Loader2 className='w-4 h-4 animate-spin' />
-                  ) : (
-                    <RefreshCw className='w-4 h-4' />
-                  )}
-                  重新优化
-                </button>
-                <button
-                  onClick={handleCancelOptimization}
-                  className='px-4 py-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-hover)] transition-colors text-sm font-medium'
-                >
-                  取消
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* 状态条 — 在输入框背后，从顶部滑出 */}
         <div className='relative z-0 mx-4 lg:mx-6 mb-0'>
           {(showStatusBar || isOptimizing) &&
@@ -346,7 +272,7 @@ export function InputArea() {
               const isOutputting = streamingState.currentContent.length > 0
               const isThinking = streamingState.isStreaming && !isOutputting
               const isOptimizingNow = isOptimizing
-              
+
               return (
                 <div
                   role='status'
@@ -354,41 +280,45 @@ export function InputArea() {
                   className={`flex items-center justify-between px-4 lg:px-6 pt-2 pb-5 rounded-t-xl shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ${
                     isExiting ? 'status-bar-exit' : 'status-bar-enter'
                   } status-bar-color-transition ${
-                    isOptimizingNow 
-                      ? 'status-bar-optimizing' 
-                      : isOutputting 
-                        ? 'status-bar-outputting' 
+                    isOptimizingNow
+                      ? 'status-bar-optimizing'
+                      : isOutputting
+                        ? 'status-bar-outputting'
                         : 'status-bar-thinking'
                   }`}
                 >
                   <div className='flex items-center gap-2'>
                     <div
                       className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                        isOptimizingNow 
-                          ? 'bg-emerald-500' 
-                          : isOutputting 
-                            ? 'bg-sky-500' 
+                        isOptimizingNow
+                          ? 'bg-emerald-500'
+                          : isOutputting
+                            ? 'bg-sky-500'
                             : 'bg-amber-500'
                       } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
                       className={`text-xs font-semibold transition-all duration-500 ${
-                        isOptimizingNow 
-                          ? 'text-emerald-800' 
-                          : isOutputting 
-                            ? 'text-sky-800' 
+                        isOptimizingNow
+                          ? 'text-emerald-800'
+                          : isOutputting
+                            ? 'text-sky-800'
                             : 'text-amber-800'
                       }`}
                     >
-                      {isOptimizingNow ? '正在优化...' : isOutputting ? '正在输出...' : '正在思考...'}
+                      {isOptimizingNow
+                        ? '正在优化...'
+                        : isOutputting
+                          ? '正在输出...'
+                          : '正在思考...'}
                     </span>
                   </div>
                   <span
                     className={`text-xs font-secondary tabular-nums transition-all duration-500 ${
-                      isOptimizingNow 
-                        ? 'text-emerald-700/80' 
-                        : isOutputting 
-                          ? 'text-sky-700/80' 
+                      isOptimizingNow
+                        ? 'text-emerald-700/80'
+                        : isOutputting
+                          ? 'text-sky-700/80'
                           : 'text-amber-700/80'
                     }`}
                   >
@@ -424,11 +354,6 @@ export function InputArea() {
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value)
-                    // 当输入变化时，隐藏优化结果
-                    if (showOptimizationResult) {
-                      setShowOptimizationResult(false)
-                      setOptimizedContent(null)
-                    }
                   }}
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
@@ -513,23 +438,25 @@ export function InputArea() {
                   {/* 内容优化按钮 */}
                   <div className='relative'>
                     <button
-                      onClick={handleOptimize}
-                      disabled={!input.trim() || isOptimizing || streamingState.isStreaming}
+                      onClick={isOptimizing ? handleStopOptimization : handleOptimize}
+                      disabled={!input.trim() || streamingState.isStreaming}
                       className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
-                        !input.trim() || isOptimizing || streamingState.isStreaming
+                        !input.trim() || streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-500 text-[var(--text-toolbar)] cursor-pointer'
+                          : isOptimizing
+                            ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200 cursor-pointer'
+                            : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-500 text-[var(--text-toolbar)] cursor-pointer'
                       }`}
-                      aria-label='内容优化'
+                      aria-label={isOptimizing ? '停止优化' : '内容优化'}
                     >
                       {isOptimizing ? (
-                        <Loader2 className='w-4 h-4 theme-text-muted animate-spin' />
+                        <Square className='w-4 h-4 fill-current' />
                       ) : (
                         <Sparkles className='w-4 h-4' />
                       )}
                     </button>
                     <span className='tooltip-content'>
-                      {isOptimizing ? '优化中...' : '内容优化'}
+                      {isOptimizing ? '停止优化' : '内容优化'}
                     </span>
                   </div>
 
@@ -591,7 +518,7 @@ export function InputArea() {
                           handleSend()
                         }
                       }}
-                      disabled={!hasContent && !streamingState.isStreaming && !isOptimizing}
+                      disabled={!hasContent && !streamingState.isStreaming}
                       className={`peer group/send relative flex items-center justify-center w-9 h-9 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                         isThinking
                           ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
@@ -617,9 +544,9 @@ export function InputArea() {
                       <span
                         aria-hidden='true'
                         className={`pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 ${
-                          isOutputting 
-                            ? 'opacity-100 animate-pulse bg-sky-400/40' 
-                            : isOptimizing 
+                          isOutputting
+                            ? 'opacity-100 animate-pulse bg-sky-400/40'
+                            : isOptimizing
                               ? 'opacity-100 animate-pulse bg-emerald-400/40'
                               : 'opacity-0'
                         }`}
@@ -648,7 +575,7 @@ export function InputArea() {
                               ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(14,165,233,0.5)_120deg,transparent_240deg)]'
                               : isOptimizing
                                 ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(34,197,94,0.5)_120deg,transparent_240deg)]'
-                              : 'opacity-0'
+                                : 'opacity-0'
                         }`}
                         style={{ animationDuration: '3s' }}
                       />
