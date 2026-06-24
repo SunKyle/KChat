@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
 import { Modal } from '../common/Modal'
+import { Button } from '../ui/Button'
 import type { CreateAPIKeyRequest } from '../../types/user'
 
 export function APIKeys() {
@@ -80,14 +81,14 @@ export function APIKeys() {
           <Key className='w-5 h-5 theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>API 密钥</h3>
         </div>
-        <button
+        <Button
           onClick={() => setShowCreateModal(true)}
           disabled={isLoading}
-          className='flex items-center gap-1.5 btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
+          className='disabled:opacity-50 disabled:cursor-not-allowed'
         >
           <Plus className='w-4 h-4' />
           生成密钥
-        </button>
+        </Button>
       </div>
 
       {profile.apiKeys.length === 0 ? (
@@ -95,22 +96,19 @@ export function APIKeys() {
           <Key className='w-12 h-12 theme-text-muted mx-auto mb-4' />
           <p className='theme-text-secondary mb-2'>暂无 API 密钥</p>
           <p className='text-sm theme-text-muted mb-4'>创建 API 密钥以通过编程方式访问您的数据</p>
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
             disabled={isLoading}
-            className='inline-flex items-center gap-1.5 btn-primary disabled:opacity-50'
+            className='disabled:opacity-50'
           >
             <Plus className='w-4 h-4' />
             生成密钥
-          </button>
+          </Button>
         </div>
       ) : (
         <div className='space-y-3'>
           {profile.apiKeys.map((apiKey) => (
-            <div
-              key={apiKey.id}
-              className='card-float-solid rounded-2xl p-4'
-            >
+            <div key={apiKey.id} className='card-float-solid rounded-2xl p-4'>
               <div className='flex items-center justify-between mb-3'>
                 <div>
                   <div className='font-semibold theme-text-primary'>{apiKey.name}</div>
@@ -120,11 +118,7 @@ export function APIKeys() {
                 </div>
                 <div className='flex items-center gap-2'>
                   {showKey === apiKey.id ? (
-                    <button
-                      onClick={() => setShowKey(null)}
-                      className='icon-btn'
-                      title='隐藏密钥'
-                    >
+                    <button onClick={() => setShowKey(null)} className='icon-btn' title='隐藏密钥'>
                       <EyeOff className='w-4 h-4 theme-text-muted' />
                     </button>
                   ) : (
@@ -256,7 +250,9 @@ export function APIKeys() {
       <Modal
         isOpen={deleteConfirm !== null}
         title='删除 API 密钥'
-        message={deleteConfirm ? `确定要删除 API 密钥 "${deleteConfirm.name}" 吗？此操作不可撤销。` : ''}
+        message={
+          deleteConfirm ? `确定要删除 API 密钥 "${deleteConfirm.name}" 吗？此操作不可撤销。` : ''
+        }
         confirmText='删除'
         cancelText='取消'
         onConfirm={confirmDeleteKey}

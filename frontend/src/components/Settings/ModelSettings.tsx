@@ -5,6 +5,7 @@ import type { ModelConfig, ProviderType } from '../../types'
 import { useChat } from '../../context/ChatContext'
 import { Modal } from '../common/Modal'
 import { PROVIDERS } from '../../types'
+import { Button } from '../ui/Button'
 
 export function ModelSettings() {
   const { refreshModels } = useChat()
@@ -187,13 +188,10 @@ export function ModelSettings() {
           <Brain className='w-5 h-5 theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>模型列表</h3>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className='flex items-center gap-1.5 btn-primary'
-        >
+        <Button onClick={handleOpenAddModal}>
           <Plus className='w-4 h-4' />
           添加模型
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (

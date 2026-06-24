@@ -1,4 +1,4 @@
-export type ThemeName = 'dark' | 'light'
+export type ThemeName = 'dark' | 'light' | 'animal-island'
 
 export interface ThemeConfig {
   name: ThemeName
@@ -120,9 +120,50 @@ export const lightTheme: ThemeConfig = {
   },
 }
 
+export const animalIslandTheme: ThemeConfig = {
+  name: 'animal-island',
+  label: '动物岛主题',
+  colors: {
+    bg: {
+      primary: '#fef7ed',
+      sidebar: '#fef3e2',
+      card: '#ffffff',
+      hover: '#fdecd3',
+      input: '#fff8f0',
+      overlay: 'rgba(0, 0, 0, 0.5)',
+    },
+    text: {
+      primary: '#4a3728',
+      secondary: '#8b7355',
+      muted: '#a69076',
+      placeholder: '#c4b5a0',
+    },
+    border: {
+      primary: '#e8d5b7',
+      secondary: '#f5e6d3',
+    },
+    brand: {
+      primary: '#ff8c42',
+      success: '#6b8e23',
+      danger: '#d44a4a',
+      warning: '#f4a460',
+      info: '#4682b4',
+    },
+    accent: {
+      sky: '#87ceeb',
+      emerald: '#90ee90',
+      amber: '#ffbf00',
+      rose: '#ff6b8a',
+      purple: '#b8860b',
+      orange: '#ff8c42',
+    },
+  },
+}
+
 export const themes: Record<ThemeName, ThemeConfig> = {
   dark: darkTheme,
   light: lightTheme,
+  'animal-island': animalIslandTheme,
 }
 
 export const getThemeColors = (theme: ThemeName): Record<string, string> => {

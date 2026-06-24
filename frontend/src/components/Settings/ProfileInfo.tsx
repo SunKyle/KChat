@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Camera, User, Save, X, Loader2 } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
 import { images } from '../../api'
+import { Button } from '../ui/Button'
 
 export function ProfileInfo() {
   const { profile, updateProfile, isLoading } = useUser()
@@ -131,10 +132,10 @@ export function ProfileInfo() {
           <h3 className='font-semibold theme-text-primary'>基本信息</h3>
           {editing ? (
             <div className='flex items-center gap-2'>
-              <button
-                onClick={handleSave}
+              <Button 
+                onClick={handleSave} 
                 disabled={isLoading}
-                className='flex items-center gap-1.5 btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
+                className="disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className='w-3.5 h-3.5 animate-spin' />
@@ -142,8 +143,9 @@ export function ProfileInfo() {
                   <Save className='w-3.5 h-3.5' />
                 )}
                 保存
-              </button>
-              <button
+              </Button>
+              <Button 
+                variant="ghost"
                 onClick={() => {
                   setEditing(false)
                   setLocalProfile({
@@ -153,19 +155,16 @@ export function ProfileInfo() {
                   })
                   setErrors({})
                 }}
-                className='flex items-center gap-1.5 btn-ghost text-sm'
+                className="text-sm"
               >
                 <X className='w-3.5 h-3.5' />
                 取消
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
-              onClick={() => setEditing(true)}
-              className='btn-ghost text-sm'
-            >
+            <Button variant="ghost" onClick={() => setEditing(true)} className="text-sm">
               编辑
-            </button>
+            </Button>
           )}
         </div>
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { MEMORY_TYPES } from '../../../types'
 import type { Memory, MemoryType } from '../../../types'
 import { Icon } from '../../common/Icon'
+import { Button } from '../../ui/Button'
 
 interface MemoryFormProps {
   memory: Memory | null
@@ -55,13 +56,8 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='w-full max-w-lg theme-bg-card rounded-2xl border theme-border-primary shadow-2xl'>
         <div className='flex items-center justify-between p-4 border-b theme-border-primary'>
-          <h3 className='font-title'>
-            {memory ? '编辑记忆' : '添加记忆'}
-          </h3>
-          <button
-            onClick={onCancel}
-            className='icon-btn'
-          >
+          <h3 className='font-title'>{memory ? '编辑记忆' : '添加记忆'}</h3>
+          <button onClick={onCancel} className='icon-btn'>
             <Icon name='X' size={20} />
           </button>
         </div>
@@ -143,23 +139,16 @@ export default function MemoryForm({ memory, onSubmit, onCancel }: MemoryFormPro
         </div>
 
         <div className='flex justify-end gap-3 p-4 border-t theme-border-primary'>
-          <button
-            onClick={onCancel}
-            className='btn-ghost'
-          >
+          <Button variant='ghost' onClick={onCancel}>
             取消
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSubmit}
             disabled={!content.trim()}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              content.trim()
-                ? 'btn-primary'
-                : 'theme-bg-hover theme-text-muted cursor-not-allowed'
-            }`}
+            className={!content.trim() ? 'opacity-50 cursor-not-allowed' : ''}
           >
             {memory ? '保存修改' : '创建记忆'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
