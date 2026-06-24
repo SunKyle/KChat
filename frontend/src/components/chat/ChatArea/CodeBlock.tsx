@@ -25,25 +25,29 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   const codeBgColor = isDark ? '#1e1e1e' : '#f8f9fa'
+  const borderColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
 
   return (
-    <div 
-      className="my-3 rounded-xl overflow-hidden"
-      style={{ 
+    <div
+      className='my-3 rounded-xl overflow-hidden'
+      style={{
         backgroundColor: codeBgColor,
+        border: `1px solid ${borderColor}`,
       }}
     >
-      <div 
-        className="flex items-center justify-between px-4 py-2.5"
+      <div
+        className='flex items-center justify-between px-4 py-2.5'
         style={{ backgroundColor: codeBgColor }}
       >
-        <span className='text-xs font-semibold' style={{ color: isDark ? '#858585' : '#6b7280' }}>{language}</span>
+        <span className='text-xs font-semibold' style={{ color: isDark ? '#858585' : '#6b7280' }}>
+          {language}
+        </span>
         <button
           onClick={handleCopy}
           className='flex items-center gap-1.5 text-xs transition-colors'
           style={{ color: isDark ? '#858585' : '#6b7280' }}
-          onMouseEnter={(e) => e.currentTarget.style.color = isDark ? '#e7e9ea' : '#0f1419'}
-          onMouseLeave={(e) => e.currentTarget.style.color = isDark ? '#858585' : '#6b7280'}
+          onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? '#e7e9ea' : '#0f1419')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? '#858585' : '#6b7280')}
         >
           {copied ? (
             <>

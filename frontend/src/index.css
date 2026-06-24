@@ -1200,10 +1200,10 @@ input[type='search']::-webkit-search-decoration {
   overflow: hidden;
   font-size: var(--font-code);
   line-height: var(--leading-code);
-  background-color: var(--bg-code);
-  border-radius: var(--radius-lg);
-  margin-bottom: 16px;
-  border: 1px solid var(--border-primary);
+  background-color: transparent;
+  border-radius: 0;
+  margin-bottom: 0;
+  border: none;
 }
 
 .markdown-body pre code {
