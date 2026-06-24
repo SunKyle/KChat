@@ -25,8 +25,8 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   }
 
   return (
-    <div className={`my-3 rounded-xl overflow-hidden border ${isDark ? 'border-white/[0.06]' : 'border-[var(--border-primary)]'}`}>
-      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-black/[0.03] border-[var(--border-divider)]'}`}>
+    <div className='my-3 rounded-xl overflow-hidden border border-[var(--border-primary)]'>
+      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'bg-[var(--card)]/80 border-[var(--border-primary)]' : 'bg-black/[0.03] border-[var(--border-divider)]'}`}>
         <span className='text-xs font-semibold text-[var(--text-muted)]'>{language}</span>
         <button
           onClick={handleCopy}
@@ -52,7 +52,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
           margin: 0,
           borderRadius: '0 0 0.75rem 0.75rem',
           fontSize: 'var(--font-code)',
-          background: isDark ? '#111418' : 'var(--bg-code)',
+          background: isDark ? 'var(--card)' : 'var(--bg-code)',
         }}
         showLineNumbers={true}
         wrapLines={true}

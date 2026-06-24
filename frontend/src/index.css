@@ -1213,6 +1213,17 @@ input[type='search']::-webkit-search-decoration {
   color: inherit;
 }
 
+/* Dark mode: unify SyntaxHighlighter backgrounds & line numbers with app theme */
+.dark .markdown-body pre[class*="language-"],
+.dark .markdown-body code[class*="language-"] {
+  background: var(--card) !important;
+}
+
+.dark .react-syntax-highlighter-line-number {
+  color: var(--text-muted) !important;
+  opacity: 0.5;
+}
+
 .markdown-body a {
   color: var(--brand-primary);
   text-decoration: none;
