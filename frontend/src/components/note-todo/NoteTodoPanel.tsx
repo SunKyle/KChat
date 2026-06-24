@@ -68,7 +68,7 @@ function NoteTodoHeader({
           <FileText className='w-3.5 h-3.5' />
           笔记
           <span
-            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
           >
             {notesCount}
           </span>
@@ -80,7 +80,7 @@ function NoteTodoHeader({
           <ListTodo className='w-3.5 h-3.5' />
           待办
           <span
-            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
           >
             {pendingTodosCount}
           </span>

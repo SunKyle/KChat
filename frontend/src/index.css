@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Righteous&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Righteous&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -1435,7 +1435,7 @@ input[type='search']::-webkit-search-decoration {
 }
 
 .font-weight-medium {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .font-weight-semibold {
@@ -1443,7 +1443,7 @@ input[type='search']::-webkit-search-decoration {
 }
 
 .font-weight-bold {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ============================================
