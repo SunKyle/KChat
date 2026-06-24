@@ -13,6 +13,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "animal-island-ui": "^1.0.16",
     "autoprefixer": "^10.5.0",
     "framer-motion": "^12.40.0",
     "lucide-react": "^0.453.0",
