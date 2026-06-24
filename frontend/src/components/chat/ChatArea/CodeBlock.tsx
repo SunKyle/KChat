@@ -24,18 +24,31 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
     }
   }
 
+  const codeBgColor = isDark ? '#1e1e1e' : '#f8f9fa'
+
   return (
-    <div className={`my-3 rounded-xl overflow-hidden border ${isDark ? 'border-[var(--border-primary)]/50' : 'border-[var(--border-primary)]'} shadow-sm`}>
-      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'bg-[var(--bg-code)] border-[var(--border-primary)]/30' : 'bg-[var(--bg-code)]/80 border-[var(--border-divider)]'}`}>
-        <span className='text-xs font-semibold text-[var(--text-muted)]'>{language}</span>
+    <div 
+      className="my-3 rounded-xl overflow-hidden"
+      style={{ 
+        backgroundColor: codeBgColor,
+      }}
+    >
+      <div 
+        className="flex items-center justify-between px-4 py-2.5"
+        style={{ backgroundColor: codeBgColor }}
+      >
+        <span className='text-xs font-semibold' style={{ color: isDark ? '#858585' : '#6b7280' }}>{language}</span>
         <button
           onClick={handleCopy}
-          className='flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
+          className='flex items-center gap-1.5 text-xs transition-colors'
+          style={{ color: isDark ? '#858585' : '#6b7280' }}
+          onMouseEnter={(e) => e.currentTarget.style.color = isDark ? '#e7e9ea' : '#0f1419'}
+          onMouseLeave={(e) => e.currentTarget.style.color = isDark ? '#858585' : '#6b7280'}
         >
           {copied ? (
             <>
-              <Check className='w-3.5 h-3.5 text-[var(--accent-emerald)]' />
-              <span className='text-[var(--accent-emerald)]'>已复制</span>
+              <Check className='w-3.5 h-3.5' style={{ color: '#00b87a' }} />
+              <span style={{ color: '#00b87a' }}>已复制</span>
             </>
           ) : (
             <>
@@ -52,8 +65,9 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
           margin: 0,
           borderRadius: '0 0 0.75rem 0.75rem',
           fontSize: 'var(--font-code)',
-          background: 'var(--bg-code)',
+          background: codeBgColor,
           padding: '16px',
+          border: 'none',
         }}
         showLineNumbers={true}
         wrapLines={true}
