@@ -1,4 +1,4 @@
-import { Cpu, ChevronDown, Check, Settings } from 'lucide-react'
+import { Cpu, ChevronDown, Check, Settings, WifiOff } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
 import { useModel } from '../../hooks/useModel'
@@ -9,14 +9,19 @@ interface HeaderProps {
 }
 
 export function Header({ onSettingsClick }: HeaderProps) {
-  const { activeConversation } = useChat()
-  const { getCurrentModel, getAvailableModels, select } = useModel()
+  const { activeConversation, currentModel, availableModels } = useChat()
+  const { select } = useModel()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
-
-  const currentModel = getCurrentModel()
-  const availableModels = getAvailableModels()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const isOnline = true
+
+  const getModelColor = (model: string) => {
+    const lower = model.toLowerCase()
+    if (lower.includes('gpt') || lower.includes('openai')) return 'bg-sky-400'
+    if (lower.includes('claude') || lower.includes('anthropic')) return 'bg-purple-400'
+    if (lower.includes('gemini') || lower.includes('palm')) return 'bg-amber-400'
+    return 'bg-emerald-400'
+  }
 
   const handleDropdownToggle = () => {
     setIsModelDropdownOpen(!isModelDropdownOpen)
@@ -69,10 +74,10 @@ export function Header({ onSettingsClick }: HeaderProps) {
             aria-haspopup='listbox'
           >
             <Cpu className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-brand-primary' />
-            <span className='text-xs sm:text-sm theme-text-primary truncate max-w-[80px] sm:max-w-none' style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
+            <span className='text-xs sm:text-sm font-secondary theme-text-primary truncate max-w-[100px] sm:max-w-none'>
               {currentModel}
             </span>
-            <ChevronDown className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted' />
+            <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isModelDropdownOpen && (
@@ -91,15 +96,15 @@ export function Header({ onSettingsClick }: HeaderProps) {
                       select(model)
                       setIsModelDropdownOpen(false)
                     }}
-                    className={`w-full px-3 py-2 text-left text-xs sm:text-sm flex items-center justify-between rounded-lg transition-all duration-150 ${
+                    className={`w-full px-3 py-2 text-left text-xs sm:text-sm flex items-center gap-2.5 rounded-lg transition-all duration-150 font-secondary ${
                       model === currentModel
-                        ? 'bg-[var(--bg-hover)] theme-brand-primary'
-                        : 'theme-text-secondary hover:bg-[var(--bg-dropdown-hover)]'
+                        ? 'bg-[var(--bg-hover)] theme-brand-primary border-l-2 border-l-[var(--brand-primary)] pl-2.5'
+                        : 'theme-text-secondary hover:bg-[var(--bg-dropdown-hover)] border-l-2 border-l-transparent pl-2.5'
                     }`}
-                    style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}
                   >
-                    <span className='capitalize'>{model}</span>
-                    {model === currentModel && <Check className='w-4 h-4 theme-brand-primary' />}
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${getModelColor(model)}`} />
+                    <span>{model}</span>
+                    {model === currentModel && <Check className='w-4 h-4 theme-brand-primary ml-auto' />}
                   </button>
                 ))}
               </div>
@@ -107,7 +112,18 @@ export function Header({ onSettingsClick }: HeaderProps) {
           )}
         </div>
 
-        <div className='flex items-center gap-2 sm:gap-3 border-l theme-border-primary pl-3 sm:pl-4'>
+        <div className='flex items-center gap-2 sm:gap-3'>
+          {!isOnline && (
+            <div
+              role='status'
+              aria-label='服务离线'
+              className='flex items-center gap-1.5 px-2 py-1 bg-red-500/10 rounded-full'
+              title='服务离线，请检查网络连接'
+            >
+              <WifiOff className='w-3 h-3 text-red-500' />
+              <span className='font-secondary text-[11px] text-red-500'>离线</span>
+            </div>
+          )}
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
@@ -119,29 +135,6 @@ export function Header({ onSettingsClick }: HeaderProps) {
             </button>
           )}
           <ThemeToggle />
-          <div className='flex items-center gap-1.5 sm:gap-2'>
-            {isOnline ? (
-              <div
-                role='status'
-                aria-label={isOnline ? '服务已连接' : '服务离线'}
-                className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-status-connected)] rounded-full'
-              >
-                <div className='w-2 h-2 rounded-full bg-[var(--brand-primary)] shadow-sm shadow-[var(--brand-primary)]/30 animate-pulse' />
-                <span className='font-secondary text-xs sm:text-sm theme-brand-primary'>
-                  已连接
-                </span>
-              </div>
-            ) : (
-              <div
-                role='status'
-                aria-label={isOnline ? '服务已连接' : '服务离线'}
-                className='flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--bg-hover)] rounded-full'
-              >
-                <div className='w-2 h-2 rounded-full bg-gray-400' />
-                <span className='font-secondary text-xs sm:text-sm theme-text-muted'>离线</span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </header>

@@ -9,10 +9,32 @@ interface CodeBlockProps {
   language?: string
 }
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  typescript: 'TypeScript',
+  javascript: 'JavaScript',
+  jsx: 'JSX',
+  tsx: 'TSX',
+  python: 'Python',
+  java: 'Java',
+  go: 'Go',
+  rust: 'Rust',
+  cpp: 'C++',
+  css: 'CSS',
+  html: 'HTML',
+  json: 'JSON',
+  yaml: 'YAML',
+  markdown: 'Markdown',
+  sql: 'SQL',
+  shell: 'Shell',
+  bash: 'Bash',
+  text: 'Text',
+}
+
 export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const displayLanguage = LANGUAGE_LABELS[language] || language
 
   const handleCopy = async () => {
     try {
@@ -36,7 +58,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         className='flex items-center justify-between px-4 py-2.5'
         style={{ backgroundColor: 'var(--bg-code)' }}
       >
-        <span className='text-xs font-semibold theme-text-muted'>{language}</span>
+        <span className='text-xs font-semibold theme-text-muted'>{displayLanguage}</span>
         <button
           onClick={handleCopy}
           className='flex items-center gap-1.5 text-xs theme-text-muted hover:theme-text-primary transition-colors'
