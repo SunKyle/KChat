@@ -12,15 +12,17 @@ import com.example.app.entity.ModelConfig;
 import com.example.app.repository.MessageRepository;
 import com.example.app.service.ModelConfigService;
 import com.example.app.service.WebSearchService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -105,6 +107,16 @@ public class ChatService {
      * 模型配置服务，用于查询自定义模型配置
      */
     private final ModelConfigService modelConfigService;
+
+    /**
+     * 事务模板，用于手动控制事务边界
+     */
+    private final TransactionTemplate transactionTemplate;
+
+    /**
+     * JSON 序列化/反序列化
+     */
+    private final ObjectMapper objectMapper;
 
     /**
      * 处理用户聊天请求，生成 AI 响应
@@ -207,66 +219,70 @@ public class ChatService {
 
     /**
      * 重新生成指定消息的响应
-     * 
+     *
      * @param conversationId 对话ID
      * @param messageId      要重新生成的消息ID（必须是AI消息）
      * @param model          模型名称
      * @param userId         用户ID
      * @return 重新生成的响应
      */
-    @Transactional
     public ChatResponse regenerateResponse(String conversationId, String messageId, String model, String userId) {
         log.info("[CHAT] Regenerating response for message {} in conversation {}", messageId, conversationId);
 
-        // 1. 获取目标消息
         Message targetMessage = messageRepository.findById(messageId).orElse(null);
         if (targetMessage == null) {
             throw new IllegalArgumentException("消息不存在: " + messageId);
         }
 
-        // 2. 验证目标消息是AI消息
+        if (!targetMessage.getConversationId().equals(conversationId)) {
+            throw new IllegalArgumentException(
+                    "消息不属于指定对话: messageId=" + messageId + ", conversationId=" + conversationId);
+        }
+
         if (!"assistant".equals(targetMessage.getRole())) {
             throw new IllegalArgumentException("只能重新生成AI消息，当前消息角色: " + targetMessage.getRole());
         }
 
-        // 3. 查找该消息之前的最后一条用户消息
         List<Message> messagesBefore = messageRepository.findByConversationIdAndTimestampLessThanOrderByTimestampAsc(
                 conversationId, targetMessage.getTimestamp());
 
-        String userMessage = null;
+        Message precedingUserMessage = null;
         for (int i = messagesBefore.size() - 1; i >= 0; i--) {
             if ("user".equals(messagesBefore.get(i).getRole())) {
-                userMessage = messagesBefore.get(i).getContent();
+                precedingUserMessage = messagesBefore.get(i);
                 break;
             }
         }
 
-        if (userMessage == null) {
+        if (precedingUserMessage == null) {
             throw new IllegalArgumentException("未找到对应的用户消息");
         }
 
-        // 4. 删除目标消息之后的所有消息（保留目标消息以便更新）
-        messageRepository.deleteByConversationIdAndTimestampGreaterThan(
-                conversationId, targetMessage.getTimestamp());
-        log.info("[CHAT] Deleted messages after {} in conversation {}", messageId, conversationId);
+        String userMessage = precedingUserMessage.getContent();
+        List<String> imageUrls = parseImageUrls(precedingUserMessage.getImages());
 
-        // 5. 获取短期记忆（对话历史）
+        // 事务内：删除后续消息 + 清除短期记忆缓存
+        transactionTemplate.executeWithoutResult(status -> {
+            messageRepository.deleteByConversationIdAndTimestampGreaterThan(
+                    conversationId, targetMessage.getTimestamp());
+            log.info("[CHAT] Deleted messages after {} in conversation {}", messageId, conversationId);
+        });
+
+        chatWorkflowService.clearShortTermMemory(conversationId);
+
         List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
-
-        // 6. 检索长期记忆
         List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
         log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
 
-        // 7. 查询用户语言偏好，组装消息为 LLM 可理解的格式
         String language = userProfileService.getLanguage(userId);
         List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage,
                 language, null);
 
-        // 8. 调用 LLM 生成响应（支持 OpenAI 和 Ollama 模型）
+        String userMessageWithImages = buildMessageWithImages(userMessage, imageUrls);
+
         String aiResponse;
         ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
         if (customConfig != null) {
-            // 自定义/云端模型 (OpenAI, Anthropic, etc.)
             String actualModelId = model.substring(customConfig.getName().length() + 1);
             String systemPrompt = """
                     You are a helpful assistant. Answer the user's question in a friendly and natural way.
@@ -277,29 +293,52 @@ public class ChatService {
                     customConfig.getBaseUrl(),
                     customConfig.getApiKey(),
                     systemPrompt,
-                    userMessage);
+                    userMessageWithImages);
         } else {
-            // Ollama 本地模型
             aiResponse = ollamaClient.generate(messages, model);
         }
 
-        // 9. 更新短期记忆
         chatWorkflowService.updateShortTermMemory(conversationId, userMessage, aiResponse);
 
-        // 10. 更新原消息内容（使用相同的消息ID）
-        targetMessage.setContent(aiResponse);
-        targetMessage.setTimestamp(LocalDateTime.now());
-        messageRepository.save(targetMessage);
-        log.info("[CHAT] Updated message {} with new content", messageId);
+        transactionTemplate.executeWithoutResult(status -> {
+            targetMessage.setContent(aiResponse);
+            targetMessage.setTimestamp(LocalDateTime.now());
+            messageRepository.save(targetMessage);
+            log.info("[CHAT] Updated message {} with new content", messageId);
+        });
 
-        // 11. 异步尝试从对话中提取新记忆
         autoMemoryExtractor.tryExtract(conversationId, userId);
 
         return ChatResponse.builder()
-                .messageId(messageId) // 返回原消息ID，便于前端更新
+                .messageId(messageId)
                 .content(aiResponse)
                 .role("assistant")
                 .conversationId(conversationId)
                 .build();
+    }
+
+    private List<String> parseImageUrls(String imagesJson) {
+        if (imagesJson == null || imagesJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(imagesJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse image URLs from JSON: {}", imagesJson, e);
+            return List.of();
+        }
+    }
+
+    private String buildMessageWithImages(String userMessage, List<String> imageUrls) {
+        if (imageUrls.isEmpty()) {
+            return userMessage;
+        }
+        StringBuilder sb = new StringBuilder(userMessage);
+        sb.append("\n\n[用户上传的图片]");
+        for (String url : imageUrls) {
+            sb.append("\n- ").append(url);
+        }
+        return sb.toString();
     }
 }

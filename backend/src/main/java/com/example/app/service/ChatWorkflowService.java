@@ -156,13 +156,24 @@ public class ChatWorkflowService {
 
     /**
      * 更新短期记忆，仅添加 AI 消息
-     * 
+     *
      * 用于流式响应场景，流式传输完成后记录完整的 AI 回复。
-     * 
+     *
      * @param conversationId 对话 ID
      * @param aiMessage AI 回复内容
      */
     public void updateShortTermMemoryWithAiMessage(String conversationId, String aiMessage) {
         shortTermMemoryService.updateMemoryWithAiMessage(conversationId, aiMessage);
+    }
+
+    /**
+     * 清除指定对话的短期记忆缓存
+     *
+     * 用于消息删除后使缓存失效，确保下次获取时重新加载。
+     *
+     * @param conversationId 对话 ID
+     */
+    public void clearShortTermMemory(String conversationId) {
+        shortTermMemoryService.clearMemory(conversationId);
     }
 }
