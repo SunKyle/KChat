@@ -95,9 +95,28 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
                     return ollamaClient.generate(messages, modelId);
                 } else {
                     // OpenAI 兼容类型模型（包括 OPENAI_COMPATIBLE, OPENAI, AZURE, CUSTOM）
+                    // 如果没有提供完整配置，尝试从数据库获取
+                    if ((baseUrl == null || baseUrl.isEmpty()) || (apiKey == null || apiKey.isEmpty())) {
+                        log.info("请求缺少 baseUrl 或 apiKey，尝试从数据库获取配置");
+                        ModelConfig customConfig = modelConfigService.getConfigByModelId(modelId);
+                        if (customConfig != null) {
+                            log.info("使用数据库配置的模型: {}", customConfig.getModelId());
+                            String actualModelId = extractModelId(customConfig.getModelId(), customConfig.getName());
+                            return openAICompatibleClient.chatCompletion(
+                                    actualModelId,
+                                    customConfig.getBaseUrl(),
+                                    customConfig.getApiKey(),
+                                    systemPrompt,
+                                    content);
+                        }
+                        log.warn("数据库中未找到模型配置: {}", modelId);
+                    }
+                    
+                    // 使用请求中提供的配置或默认值
                     String actualBaseUrl = baseUrl != null && !baseUrl.isEmpty() ? baseUrl
-                            : "http://localhost:11434/v1";
-                    String actualApiKey = apiKey != null ? apiKey : "ollama";
+                            : "https://api.openai.com/v1";
+                    String actualApiKey = apiKey != null && !apiKey.isEmpty() ? apiKey : "";
+                    log.info("使用请求配置或默认配置: baseUrl={}", actualBaseUrl);
                     return openAICompatibleClient.chatCompletion(modelId, actualBaseUrl, actualApiKey, systemPrompt,
                             content);
                 }

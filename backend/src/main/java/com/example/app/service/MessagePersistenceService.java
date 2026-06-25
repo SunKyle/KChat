@@ -59,10 +59,11 @@ public class MessagePersistenceService {
     }
 
     @Transactional
-    public void saveMessages(String conversationId, String userMessage, String aiResponse, List<String> imageUrls) {
+    public String saveMessages(String conversationId, String userMessage, String aiResponse, List<String> imageUrls) {
         saveUserMessage(conversationId, userMessage, imageUrls);
-        saveAiMessage(conversationId, aiResponse);
+        String aiMessageId = saveAiMessage(conversationId, aiResponse);
         log.debug("Saved conversation messages: conversationId={}", conversationId);
+        return aiMessageId;
     }
 
     private String serializeImageUrls(List<String> imageUrls) {

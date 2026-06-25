@@ -34,6 +34,8 @@ interface ChatContextType {
   getSearchResults: (conversationId: string) => import('../types').WebSearchResultData | null
   startSummarizing: (conversationId: string, messageId: string) => void
   endSummarizing: (conversationId: string) => void
+  regenerateMessage: (conversationId: string, messageId: string) => Promise<void>
+  getRegeneratingState: (conversationId: string) => { isRegenerating: boolean; messageId: string | null }
 }
 
 type ChatAction =
@@ -42,6 +44,7 @@ type ChatAction =
   | { type: 'SET_MESSAGES'; payload: { conversationId: string; messages: Message[] } }
   | { type: 'ADD_MESSAGE'; payload: Message }
   | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string; conversationId: string } }
+  | { type: 'UPDATE_MESSAGE_ID'; payload: { oldId: string; newId: string; conversationId: string } }
   | { type: 'START_STREAMING'; payload: { conversationId: string } }
   | {
       type: 'UPDATE_STREAMING_CONTENT'
@@ -75,14 +78,17 @@ type ChatAction =
   | { type: 'SET_AVAILABLE_MODELS'; payload: string[] }
   | { type: 'SCROLL_TO_BOTTOM' }
   | { type: 'RESET_SCROLL_TRIGGER' }
-  | { type: 'START_SUMMARIZING'; payload: string }
+  | { type: 'START_SUMMARIZING'; payload: { conversationId: string; messageId: string } }
   | { type: 'END_SUMMARIZING'; payload: string }
+  | { type: 'START_REGENERATING'; payload: { conversationId: string; messageId: string } }
+  | { type: 'END_REGENERATING'; payload: { conversationId: string } }
 
 interface ChatState {
   conversations: Conversation[]
   activeConversation: Conversation | null
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
+  regeneratingStates: Record<string, { isRegenerating: boolean; messageId: string | null }>
   summarizingStates: Record<string, boolean>
   summarizingMessageId: string | null
   searchResultsByConversation: Record<string, import('../types').WebSearchResultData>
@@ -99,6 +105,7 @@ const initialState: ChatState = {
   activeConversation: null,
   messagesByConversation: {},
   streamingStates: {},
+  regeneratingStates: {},
   summarizingStates: {},
   summarizingMessageId: null,
   searchResultsByConversation: {},
@@ -146,6 +153,24 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       if (msgs) {
         const updatedMessages = msgs.map((msg) =>
           msg.id === action.payload.id ? { ...msg, content: action.payload.content } : msg
+        )
+        return {
+          ...state,
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: updatedMessages,
+          },
+        }
+      }
+      return state
+    }
+
+    case 'UPDATE_MESSAGE_ID': {
+      const conversationId = action.payload.conversationId
+      const msgs = state.messagesByConversation[conversationId]
+      if (msgs) {
+        const updatedMessages = msgs.map((msg) =>
+          msg.id === action.payload.oldId ? { ...msg, id: action.payload.newId } : msg
         )
         return {
           ...state,
@@ -351,6 +376,36 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         summarizingStates: newSummarizingStates,
         summarizingMessageId: null,
+      }
+    }
+
+    case 'START_REGENERATING': {
+      const messages = state.messagesByConversation[action.payload.conversationId] || []
+      const updatedMessages = messages.map((msg) =>
+        msg.id === action.payload.messageId ? { ...msg, content: '' } : msg
+      )
+      return {
+        ...state,
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [action.payload.conversationId]: updatedMessages,
+        },
+        regeneratingStates: {
+          ...state.regeneratingStates,
+          [action.payload.conversationId]: {
+            isRegenerating: true,
+            messageId: action.payload.messageId,
+          },
+        },
+      }
+    }
+
+    case 'END_REGENERATING': {
+      const newRegeneratingStates = { ...state.regeneratingStates }
+      delete newRegeneratingStates[action.payload.conversationId]
+      return {
+        ...state,
+        regeneratingStates: newRegeneratingStates,
       }
     }
 
@@ -653,14 +708,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               },
             })
           },
-          (messageId, title) => {
+          (backendMessageId, title) => {
+            // 更新消息内容
             dispatch({
               type: 'UPDATE_MESSAGE',
               payload: { id: tempMessageId, content: streamingContent, conversationId },
             })
+            // 更新消息ID为后端实际的消息ID
+            dispatch({
+              type: 'UPDATE_MESSAGE_ID',
+              payload: { oldId: tempMessageId, newId: backendMessageId, conversationId },
+            })
             dispatch({
               type: 'END_STREAMING',
-              payload: { conversationId, messageId },
+              payload: { conversationId, messageId: backendMessageId },
             })
             if (title) {
               dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id: conversationId!, title } })
@@ -757,6 +818,41 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'END_SUMMARIZING', payload: conversationId })
   }, [])
 
+  const regenerateMessage = useCallback(
+    async (conversationId: string, messageId: string) => {
+      dispatch({ type: 'START_REGENERATING', payload: { conversationId, messageId } })
+
+      try {
+        const response = await chat.regenerate(conversationId, messageId, 'default', state.currentModel)
+        
+        if (response.success) {
+          // 更新消息内容
+          dispatch({
+            type: 'UPDATE_MESSAGE',
+            payload: { id: messageId, content: response.content, conversationId },
+          })
+        } else {
+          console.error('Regenerate failed:', response.message)
+        }
+      } catch (error) {
+        console.error('Regenerate error:', error)
+      } finally {
+        dispatch({ type: 'END_REGENERATING', payload: { conversationId } })
+      }
+    },
+    [state.currentModel]
+  )
+
+  const getRegeneratingState = useCallback(
+    (conversationId: string) => {
+      return state.regeneratingStates[conversationId] || {
+        isRegenerating: false,
+        messageId: null,
+      }
+    },
+    [state.regeneratingStates]
+  )
+
   const streamingState = state.activeConversation
     ? state.streamingStates[state.activeConversation.id] || initialState.streamingStates['']
     : initialState.streamingStates['']
@@ -803,6 +899,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         getSearchResults,
         startSummarizing,
         endSummarizing,
+        regenerateMessage,
+        getRegeneratingState,
       }}
     >
       {children}

@@ -13,6 +13,7 @@ import {
   X,
   Check,
   RefreshCw,
+  Undo2,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import {
@@ -33,13 +34,17 @@ export function InputArea() {
   const [isExiting, setIsExiting] = useState(false)
   const { sendMessage, streamingState, stopStreaming, currentModel } = useChat()
   const { webSearchEnabled, toggleWebSearch } = useWebSearch()
-  const { showToast } = useToast()
+  const { success: toastSuccess, error: toastError } = useToast()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 内容优化相关状态
   const [isOptimizing, setIsOptimizing] = useState(false)
+  const [canUndoOptimize, setCanUndoOptimize] = useState(false)
+  const [originalContent, setOriginalContent] = useState('')
+  const [showOptimizationResult, setShowOptimizationResult] = useState(false)
+  const [optimizedContent, setOptimizedContent] = useState<string | null>(null)
   const optimizationControllerRef = useRef<AbortController | null>(null)
 
   const charCount = input.length
@@ -158,6 +163,8 @@ export function InputArea() {
     if (!input.trim() || isOptimizing || streamingState.isStreaming) return
 
     setIsOptimizing(true)
+    setCanUndoOptimize(false)
+    setOriginalContent(input)
 
     // 创建 AbortController 用于取消请求
     const controller = new AbortController()
@@ -181,13 +188,14 @@ export function InputArea() {
       if (response.success) {
         // 直接将优化结果覆盖到输入框
         setInput(response.optimizedContent)
-        showToast('优化完成', 'success')
+        setCanUndoOptimize(true)
+        toastSuccess('优化完成')
       } else {
         if (response.error === 'RATE_LIMIT_EXCEEDED') {
           const retryTime = response.retryAfterSeconds || 60
-          showToast(`请求过于频繁，请 ${retryTime} 秒后重试`, 'error')
+          toastError(`请求过于频繁，请 ${retryTime} 秒后重试`)
         } else {
-          showToast(response.message || '优化失败', 'error')
+          toastError(response.message || '优化失败')
         }
       }
     } catch (error) {
@@ -197,11 +205,18 @@ export function InputArea() {
         return
       }
       console.error('Optimization error:', error)
-      showToast('优化请求失败，请稍后重试', 'error')
+      toastError('优化请求失败，请稍后重试')
     } finally {
       setIsOptimizing(false)
       optimizationControllerRef.current = null
     }
+  }
+
+  // 撤回优化
+  const handleUndoOptimize = () => {
+    setInput(originalContent)
+    setCanUndoOptimize(false)
+    toastSuccess('已撤回优化')
   }
 
   // 停止优化
@@ -354,6 +369,8 @@ export function InputArea() {
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value)
+                    // 当用户手动输入时，重置撤回状态
+                    setCanUndoOptimize(false)
                   }}
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
@@ -438,25 +455,39 @@ export function InputArea() {
                   {/* 内容优化按钮 */}
                   <div className='relative'>
                     <button
-                      onClick={isOptimizing ? handleStopOptimization : handleOptimize}
+                      onClick={() => {
+                        if (isOptimizing) {
+                          handleStopOptimization()
+                        } else if (canUndoOptimize) {
+                          handleUndoOptimize()
+                        } else {
+                          handleOptimize()
+                        }
+                      }}
                       disabled={!input.trim() || streamingState.isStreaming}
                       className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
                         !input.trim() || streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : isOptimizing
                             ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200 cursor-pointer'
-                            : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-500 text-[var(--text-toolbar)] cursor-pointer'
+                            : canUndoOptimize
+                              ? 'bg-amber-100 text-amber-600 hover:bg-amber-200 cursor-pointer'
+                              : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-500 text-[var(--text-toolbar)] cursor-pointer'
                       }`}
-                      aria-label={isOptimizing ? '停止优化' : '内容优化'}
+                      aria-label={
+                        isOptimizing ? '停止优化' : canUndoOptimize ? '撤回优化' : '内容优化'
+                      }
                     >
                       {isOptimizing ? (
                         <Square className='w-4 h-4 fill-current' />
+                      ) : canUndoOptimize ? (
+                        <Undo2 className='w-4 h-4' />
                       ) : (
                         <Sparkles className='w-4 h-4' />
                       )}
                     </button>
                     <span className='tooltip-content'>
-                      {isOptimizing ? '停止优化' : '内容优化'}
+                      {isOptimizing ? '停止优化' : canUndoOptimize ? '撤回优化' : '内容优化'}
                     </span>
                   </div>
 
@@ -518,7 +549,7 @@ export function InputArea() {
                           handleSend()
                         }
                       }}
-                      disabled={!hasContent && !streamingState.isStreaming}
+                      disabled={(!hasContent && !streamingState.isStreaming) || isOptimizing}
                       className={`peer group/send relative flex items-center justify-center w-9 h-9 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                         isThinking
                           ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'

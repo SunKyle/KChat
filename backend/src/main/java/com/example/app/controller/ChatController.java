@@ -5,6 +5,8 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.ConversationDTO;
+import com.example.app.dto.RegenerateRequest;
+import com.example.app.dto.RegenerateResponse;
 import com.example.app.dto.SummarizeRequest;
 import com.example.app.dto.SummarizeResponse;
 import com.example.app.entity.ModelConfig;
@@ -258,6 +260,45 @@ public class ChatController {
         }
         String languageName = SUMMARIZE_LANGUAGE_NAMES.getOrDefault(language, language);
         return "请使用 " + languageName + " 输出笔记的标题和正文。\n";
+    }
+
+    /**
+     * 重新生成指定消息的响应
+     * 
+     * @param request 包含对话ID和消息ID的请求
+     * @return 重新生成的响应
+     */
+    @PostMapping("/chat/regenerate")
+    public ResponseEntity<RegenerateResponse> regenerateResponse(@Valid @RequestBody RegenerateRequest request) {
+        log.info("[API] Regenerate request received: conversationId={}, messageId={}, userId={}, model={}", 
+                request.getConversationId(), request.getMessageId(), request.getUserId(), request.getModel());
+
+        try {
+            // 使用请求中的参数或默认值
+            String userId = request.getUserId() != null ? request.getUserId() : "default";
+            String model = request.getModel() != null ? request.getModel() : "llama3";
+
+            ChatResponse response = chatService.regenerateResponse(
+                    request.getConversationId(),
+                    request.getMessageId(),
+                    model,
+                    userId
+            );
+
+            return ResponseEntity.ok(RegenerateResponse.success(
+                    response.getMessageId(),
+                    response.getConversationId(),
+                    response.getContent()
+            ));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("[API] Regenerate failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(RegenerateResponse.failure("INVALID_REQUEST", e.getMessage()));
+        } catch (Exception e) {
+            log.error("[API] Regenerate failed with exception: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(RegenerateResponse.failure("INTERNAL_ERROR", "重新生成失败，请稍后重试"));
+        }
     }
 
 }

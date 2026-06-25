@@ -72,6 +72,20 @@ export const chat = {
     )
   },
 
+  regenerate: async (conversationId: string, messageId: string, userId?: string, model?: string): Promise<{
+    success: boolean
+    messageId: string
+    conversationId: string
+    content: string
+    error?: string
+    message?: string
+  }> => {
+    return request('/chat/regenerate', {
+      method: 'POST',
+      body: JSON.stringify({ conversationId, messageId, userId, model }),
+    })
+  },
+
   sendSimple: async (conversationId: string, content: string): Promise<Message> => {
     return request(`/chat/${conversationId}`, {
       method: 'POST',

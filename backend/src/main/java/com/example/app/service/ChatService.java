@@ -1,17 +1,24 @@
 package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
+import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.WebSearchConfig;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.WebSearchResult;
+import com.example.app.entity.Message;
+import com.example.app.entity.ModelConfig;
+import com.example.app.repository.MessageRepository;
+import com.example.app.service.ModelConfigService;
 import com.example.app.service.WebSearchService;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,7 +29,8 @@ import java.util.stream.Collectors;
  * <功能说明>
  * - 核心职责：协调对话管理、记忆检索、LLM调用、消息持久化等环节
  * - 设计模式：编排器模式（Orchestrator Pattern），将多个服务组合成完整流程
- * - 依赖关系：依赖 OllamaClient、ChatWorkflowService、MessagePersistenceService、AutoMemoryExtractor
+ * - 依赖关系：依赖
+ * OllamaClient、ChatWorkflowService、MessagePersistenceService、AutoMemoryExtractor
  * 
  * <使用场景>
  * - 同步消息响应：用户发送消息后等待完整回复
@@ -84,6 +92,21 @@ public class ChatService {
     private final WebSearchConfig webSearchConfig;
 
     /**
+     * 消息数据访问层
+     */
+    private final MessageRepository messageRepository;
+
+    /**
+     * OpenAI 兼容客户端，用于调用云端模型
+     */
+    private final OpenAICompatibleClient openAICompatibleClient;
+
+    /**
+     * 模型配置服务，用于查询自定义模型配置
+     */
+    private final ModelConfigService modelConfigService;
+
+    /**
      * 处理用户聊天请求，生成 AI 响应
      * 
      * 执行流程：
@@ -108,7 +131,7 @@ public class ChatService {
 
         // 2. 检索短期记忆（对话历史）
         List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
-        
+
         // 3. 检索长期记忆（基于语义相似度召回）
         List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
         log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
@@ -130,16 +153,18 @@ public class ChatService {
 
         // 5. 查询用户语言偏好，组装消息为 LLM 可理解的格式
         String language = userProfileService.getLanguage(userId);
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage, language, searchContext);
-        
+        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage,
+                language, searchContext);
+
         // 5. 调用 LLM 生成响应
         String aiResponse = ollamaClient.generate(messages, model);
 
         // 6. 更新短期记忆
         chatWorkflowService.updateShortTermMemory(conversationId, userMessage, aiResponse);
-        
+
         // 7. 持久化消息到数据库
-        messagePersistenceService.saveMessages(conversationId, userMessage, aiResponse, request.getImageUrls());
+        String aiMessageId = messagePersistenceService.saveMessages(conversationId, userMessage, aiResponse,
+                request.getImageUrls());
 
         // 8. 异步尝试从对话中提取新记忆
         autoMemoryExtractor.tryExtract(conversationId, userId);
@@ -148,7 +173,7 @@ public class ChatService {
         String generatedTitle = tryGenerateTitle(conversationId, userId, userMessage, aiResponse, model);
 
         return ChatResponse.builder()
-                .messageId(UUID.randomUUID().toString())
+                .messageId(aiMessageId)
                 .content(aiResponse)
                 .role("assistant")
                 .conversationId(conversationId)
@@ -160,13 +185,16 @@ public class ChatService {
             String aiResponse, String model) {
         try {
             var setting = userSettingService.getOrCreate(userId);
-            if (!setting.getAutoTitle()) return null;
+            if (!setting.getAutoTitle())
+                return null;
 
             var conv = conversationService.getConversation(conversationId);
-            if (conv == null || !"新对话".equals(conv.getTitle())) return null;
+            if (conv == null || !"新对话".equals(conv.getTitle()))
+                return null;
 
             String title = titleGenerationService.generateTitle(userMessage, aiResponse, model);
-            if (title.isBlank()) return null;
+            if (title.isBlank())
+                return null;
 
             conversationService.updateConversation(conversationId, title, null);
             log.info("[CHAT] Auto-generated title '{}' for conversation {}", title, conversationId);
@@ -175,5 +203,103 @@ public class ChatService {
             log.warn("[CHAT] Title generation failed: {}", e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * 重新生成指定消息的响应
+     * 
+     * @param conversationId 对话ID
+     * @param messageId      要重新生成的消息ID（必须是AI消息）
+     * @param model          模型名称
+     * @param userId         用户ID
+     * @return 重新生成的响应
+     */
+    @Transactional
+    public ChatResponse regenerateResponse(String conversationId, String messageId, String model, String userId) {
+        log.info("[CHAT] Regenerating response for message {} in conversation {}", messageId, conversationId);
+
+        // 1. 获取目标消息
+        Message targetMessage = messageRepository.findById(messageId).orElse(null);
+        if (targetMessage == null) {
+            throw new IllegalArgumentException("消息不存在: " + messageId);
+        }
+
+        // 2. 验证目标消息是AI消息
+        if (!"assistant".equals(targetMessage.getRole())) {
+            throw new IllegalArgumentException("只能重新生成AI消息，当前消息角色: " + targetMessage.getRole());
+        }
+
+        // 3. 查找该消息之前的最后一条用户消息
+        List<Message> messagesBefore = messageRepository.findByConversationIdAndTimestampLessThanOrderByTimestampAsc(
+                conversationId, targetMessage.getTimestamp());
+
+        String userMessage = null;
+        for (int i = messagesBefore.size() - 1; i >= 0; i--) {
+            if ("user".equals(messagesBefore.get(i).getRole())) {
+                userMessage = messagesBefore.get(i).getContent();
+                break;
+            }
+        }
+
+        if (userMessage == null) {
+            throw new IllegalArgumentException("未找到对应的用户消息");
+        }
+
+        // 4. 删除目标消息之后的所有消息（保留目标消息以便更新）
+        messageRepository.deleteByConversationIdAndTimestampGreaterThan(
+                conversationId, targetMessage.getTimestamp());
+        log.info("[CHAT] Deleted messages after {} in conversation {}", messageId, conversationId);
+
+        // 5. 获取短期记忆（对话历史）
+        List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
+
+        // 6. 检索长期记忆
+        List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
+        log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
+
+        // 7. 查询用户语言偏好，组装消息为 LLM 可理解的格式
+        String language = userProfileService.getLanguage(userId);
+        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage,
+                language, null);
+
+        // 8. 调用 LLM 生成响应（支持 OpenAI 和 Ollama 模型）
+        String aiResponse;
+        ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
+        if (customConfig != null) {
+            // 自定义/云端模型 (OpenAI, Anthropic, etc.)
+            String actualModelId = model.substring(customConfig.getName().length() + 1);
+            String systemPrompt = """
+                    You are a helpful assistant. Answer the user's question in a friendly and natural way.
+                    %s
+                    """.formatted(language != null && !language.isEmpty() ? "Please respond in " + language + "." : "");
+            aiResponse = openAICompatibleClient.chatCompletion(
+                    actualModelId,
+                    customConfig.getBaseUrl(),
+                    customConfig.getApiKey(),
+                    systemPrompt,
+                    userMessage);
+        } else {
+            // Ollama 本地模型
+            aiResponse = ollamaClient.generate(messages, model);
+        }
+
+        // 9. 更新短期记忆
+        chatWorkflowService.updateShortTermMemory(conversationId, userMessage, aiResponse);
+
+        // 10. 更新原消息内容（使用相同的消息ID）
+        targetMessage.setContent(aiResponse);
+        targetMessage.setTimestamp(LocalDateTime.now());
+        messageRepository.save(targetMessage);
+        log.info("[CHAT] Updated message {} with new content", messageId);
+
+        // 11. 异步尝试从对话中提取新记忆
+        autoMemoryExtractor.tryExtract(conversationId, userId);
+
+        return ChatResponse.builder()
+                .messageId(messageId) // 返回原消息ID，便于前端更新
+                .content(aiResponse)
+                .role("assistant")
+                .conversationId(conversationId)
+                .build();
     }
 }

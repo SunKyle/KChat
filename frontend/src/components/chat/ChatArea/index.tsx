@@ -13,10 +13,12 @@ const MessageWrapper = memo(function MessageWrapper({
   message,
   isLastAssistant,
   onStop,
+  onRegenerate,
 }: {
   message: Message
   isLastAssistant: boolean
   onStop?: () => void
+  onRegenerate?: () => void
 }) {
   return (
     <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -24,6 +26,7 @@ const MessageWrapper = memo(function MessageWrapper({
         message={message}
         isThinking={isLastAssistant}
         onStop={isLastAssistant ? onStop : undefined}
+        onRegenerate={message.role === 'assistant' ? onRegenerate : undefined}
       />
     </div>
   )
@@ -41,6 +44,8 @@ export function ChatArea() {
     stopStreaming,
     scrollTrigger,
     sendMessage,
+    regenerateMessage,
+    getRegeneratingState,
   } = useChat()
   const virtuosoRef = useRef<any>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
@@ -70,9 +75,18 @@ export function ChatArea() {
   const renderItem = useCallback(
     (index: number, message: Message) => {
       const isLast = index === messages.length - 1 && streamingState.isStreaming && message.role === 'assistant'
-      return <MessageWrapper message={message} isLastAssistant={isLast} onStop={isLast ? stopStreaming : undefined} />
+      const regeneratingState = activeConversation ? getRegeneratingState(activeConversation.id) : { isRegenerating: false, messageId: null }
+      const isRegenerating = regeneratingState.isRegenerating && regeneratingState.messageId === message.id && message.role === 'assistant'
+      return (
+        <MessageWrapper
+          message={message}
+          isLastAssistant={isLast || isRegenerating}
+          onStop={isLast ? stopStreaming : undefined}
+          onRegenerate={message.role === 'assistant' && !isRegenerating ? () => regenerateMessage(activeConversation?.id!, message.id) : undefined}
+        />
+      )
     },
-    [messages.length, streamingState.isStreaming, stopStreaming]
+    [messages.length, streamingState.isStreaming, stopStreaming, activeConversation?.id, regenerateMessage, getRegeneratingState]
   )
 
   if (!activeConversation) {
