@@ -823,6 +823,13 @@ html {
     background-color var(--duration-normal) var(--ease-out);
 }
 
+.card-panel-quiet {
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px var(--shadow-color-primary);
+}
+
 .card-float-solid:hover {
   box-shadow:
     0 2px 8px var(--shadow-color-hover),

@@ -395,7 +395,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         className={`fixed right-4 top-4 bottom-4 w-[340px] lg:w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-20px)] cursor-pointer'}`}
         onClick={!isOpen ? onOpen : undefined}
       >
-        <div className='h-full card-float-solid flex flex-col overflow-hidden'>
+        <div className='h-full card-panel-quiet flex flex-col overflow-hidden'>
           <NoteTodoHeader
             mode={mode}
             notesCount={notes.length}
