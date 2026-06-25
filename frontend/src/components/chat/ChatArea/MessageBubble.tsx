@@ -153,7 +153,7 @@ export const MessageBubble = memo(function MessageBubble({
           )}
         </div>
 
-        <div className={`flex items-center gap-3 mt-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex items-center gap-3 mt-2 px-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
           <span className='text-xs text-[var(--text-timestamp)] opacity-70' title={new Date(message.timestamp).toLocaleString('zh-CN')}>
             {formatTimestamp(message.timestamp)}
           </span>
