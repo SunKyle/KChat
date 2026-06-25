@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send,
   Square,
@@ -496,17 +497,38 @@ export function InputArea() {
                     <button
                       onClick={toggleWebSearch}
                       disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 active:scale-90 ${
+                      className={`peer flex items-center gap-1.5 h-8 cursor-pointer rounded-full border px-1.5 py-1 transition-all ${
                         streamingState.isStreaming
-                          ? 'opacity-40 cursor-not-allowed'
+                          ? 'opacity-40 cursor-not-allowed border-transparent'
                           : webSearchEnabled
-                            ? 'bg-sky-100 text-sky-600 hover:bg-sky-200 cursor-pointer'
-                            : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
+                            ? 'border-sky-400 bg-sky-500/15 text-sky-500 hover:bg-sky-500/25'
+                            : 'border-transparent hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)]'
                       }`}
                       aria-label={webSearchEnabled ? '关闭联网搜索' : '开启联网搜索'}
                       aria-pressed={webSearchEnabled}
                     >
-                      <Globe className='w-4 h-4 transition-colors duration-200' />
+                      <div className='flex h-4 w-4 shrink-0 items-center justify-center'>
+                        <motion.div
+                          animate={{ rotate: webSearchEnabled ? 180 : 0, scale: webSearchEnabled ? 1.1 : 1 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+                          whileHover={{ rotate: webSearchEnabled ? 180 : 15, scale: 1.1, transition: { type: 'spring', stiffness: 300, damping: 10 } }}
+                        >
+                          <Globe className='h-4 w-4' />
+                        </motion.div>
+                      </div>
+                      <AnimatePresence>
+                        {webSearchEnabled && (
+                          <motion.span
+                            initial={{ width: 0, opacity: 0 }}
+                            animate={{ width: 'auto', opacity: 1 }}
+                            exit={{ width: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className='shrink-0 overflow-hidden whitespace-nowrap text-xs font-semibold'
+                          >
+                            搜索
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </button>
                     <span className='tooltip-content'>
                       {webSearchEnabled ? '已开启联网搜索' : '开启联网搜索'}
