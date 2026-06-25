@@ -52,17 +52,21 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
         <div>
           <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>分类与优先级</label>
           <div className='flex items-center gap-2'>
-            <select
-              value={formState.category}
-              onChange={(e) => setFormState((p) => ({ ...p, category: e.target.value }))}
-              className='flex-1 px-3 py-2.5 bg-[var(--bg-input)] border border-transparent rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)]/40 transition-colors'
-            >
+            <div className='flex items-center gap-1.5 flex-wrap flex-1'>
               {categories.map((c) => (
-                <option key={c} value={c}>
+                <button
+                  key={c}
+                  onClick={() => setFormState((p) => ({ ...p, category: c }))}
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    formState.category === c
+                      ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]'
+                      : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  }`}
+                >
                   {c}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
             <div className='flex gap-1.5'>
               {(['high', 'medium', 'low'] as const).map((pr) => (
                 <button

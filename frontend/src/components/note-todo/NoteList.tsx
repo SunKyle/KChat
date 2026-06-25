@@ -1,5 +1,6 @@
 import { FileText, Pin, Edit3, Trash2 } from 'lucide-react'
 import type { Note } from '../../types/note-todo'
+import { getCategoryStyles } from './categoryStyles'
 
 interface NoteListItemProps {
   note: Note
@@ -36,26 +37,9 @@ function NoteListItem({
             </p>
             <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
               <div className='flex items-center gap-2 flex-wrap'>
-                {note.category === '工作' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
-                    {note.category}
-                  </span>
-                )}
-                {note.category === '学习' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
-                    {note.category}
-                  </span>
-                )}
-                {note.category === '生活' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
-                    {note.category}
-                  </span>
-                )}
-                {note.category === '默认' && (
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
-                    {note.category}
-                  </span>
-                )}
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}>
+                  {note.category}
+                </span>
                 {note.tags.slice(0, 2).map((tag) => (
                   <span
                     key={tag}
@@ -72,17 +56,17 @@ function NoteListItem({
           </div>
         </div>
       </div>
-      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity'>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onPin()
           }}
-          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label={note.pinned ? '取消置顶' : '置顶'}
         >
           <Pin
-            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--accent-amber)] fill-current' : 'text-[var(--text-secondary)]'}`}
+            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
           />
         </button>
         <button
@@ -90,7 +74,7 @@ function NoteListItem({
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='编辑'
         >
           <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
@@ -100,7 +84,7 @@ function NoteListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='删除'
         >
           <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
@@ -156,8 +140,8 @@ export function NoteList({
       {pinnedNotes.length > 0 && (
         <div>
           <div className='flex items-center gap-1.5 px-0.5 pb-3'>
-            <Pin className='w-3.5 h-3.5 text-[var(--accent-amber)] fill-current' />
-            <span className='text-xs font-semibold text-[var(--accent-amber)]'>
+            <Pin className='w-3.5 h-3.5 text-[var(--brand-primary)] fill-current' />
+            <span className='text-xs font-semibold text-[var(--brand-primary)]'>
               置顶
             </span>
           </div>
@@ -180,8 +164,8 @@ export function NoteList({
       {unpinnedNotes.length > 0 && (
         <div>
           {pinnedNotes.length > 0 && (
-            <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
-              <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
+            <div className='pt-3 pb-3'>
+              <div className='border-t border-[var(--border-divider)] mb-3' />
               <span className='text-xs font-semibold text-[var(--text-muted)]'>
                 全部笔记
               </span>

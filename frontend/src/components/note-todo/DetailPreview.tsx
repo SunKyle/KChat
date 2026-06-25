@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { Note, Todo } from '../../types/note-todo'
 import { MarkdownRenderer } from '../chat/ChatArea/MarkdownRenderer'
+import { getCategoryStyles } from './categoryStyles'
 
 const priorityMeta = {
   high: { label: '高', text: 'text-[var(--brand-danger)]' },
@@ -97,7 +98,7 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand 
         <div className='flex items-center gap-2 mb-4 text-xs text-[var(--text-muted)] flex-wrap'>
           <span>{formatDateFull(note.updatedAt)}</span>
           <span className='w-1 h-1 rounded-full bg-[var(--text-muted)]/30' />
-          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}>
             {note.category}
           </span>
           {note.tags.map((tag) => (

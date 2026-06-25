@@ -1,5 +1,6 @@
 import { ListTodo, CheckCircle2, Circle, Edit3, Calendar, Clock, Trash2 } from 'lucide-react'
 import type { Todo } from '../../types/note-todo'
+import { getCategoryStyles } from './categoryStyles'
 
 const priorityMeta = {
   high: {
@@ -77,30 +78,13 @@ function TodoListItem({
           <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
             <div className='flex items-center gap-2 flex-wrap'>
               <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor}`}
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${priorityMeta[todo.priority].bgColor} ${priorityMeta[todo.priority].textColor} ${priorityMeta[todo.priority].borderColor}`}
               >
-                {priorityMeta[todo.priority].label}优先级
+                {priorityMeta[todo.priority].label}
               </span>
-              {todo.category === '工作' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-info)]/10 text-[var(--brand-info)]'>
-                  {todo.category}
-                </span>
-              )}
-              {todo.category === '学习' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-success)]/10 text-[var(--brand-success)]'>
-                  {todo.category}
-                </span>
-              )}
-              {todo.category === '生活' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent-rose)]/10 text-[var(--accent-rose)]'>
-                  {todo.category}
-                </span>
-              )}
-              {todo.category === '默认' && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
-                  {todo.category}
-                </span>
-              )}
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(todo.category).bg} ${getCategoryStyles(todo.category).text} ${getCategoryStyles(todo.category).border}`}>
+                {todo.category}
+              </span>
               {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
                 <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
                   <Calendar className='w-3 h-3' />
@@ -120,13 +104,13 @@ function TodoListItem({
           </div>
         </div>
       </div>
-      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0'>
+      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity'>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onEdit()
           }}
-          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--bg-glass-hover)] shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--border-primary)] transition-all'
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='编辑'
         >
           <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
@@ -136,7 +120,7 @@ function TodoListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className='p-1.5 rounded-md bg-[var(--bg-glass)] backdrop-blur-sm hover:bg-[var(--brand-danger)]/10 shadow-sm hover:shadow-md border border-[var(--border-divider)] hover:border-[var(--brand-danger)]/30 transition-all'
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='删除'
         >
           <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
