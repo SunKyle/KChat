@@ -7,7 +7,6 @@ import {
   Image,
   Trash2,
   Paperclip,
-  Code,
   Loader2,
   Globe,
   Sparkles,
@@ -425,16 +424,7 @@ export function InputArea() {
                     <span className='tooltip-content'>上传文件</span>
                   </div>
 
-                  {/* 代码按钮 */}
-                  <div className='relative'>
-                    <button
-                      className='peer flex items-center justify-center w-8 h-8 rounded-md hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
-                      aria-label='插入代码'
-                    >
-                      <Code className='w-4 h-4' />
-                    </button>
-                    <span className='tooltip-content'>插入代码</span>
-                  </div>
+
 
                   {/* 生成图片按钮 */}
                   <div className='relative'>
