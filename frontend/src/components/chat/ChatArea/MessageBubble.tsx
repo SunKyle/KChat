@@ -176,22 +176,28 @@ export const MessageBubble = memo(function MessageBubble({
           ) : (
             !isUser && !isThinking && (
               <div
-                className={`relative flex items-center gap-1 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
+                className={`relative flex items-center gap-0 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
               >
-                <button onClick={handleCopy} className='icon-btn' aria-label={copied ? '已复制' : '复制'} title={copied ? '已复制' : '复制'}>
-                  {copied ? (
-                    <Check className='w-[14px] h-[14px] text-green-400' />
-                  ) : (
-                    <Copy className='w-[14px] h-[14px]' />
-                  )}
-                </button>
-                {onRegenerate && (
-                  <button onClick={onRegenerate} className='icon-btn' aria-label='重新生成' title='重新生成'>
-                    <RotateCcw className='w-[14px] h-[14px]' />
+                <div className='relative'>
+                  <button onClick={handleCopy} className='icon-btn-sm peer' aria-label={copied ? '已复制' : '复制'}>
+                    {copied ? (
+                      <Check className='w-[14px] h-[14px] text-green-400' />
+                    ) : (
+                      <Copy className='w-[14px] h-[14px]' />
+                    )}
                   </button>
+                  <span className='tooltip-content'>{copied ? '已复制' : '复制'}</span>
+                </div>
+                {onRegenerate && (
+                  <div className='relative'>
+                    <button onClick={onRegenerate} className='icon-btn-sm peer' aria-label='重新生成'>
+                      <RotateCcw className='w-[14px] h-[14px]' />
+                    </button>
+                    <span className='tooltip-content'>重新生成</span>
+                  </div>
                 )}
                 <div className='relative'>
-                  <button onClick={handleSaveAsNote} className='icon-btn peer' aria-label='保存为笔记' disabled={saving}>
+                  <button onClick={handleSaveAsNote} className='icon-btn-sm peer' aria-label='保存为笔记' disabled={saving}>
                     {saving ? (
                       <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
                     ) : saved ? (

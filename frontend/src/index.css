@@ -952,6 +952,30 @@ html {
   transform: scale(0.92);
 }
 
+.icon-btn-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn-sm:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.icon-btn-sm:active {
+  transform: scale(0.92);
+}
+
 .sidebar-action-btn {
   display: flex;
   align-items: center;
