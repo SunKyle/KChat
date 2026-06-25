@@ -4,7 +4,6 @@ import {
   ListTodo,
   Plus,
   Search,
-  X,
   ChevronDown,
   Trash2,
   ChevronRight,
@@ -137,22 +136,6 @@ function NoteTodoSearchBar({
             className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
           />
         </div>
-        {mode === 'todo' && (
-          <select
-            value={activeTab}
-            onChange={(e) => onTabChange(e.target.value as 'all' | 'pending' | 'completed')}
-            className='py-2 px-2 pr-5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] cursor-pointer appearance-none focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 4px center',
-            }}
-          >
-            <option value='all'>全部 ({todos.length})</option>
-            <option value='pending'>进行中 ({todos.filter((t) => t.status === 'pending').length})</option>
-            <option value='completed'>已完成 ({todos.filter((t) => t.status === 'completed').length})</option>
-          </select>
-        )}
         <button
           onClick={onCreateClick}
           className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200'
@@ -161,6 +144,24 @@ function NoteTodoSearchBar({
           <Plus className='w-4 h-4' />
         </button>
       </div>
+
+      {mode === 'todo' && (
+        <div className='flex items-center gap-1 mt-2 bg-[var(--bg-input)] rounded-lg p-0.5 w-fit'>
+          {(['all', 'pending', 'completed'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => onTabChange(tab)}
+              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
+                activeTab === tab
+                  ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              {tab === 'all' ? `全部 (${todos.length})` : tab === 'pending' ? `进行中 (${todos.filter((t) => t.status === 'pending').length})` : `已完成 (${todos.filter((t) => t.status === 'completed').length})`}
+            </button>
+          ))}
+        </div>
+      )}
 
       {mode === 'note' && allTags.length > 0 && (
         <div className='mt-3'>
@@ -176,12 +177,6 @@ function NoteTodoSearchBar({
           </button>
           {filterExpanded && (
             <div className='flex items-center gap-1.5 flex-wrap'>
-              <button
-                onClick={() => onFilterTagsChange([])}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 ${filterTags.length === 0 ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
-              >
-                全部
-              </button>
               {allTags.map(({ name, count }) => (
                 <button
                   key={name}
@@ -397,7 +392,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   return (
     <>
       <div
-        className={`fixed right-4 top-4 bottom-4 w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-20px)] cursor-pointer'}`}
+        className={`fixed right-4 top-4 bottom-4 w-[340px] lg:w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-20px)] cursor-pointer'}`}
         onClick={!isOpen ? onOpen : undefined}
       >
         <div className='h-full card-float-solid flex flex-col overflow-hidden'>
@@ -521,16 +516,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 <Trash2 className='w-4 h-4 text-[var(--brand-danger)]' />
               </div>
               <div className='flex-1'>
-                <h3 className='text-base font-semibold text-[var(--text-primary)]'>确认删除</h3>
-                <p className='text-xs text-[var(--text-muted)] mt-0.5'>此操作无法撤销</p>
+                <h3 className='text-base font-semibold text-[var(--text-primary)]'>确定要删除「{deleteConfirm.title}」吗？</h3>
+                <p className='text-xs text-[var(--text-muted)] mt-1'>此操作无法撤销</p>
               </div>
-              <button onClick={() => setDeleteConfirm(null)} className='p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors'>
-                <X className='w-3.5 h-3.5 text-[var(--text-muted)]' />
-              </button>
             </div>
-            <p className='text-sm text-[var(--text-secondary)] mb-5 pl-12'>
-              确定要删除「{deleteConfirm.title}」吗？
-            </p>
             <div className='flex items-center justify-end gap-2'>
               <button onClick={() => setDeleteConfirm(null)} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
                 取消
