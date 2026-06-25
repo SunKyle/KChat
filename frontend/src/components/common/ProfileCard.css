@@ -1,4 +1,4 @@
-/* ProfileCard — frosted glass card */
+/* ProfileCard — tilt card with theme-aware styling */
 
 @property --card-opacity {
   syntax: '<number>';
@@ -21,8 +21,7 @@
   --icon: none;
   --behind-glow-color: rgba(125, 190, 255, 0.35);
   --behind-glow-size: 35%;
-  --inner-gradient: none;
-  --card-radius: 30px;
+  --card-radius: 28px;
 }
 
 .profile-card-popup .pc-card-wrapper {
@@ -43,8 +42,8 @@
     transparent var(--behind-glow-size)
   );
   filter: blur(60px);
-  opacity: calc(0.6 * var(--card-opacity));
-  transition: opacity 300ms ease;
+  opacity: calc(0.5 * var(--card-opacity));
+  transition: opacity 200ms ease;
 }
 
 .profile-card-popup .pc-card-wrapper:hover,
@@ -53,15 +52,14 @@
 }
 
 .profile-card-popup .pc-card {
-  height: 420px;
+  height: 380px;
   display: grid;
   aspect-ratio: 0.718;
   border-radius: var(--card-radius);
   position: relative;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 32px var(--shadow-color-primary),
+    0 2px 8px var(--shadow-color-secondary);
   transition: transform 1s ease;
   transform: translateZ(0) rotateX(0deg) rotateY(0deg);
   background: transparent;
@@ -94,26 +92,10 @@
 .profile-card-popup .pc-inside {
   inset: 0;
   position: absolute;
-  background: rgba(30, 41, 59, 0.75);
-  backdrop-filter: blur(40px) saturate(1.2);
-  -webkit-backdrop-filter: blur(40px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.profile-card-popup .pc-shine {
-  display: none;
-}
-
-.profile-card-popup .pc-glare {
-  transform: translate3d(0, 0, 1.1px);
-  overflow: hidden;
-  background-image: radial-gradient(
-    farthest-corner circle at var(--pointer-x) var(--pointer-y),
-    rgba(255, 255, 255, 0.06) 0%,
-    transparent 70%
-  );
-  z-index: 4;
-  pointer-events: none;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--border-primary);
 }
 
 .profile-card-popup .pc-avatar-content {
@@ -150,8 +132,8 @@
 
 .profile-card-popup .pc-user-info {
   position: absolute;
-  --ui-inset: 20px;
-  --ui-radius-bias: 6px;
+  --ui-inset: 16px;
+  --ui-radius-bias: 4px;
   bottom: var(--ui-inset);
   left: var(--ui-inset);
   right: var(--ui-inset);
@@ -159,27 +141,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-primary);
   border-radius: calc(max(0px, var(--card-radius) - var(--ui-inset) + var(--ui-radius-bias)));
-  padding: 12px 14px;
+  padding: 10px 12px;
   pointer-events: auto;
 }
 
 .profile-card-popup .pc-user-details {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .profile-card-popup .pc-mini-avatar {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-primary);
   flex-shrink: 0;
 }
 
@@ -194,43 +176,39 @@
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .profile-card-popup .pc-handle {
   font-size: var(--font-secondary);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .profile-card-popup .pc-status {
   font-size: var(--font-caption);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   line-height: 1;
 }
 
 .profile-card-popup .pc-contact-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   font-size: var(--font-caption);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .profile-card-popup .pc-contact-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.35);
-  color: rgba(255, 255, 255, 1);
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
 }
 
 .profile-card-popup .pc-content:not(.pc-avatar-content) {
@@ -249,7 +227,7 @@
 .profile-card-popup .pc-details {
   width: 100%;
   position: absolute;
-  top: 1.6em;
+  top: 1.4em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -259,10 +237,9 @@
 .profile-card-popup .pc-details h3 {
   font-weight: 600;
   margin: 0;
-  font-size: min(5svh, 2.4em);
+  font-size: min(5svh, 2.2em);
   line-height: 1.1;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
 }
 
 .profile-card-popup .pc-details p {
@@ -271,6 +248,5 @@
   white-space: nowrap;
   font-size: var(--font-secondary);
   margin: 0;
-  color: rgba(255, 255, 255, 0.65);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: var(--text-muted);
 }

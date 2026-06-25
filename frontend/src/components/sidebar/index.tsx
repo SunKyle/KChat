@@ -6,7 +6,7 @@ import {
   Search,
   X,
   Settings,
-  Crown,
+
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProfileCard from '../common/ProfileCard'
@@ -458,52 +458,46 @@ export function Sidebar({
           </div>
         </div>
 
-        <div ref={userAreaRef} className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-          <div className='w-full'>
-            <div
-              onClick={handleUserAreaClick}
-              className={`w-full flex items-center gap-2 ${collapsed ? 'justify-center cursor-pointer hover:scale-105 transition-transform duration-200' : ''} ${!collapsed ? 'group rounded-lg px-1 py-1.5 hover:theme-bg-hover cursor-pointer transition-colors' : ''}`}
-            >
-              <div
-                className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden ${collapsed ? 'w-9 h-9 hover:theme-bg-hover transition-colors' : 'w-8 h-8 theme-bg-hover'}`}
-              >
-                {profile?.avatar ? (
-                  <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
-                ) : (
-                  <User className='w-[18px] h-[18px] theme-text-secondary' />
-                )}
+        <div ref={userAreaRef} className={`px-2 pb-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+          <div
+            onClick={handleUserAreaClick}
+            className={`w-full flex items-center gap-3 rounded-[var(--radius-xl)] border border-[var(--border-primary)] bg-[var(--bg-card)]/60 p-2.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer ${collapsed ? 'justify-center w-fit mx-auto' : 'group'}`}
+          >
+            <div className='relative flex-shrink-0'>
+              <div className={`rounded-full bg-gradient-to-br from-[var(--brand-primary)] via-[var(--accent-purple)] to-[var(--accent-amber)] p-[2px] ${collapsed ? 'w-10 h-10' : 'w-9 h-9'}`}>
+                <div className='h-full w-full rounded-full bg-[var(--bg-card)] flex items-center justify-center overflow-hidden'>
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
+                  ) : (
+                    <User className='w-4 h-4 text-[var(--text-muted)]' />
+                  )}
+                </div>
               </div>
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    className='flex-1 min-w-0'
-                  >
-                    <div className='space-y-1 text-left'>
-                      <p className='font-conversation-name theme-text-primary truncate leading-tight'>
-                        {profile?.nickname || '用户'}
-                      </p>
-                      <span
-                        className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--brand-primary)]/8 text-[var(--brand-primary)] text-xs font-semibold leading-none'
-                        title='Premium Plan'
-                      >
-                        <Crown className='w-2.5 h-2.5' aria-hidden='true' />
-                        Premium
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {!collapsed && (
-                <Settings
-                  className='w-4 h-4 theme-text-muted opacity-30 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'
-                  aria-hidden='true'
-                />
-              )}
             </div>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className='flex-1 min-w-0 text-left'
+                >
+                  <p className='text-sm font-semibold theme-text-primary truncate leading-tight'>
+                    {profile?.nickname || '用户'}
+                  </p>
+                  <span className='text-xs text-[var(--text-muted)] leading-tight truncate'>
+                    {profile?.email || ''}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {!collapsed && (
+              <Settings
+                className='w-4 h-4 text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0'
+                aria-hidden='true'
+              />
+            )}
           </div>
         </div>
       </div>
