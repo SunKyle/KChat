@@ -1,6 +1,7 @@
 import { User, Bot, Copy, RotateCcw, Check, PenLine, Loader2 } from 'lucide-react'
 import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
+import { ShiningText } from '../../ui/shining-text'
 import { useState, memo } from 'react'
 import { useUser } from '../../../context/UserContext'
 import { useModel } from '../../../hooks/useModel'
@@ -120,33 +121,8 @@ export const MessageBubble = memo(function MessageBubble({
           className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary`}
         >
           {isThinking && !message.content ? (
-            <div className='flex items-center py-2 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
-              <span className='text-sm text-[var(--text-muted)] font-secondary'>
-                AI 正在思考
-              </span>
-              <div className='flex items-center gap-[6px] ml-3 pr-4'>
-                <span
-                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
-                  style={{
-                    animation: 'thinking-dot 1.4s ease-in-out infinite',
-                    animationDelay: '0ms',
-                  }}
-                />
-                <span
-                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
-                  style={{
-                    animation: 'thinking-dot 1.4s ease-in-out infinite',
-                    animationDelay: '0.2s',
-                  }}
-                />
-                <span
-                  className='w-[7px] h-[7px] rounded-full bg-[var(--brand-primary)]'
-                  style={{
-                    animation: 'thinking-dot 1.4s ease-in-out infinite',
-                    animationDelay: '0.4s',
-                  }}
-                />
-              </div>
+            <div className='flex items-center py-2.5 pl-0 pr-5 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
+              <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
             </div>
           ) : (
             <div className='leading-relaxed'>
