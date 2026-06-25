@@ -15,14 +15,6 @@ export function Header({ onSettingsClick }: HeaderProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const isOnline = true
 
-  const getModelColor = (model: string) => {
-    const lower = model.toLowerCase()
-    if (lower.includes('gpt') || lower.includes('openai')) return 'bg-sky-400'
-    if (lower.includes('claude') || lower.includes('anthropic')) return 'bg-purple-400'
-    if (lower.includes('gemini') || lower.includes('palm')) return 'bg-amber-400'
-    return 'bg-emerald-400'
-  }
-
   const handleDropdownToggle = () => {
     setIsModelDropdownOpen(!isModelDropdownOpen)
   }
@@ -96,13 +88,12 @@ export function Header({ onSettingsClick }: HeaderProps) {
                       select(model)
                       setIsModelDropdownOpen(false)
                     }}
-                    className={`w-full px-3 py-2 text-left text-xs sm:text-sm flex items-center gap-2.5 rounded-lg transition-all duration-150 font-secondary ${
+                    className={`w-full px-3 py-2 text-left text-xs sm:text-sm flex items-center rounded-lg transition-all duration-150 font-secondary ${
                       model === currentModel
-                        ? 'bg-[var(--bg-hover)] theme-brand-primary border-l-2 border-l-[var(--brand-primary)] pl-2.5'
-                        : 'theme-text-secondary hover:bg-[var(--bg-dropdown-hover)] border-l-2 border-l-transparent pl-2.5'
+                        ? 'bg-[var(--bg-hover)] theme-brand-primary'
+                        : 'theme-text-secondary hover:bg-[var(--bg-dropdown-hover)]'
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${getModelColor(model)}`} />
                     <span>{model}</span>
                     {model === currentModel && <Check className='w-4 h-4 theme-brand-primary ml-auto' />}
                   </button>
