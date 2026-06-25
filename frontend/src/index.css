@@ -1007,12 +1007,12 @@ html {
 
 /* Active conversation highlight — breathing radial glow */
 .active-item-highlight {
-  background: radial-gradient(ellipse at center, rgba(30, 157, 241, 0.14) 0%, rgba(30, 157, 241, 0.03) 60%, transparent 100%);
+  background: radial-gradient(ellipse at center, rgba(30, 157, 241, 0.22) 0%, rgba(30, 157, 241, 0.08) 50%, transparent 100%);
   animation: active-item-breathe 3s ease-in-out infinite;
 }
 
 .dark .active-item-highlight {
-  background: radial-gradient(ellipse at center, rgba(28, 156, 240, 0.16) 0%, rgba(28, 156, 240, 0.04) 60%, transparent 100%);
+  background: radial-gradient(ellipse at center, rgba(28, 156, 240, 0.24) 0%, rgba(28, 156, 240, 0.09) 50%, transparent 100%);
 }
 
 /* Empty state CTA — inviting action */

@@ -412,7 +412,7 @@ export function InputArea() {
                         streamingState.isStreaming ||
                         uploadingImages.length >= maxImages
                           ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-sky-600 cursor-pointer'
+                          : 'hover:bg-[var(--bg-toolbar-hover)] cursor-pointer'
                       }`}
                       aria-label='上传文件'
                     >
@@ -428,7 +428,7 @@ export function InputArea() {
                   {/* 代码按钮 */}
                   <div className='relative'>
                     <button
-                      className='peer flex items-center justify-center w-8 h-8 rounded-md hover:bg-[var(--bg-toolbar-hover)] hover:text-amber-600 text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
+                      className='peer flex items-center justify-center w-8 h-8 rounded-md hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] transition-all duration-200 cursor-pointer'
                       aria-label='插入代码'
                     >
                       <Code className='w-4 h-4' />
@@ -444,7 +444,7 @@ export function InputArea() {
                       className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-[var(--bg-toolbar-hover)] hover:text-emerald-600 text-[var(--text-toolbar)] cursor-pointer'
+                          : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
                       }`}
                       aria-label='生成图片'
                     >
@@ -604,33 +604,6 @@ export function InputArea() {
                               : 'opacity-0'
                         }`}
                         style={{ animationDuration: '1.8s' }}
-                      />
-                      {/* 状态切换时的旋转光环（仅在状态变化瞬间） */}
-                      <span
-                        aria-hidden='true'
-                        key={
-                          isThinking
-                            ? 'thinking'
-                            : isOutputting
-                              ? 'outputting'
-                              : isOptimizing
-                                ? 'optimizing'
-                                : uploading
-                                  ? 'uploading'
-                                  : hasContent && charCount <= maxChars
-                                    ? 'ready'
-                                    : 'idle'
-                        }
-                        className={`pointer-events-none absolute -inset-1 rounded-full transition-opacity duration-500 ${
-                          isThinking
-                            ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(245,158,11,0.5)_120deg,transparent_240deg)]'
-                            : isOutputting
-                              ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(14,165,233,0.5)_120deg,transparent_240deg)]'
-                              : isOptimizing
-                                ? 'opacity-60 animate-spin bg-[conic-gradient(from_0deg,transparent_0deg,rgba(34,197,94,0.5)_120deg,transparent_240deg)]'
-                                : 'opacity-0'
-                        }`}
-                        style={{ animationDuration: '3s' }}
                       />
                       {/* 图标 — 透明度+缩放过渡以柔和切换 */}
                       <span className='relative flex items-center justify-center w-full h-full'>

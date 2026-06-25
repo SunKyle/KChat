@@ -179,6 +179,9 @@ export const ConversationItem = memo(function ConversationItem({
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 40px' }}
     >
+      {isActive && (
+        <div className='absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--brand-primary)]' />
+      )}
       <div className='flex-1 min-w-0 pr-12 relative'>
         {isEditing ? (
           <input

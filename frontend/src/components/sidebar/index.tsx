@@ -480,9 +480,9 @@ export function Sidebar({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    className='flex items-center gap-2 min-w-0'
+                    className='flex-1 min-w-0'
                   >
-                    <div className='flex-1 min-w-0 space-y-1 text-left'>
+                    <div className='space-y-1 text-left'>
                       <p className='font-conversation-name theme-text-primary truncate leading-tight'>
                         {profile?.nickname || '用户'}
                       </p>
@@ -494,13 +494,15 @@ export function Sidebar({
                         Premium
                       </span>
                     </div>
-                    <Settings
-                      className='w-4 h-4 theme-text-muted opacity-30 group-hover:opacity-100 transition-opacity flex-shrink-0'
-                      aria-hidden='true'
-                    />
                   </motion.div>
                 )}
               </AnimatePresence>
+              {!collapsed && (
+                <Settings
+                  className='w-4 h-4 theme-text-muted opacity-30 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'
+                  aria-hidden='true'
+                />
+              )}
             </div>
           </div>
         </div>

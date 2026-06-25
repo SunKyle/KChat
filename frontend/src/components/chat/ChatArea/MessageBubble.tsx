@@ -97,9 +97,9 @@ export const MessageBubble = memo(function MessageBubble({
 
   const bubbleContent = (
     <div>
-    <div className={`flex gap-4 py-5 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-3 py-3.5 group micro-transition ${isUser ? 'flex-row-reverse' : ''}`}>
       <div
-        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all micro-transition overflow-hidden ${
+        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all micro-transition overflow-hidden ${
           isUser
             ? 'theme-bg-card theme-text-secondary'
             : 'bg-gradient-to-br from-[var(--brand-primary)] to-[var(--accent-orange)] text-white shadow-sm'
@@ -118,7 +118,7 @@ export const MessageBubble = memo(function MessageBubble({
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
-          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary`}
+          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary px-3 ${isUser ? 'py-2 rounded-2xl bg-[var(--brand-primary)]/6' : ''}`}
         >
           {isThinking && !message.content ? (
             <div className='flex items-center py-2.5 pl-0 pr-5 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
@@ -176,7 +176,7 @@ export const MessageBubble = memo(function MessageBubble({
           ) : (
             !isUser && !isThinking && (
               <div
-                className={`relative flex items-center gap-0 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
+                className={`relative flex items-center gap-0 micro-transition ${saving || saved ? 'opacity-100' : 'opacity-40 group-hover:opacity-100 focus-within:opacity-100'}`}
               >
                 <div className='relative'>
                   <button onClick={handleCopy} className='icon-btn-sm peer' aria-label={copied ? '已复制' : '复制'}>
