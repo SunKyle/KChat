@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
-import { motion } from 'framer-motion'
 import type { Conversation } from '../../types'
 
 interface ConversationItemProps {
@@ -15,6 +14,7 @@ interface ConversationItemProps {
   collapsed?: boolean
   index?: number
   total?: number
+  registerRef?: (id: string, el: HTMLElement | null) => void
 }
 
 export const ConversationItem = memo(function ConversationItem({
@@ -29,6 +29,7 @@ export const ConversationItem = memo(function ConversationItem({
   collapsed = false,
   index,
   total,
+  registerRef,
 }: ConversationItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(conversation.title)
@@ -115,6 +116,7 @@ export const ConversationItem = memo(function ConversationItem({
         aria-setsize={total}
         aria-posinset={index != null ? index + 1 : undefined}
         data-conversation-id={conversation.id}
+        ref={(el) => registerRef?.(conversation.id, el)}
         className={`relative flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer transition-all duration-200 ease-out focus-ring ${
           hasNewReply
             ? 'ring-1.5 ring-[var(--accent-emerald)]/30'
@@ -169,6 +171,7 @@ export const ConversationItem = memo(function ConversationItem({
       aria-setsize={total}
       aria-posinset={index != null ? index + 1 : undefined}
       data-conversation-id={conversation.id}
+      ref={(el) => registerRef?.(conversation.id, el)}
       className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-[background-color,transform] duration-200 ease-out focus-ring border-2 ${
         isActive
           ? 'border-transparent'
@@ -176,13 +179,6 @@ export const ConversationItem = memo(function ConversationItem({
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 40px' }}
     >
-      {isActive && (
-        <motion.div
-          layoutId='sidebar-active'
-          className='absolute inset-0 bg-brand-selected rounded-lg'
-          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-        />
-      )}
       <div className='flex-1 min-w-0 pr-12 relative'>
         {isEditing ? (
           <input

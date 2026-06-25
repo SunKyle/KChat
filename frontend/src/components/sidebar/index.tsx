@@ -14,7 +14,7 @@ import { useChat } from '../../context/ChatContext'
 import { useUser } from '../../context/UserContext'
 import { useConversation } from '../../hooks/useConversation'
 import { ConversationItem } from './ConversationItem'
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } from 'react'
 
 interface SidebarProps {
   collapsed?: boolean
@@ -57,6 +57,35 @@ export function Sidebar({
   const { create, update, pin, select } = useConversation()
 
   const { profile } = useUser()
+
+  const [highlightRect, setHighlightRect] = useState<{ top: number; height: number } | null>(null)
+  const itemRefs = useRef<Map<string, HTMLElement>>(new Map())
+
+  const registerItemRef = useCallback((id: string, el: HTMLElement | null) => {
+    if (el) {
+      itemRefs.current.set(id, el)
+    } else {
+      itemRefs.current.delete(id)
+    }
+  }, [])
+
+  const measureActiveItem = useCallback(() => {
+    if (!activeConversation?.id || !scrollContainerRef.current) {
+      setHighlightRect(null)
+      return
+    }
+    const el = itemRefs.current.get(activeConversation.id)
+    if (!el) {
+      setHighlightRect(null)
+      return
+    }
+    const containerRect = scrollContainerRef.current.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    setHighlightRect({
+      top: elRect.top - containerRect.top + scrollContainerRef.current.scrollTop,
+      height: elRect.height,
+    })
+  }, [activeConversation?.id])
 
   const toggleGroup = (group: string) => {
     const newExpanded = new Set(expandedGroups)
@@ -108,6 +137,21 @@ export function Sidebar({
   const filteredGrouped = useMemo(() => {
     return groupConversationsByList(filteredConversations)
   }, [filteredConversations, groupConversationsByList])
+
+  useLayoutEffect(() => {
+    measureActiveItem()
+  }, [measureActiveItem, filteredGrouped, expandedGroups])
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    container.addEventListener('scroll', measureActiveItem, { passive: true })
+    window.addEventListener('resize', measureActiveItem)
+    return () => {
+      container.removeEventListener('scroll', measureActiveItem)
+      window.removeEventListener('resize', measureActiveItem)
+    }
+  }, [measureActiveItem])
 
   // 新增/切换会话时自动展开对应分组并滚动到激活项
   useEffect(() => {
@@ -299,8 +343,16 @@ export function Sidebar({
 
         <div
           ref={scrollContainerRef}
-          className='flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide'
+          className='flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide relative'
         >
+          {highlightRect && !collapsed && (
+            <motion.div
+              className='absolute left-2 right-2 bg-brand-selected rounded-lg pointer-events-none z-0'
+              animate={{ top: highlightRect.top, height: highlightRect.height }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            />
+          )}
+          <div className='relative z-[1]'>
           {conversations.length === 0 ? (
             <div
               className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
@@ -367,12 +419,14 @@ export function Sidebar({
                         collapsed={collapsed}
                         index={idx}
                         total={items.length}
+                        registerRef={registerItemRef}
                       />
                     ))}
                 </div>
               ))}
             </div>
           )}
+          </div>
         </div>
 
         <div ref={userAreaRef} className={`p-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
