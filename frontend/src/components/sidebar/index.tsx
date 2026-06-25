@@ -461,18 +461,14 @@ export function Sidebar({
         <div ref={userAreaRef} className={`px-2 pb-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
           <div
             onClick={handleUserAreaClick}
-            className={`w-full flex items-center gap-3 rounded-[var(--radius-xl)] border border-[var(--border-primary)] bg-[var(--bg-card)]/60 p-2.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer ${collapsed ? 'justify-center w-fit mx-auto' : 'group'}`}
+            className={`w-full flex items-center gap-3 rounded-[var(--radius-xl)] ${collapsed ? '' : 'border border-[var(--border-primary)]'} bg-[var(--bg-card)]/60 p-2.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer ${collapsed ? 'justify-center w-fit mx-auto' : 'group'}`}
           >
-            <div className='relative flex-shrink-0'>
-              <div className={`rounded-full bg-gradient-to-br from-[var(--brand-primary)] via-[var(--accent-purple)] to-[var(--accent-amber)] p-[2px] ${collapsed ? 'w-10 h-10' : 'w-9 h-9'}`}>
-                <div className='h-full w-full rounded-full bg-[var(--bg-card)] flex items-center justify-center overflow-hidden'>
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
-                  ) : (
-                    <User className='w-4 h-4 text-[var(--text-muted)]' />
-                  )}
-                </div>
-              </div>
+            <div className={`rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] ${collapsed ? 'w-10 h-10' : 'w-9 h-9'}`}>
+              {profile?.avatar ? (
+                <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
+              ) : (
+                <User className='w-4 h-4 text-[var(--text-muted)]' />
+              )}
             </div>
             <AnimatePresence>
               {!collapsed && (
