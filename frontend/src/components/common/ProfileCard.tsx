@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import './ProfileCard.css'
 
-const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)'
+const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg, var(--brand-primary) 0%, var(--accent-purple) 100%)'
 
 const ANIMATION_CONFIG = {
   INITIAL_DURATION: 1200,
@@ -313,8 +313,6 @@ const ProfileCardComponent = ({
       <div ref={shellRef} className='pc-card-shell'>
         <section className='pc-card'>
           <div className='pc-inside'>
-            <div className='pc-shine' />
-            <div className='pc-glare' />
             <div className='pc-content pc-avatar-content'>
               <img
                 className='avatar'

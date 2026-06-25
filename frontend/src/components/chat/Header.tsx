@@ -1,14 +1,10 @@
-import { Cpu, ChevronDown, Check, Settings, WifiOff } from 'lucide-react'
+import { Cpu, ChevronDown, Check, WifiOff } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
 import { useModel } from '../../hooks/useModel'
 import { ThemeToggle } from '../common/ThemeToggle'
 
-interface HeaderProps {
-  onSettingsClick?: () => void
-}
-
-export function Header({ onSettingsClick }: HeaderProps) {
+export function Header() {
   const { activeConversation, currentModel, availableModels } = useChat()
   const { select } = useModel()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
@@ -114,16 +110,6 @@ export function Header({ onSettingsClick }: HeaderProps) {
               <WifiOff className='w-3 h-3 text-red-500' />
               <span className='font-secondary text-[11px] text-red-500'>离线</span>
             </div>
-          )}
-          {onSettingsClick && (
-            <button
-              onClick={onSettingsClick}
-              aria-label='设置'
-              className='flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-[var(--bg-hover)] theme-text-muted hover:theme-text-primary transition-all duration-200 cursor-pointer'
-              title='设置'
-            >
-              <Settings className='w-4 h-4' />
-            </button>
           )}
           <ThemeToggle />
         </div>

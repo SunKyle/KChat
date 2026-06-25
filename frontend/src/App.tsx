@@ -120,7 +120,7 @@ function AppContent() {
                 radial-gradient(ellipse 40% 35% at 20% 30%, var(--accent-amber-opacity-4, rgba(251,191,36,0.04)) 0%, transparent 60%)
               `
             }} />
-            <Header onSettingsClick={() => openSettings('profile')} />
+            <Header />
             <div className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
               <ChatArea />
               {activeConversation && <InputArea />}

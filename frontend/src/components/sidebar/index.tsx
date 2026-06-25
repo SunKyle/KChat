@@ -493,10 +493,16 @@ export function Sidebar({
               )}
             </AnimatePresence>
             {!collapsed && (
-              <Settings
-                className='w-4 h-4 text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0'
-                aria-hidden='true'
-              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
+                }}
+                className='flex-shrink-0 p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+                aria-label='设置'
+              >
+                <Settings className='w-4 h-4 text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity' />
+              </button>
             )}
           </div>
         </div>
@@ -526,7 +532,6 @@ export function Sidebar({
                 contactText='编辑资料'
                 onContactClick={handleEditProfile}
                 enableTilt
-                innerGradient='linear-gradient(145deg, #1e293bcc 0%, #0ea5e944 100%)'
               />
             </motion.div>
           </>
