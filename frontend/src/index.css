@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Righteous&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -634,6 +634,16 @@ html {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+@keyframes active-item-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @keyframes stream-pulse {
   0%,
   100% {
@@ -993,6 +1003,60 @@ html {
 .sidebar-action-btn:hover {
   background-color: var(--bg-hover);
   color: var(--text-secondary);
+}
+
+/* Active conversation highlight — breathing radial glow */
+.active-item-highlight {
+  background: radial-gradient(ellipse at center, rgba(30, 157, 241, 0.14) 0%, rgba(30, 157, 241, 0.03) 60%, transparent 100%);
+  animation: active-item-breathe 3s ease-in-out infinite;
+}
+
+.dark .active-item-highlight {
+  background: radial-gradient(ellipse at center, rgba(28, 156, 240, 0.16) 0%, rgba(28, 156, 240, 0.04) 60%, transparent 100%);
+}
+
+/* Empty state CTA — inviting action */
+.empty-state-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--brand-primary);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-secondary);
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.empty-state-cta:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(30, 157, 241, 0.3);
+  transform: translateY(-1px);
+}
+
+.empty-state-cta:active {
+  transform: scale(0.97);
+}
+
+/* Search keyboard shortcut hint */
+.search-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-muted);
+  background-color: var(--bg-hover);
+  border: 1px solid var(--border-primary);
+  letter-spacing: 0;
 }
 
 /* Focus ring */
@@ -1474,9 +1538,8 @@ input[type='search']::-webkit-search-decoration {
   line-height: var(--leading-body);
 }
 
-.font-logo {
+.font-logo-system {
   font-family:
-    'Righteous',
     -apple-system,
     BlinkMacSystemFont,
     'SF Pro Display',
@@ -1486,20 +1549,12 @@ input[type='search']::-webkit-search-decoration {
     Arial,
     sans-serif;
   font-size: var(--font-h3);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-}
-
-.font-weight-medium {
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .font-weight-semibold {
   font-weight: 600;
-}
-
-.font-weight-bold {
-  font-weight: 700;
 }
 
 /* ============================================

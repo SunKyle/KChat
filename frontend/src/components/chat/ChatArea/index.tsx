@@ -161,7 +161,7 @@ export function ChatArea() {
                 <div className='absolute inset-0 w-24 h-24 sm:w-28 sm:h-28 -top-2 -left-2 bg-gradient-to-br from-[var(--brand-primary)]/30 to-[var(--accent-purple)]/20 rounded-full blur-2xl' />
                 <img src='/kchat-icon.svg' alt='KChat' className='relative w-20 sm:w-24 h-20 sm:h-24 object-contain drop-shadow-lg' />
               </div>
-              <h1 className='text-5xl sm:text-6xl font-logo theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>欢迎使用 KChat</h1>
+              <h1 className='text-5xl sm:text-6xl font-logo-system theme-text-primary mb-3 sm:mb-4 text-center animate-fade-in-up'>欢迎使用 KChat</h1>
               <p className='text-lg sm:text-xl theme-text-secondary mb-10 sm:mb-12 max-w-xs sm:max-w-sm text-center animate-fade-in-up animation-delay-100 leading-relaxed'>智能助手随时为您服务，开启高效对话体验</p>
               <div className='w-full max-w-md animate-fade-in-up animation-delay-200'>
                 <div className='flex flex-wrap justify-center gap-2 sm:gap-3'>

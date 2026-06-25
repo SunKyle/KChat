@@ -15,7 +15,7 @@ export function TypingIndicator() {
           style={{ animationDelay: '300ms', animationDuration: '600ms' }}
         />
       </div>
-      <span className='theme-text-muted font-secondary font-weight-medium'>
+      <span className='theme-text-muted font-secondary font-weight-semibold'>
         AI 正在思考
         <span className='animate-pulse'>...</span>
       </span>

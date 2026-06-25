@@ -546,7 +546,7 @@ export function InputArea() {
                         charCount > maxChars
                           ? 'text-red-500 font-weight-semibold'
                           : charCount >= maxChars * 0.9
-                            ? 'text-amber-500 font-weight-medium'
+                            ? 'text-amber-500 font-weight-semibold'
                             : 'theme-text-muted'
                       }`}
                     >

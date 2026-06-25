@@ -170,7 +170,7 @@ export function ProfileInfo() {
 
         <div className='space-y-4'>
           <div>
-            <label className='block font-secondary font-weight-medium mb-1.5'>昵称</label>
+            <label className='block font-secondary font-weight-semibold mb-1.5'>昵称</label>
             <input
               type='text'
               value={localProfile.nickname}
@@ -187,7 +187,7 @@ export function ProfileInfo() {
           </div>
 
           <div>
-            <label className='block font-secondary font-weight-medium mb-1.5'>邮箱</label>
+            <label className='block font-secondary font-weight-semibold mb-1.5'>邮箱</label>
             <input
               type='email'
               value={localProfile.email}
@@ -202,7 +202,7 @@ export function ProfileInfo() {
           </div>
 
           <div>
-            <label className='block font-secondary font-weight-medium mb-1.5'>简介</label>
+            <label className='block font-secondary font-weight-semibold mb-1.5'>简介</label>
             <textarea
               value={localProfile.bio}
               onChange={(e) => setLocalProfile((prev) => ({ ...prev, bio: e.target.value }))}

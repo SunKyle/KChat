@@ -146,7 +146,7 @@ export const ConversationItem = memo(function ConversationItem({
           )}
         </div>
         {conversation.pinned && (
-          <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400/90 flex items-center justify-center shadow-sm'>
+          <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--brand-primary)]/90 flex items-center justify-center shadow-sm'>
             <Pin className='w-[7px] h-[7px] text-white' fill='currentColor' />
           </div>
         )}
@@ -175,7 +175,7 @@ export const ConversationItem = memo(function ConversationItem({
       className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-[background-color,transform] duration-200 ease-out focus-ring border-2 ${
         isActive
           ? 'border-transparent'
-          : 'hover:theme-bg-hover hover:translate-x-0.5 border-transparent'
+          : 'hover:theme-bg-hover hover:translate-y-[-1px] border-transparent'
       } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 40px' }}
     >
@@ -252,7 +252,7 @@ export const ConversationItem = memo(function ConversationItem({
                 <Pin
                   className={`w-3.5 h-3.5 transition-colors ${
                     conversation.pinned
-                      ? 'theme-accent-amber'
+                      ? 'theme-brand-primary'
                       : 'theme-text-muted hover:theme-text-secondary'
                   }`}
                   fill={conversation.pinned ? 'currentColor' : 'none'}
@@ -314,7 +314,7 @@ export const ConversationItem = memo(function ConversationItem({
       >
         <Pencil className='w-3.5 h-3.5' /> 编辑标题
       </button>
-      <div className='my-0.5 divider' />
+      <div className='my-0.5 h-px bg-[var(--border-divider)]' />
       <button
         onClick={() => {
           onDelete()

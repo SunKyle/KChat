@@ -252,8 +252,8 @@ export function Sidebar({
             <div className='flex items-center gap-2'>
               <div className='relative flex-shrink-0'>
                 <div
-                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--accent-amber)]/60 to-[var(--accent-orange)]/60 blur-md transition-opacity duration-300 ${
-                    collapsed ? 'opacity-25' : 'opacity-30 group-hover/logo:opacity-50'
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--brand-primary)]/40 to-[var(--accent-purple)]/40 blur-md transition-opacity duration-300 ${
+                    collapsed ? 'opacity-20' : 'opacity-25 group-hover/logo:opacity-45'
                   }`}
                 />
                 <img
@@ -263,7 +263,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo text-[var(--brand-primary)] leading-none tracking-tight'>
+                <h1 className='font-logo-system text-[var(--brand-primary)] leading-none'>
                   KChat
                 </h1>
               )}
@@ -315,24 +315,28 @@ export function Sidebar({
                     }}
                     placeholder='搜索会话...'
                     aria-label='搜索会话'
-                    className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
+                    className='w-full pl-8 pr-16 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
                   />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      aria-label='清除搜索'
-                      className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
-                    >
-                      <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
-                    </button>
-                  )}
+                  <div className='absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1'>
+                    {searchQuery ? (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        aria-label='清除搜索'
+                        className='p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
+                      >
+                        <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
+                      </button>
+                    ) : (
+                      <span className='search-kbd' aria-hidden='true'>⌘K</span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={create}
                   aria-label='创建新对话'
-                  className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200 flex-shrink-0'
+                  className='group/btn flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 active:scale-95 transition-all duration-200 flex-shrink-0'
                 >
-                  <MessageSquarePlus className='w-3.5 h-3.5' aria-hidden='true' />
+                  <MessageSquarePlus className='w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:rotate-90' aria-hidden='true' />
                 </button>
               </div>
             </motion.div>
@@ -347,23 +351,25 @@ export function Sidebar({
         >
           {highlightRect && !collapsed && (
             <motion.div
-              className='absolute left-2 right-2 bg-brand-selected rounded-lg pointer-events-none z-0'
+              className='absolute left-2 right-2 active-item-highlight rounded-lg pointer-events-none z-0'
               animate={{ top: highlightRect.top, height: highlightRect.height }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />
           )}
           <div className='relative z-[1]'>
           {conversations.length === 0 ? (
-            <div
-              className={`text-center py-12 px-4 ${collapsed ? 'flex flex-col items-center' : ''}`}
-            >
-              <div className='w-12 h-12 mx-auto mb-3 rounded-full theme-bg-hover/50 flex items-center justify-center'>
+            <div className='text-center py-12 px-4'>
+              <div className='w-12 h-12 mx-auto mb-4 rounded-full theme-bg-hover/50 flex items-center justify-center'>
                 <MessageSquare className='w-5 h-5 theme-text-muted' />
               </div>
               {!collapsed && (
                 <>
-                  <p className='theme-text-secondary text-sm mb-1 font-semibold'>暂无对话</p>
-                  <p className='text-xs theme-text-muted'>点击上方按钮开始</p>
+                  <p className='theme-text-secondary text-sm mb-1 font-semibold'>开始你的第一次对话</p>
+                  <p className='text-xs theme-text-muted mb-5'>选择模型，提出问题，获得答案</p>
+                  <button onClick={create} className='empty-state-cta'>
+                    <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+                    新建对话
+                  </button>
                 </>
               )}
             </div>
@@ -371,6 +377,14 @@ export function Sidebar({
             <div className='text-center py-12 px-4'>
               <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
               <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); searchInputRef.current?.focus() }}
+                  className='mt-3 text-xs theme-brand-primary hover:underline'
+                >
+                  清除搜索
+                </button>
+              )}
             </div>
           ) : (
             <div role='listbox' id='conversation-list' className='space-y-3'>
@@ -381,7 +395,7 @@ export function Sidebar({
                       onClick={() => toggleGroup(group)}
                       aria-expanded={expandedGroups.has(group)}
                       aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary bg-[var(--bg-hover)]/30 hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
+                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
                     >
                       <span className='flex items-center gap-1.5'>
                         <ChevronRight
@@ -390,38 +404,53 @@ export function Sidebar({
                           }`}
                           aria-hidden='true'
                         />
-                        <span className='group-hover/header:theme-text-primary transition-colors flex items-center gap-1'>
+                        <span className='group-hover/header:theme-text-primary transition-colors'>
                           {group}
                         </span>
                       </span>
-                      <span className='inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--bg-hover)] theme-text-muted group-hover/header:bg-[var(--brand-primary)]/10 group-hover/header:theme-brand-primary transition-all duration-200'>
-                        {items.length}
-                      </span>
                     </button>
                   )}
-                  {(collapsed || expandedGroups.has(group)) &&
-                    items.map((conversation, idx) => (
-                      <ConversationItem
-                        key={conversation.id}
-                        conversation={conversation}
-                        isActive={activeConversation?.id === conversation.id}
-                        isStreaming={getStreamingState(conversation.id).isStreaming}
-                        isSummarizing={getSummarizingState(conversation.id)}
-                        hasNewReply={getHasNewReply(conversation.id)}
-                        onClick={() => {
-                          resetNewReply(conversation.id)
-                          select(conversation)
-                          onConversationClick?.()
-                        }}
-                        onDelete={() => handleDelete(conversation.id, conversation.title)}
-                        onUpdate={update}
-                        onPin={pin}
-                        collapsed={collapsed}
-                        index={idx}
-                        total={items.length}
-                        registerRef={registerItemRef}
-                      />
-                    ))}
+                  {(collapsed || expandedGroups.has(group)) && (
+                    <motion.div
+                      key={`${group}-items-${expandedGroups.has(group)}`}
+                      variants={{
+                        visible: { transition: { staggerChildren: 0.03 } },
+                      }}
+                      initial='hidden'
+                      animate='visible'
+                    >
+                      {items.map((conversation, idx) => (
+                        <motion.div
+                          key={conversation.id}
+                          variants={{
+                            hidden: { opacity: 0, y: 3 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          <ConversationItem
+                            conversation={conversation}
+                            isActive={activeConversation?.id === conversation.id}
+                            isStreaming={getStreamingState(conversation.id).isStreaming}
+                            isSummarizing={getSummarizingState(conversation.id)}
+                            hasNewReply={getHasNewReply(conversation.id)}
+                            onClick={() => {
+                              resetNewReply(conversation.id)
+                              select(conversation)
+                              onConversationClick?.()
+                            }}
+                            onDelete={() => handleDelete(conversation.id, conversation.title)}
+                            onUpdate={update}
+                            onPin={pin}
+                            collapsed={collapsed}
+                            index={idx}
+                            total={items.length}
+                            registerRef={registerItemRef}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
               ))}
             </div>
@@ -458,7 +487,7 @@ export function Sidebar({
                         {profile?.nickname || '用户'}
                       </p>
                       <span
-                        className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-none'
+                        className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--brand-primary)]/8 text-[var(--brand-primary)] text-xs font-semibold leading-none'
                         title='Premium Plan'
                       >
                         <Crown className='w-2.5 h-2.5' aria-hidden='true' />
@@ -466,7 +495,7 @@ export function Sidebar({
                       </span>
                     </div>
                     <Settings
-                      className='w-4 h-4 theme-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
+                      className='w-4 h-4 theme-text-muted opacity-30 group-hover:opacity-100 transition-opacity flex-shrink-0'
                       aria-hidden='true'
                     />
                   </motion.div>
@@ -488,7 +517,7 @@ export function Sidebar({
               transition={{ type: 'spring', stiffness: 380, damping: 28 }}
               className='fixed z-[1000] profile-card-popup'
               style={{
-                top: profileCardPos.top - 420,
+                bottom: window.innerHeight - profileCardPos.top + 12,
                 left: profileCardPos.left + 12,
               }}
             >
