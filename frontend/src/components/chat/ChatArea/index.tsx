@@ -53,7 +53,7 @@ export function ChatArea() {
   // Force scroll to bottom on send message
   useEffect(() => {
     if (scrollTrigger > 0) {
-      virtuosoRef.current?.scrollToIndex({ index: messages.length - 1, behavior: 'smooth' })
+      virtuosoRef.current?.scrollTo({ top: Number.MAX_SAFE_INTEGER, behavior: 'smooth' })
     }
   }, [scrollTrigger, messages.length])
 
@@ -91,29 +91,15 @@ export function ChatArea() {
 
   if (!activeConversation) {
     return (
-      <div className='flex-1 flex items-center justify-center relative'>
-        
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-[var(--brand-primary)]/8 via-[var(--accent-purple)]/5 to-[var(--accent-purple)]/3 rounded-full blur-3xl' />
-        <div className='absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tr from-[var(--accent-amber)]/5 via-[var(--accent-rose)]/5 to-[var(--brand-success)]/5 rounded-full blur-3xl' />
-
-        <div className='relative z-10 text-center px-4'>
-          <div className='mb-6 inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)]/15 to-[var(--accent-purple)]/15 border border-[var(--border-primary)] backdrop-blur-sm shadow-lg'>
-            <MessageCircle className='w-10 h-10 text-[var(--brand-primary)]' />
-          </div>
-          
-          <h2 className='font-h2 theme-text-primary mb-3 animate-fade-in'>
-            选择或创建对话
-          </h2>
-          <p className='text-lg theme-text-secondary max-w-sm mx-auto animate-fade-in animation-delay-100'>
-            从左侧列表选择一个对话，或创建新对话开始聊天
-          </p>
-
-          <div className='mt-8 flex items-center justify-center gap-3 animate-fade-in animation-delay-200'>
-            <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-card)]/80 backdrop-blur-sm border border-[var(--border-primary)] shadow-sm'>
-              <Sparkles className='w-4 h-4 text-[var(--accent-amber)]' />
-              <span className='text-xs text-[var(--text-secondary)]'>AI 助手已就绪</span>
+      <div className='flex-1 flex items-center justify-center'>
+        <div className='text-center px-4'>
+          <div className='mb-5'>
+            <div className='w-12 h-12 rounded-xl bg-[var(--brand-primary)]/10 flex items-center justify-center mx-auto'>
+              <MessageCircle className='w-6 h-6 text-[var(--brand-primary)]' />
             </div>
           </div>
+          <h2 className='text-lg font-semibold theme-text-primary mb-1.5'>选择或创建对话</h2>
+          <p className='text-sm theme-text-secondary'>从左侧列表选择一个对话，或创建新对话开始聊天</p>
         </div>
       </div>
     )

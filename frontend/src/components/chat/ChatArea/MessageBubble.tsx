@@ -30,7 +30,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
-  const { startSummarizing, endSummarizing, summarizingMessageId } = useChat()
+  const { startSummarizing, endSummarizing, summarizingMessageId, currentModel } = useChat()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -153,10 +153,15 @@ export const MessageBubble = memo(function MessageBubble({
           )}
         </div>
 
-        <div className={`flex items-center gap-3 mt-2 px-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className='text-xs text-[var(--text-timestamp)] opacity-70' title={new Date(message.timestamp).toLocaleString('zh-CN')}>
+        <div className={`flex items-center gap-2.5 mt-2.5 px-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <span className='text-[11px] text-[var(--text-timestamp)] opacity-50' title={new Date(message.timestamp).toLocaleString('zh-CN')}>
             {formatTimestamp(message.timestamp)}
           </span>
+          {!isUser && !isThinking && (
+            <span className='text-[11px] text-[var(--text-muted)] opacity-40 group-hover:opacity-70 transition-opacity'>
+              {currentModel}
+            </span>
+          )}
 
           {summarizingMessageId === message.id ? (
             <div className='flex items-center gap-2'>
