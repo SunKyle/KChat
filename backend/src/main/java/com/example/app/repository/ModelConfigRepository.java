@@ -14,4 +14,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     List<ModelConfig> findByType(ModelConfig.ModelType type);
     List<ModelConfig> findByTypeAndEnabledTrue(ModelConfig.ModelType type);
     List<ModelConfig> findByEnabledTrueOrderByType();
+    List<ModelConfig> findByCategory(ModelConfig.ModelCategory category);
+    List<ModelConfig> findByCategoryAndEnabledTrue(ModelConfig.ModelCategory category);
+    List<ModelConfig> findByEnabledTrueOrderByCategory();
 }

@@ -28,11 +28,6 @@ public class ModelConfigController {
         return ResponseEntity.ok(modelConfigService.getAllEnabledConfigs());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ModelConfig> getConfigById(@PathVariable Long id) {
-        return ResponseEntity.ok(modelConfigService.getConfigById(id));
-    }
-
     @GetMapping("/types")
     public ResponseEntity<List<String>> getAllTypes() {
         List<String> types = Arrays.stream(ModelConfig.ModelType.values())
@@ -49,6 +44,29 @@ public class ModelConfigController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        List<String> categories = Arrays.stream(ModelConfig.ModelCategory.values())
+                .map(Enum::name)
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/by-category/{category}")
+    public ResponseEntity<List<ModelConfig>> getConfigsByCategory(@PathVariable String category) {
+        try {
+            ModelConfig.ModelCategory modelCategory = ModelConfig.ModelCategory.valueOf(category.toUpperCase());
+            return ResponseEntity.ok(modelConfigService.getConfigsByCategory(modelCategory));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ModelConfig> getConfigById(@PathVariable Long id) {
+        return ResponseEntity.ok(modelConfigService.getConfigById(id));
     }
 
     @PostMapping

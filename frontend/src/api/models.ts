@@ -2,8 +2,9 @@ import { request } from './client'
 import type { ModelConfig } from '../types'
 
 export const models = {
-  list: async (): Promise<string[]> => {
-    return request('/models')
+  list: async (category?: string): Promise<string[]> => {
+    const params = category ? `?category=${category}` : ''
+    return request(`/models${params}`)
   },
 }
 
@@ -20,8 +21,16 @@ export const modelConfigs = {
     return request(`/model-configs/type/${type}`)
   },
 
+  listByCategory: async (category: string): Promise<ModelConfig[]> => {
+    return request(`/model-configs/by-category/${category}`)
+  },
+
   getTypes: async (): Promise<string[]> => {
     return request('/model-configs/types')
+  },
+
+  getCategories: async (): Promise<string[]> => {
+    return request('/model-configs/categories')
   },
 
   create: async (data: Omit<ModelConfig, 'id'>): Promise<ModelConfig> => {

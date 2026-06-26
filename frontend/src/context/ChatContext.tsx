@@ -22,7 +22,7 @@ interface ChatContextType {
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
   setCurrentModel: (model: string) => void
-  refreshModels: () => Promise<void>
+  refreshModels: (category?: string) => Promise<void>
   getStreamingState: (conversationId: string) => StreamingState
   getHasNewReply: (conversationId: string) => boolean
   resetNewReply: (conversationId: string) => void
@@ -444,9 +444,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     stateRef.current = state
   }, [state])
 
-  const loadModels = useCallback(async () => {
+  const loadModels = useCallback(async (category?: string) => {
     try {
-      const allModels = await models.list()
+      const allModels = await models.list(category)
 
       if (allModels.length > 0) {
         dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })
@@ -459,8 +459,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const refreshModels = useCallback(async () => {
-    await loadModels()
+  const refreshModels = useCallback(async (category?: string) => {
+    await loadModels(category)
   }, [loadModels])
 
   const stopStreaming = useCallback((conversationId?: string) => {
@@ -489,7 +489,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (!initializedRef.current) {
       initializedRef.current = true
       loadConversations()
-      loadModels()
+      loadModels('TEXT')
     }
   }, [])
 

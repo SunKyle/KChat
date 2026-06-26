@@ -12,13 +12,13 @@ export function useModel() {
     [dispatch]
   )
 
-  const refresh = useCallback(async () => {
-    await loadModels()
+  const refresh = useCallback(async (category?: string) => {
+    await loadModels(category)
   }, [])
 
-  const loadModels = useCallback(async () => {
+  const loadModels = useCallback(async (category?: string) => {
     try {
-      const allModels = await modelsAPI.list()
+      const allModels = await modelsAPI.list(category)
 
       if (allModels.length > 0) {
         dispatch({ type: 'SET_AVAILABLE_MODELS', payload: allModels })

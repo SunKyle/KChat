@@ -48,6 +48,7 @@ public class ModelConfigService {
         }
 
         ModelConfig.ModelType type = parseModelType(dto.getType());
+        ModelConfig.ModelCategory category = parseModelCategory(dto.getCategory());
 
         ModelConfig config = ModelConfig.builder()
                 .name(dto.getName())
@@ -55,6 +56,7 @@ public class ModelConfigService {
                 .baseUrl(dto.getBaseUrl())
                 .apiKey(dto.getApiKey())
                 .type(type)
+                .category(category)
                 .enabled(dto.getEnabled() != null ? dto.getEnabled() : true)
                 .build();
 
@@ -77,17 +79,39 @@ public class ModelConfigService {
     }
 
     @Transactional(readOnly = true)
+    public List<ModelConfig> getConfigsByCategory(ModelConfig.ModelCategory category) {
+        return modelConfigRepository.findByCategory(category);
+    }
+
+    @Transactional(readOnly = true)
     public List<ModelConfig.ModelType> getAllTypes() {
         return java.util.Arrays.asList(ModelConfig.ModelType.values());
     }
 
+    @Transactional(readOnly = true)
+    public List<ModelConfig.ModelCategory> getAllCategories() {
+        return java.util.Arrays.asList(ModelConfig.ModelCategory.values());
+    }
+
     public List<String> listModels() {
+        return listModels(null);
+    }
+
+    public List<String> listModels(ModelConfig.ModelCategory category) {
         List<String> models = new ArrayList<>();
 
-        List<String> ollamaModels = ollamaClient.listModels();
-        models.addAll(ollamaModels);
+        if (category == null || category == ModelConfig.ModelCategory.TEXT) {
+            List<String> ollamaModels = ollamaClient.listModels();
+            models.addAll(ollamaModels);
+        }
 
-        List<ModelConfig> enabledConfigs = modelConfigRepository.findByEnabledTrue();
+        List<ModelConfig> enabledConfigs;
+        if (category != null) {
+            enabledConfigs = modelConfigRepository.findByCategoryAndEnabledTrue(category);
+        } else {
+            enabledConfigs = modelConfigRepository.findByEnabledTrue();
+        }
+
         for (ModelConfig config : enabledConfigs) {
             models.add(config.getName() + ":" + config.getModelId());
         }
@@ -110,6 +134,17 @@ public class ModelConfigService {
         }
     }
 
+    private ModelConfig.ModelCategory parseModelCategory(String category) {
+        if (category == null || category.isEmpty()) {
+            return ModelConfig.ModelCategory.TEXT;
+        }
+        try {
+            return ModelConfig.ModelCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ModelConfig.ModelCategory.TEXT;
+        }
+    }
+
     @Transactional
     public ModelConfig updateConfig(Long id, ModelConfigDTO dto) {
         ModelConfig config = getConfigById(id);
@@ -126,6 +161,9 @@ public class ModelConfigService {
         }
         if (dto.getType() != null && !dto.getType().isEmpty()) {
             config.setType(parseModelType(dto.getType()));
+        }
+        if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
+            config.setCategory(parseModelCategory(dto.getCategory()));
         }
         if (dto.getEnabled() != null) {
             config.setEnabled(dto.getEnabled());

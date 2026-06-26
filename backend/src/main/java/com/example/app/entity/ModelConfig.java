@@ -40,6 +40,11 @@ public class ModelConfig {
     @Enumerated(EnumType.STRING)
     private ModelType type;
 
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'TEXT'")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ModelCategory category = ModelCategory.TEXT;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean enabled = true;
@@ -60,6 +65,22 @@ public class ModelConfig {
         private final String displayName;
 
         ModelType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum ModelCategory {
+        TEXT("文本"),
+        IMAGE("图像"),
+        VIDEO("视频");
+
+        private final String displayName;
+
+        ModelCategory(String displayName) {
             this.displayName = displayName;
         }
 

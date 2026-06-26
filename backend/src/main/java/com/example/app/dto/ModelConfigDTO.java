@@ -27,5 +27,7 @@ public class ModelConfigDTO {
 
     private String type;
 
+    private String category;
+
     private Boolean enabled;
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Brain, Database, Copy } from 'lucide-react'
 import { modelConfigs } from '../../api'
-import type { ModelConfig, ProviderType } from '../../types'
+import type { ModelConfig, ProviderType, ModelCategory } from '../../types'
 import { useChat } from '../../context/ChatContext'
 import { Modal } from '../common/Modal'
-import { PROVIDERS } from '../../types'
+import { PROVIDERS, CATEGORIES } from '../../types'
 import { Button } from '../ui/Button'
 
 export function ModelSettings() {
@@ -14,6 +14,7 @@ export function ModelSettings() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingConfig, setEditingConfig] = useState<ModelConfig | null>(null)
   const [selectedProvider, setSelectedProvider] = useState<ProviderType>('OPENAI')
+  const [selectedCategory, setSelectedCategory] = useState<ModelCategory | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | number | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string | number; name: string } | null>(null)
@@ -24,6 +25,7 @@ export function ModelSettings() {
     baseUrl: '',
     apiKey: '',
     type: 'OPENAI' as ProviderType,
+    category: 'TEXT' as ModelCategory,
     enabled: true,
   })
 
@@ -52,9 +54,11 @@ export function ModelSettings() {
       baseUrl: defaultProvider.defaultBaseUrl || '',
       apiKey: '',
       type: defaultProvider.type,
+      category: 'TEXT',
       enabled: true,
     })
     setSelectedProvider(defaultProvider.type)
+    setSelectedCategory('TEXT')
     setShowAddModal(true)
   }
 
@@ -66,9 +70,11 @@ export function ModelSettings() {
       baseUrl: config.baseUrl,
       apiKey: '',
       type: config.type,
+      category: config.category || 'TEXT',
       enabled: config.enabled,
     })
     setSelectedProvider(config.type)
+    setSelectedCategory(config.category || 'TEXT')
     setShowAddModal(true)
   }
 
@@ -139,6 +145,11 @@ export function ModelSettings() {
     })
   }
 
+  const handleCategoryChange = (category: ModelCategory) => {
+    setSelectedCategory(category)
+    setFormData((prev) => ({ ...prev, category }))
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -164,7 +175,10 @@ export function ModelSettings() {
     PROVIDERS.forEach((provider) => {
       grouped[provider.type] = []
     })
-    configs.forEach((config) => {
+    const filtered = selectedCategory
+      ? configs.filter((c) => (c.category || 'TEXT') === selectedCategory)
+      : configs
+    filtered.forEach((config) => {
       const targetType = config.type === 'OPENAI_COMPATIBLE' ? 'OPENAI' : config.type
       if (grouped[targetType]) {
         grouped[targetType].push(config)
@@ -193,6 +207,34 @@ export function ModelSettings() {
           添加模型
         </Button>
       </div>
+
+      {configs.length > 0 && (
+        <div className='flex items-center gap-2 mb-4'>
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              selectedCategory === null
+                ? 'bg-[var(--accent-primary)] text-white'
+                : 'theme-bg-hover theme-text-secondary hover:theme-bg-hover/80'
+            }`}
+          >
+            全部
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.type}
+              onClick={() => setSelectedCategory(cat.type)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                selectedCategory === cat.type
+                  ? 'bg-[var(--accent-primary)] text-white'
+                  : 'theme-bg-hover theme-text-secondary hover:theme-bg-hover/80'
+              }`}
+            >
+              {cat.displayName}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isLoading ? (
         <div className='flex items-center justify-center py-12'>
@@ -256,6 +298,15 @@ export function ModelSettings() {
                               >
                                 <Copy className='w-3 h-3' />
                               </button>
+                              {(() => {
+                                const cat = CATEGORIES.find((c) => c.type === (config.category || 'TEXT'))
+                                if (!cat) return null
+                                return (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full text-white ${cat.color} flex-shrink-0`}>
+                                    {cat.displayName}
+                                  </span>
+                                )
+                              })()}
                             </div>
                           </div>
 
@@ -339,6 +390,37 @@ export function ModelSettings() {
                         {provider.displayName}
                       </div>
                       {selectedProvider === provider.type && (
+                        <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--accent-primary)] rounded-full' />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-sm font-semibold theme-text-secondary mb-3'>
+                  类别
+                </label>
+                <div className='grid grid-cols-3 gap-3'>
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.type}
+                      onClick={() => handleCategoryChange(cat.type)}
+                      className={`relative p-3 rounded-lg border transition-all ${
+                        selectedCategory === cat.type
+                          ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/10'
+                          : 'theme-border-primary hover:theme-border-primary/80'
+                      }`}
+                    >
+                      <div className='text-sm font-semibold theme-text-primary'>
+                        <span
+                          className={`w-6 h-6 rounded ${cat.color} flex items-center justify-center text-white text-xs flex-shrink-0 inline mr-2`}
+                        >
+                          {cat.icon}
+                        </span>
+                        {cat.displayName}
+                      </div>
+                      {selectedCategory === cat.type && (
                         <div className='absolute top-2 right-2 w-2 h-2 bg-[var(--accent-primary)] rounded-full' />
                       )}
                     </button>

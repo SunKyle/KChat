@@ -165,8 +165,19 @@ public class ChatController {
      * @return 模型名称列表
      */
     @GetMapping("/models")
-    public ResponseEntity<List<String>> listModels() {
-        List<String> models = modelConfigService.listModels();
+    public ResponseEntity<List<String>> listModels(
+            @RequestParam(required = false) String category) {
+        List<String> models;
+        if (category != null && !category.isEmpty()) {
+            try {
+                ModelConfig.ModelCategory modelCategory = ModelConfig.ModelCategory.valueOf(category.toUpperCase());
+                models = modelConfigService.listModels(modelCategory);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        } else {
+            models = modelConfigService.listModels();
+        }
         return ResponseEntity.ok(models);
     }
 

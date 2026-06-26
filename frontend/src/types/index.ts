@@ -72,6 +72,8 @@ export interface Model {
   type: string
 }
 
+export type ModelCategory = 'TEXT' | 'IMAGE' | 'VIDEO'
+
 export interface ModelConfig {
   id: string | number
   name: string
@@ -79,9 +81,23 @@ export interface ModelConfig {
   baseUrl: string
   apiKey: string
   type: ProviderType
+  category: ModelCategory
   enabled: boolean
   createdAt?: string
 }
+
+export interface CategoryInfo {
+  type: ModelCategory
+  displayName: string
+  icon: string
+  color: string
+}
+
+export const CATEGORIES: CategoryInfo[] = [
+  { type: 'TEXT', displayName: '文本', icon: '💬', color: 'bg-blue-500' },
+  { type: 'IMAGE', displayName: '图像', icon: '🖼️', color: 'bg-green-500' },
+  { type: 'VIDEO', displayName: '视频', icon: '🎬', color: 'bg-purple-500' },
+]
 
 export interface ProviderInfo {
   type: ProviderType
