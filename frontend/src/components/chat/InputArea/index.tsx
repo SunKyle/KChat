@@ -16,6 +16,7 @@ import {
   Undo2,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
+import { isImageModel } from '../../../utils/model'
 import {
   images,
   optimization,
@@ -50,6 +51,8 @@ export function InputArea() {
   const charCount = input.length
   const maxChars = 2000
   const maxImages = 5
+
+  const isImg2ImgMode = isImageModel(currentModel) && uploadingImages.length > 0
 
   // 状态条滑出/收起动画
   useEffect(() => {
@@ -256,27 +259,42 @@ export function InputArea() {
       <div className='max-w-3xl mx-auto relative group'>
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
-          <div className='flex flex-wrap gap-2 mb-4 mx-4 lg:mx-6'>
-            {uploadingImages.map((imageUrl, index) => (
-              <div
-                key={index}
-                className='relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 hover:border-[var(--accent-primary)]/50 transition-all duration-200 shadow-sm hover:shadow-md'
-              >
-                <img
-                  src={imageUrl}
-                  alt={`Uploaded ${index + 1}`}
-                  loading='lazy'
-                  className='w-full h-full object-cover'
-                />
-                <button
-                  onClick={() => handleRemoveImage(index)}
-                  className='absolute top-1 right-1 w-11 h-11 backdrop-blur-md bg-[var(--bg-glass)] rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm'
-                  aria-label='移除图片'
-                >
-                  <Trash2 className='w-[14px] h-[14px]' />
-                </button>
+          <div className='mb-4 mx-4 lg:mx-6'>
+            {isImg2ImgMode && (
+              <div className='flex items-center gap-1.5 px-2.5 py-1.5 mb-2 rounded-lg bg-[var(--brand-primary)]/8 border border-[var(--brand-primary)]/15 text-xs font-semibold text-[var(--brand-primary)]'>
+                <Image className='w-3.5 h-3.5' />
+                图生图模式
+                <span className='font-normal opacity-60'>· 仅第一张图作为参考</span>
               </div>
-            ))}
+            )}
+            <div className='flex flex-wrap gap-2'>
+              {uploadingImages.map((imageUrl, index) => (
+                <div
+                  key={index}
+                  className='relative group/preview w-16 h-16 rounded-xl overflow-hidden border border-[var(--border-primary)] transition-colors duration-200'
+                >
+                  {index === 0 && uploadingImages.length > 1 && (
+                    <span className='absolute top-1 left-1 z-10 w-4 h-4 rounded-full bg-[var(--brand-primary)]/80 text-[10px] font-semibold text-white flex items-center justify-center'>
+                      1
+                    </span>
+                  )}
+                  <img
+                    src={imageUrl}
+                    alt={`Uploaded ${index + 1}`}
+                    loading='lazy'
+                    className='w-full h-full object-cover'
+                  />
+                  <div className='absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-200' />
+                  <button
+                    onClick={() => handleRemoveImage(index)}
+                    className='absolute top-1 right-1 w-5 h-5 bg-black/40 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/preview:opacity-100 transition-all duration-200'
+                    aria-label='移除图片'
+                  >
+                    <X className='w-3 h-3 text-white' />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -374,7 +392,13 @@ export function InputArea() {
                   }}
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
-                  placeholder={streamingState.isStreaming ? '添加到队列' : '输入消息...'}
+                  placeholder={
+                    streamingState.isStreaming
+                      ? '添加到队列'
+                      : isImg2ImgMode
+                        ? '描述要对图片进行的修改...'
+                        : '输入消息...'
+                  }
                   aria-label='输入消息'
                   className={`w-full resize-none bg-transparent px-0 py-1 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[32px] max-h-[200px] overflow-y-auto font-input-text transition-opacity duration-200 ${
                     streamingState.isStreaming ? 'opacity-50' : ''
@@ -429,18 +453,26 @@ export function InputArea() {
                   {/* 生成图片按钮 */}
                   <div className='relative'>
                     <button
-                      onClick={() => setInput('生成图片：')}
+                      onClick={() => {
+                        if (isImg2ImgMode) {
+                          textareaRef.current?.focus()
+                        } else {
+                          setInput('生成图片：')
+                        }
+                      }}
                       disabled={streamingState.isStreaming}
                       className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
+                          : isImg2ImgMode
+                            ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/20 cursor-pointer'
+                            : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
                       }`}
-                      aria-label='生成图片'
+                      aria-label={isImg2ImgMode ? '图生图模式' : '生成图片'}
                     >
                       <Image className='w-4 h-4' />
                     </button>
-                    <span className='tooltip-content'>生成图片</span>
+                    <span className='tooltip-content'>{isImg2ImgMode ? '图生图模式' : '生成图片'}</span>
                   </div>
 
                   {/* 内容优化按钮 */}

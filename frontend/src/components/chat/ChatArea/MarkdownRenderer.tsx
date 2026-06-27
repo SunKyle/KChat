@@ -112,16 +112,23 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
+                        setExpandedImage(src)
+                      }}
+                      className='icon-btn-sm theme-bg-card/80 backdrop-blur-sm rounded-lg'
+                      title='查看大图'
+                    >
+                      <ZoomIn className='w-3.5 h-3.5 theme-text-primary' />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
                         handleDownload(src, filename)
                       }}
-                      className='icon-btn theme-bg-card/80 backdrop-blur-sm'
+                      className='icon-btn-sm theme-bg-card/80 backdrop-blur-sm rounded-lg'
                       title='下载图片'
                     >
-                      <Download className='w-4 h-4 theme-text-primary' />
+                      <Download className='w-3.5 h-3.5 theme-text-primary' />
                     </button>
-                    <div className='p-1.5 theme-bg-card/80 rounded-lg backdrop-blur-sm'>
-                      <ZoomIn className='w-4 h-4 theme-text-primary' />
-                    </div>
                   </div>
                 </div>
               )

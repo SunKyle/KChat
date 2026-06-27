@@ -489,7 +489,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (!initializedRef.current) {
       initializedRef.current = true
       loadConversations()
-      loadModels('TEXT')
+      loadModels()
     }
   }, [])
 

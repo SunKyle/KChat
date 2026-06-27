@@ -271,10 +271,19 @@ public class StreamingService {
 
             if (openAICompatibleClient.isImageModel(actualModelId)) {
                 log.info("[STREAM] Detected image generation model: {}", actualModelId);
-                openAICompatibleClient.generateImage(
-                        actualModelId, config.getBaseUrl(), config.getApiKey(), userMessage, emitter,
-                        imageContent -> finalizeImageResponse(conversationId, imageContent, aiMessageId,
-                                emitter, llmStartTime, startTime));
+                if (openAICompatibleClient.isStableDiffusionModel(actualModelId)) {
+                    openAICompatibleClient.generateImageSdWebui(
+                            actualModelId, config.getBaseUrl(), config.getApiKey(),
+                            userMessage, imageUrls, emitter,
+                            imageContent -> finalizeImageResponse(conversationId, imageContent, aiMessageId,
+                                    emitter, llmStartTime, startTime));
+                } else {
+                    openAICompatibleClient.generateImage(
+                            actualModelId, config.getBaseUrl(), config.getApiKey(),
+                            userMessage, imageUrls, emitter,
+                            imageContent -> finalizeImageResponse(conversationId, imageContent, aiMessageId,
+                                    emitter, llmStartTime, startTime));
+                }
             } else {
                 openAICompatibleClient.streamChatCompletion(
                         actualModelId, config.getBaseUrl(), config.getApiKey(), userMessage,

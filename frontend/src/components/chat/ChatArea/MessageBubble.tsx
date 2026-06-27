@@ -118,7 +118,7 @@ export const MessageBubble = memo(function MessageBubble({
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
-          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary px-4 py-3 rounded-2xl text-left ${isUser ? 'bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/25' : 'bg-[var(--bg-card)] border border-[var(--border-primary)]'}`}
+          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary text-left ${isUser ? 'px-4 py-3 rounded-2xl bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/25' : ''}`}
         >
           {isThinking && !message.content ? (
             <div className='flex items-center py-1'>
