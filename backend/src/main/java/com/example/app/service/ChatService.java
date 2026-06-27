@@ -2,16 +2,14 @@ package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
-import com.example.app.config.WebSearchConfig;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.dto.MemoryDTO;
-import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.Message;
 import com.example.app.entity.ModelConfig;
+import com.example.app.pipeline.ContextPipelineExecutor;
+import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.repository.MessageRepository;
-import com.example.app.service.ModelConfigService;
-import com.example.app.service.WebSearchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
@@ -21,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 聊天服务类，负责处理同步聊天请求的完整流程
@@ -49,62 +45,37 @@ public class ChatService {
     private final OllamaClient ollamaClient;
 
     /**
-     * 聊天流程编排服务，负责记忆管理和消息组装
+     * 聊天流程编排服务，用于对话创建和重新生成
      */
     private final ChatWorkflowService chatWorkflowService;
 
     /**
-     * 消息持久化服务，负责将消息保存到数据库
-     */
-    private final MessagePersistenceService messagePersistenceService;
-
-    /**
-     * 自动记忆提取器，对话完成后自动提取值得保存的信息
+     * 自动记忆提取器，重新生成时使用
      */
     private final AutoMemoryExtractor autoMemoryExtractor;
 
     /**
-     * 用户配置服务，用于获取语言偏好
+     * 用户配置服务，重新生成时使用
      */
     private final UserProfileService userProfileService;
 
     /**
-     * 用户设置服务
-     */
-    private final UserSettingService userSettingService;
-
-    /**
-     * 对话服务
+     * 对话服务，重新生成时使用
      */
     private final ConversationService conversationService;
 
     /**
-     * 标题生成服务
-     */
-    private final TitleGenerationService titleGenerationService;
-
-    /**
-     * 网络搜索服务
-     */
-    private final WebSearchService webSearchService;
-
-    /**
-     * 网络搜索配置
-     */
-    private final WebSearchConfig webSearchConfig;
-
-    /**
-     * 消息数据访问层
+     * 消息数据访问层，重新生成时使用
      */
     private final MessageRepository messageRepository;
 
     /**
-     * OpenAI 兼容客户端，用于调用云端模型
+     * OpenAI 兼容客户端，重新生成时使用
      */
     private final OpenAICompatibleClient openAICompatibleClient;
 
     /**
-     * 模型配置服务，用于查询自定义模型配置
+     * 模型配置服务，重新生成时使用
      */
     private final ModelConfigService modelConfigService;
 
@@ -114,107 +85,40 @@ public class ChatService {
     private final TransactionTemplate transactionTemplate;
 
     /**
+     * Context Pipeline 执行引擎 — 替代原有的逐步编排逻辑
+     */
+    private final ContextPipelineExecutor pipelineExecutor;
+
+    /**
      * JSON 序列化/反序列化
      */
     private final ObjectMapper objectMapper;
 
     /**
-     * 处理用户聊天请求，生成 AI 响应
-     * 
-     * 执行流程：
-     * 1. 获取或创建对话 ID
-     * 2. 检索短期记忆（对话历史）
-     * 3. 检索长期记忆（基于语义相似度）
-     * 4. 组装消息为 LLM 格式
-     * 5. 调用 LLM 生成响应
-     * 6. 更新短期记忆
-     * 7. 持久化消息
-     * 8. 尝试提取新记忆
-     * 
-     * @param request 聊天请求，包含消息内容、模型选择、用户ID等
-     * @return 聊天响应，包含 AI 回复内容和消息元数据
+     * 处理用户聊天请求，生成 AI 响应。
+     *
+     * 执行流程已迁移到 Context Pipeline：
+     * 预处理 → 组装 → 模型路由 → 后处理，全部由 pipelineExecutor.execute() 驱动。
+     *
+     * @param request 聊天请求
+     * @return 聊天响应
      */
     public ChatResponse generateResponse(ChatRequest request) {
-        // 1. 获取或创建对话 ID
         String conversationId = chatWorkflowService.getOrCreateConversationId(request);
-        String userMessage = request.getMessage();
-        String model = request.getModel();
-        String userId = request.getUserId() != null ? request.getUserId() : "default";
 
-        // 2. 检索短期记忆（对话历史）
-        List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
+        ConversationContext ctx = ConversationContext.fromRequest(request);
+        ctx.setConversationId(conversationId);
+        ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
 
-        // 3. 检索长期记忆（基于语义相似度召回）
-        List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
-        log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
-
-        // 4. 网络搜索
-        String searchContext = null;
-        if (request.isWebSearch() && webSearchConfig.isEnabled()) {
-            try {
-                WebSearchResult searchResult = webSearchService.search(userMessage);
-                if (!searchResult.getSnippets().isEmpty()) {
-                    searchContext = searchResult.getSnippets().stream()
-                            .map(s -> "- [" + s.getTitle() + "](" + s.getUrl() + "): " + s.getSnippet())
-                            .collect(Collectors.joining("\n"));
-                }
-            } catch (Exception e) {
-                log.warn("Web search failed: {}", e.getMessage());
-            }
-        }
-
-        // 5. 查询用户语言偏好，组装消息为 LLM 可理解的格式
-        String language = userProfileService.getLanguage(userId);
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage,
-                language, searchContext);
-
-        // 5. 调用 LLM 生成响应
-        String aiResponse = ollamaClient.generate(messages, model);
-
-        // 6. 更新短期记忆
-        chatWorkflowService.updateShortTermMemory(conversationId, userMessage, aiResponse);
-
-        // 7. 持久化消息到数据库
-        String aiMessageId = messagePersistenceService.saveMessages(conversationId, userMessage, aiResponse,
-                request.getImageUrls());
-
-        // 8. 异步尝试从对话中提取新记忆
-        autoMemoryExtractor.tryExtract(conversationId, userId);
-
-        // 9. 尝试生成标题
-        String generatedTitle = tryGenerateTitle(conversationId, userId, userMessage, aiResponse, model);
+        pipelineExecutor.execute(ctx);
 
         return ChatResponse.builder()
-                .messageId(aiMessageId)
-                .content(aiResponse)
+                .messageId(ctx.getAiMessageId())
+                .content(ctx.getLlmResponse())
                 .role("assistant")
-                .conversationId(conversationId)
-                .title(generatedTitle)
+                .conversationId(ctx.getConversationId())
+                .title(ctx.getGeneratedTitle())
                 .build();
-    }
-
-    private String tryGenerateTitle(String conversationId, String userId, String userMessage,
-            String aiResponse, String model) {
-        try {
-            var setting = userSettingService.getOrCreate(userId);
-            if (!setting.getAutoTitle())
-                return null;
-
-            var conv = conversationService.getConversation(conversationId);
-            if (conv == null || !"新对话".equals(conv.getTitle()))
-                return null;
-
-            String title = titleGenerationService.generateTitle(userMessage, aiResponse, model);
-            if (title.isBlank())
-                return null;
-
-            conversationService.updateConversation(conversationId, title, null);
-            log.info("[CHAT] Auto-generated title '{}' for conversation {}", title, conversationId);
-            return title;
-        } catch (Exception e) {
-            log.warn("[CHAT] Title generation failed: {}", e.getMessage());
-            return null;
-        }
     }
 
     /**

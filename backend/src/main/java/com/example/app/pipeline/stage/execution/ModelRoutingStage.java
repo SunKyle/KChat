@@ -9,8 +9,8 @@ import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.ModelConfigService;
 import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class ModelRoutingStage implements ContextPipelineStage {
 
@@ -27,6 +26,16 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final OllamaClient ollamaClient;
     private final OpenAICompatibleClient openAICompatibleClient;
     private final ContextPipelineExecutor pipelineExecutor;
+
+    public ModelRoutingStage(ModelConfigService modelConfigService,
+                             OllamaClient ollamaClient,
+                             OpenAICompatibleClient openAICompatibleClient,
+                             @Lazy ContextPipelineExecutor pipelineExecutor) {
+        this.modelConfigService = modelConfigService;
+        this.ollamaClient = ollamaClient;
+        this.openAICompatibleClient = openAICompatibleClient;
+        this.pipelineExecutor = pipelineExecutor;
+    }
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.ofEntries(
             Map.entry("zh-CN", "中文（简体）"),
