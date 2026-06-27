@@ -4,9 +4,12 @@ import com.example.app.dto.ChatRequest;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
+import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
 
@@ -62,6 +65,10 @@ public class ConversationContext {
     private boolean streaming;
     private Object sseEmitter;
 
+    // ── Streaming: two-phase persistence tracking ─────────────────
+    private boolean userMessagePersisted;
+    private boolean userMessageInMemory;
+
     // ── Agent / tool state (future phases) ────────────────────────
     private final List<ToolCallRecord> toolCalls = new ArrayList<>();
     private final List<ToolResultRecord> toolResults = new ArrayList<>();
@@ -108,6 +115,20 @@ public class ConversationContext {
 
     public boolean hasErrors() {
         return errors.stream().anyMatch(e -> !e.recoverable());
+    }
+
+    /**
+     * Emit an SSE event if this is a streaming context and an emitter is present.
+     * Silently no-ops for non-streaming contexts.
+     */
+    public void emitSseEvent(String eventName, String jsonData) {
+        if (!streaming || sseEmitter == null) return;
+        try {
+            SseEmitter emitter = (SseEmitter) sseEmitter;
+            emitter.send(SseEmitter.event().name(eventName).data(jsonData));
+        } catch (Exception e) {
+            // emitter may already be closed/completed — don't disrupt the pipeline
+        }
     }
 
     // ── Nested types ───────────────────────────────────────────────

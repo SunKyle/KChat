@@ -22,8 +22,15 @@ public class ShortTermMemoryUpdateStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         if (ctx.getLlmResponse() == null) return;
-        shortTermMemoryService.updateMemory(
-                ctx.getConversationId(), ctx.getUserMessage(), ctx.getLlmResponse());
+        if (ctx.isUserMessageInMemory()) {
+            // Streaming: user message already added pre-LLM, only add AI response
+            shortTermMemoryService.updateMemoryWithAiMessage(
+                    ctx.getConversationId(), ctx.getLlmResponse());
+        } else {
+            // Sync: add both user + AI together
+            shortTermMemoryService.updateMemory(
+                    ctx.getConversationId(), ctx.getUserMessage(), ctx.getLlmResponse());
+        }
     }
 
     @Override

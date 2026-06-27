@@ -3,6 +3,7 @@ package com.example.app.pipeline.stage.execution;
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.entity.ModelConfig;
+import com.example.app.pipeline.ContextPipelineExecutor;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.ModelConfigService;
@@ -25,6 +26,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final ModelConfigService modelConfigService;
     private final OllamaClient ollamaClient;
     private final OpenAICompatibleClient openAICompatibleClient;
+    private final ContextPipelineExecutor pipelineExecutor;
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.ofEntries(
             Map.entry("zh-CN", "中文（简体）"),
@@ -80,6 +82,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
                                    String actualModelId, SseEmitter emitter) {
         Consumer<String> onComplete = imageContent -> {
             ctx.setLlmResponse(imageContent);
+            pipelineExecutor.executePostProcessing(ctx);
         };
 
         if (openAICompatibleClient.isStableDiffusionModel(actualModelId)) {
@@ -101,7 +104,10 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 actualModelId, config.getBaseUrl(), config.getApiKey(),
                 ctx.getUserMessage(), ctx.getImageUrls(), emitter,
                 chunk -> fullResponse.append(chunk),
-                () -> ctx.setLlmResponse(fullResponse.toString()));
+                () -> {
+                    ctx.setLlmResponse(fullResponse.toString());
+                    pipelineExecutor.executePostProcessing(ctx);
+                });
     }
 
     private void executeOllama(ConversationContext ctx, String model) {
@@ -129,6 +135,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 ollamaClient.streamGenerate(messages, callback, model);
             }
             ctx.setLlmResponse(fullResponse.toString());
+            // Ollama streaming is synchronous — post-processing runs after stream completes
+            pipelineExecutor.executePostProcessing(ctx);
         } else {
             String response = ollamaClient.generate(messages, model);
             ctx.setLlmResponse(response);

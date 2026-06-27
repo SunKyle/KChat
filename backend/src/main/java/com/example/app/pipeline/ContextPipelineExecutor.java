@@ -8,20 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Executes pipeline stages sequentially against a {@link ConversationContext}.
- *
- * Supports two execution modes:
- * <ul>
- *   <li>{@link #execute(ConversationContext)} — standard sequential pipeline</li>
- *   <li>{@link #executeWithAgentLoop(ConversationContext)} — re-entrant execution
- *       for agent tool-calling cycles (Phase 3)</li>
- * </ul>
- *
- * Stage ordering is determined by {@link ContextPipelineStage#getOrder()}.
- * Stages can be conditionally skipped via {@link ContextPipelineStage#isApplicable}.
- * Non-critical stage failures are logged but do not halt the pipeline.
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,41 +16,37 @@ public class ContextPipelineExecutor {
     private final StageRegistry stageRegistry;
 
     /**
-     * Execute the pipeline once from start to finish.
-     *
-     * Stages are resolved, filtered by applicability, sorted by order,
-     * and executed sequentially. On critical failure, the pipeline halts
-     * and remaining stages are skipped.
+     * Execute all applicable stages from start to finish (sync chat path).
      */
     public void execute(ConversationContext ctx) {
-        List<ContextPipelineStage> stages = resolveStages(ctx);
+        runStages(resolveStages(ctx), ctx);
+    }
 
-        for (ContextPipelineStage stage : stages) {
-            long t0 = System.currentTimeMillis();
-            try {
-                stage.execute(ctx);
-                ctx.recordStage(stage.getName(), System.currentTimeMillis() - t0);
-            } catch (Exception e) {
-                long duration = System.currentTimeMillis() - t0;
-                ctx.addError(stage.getName(), e.getMessage(), e, !stage.isCritical());
-                ctx.recordStage(stage.getName(), duration);
+    /**
+     * Streaming: run pre-LLM stages synchronously (order < 600), then return.
+     * Post-LLM stages (order >= 700) are deferred to {@link #executePostProcessing},
+     * which the ModelRoutingStage invokes from within the streaming completion callback.
+     */
+    public void executeStreaming(ConversationContext ctx) {
+        List<ContextPipelineStage> preLlmStages = resolveStages(ctx).stream()
+                .filter(s -> s.getOrder() < 600)
+                .toList();
+        runStages(preLlmStages, ctx);
+    }
 
-                if (stage.isCritical()) {
-                    log.error("[Pipeline] Critical stage '{}' failed ({}ms), halting: {}",
-                            stage.getName(), duration, e.getMessage());
-                    return;
-                }
-                log.warn("[Pipeline] Non-critical stage '{}' failed ({}ms), continuing: {}",
-                        stage.getName(), duration, e.getMessage());
-            }
-        }
+    /**
+     * Run post-LLM stages (order >= 700). Called from within the streaming
+     * completion callback after the LLM response is fully received.
+     */
+    public void executePostProcessing(ConversationContext ctx) {
+        List<ContextPipelineStage> postLlmStages = resolveStages(ctx).stream()
+                .filter(s -> s.getOrder() >= 700)
+                .toList();
+        runStages(postLlmStages, ctx);
     }
 
     /**
      * Re-entrant execution for agent tool-calling loops (Phase 3).
-     *
-     * Loop: execute pipeline → check for tool calls → execute tools
-     * → inject results → re-execute pipeline → repeat until done or max iterations.
      */
     public void executeWithAgentLoop(ConversationContext ctx) {
         ctx.setCurrentIteration(0);
@@ -85,6 +67,28 @@ public class ContextPipelineExecutor {
                 && !ctx.getToolCalls().isEmpty()) {
             log.warn("[AgentLoop] Reached max iterations ({}) with {} pending tool calls",
                     ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
+        }
+    }
+
+    private void runStages(List<ContextPipelineStage> stages, ConversationContext ctx) {
+        for (ContextPipelineStage stage : stages) {
+            long t0 = System.currentTimeMillis();
+            try {
+                stage.execute(ctx);
+                ctx.recordStage(stage.getName(), System.currentTimeMillis() - t0);
+            } catch (Exception e) {
+                long duration = System.currentTimeMillis() - t0;
+                ctx.addError(stage.getName(), e.getMessage(), e, !stage.isCritical());
+                ctx.recordStage(stage.getName(), duration);
+
+                if (stage.isCritical()) {
+                    log.error("[Pipeline] Critical stage '{}' failed ({}ms), halting: {}",
+                            stage.getName(), duration, e.getMessage());
+                    return;
+                }
+                log.warn("[Pipeline] Non-critical stage '{}' failed ({}ms), continuing: {}",
+                        stage.getName(), duration, e.getMessage());
+            }
         }
     }
 

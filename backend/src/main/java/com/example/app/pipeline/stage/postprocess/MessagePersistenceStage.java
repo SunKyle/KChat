@@ -22,10 +22,18 @@ public class MessagePersistenceStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         if (ctx.getLlmResponse() == null) return;
-        String aiMessageId = messagePersistenceService.saveMessages(
-                ctx.getConversationId(), ctx.getUserMessage(),
-                ctx.getLlmResponse(), ctx.getImageUrls());
-        ctx.setAiMessageId(aiMessageId);
+        if (ctx.isUserMessagePersisted()) {
+            // Streaming: user message already saved pre-LLM, only save AI response
+            String aiMessageId = messagePersistenceService.saveAiMessage(
+                    ctx.getConversationId(), ctx.getLlmResponse());
+            ctx.setAiMessageId(aiMessageId);
+        } else {
+            // Sync: save both user + AI together
+            String aiMessageId = messagePersistenceService.saveMessages(
+                    ctx.getConversationId(), ctx.getUserMessage(),
+                    ctx.getLlmResponse(), ctx.getImageUrls());
+            ctx.setAiMessageId(aiMessageId);
+        }
     }
 
     @Override
