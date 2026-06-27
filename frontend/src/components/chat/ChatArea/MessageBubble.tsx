@@ -118,10 +118,10 @@ export const MessageBubble = memo(function MessageBubble({
 
       <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div
-          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary px-3 ${isUser ? 'py-2 rounded-2xl bg-[var(--brand-primary)]/6' : ''}`}
+          className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary px-4 py-3 rounded-2xl text-left ${isUser ? 'bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/25' : 'bg-[var(--bg-card)] border border-[var(--border-primary)]'}`}
         >
           {isThinking && !message.content ? (
-            <div className='flex items-center py-2.5 pl-0 pr-5 rounded-2xl bg-[var(--bg-input)]/60 max-w-fit'>
+            <div className='flex items-center py-1'>
               <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
             </div>
           ) : (
