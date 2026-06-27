@@ -2,6 +2,8 @@ import { User, Bot, Copy, RotateCcw, Check, PenLine, Loader2 } from 'lucide-reac
 import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ShiningText } from '../../ui/shining-text'
+import { ImageGenerationPlaceholder } from './ImageGenerationPlaceholder'
+import { isImageModel } from '../../../utils/model'
 import { useState, memo } from 'react'
 import { useUser } from '../../../context/UserContext'
 import { useModel } from '../../../hooks/useModel'
@@ -121,9 +123,13 @@ export const MessageBubble = memo(function MessageBubble({
           className={`relative ${isThinking && !message.content ? 'block' : 'inline-block'} max-w-[85%] transition-all theme-text-primary text-left ${isUser ? 'px-4 py-3 rounded-2xl bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/25' : ''}`}
         >
           {isThinking && !message.content ? (
-            <div className='flex items-center py-1'>
-              <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
-            </div>
+            isImageModel(currentModel) ? (
+              <ImageGenerationPlaceholder />
+            ) : (
+              <div className='flex items-center py-1'>
+                <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
+              </div>
+            )
           ) : (
             <div className='leading-relaxed'>
               {message.images && message.images.length > 0 && (

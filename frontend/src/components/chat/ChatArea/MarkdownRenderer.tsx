@@ -9,12 +9,7 @@ interface MarkdownRendererProps {
 }
 
 export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
-
-  const handleImageLoad = (src: string) => {
-    setImageLoaded((prev) => ({ ...prev, [src]: true }))
-  }
 
   const handleDownload = async (src: string, filename?: string) => {
     try {
@@ -92,20 +87,10 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
               const filename = src.split('/').pop() || 'generated-image.png'
               return (
                 <div className='relative group my-4 inline-block'>
-                  {!imageLoaded[src] && (
-                    <div className='absolute inset-0 theme-bg-hover/50 flex items-center justify-center z-10 rounded-lg'>
-                      <div className='w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin' />
-                    </div>
-                  )}
                   <img
                     src={src}
                     alt={alt || 'Generated image'}
-                    className={`max-w-full max-h-96 object-contain rounded-lg shadow-lg transition-all cursor-zoom-in ${
-                      imageLoaded[src]
-                        ? 'opacity-100 hover:shadow-xl hover:shadow-sky-500/10'
-                        : 'opacity-0'
-                    }`}
-                    onLoad={() => handleImageLoad(src)}
+                    className='max-w-full max-h-96 object-contain rounded-lg shadow-lg cursor-zoom-in opacity-100 hover:shadow-xl hover:shadow-sky-500/10 transition-shadow'
                     onClick={() => setExpandedImage(src)}
                   />
                   <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>

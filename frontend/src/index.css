@@ -1776,6 +1776,36 @@ input[type='search']::-webkit-search-decoration {
 }
 
 /* ============================================
+   Image Generation Placeholder — shimmer sweep
+   ============================================ */
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes shimmer-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer-progress {
+  animation: shimmer-progress 2.5s ease-in-out infinite;
+}
+
+/* ============================================
    Border Beam — animated border glow (used by NoteForm)
    ============================================ */
 
@@ -1812,6 +1842,8 @@ input[type='search']::-webkit-search-decoration {
   .animate-thinking-wave,
   .animate-thinking-ring,
   .animate-pulse-once,
+  .animate-shimmer-sweep,
+  .animate-shimmer-progress,
   .scroll-btn-streaming,
   .thinking-spinner {
     animation: none !important;

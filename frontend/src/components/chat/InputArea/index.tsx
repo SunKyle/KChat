@@ -343,7 +343,9 @@ export function InputArea() {
                         ? '正在优化...'
                         : isOutputting
                           ? '正在输出...'
-                          : '正在思考...'}
+                          : isThinking && isImageModel(currentModel)
+                            ? '正在生成图片...'
+                            : '正在思考...'}
                     </span>
                   </div>
                   <span
