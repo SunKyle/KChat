@@ -8,11 +8,12 @@ import java.util.List;
 
 /**
  * 简单 Token 估算器
- * 
- * 基于字符数进行估算，作为精确估算的降级方案
- * - 中文：1 Token ≈ 4 字符
- * - 英文：1 Token ≈ 0.75 词（约 4-5 字符）
- * 
+ *
+ * 基于字符数进行估算，作为精确估算的降级方案。
+ * 按 Unicode 范围区分中文和英文，分别应用不同的估算系数：
+ * - 中文字符（CJK Unified Ideographs + Extensions）：~1.5 字符/Token
+ * - 英文/其他字符：~4 字符/Token
+ *
  * 适用于不需要精确计算的场景，或作为精确估算器不可用时的降级方案
  */
 @Component("simpleTokenEstimator")
@@ -20,10 +21,32 @@ import java.util.List;
 public class SimpleTokenEstimator implements TokenEstimator {
 
     /**
-     * 字符到 Token 的转换系数
-     * 默认使用 4（适用于中文为主的场景）
+     * 中文字符到 Token 的转换系数（约 1 Token ≈ 1.5 个汉字）
      */
-    private static final int CHARACTERS_PER_TOKEN = 4;
+    private static final double CJK_CHARS_PER_TOKEN = 1.5;
+
+    /**
+     * 非中文字符到 Token 的转换系数（约 1 Token ≈ 4 个英文字母）
+     */
+    private static final double NON_CJK_CHARS_PER_TOKEN = 4.0;
+
+    /**
+     * 判断是否为 CJK 字符（中文、日文汉字等）
+     * 覆盖范围：CJK Unified Ideographs (U+4E00–U+9FFF)、
+     * CJK Extension A (U+3400–U+4DBF)、
+     * CJK Compatibility Ideographs (U+F900–U+FAFF)、
+     * CJK Radicals Supplement (U+2E80–U+2EFF)、
+     * Kangxi Radicals (U+2F00–U+2FDF)、
+     * 全角标点 (U+3000–U+303F, U+FF00–U+FFEF)
+     */
+    private static boolean isCjkOrFullwidth(int codePoint) {
+        return (codePoint >= 0x4E00 && codePoint <= 0x9FFF)   // CJK Unified
+                || (codePoint >= 0x3400 && codePoint <= 0x4DBF)   // CJK Ext-A
+                || (codePoint >= 0xF900 && codePoint <= 0xFAFF)   // CJK Compat
+                || (codePoint >= 0x2E80 && codePoint <= 0x2FDF)   // CJK Radicals
+                || (codePoint >= 0x3000 && codePoint <= 0x303F)   // CJK Punctuation
+                || (codePoint >= 0xFF00 && codePoint <= 0xFFEF);  // Fullwidth Forms
+    }
 
     @Override
     public int estimate(ChatMessage message) {
@@ -50,15 +73,35 @@ public class SimpleTokenEstimator implements TokenEstimator {
         if (text == null || text.isEmpty()) {
             return 0;
         }
-        // 基于字符数估算，向上取整
-        int charCount = text.length();
-        int tokens = (charCount + CHARACTERS_PER_TOKEN - 1) / CHARACTERS_PER_TOKEN;
-        log.debug("Estimated {} tokens for {} characters", tokens, charCount);
-        return tokens;
+
+        int cjkChars = 0;
+        int otherChars = 0;
+
+        for (int i = 0; i < text.length(); i++) {
+            int cp = text.codePointAt(i);
+            if (Character.isSupplementaryCodePoint(cp)) {
+                i++; // 跳过低代理项
+            }
+            if (isCjkOrFullwidth(cp)) {
+                cjkChars++;
+            } else {
+                // 空白字符不计入 Token
+                if (!Character.isWhitespace(cp)) {
+                    otherChars++;
+                }
+            }
+        }
+
+        double estimatedTokens = (cjkChars / CJK_CHARS_PER_TOKEN) + (otherChars / NON_CJK_CHARS_PER_TOKEN);
+        int result = Math.max(1, (int) Math.ceil(estimatedTokens));
+
+        log.debug("Estimated {} tokens: CJK={}, other={} (total chars={})",
+                result, cjkChars, otherChars, text.length());
+        return result;
     }
 
     @Override
     public String getEncodingType() {
-        return "simple-char-count";
+        return "cjk-aware-char-count";
     }
 }

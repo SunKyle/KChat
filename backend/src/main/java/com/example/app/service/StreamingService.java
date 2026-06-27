@@ -122,7 +122,6 @@ public class StreamingService {
         long startTime = System.currentTimeMillis();
         SseEmitter emitter = new SseEmitter(300000L);
 
-        emitter.onCompletion(() -> log.info("[STREAM] SSE emitter completed"));
         emitter.onTimeout(() -> {
             log.warn("[STREAM] SSE emitter timeout");
             emitter.complete();
@@ -136,19 +135,13 @@ public class StreamingService {
         final List<String> imageUrls = request.getImageUrls();
         final String userId = request.getUserId() != null ? request.getUserId() : "default";
         final String model = request.getModel();
-        log.info("===================================================================================== ");
-        log.info("[STREAM] ===== Start Processing Request ===== ");
-        log.info("[STREAM] Conversation: {}, User: {}, Model: {}", conversationId, userId, model);
-        log.info("[STREAM] User message length: {} chars", userMessage.length());
 
         chatWorkflowService.updateShortTermMemoryWithUserMessage(finalConversationId, userMessage);
         messagePersistenceService.saveUserMessage(finalConversationId, userMessage, imageUrls);
 
         final List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
-        log.info("[STREAM] Recalled {} long-term memory items", longTermMemory.size());
 
         final String userLanguage = userProfileService.getLanguage(userId);
-        log.info("[STREAM] User language preference: {}", userLanguage);
 
         executorService.execute(() -> {
             StringBuilder fullResponse = new StringBuilder();
@@ -156,13 +149,11 @@ public class StreamingService {
 
             try {
                 long llmStartTime = System.currentTimeMillis();
-                log.info("[STREAM] Starting LLM generation...");
 
                 // 网络搜索
                 String searchContext = null;
                 WebSearchResult searchResultObj = null;
                 if (request.isWebSearch() && webSearchConfig.isEnabled()) {
-                    log.info("[STREAM] Web search enabled, querying: {}", userMessage);
                     try {
                         searchResultObj = webSearchService.search(userMessage);
                         if (searchResultObj.getSnippets() != null && !searchResultObj.getSnippets().isEmpty()) {
@@ -225,9 +216,6 @@ public class StreamingService {
 
                 if (completed[0])
                     return;
-
-                long llmEndTime = System.currentTimeMillis();
-                log.info("[STREAM] LLM generation completed in {}ms", llmEndTime - llmStartTime);
 
                 finalizeResponse(finalConversationId, fullResponse.toString(), aiMessageId,
                         userId, model, userMessage, emitter, llmStartTime, startTime);
@@ -319,7 +307,6 @@ public class StreamingService {
             String model, SseEmitter emitter, StringBuilder fullResponse, boolean[] completed) {
 
         if (imageUrls != null && !imageUrls.isEmpty()) {
-            log.info("[STREAM] Streaming response with images...");
             ollamaClient.streamGenerateWithImages(messages, imageUrls, chunk -> {
                 if (completed[0])
                     return;
@@ -332,7 +319,6 @@ public class StreamingService {
                 }
             }, model);
         } else {
-            log.info("[STREAM] Streaming response...");
             ollamaClient.streamGenerate(messages, chunk -> {
                 if (completed[0])
                     return;
@@ -361,17 +347,10 @@ public class StreamingService {
     private void finalizeResponse(String conversationId, String content, String aiMessageId,
             String userId, String model, String userMessage, SseEmitter emitter, long llmStartTime, long startTime) {
         try {
-            long llmEndTime = System.currentTimeMillis();
-            log.info("[STREAM] LLM generation completed in {}ms", llmEndTime - llmStartTime);
-
             chatWorkflowService.updateShortTermMemoryWithAiMessage(conversationId, content);
             messagePersistenceService.saveAiMessage(conversationId, aiMessageId, content);
-            log.info("[STREAM] AI response saved: {} chars", content.length());
 
-            executorService.execute(() -> {
-                log.info("[STREAM] Starting async memory extraction");
-                autoMemoryExtractor.tryExtract(conversationId, userId);
-            });
+            executorService.execute(() -> autoMemoryExtractor.tryExtract(conversationId, userId));
 
             String generatedTitle = tryGenerateTitle(conversationId, userId, userMessage, content, model);
 
@@ -379,11 +358,7 @@ public class StreamingService {
                     + (generatedTitle != null ? ", \"title\": \"" + JsonUtils.escapeJson(generatedTitle) + "\"" : "")
                     + "}";
             emitter.send(SseEmitter.event().name("done").data(doneData));
-            log.info("[STREAM] Sent 'done' event to client");
             emitter.complete();
-
-            long totalTime = System.currentTimeMillis() - startTime;
-            log.info("[STREAM] ===== Request Completed in {}ms ===== ", totalTime);
         } catch (Exception e) {
             log.error("[STREAM] Failed to finalize response", e);
         }
@@ -423,16 +398,10 @@ public class StreamingService {
     private void finalizeImageResponse(String conversationId, String imageContent, String aiMessageId,
             SseEmitter emitter, long llmStartTime, long startTime) {
         try {
-            long llmEndTime = System.currentTimeMillis();
-            log.info("[STREAM] LLM generation completed in {}ms", llmEndTime - llmStartTime);
-
             chatWorkflowService.updateShortTermMemoryWithAiMessage(conversationId, imageContent);
             messagePersistenceService.saveAiMessage(conversationId, aiMessageId, imageContent);
             emitter.send(SseEmitter.event().name("done").data("{\"messageId\": \"" + aiMessageId + "\"}"));
             emitter.complete();
-
-            long totalTime = System.currentTimeMillis() - startTime;
-            log.info("[STREAM] ===== Request Completed in {}ms ===== ", totalTime);
         } catch (Exception e) {
             log.error("[STREAM] Failed to finalize image generation response", e);
         }

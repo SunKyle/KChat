@@ -40,12 +40,8 @@ public class ShortTermMemoryService {
      * @return 消息列表，按时间顺序排列
      */
     public List<ChatMessage> getMemoryContext(String conversationId) {
-        log.info("[ShortTermMemoryService] Getting short-term memory for conversation: {}", conversationId);
         ChatMemory memory = shortTermMemory.getMemory(conversationId);
-        List<ChatMessage> messages = memory.messages();
-        log.info("[ShortTermMemoryService] Found {} short-term memory messages for conversation: {}",
-                messages.size(), conversationId);
-        return messages;
+        return memory.messages();
     }
 
     /**

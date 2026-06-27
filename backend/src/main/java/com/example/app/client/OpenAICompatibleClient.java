@@ -101,11 +101,6 @@ public class OpenAICompatibleClient {
                     .post(body)
                     .build();
 
-            log.info("=== Starting image generation request ===");
-            log.info("Model ID: {}", modelId);
-            log.info("URL: {}", fullUrl);
-            log.info("Prompt length: {} characters", prompt.length());
-
             Call call = client.newCall(request);
             emitter.onCompletion(() -> call.cancel());
 
@@ -140,7 +135,6 @@ public class OpenAICompatibleClient {
                         }
 
                         String responseBodyStr = responseBody.string();
-                        log.info("Image generation response: {}", responseBodyStr);
 
                         JsonNode node = objectMapper.readTree(responseBodyStr);
                         JsonNode data = node.get("data");
@@ -241,10 +235,6 @@ public class OpenAICompatibleClient {
                     .post(body)
                     .build();
 
-            log.info("=== Starting SD WebUI {} request ===", hasReferenceImage ? "img2img" : "txt2img");
-            log.info("URL: {}", fullUrl);
-            log.info("Prompt length: {} characters", prompt.length());
-
             Call call = client.newCall(request);
             emitter.onCompletion(() -> call.cancel());
 
@@ -279,8 +269,6 @@ public class OpenAICompatibleClient {
                         }
 
                         String responseBodyStr = responseBody.string();
-                        log.info("SD WebUI response length: {}", responseBodyStr.length());
-
                         JsonNode node = objectMapper.readTree(responseBodyStr);
                         JsonNode images = node.get("images");
                         if (images != null && images.isArray() && images.size() > 0) {
@@ -367,10 +355,6 @@ public class OpenAICompatibleClient {
                     .header("Content-Type", "application/json")
                     .post(body)
                     .build();
-
-            log.info("=== Starting synchronous OpenAI compatible request ===");
-            log.info("Model ID: {}", modelId);
-            log.info("Full URL: {}", fullUrl);
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
@@ -465,14 +449,6 @@ public class OpenAICompatibleClient {
                     .post(body)
                     .build();
 
-            log.info("=== Starting OpenAI compatible request ===");
-            log.info("Model ID: {}", modelId);
-            log.info("Base URL: {}", baseUrl);
-            log.info("Full URL: {}", fullUrl);
-            log.info("API Key: {}", apiKey != null && !apiKey.isEmpty() ? "***" : "null/empty");
-            log.info("Prompt length: {} characters", prompt.length());
-            log.info("Request body: {}", requestBodyStr);
-
             Call call = client.newCall(request);
             emitter.onCompletion(() -> call.cancel());
 
@@ -530,38 +506,24 @@ public class OpenAICompatibleClient {
 
                                 if (line.startsWith("data: ")) {
                                     String data = line.substring(6);
-                                    log.info("Received streaming data: {}",
-                                            data.length() > 50 ? data.substring(0, 50) + "..." : data);
                                     if (data.equals("[DONE]")) {
-                                        log.info("Received [DONE], total content length: {}", contentBuilder.length());
                                         onComplete.run();
                                         emitter.complete();
                                         return;
                                     }
                                     try {
                                         String content = extractContent(data);
-                                        log.info("Extracted content: '{}'", content);
                                         if (content != null && !content.isEmpty()) {
                                             contentBuilder.append(content);
                                             onChunk.accept(content);
                                             emitter.send(SseEmitter.event()
                                                     .name("message")
                                                     .data("{\"content\": \"" + escapeJson(content) + "\"}"));
-                                            log.info("Sent message event with content length: {}", content.length());
-                                        } else if (content == null) {
-                                            log.info("Content is null for data: {}",
-                                                    data.length() > 100 ? data.substring(0, 100) + "..." : data);
-                                        } else {
-                                            log.info("Content is empty for data: {}",
-                                                    data.length() > 100 ? data.substring(0, 100) + "..." : data);
                                         }
                                     } catch (Exception e) {
-                                        log.error("Failed to send SSE event for data '{}': {}", data, e.getMessage());
+                                        log.error("Failed to send SSE event: {}", e.getMessage());
                                         return;
                                     }
-                                } else {
-                                    log.info("Non-data line received: {}",
-                                            line.length() > 50 ? line.substring(0, 50) + "..." : line);
                                 }
                             }
 

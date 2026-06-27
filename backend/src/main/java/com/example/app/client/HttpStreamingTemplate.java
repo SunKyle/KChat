@@ -93,6 +93,49 @@ public class HttpStreamingTemplate {
         }
     }
 
+    /**
+     * 流式读取 Ollama /api/chat 响应 (NDJSON, 每行 {"message":{"role":"assistant","content":"..."}})
+     * 与 streamJsonResponse 的区别：解析 "message.content" 而非 "response"
+     */
+    public void streamChatResponse(String urlStr, String requestBody,
+            Consumer<String> responseCallback) throws Exception {
+
+        URL url = new URL(urlStr);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(300000);
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setDoOutput(true);
+        connection.setChunkedStreamingMode(0);
+
+        connection.getOutputStream().write(requestBody.getBytes(StandardCharsets.UTF_8));
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(connection.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                try {
+                    JsonNode node = objectMapper.readTree(line);
+                    JsonNode message = node.get("message");
+                    if (message != null) {
+                        JsonNode content = message.get("content");
+                        if (content != null && !content.isNull()) {
+                            String text = content.asText();
+                            if (!text.isEmpty()) {
+                                responseCallback.accept(text);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
     public void streamJsonWithErrorHandler(String urlStr, String requestBody,
             Consumer<String> responseCallback, Runnable onComplete,
             Consumer<Exception> onError) {

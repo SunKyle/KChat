@@ -6,7 +6,6 @@ import com.example.app.security.InputValidator;
 import com.example.app.security.SensitiveFilter;
 import com.example.app.service.PromptMetricsService;
 import com.example.app.service.PromptTemplateService;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -87,11 +86,10 @@ public class PromptAssembler {
     /**
      * 核心 System Prompt 模板（默认硬编码，可被数据库模板覆盖）
      *
-     * 设计考虑：
-     * - 使用占位符 {long_term_memory} 注入召回的语义片段
-     * - 使用占位符 {language_clause} 注入语言偏好指令
-     * - 引导 LLM 将这些事实作为用户的背景知识，而非对话历史
-     * - 不直接暴露内部实现细节给 LLM
+     * 占位符说明：
+     * - {language_clause}: 语言偏好指令（如 "请使用中文（简体）回复。"），无偏好时为空字符串
+     * - {long_term_memory}: 用户长期记忆（含 "用户背景：\n- ..." 标签），无记忆时为空字符串
+     * - {search_context}: 网络搜索上下文（含时间戳和搜索结果），无搜索时为空字符串
      */
     private static final String FALLBACK_SYSTEM_PROMPT_TEMPLATE = """
             角色：你是 KChat 智能助手，一个专业、友好的AI助手。
@@ -102,9 +100,8 @@ public class PromptAssembler {
             3. 回答要简洁明了，避免冗长
             4. 对于不确定的问题，诚实告知
 
-            用户背景：
             {long_term_memory}
-
+            {search_context}
             开始回答：
             """;
 
@@ -191,94 +188,30 @@ public class PromptAssembler {
             String searchContext) {
 
         long startTime = System.currentTimeMillis();
-        String sessionId = conversationId != null ? conversationId : "anonymous";
-
-        log.info("========================================");
-        log.info("[Prompt组装] 开始 - 会话: {}", sessionId);
-        log.info("[Prompt组装] 时间戳: {}", java.time.LocalDateTime.now());
 
         try {
             List<ChatMessage> messages = new ArrayList<>();
 
-            // 1. 安全过滤：校验和净化用户输入
-            log.info("[步骤 1/7] 安全过滤 - 正在净化用户输入...");
             String sanitizedUserMessage = sanitizeInput(userMessage);
-            String maskedMessage = sensitiveFilter.sanitize(sanitizedUserMessage);
-            log.info("[步骤 1/7] 安全过滤 - 输入内容（已脱敏）: {}", maskedMessage);
-            log.info("[步骤 1/7] 安全过滤 - 原始长度: {}, 净化后长度: {}",
-                    userMessage != null ? userMessage.length() : 0,
-                    sanitizedUserMessage != null ? sanitizedUserMessage.length() : 0);
-
-            // 2. 构建语言指令
-            log.info("[步骤 2/7] 语言指令 - 为语言: {} 构建指令...", language);
             String languageClause = buildLanguageClause(language);
-            log.info("[步骤 2/7] 语言指令 - 结果: {}", languageClause.isEmpty() ? "(空)" : languageClause);
-
-            // 3. 构建长期记忆文本（按重要性排序）
-            log.info("[步骤 3/7] 长期记忆 - 正在格式化 {} 条记忆...",
-                    longTermMemory != null ? longTermMemory.size() : 0);
             String longTermMemoryText = formatLongTermMemory(longTermMemory);
-            log.info("[步骤 3/7] 长期记忆 - 内容:\n{}",
-                    longTermMemoryText.isEmpty() ? "(空)" : longTermMemoryText);
-
-            // 4. 动态加载系统模板（从数据库或使用默认模板）
-            log.info("[步骤 4/7] 系统提示词 - 使用模板: {} 构建...", defaultTemplateName);
             String systemPrompt = buildSystemPrompt(languageClause, longTermMemoryText, searchContext);
-            int systemPromptTokens = calculateTokenCount(SystemMessage.from(systemPrompt));
-            log.info("[步骤 4/7] 系统提示词 - Token数量: {}", systemPromptTokens);
-            log.info("[步骤 4/7] 系统提示词 - 内容预览（前200字符）: {}",
-                    systemPrompt.length() > 200 ? systemPrompt.substring(0, 200) + "..." : systemPrompt);
             messages.add(SystemMessage.from(systemPrompt));
 
-            // 5. 添加对话历史
-            int historyCount = shortTermMemory != null ? shortTermMemory.size() : 0;
-            log.info("[步骤 5/7] 短期记忆 - 添加 {} 条历史消息...", historyCount);
             if (shortTermMemory != null) {
                 messages.addAll(shortTermMemory);
-                int historyTokens = calculateTokenCount(shortTermMemory);
-                log.info("[步骤 5/7] 短期记忆 - Token数量: {}", historyTokens);
-                for (int i = 0; i < shortTermMemory.size(); i++) {
-                    ChatMessage msg = shortTermMemory.get(i);
-                    String role = msg instanceof UserMessage ? "用户" : msg instanceof AiMessage ? "AI" : "系统";
-                    log.debug("[步骤 5/7] 历史[{}] - {}: {}", i, role,
-                            msg.text().length() > 50 ? msg.text().substring(0, 50) + "..." : msg.text());
-                }
             }
 
-            // 6. 添加用户输入
-            log.info("[步骤 6/7] 用户输入 - 添加当前消息...");
-            int userInputTokens = calculateTokenCount(UserMessage.from(sanitizedUserMessage));
-            log.info("[步骤 6/7] 用户输入 - Token数量: {}", userInputTokens);
             messages.add(UserMessage.from(sanitizedUserMessage));
 
-            // 7. 记录监控指标
-            log.info("[步骤 7/7] 指标记录 - 正在记录...");
             if (enableMetrics) {
                 recordMetrics(messages, longTermMemory, startTime, conversationId, false);
             }
 
-            // 汇总统计
-            int totalTokens = calculateTokenCount(messages);
-            long duration = System.currentTimeMillis() - startTime;
-
-            log.info("----------------------------------------");
-            log.info("[Prompt组装] 汇总");
-            log.info("[Prompt组装] - 会话: {}", sessionId);
-            log.info("[Prompt组装] - 消息总数: {}", messages.size());
-            log.info("[Prompt组装] - Token总数: {}", totalTokens);
-            log.info("[Prompt组装] - 构建耗时: {}毫秒", duration);
-            log.info("[Prompt组装] - 记忆项数: {}", longTermMemory != null ? longTermMemory.size() : 0);
-            log.info("[Prompt组装] - 历史消息数: {}", historyCount);
-            log.info("[Prompt组装] 成功");
-            log.info("========================================");
-
             return messages;
 
         } catch (Exception e) {
-            log.error("========================================");
-            log.error("[Prompt组装] 失败 - 会话: {}, 错误: {}", sessionId, e.getMessage());
-            log.error("========================================", e);
-            // 降级到基础组装
+            log.error("[Prompt组装] 失败 - 会话: {}, 错误: {}", conversationId, e.getMessage(), e);
             return fallbackAssemble(userMessage, language);
         }
     }
@@ -300,39 +233,46 @@ public class PromptAssembler {
 
     /**
      * 构建系统提示词（动态加载或使用默认模板）
+     *
+     * 模板占位符：{language_clause}、{long_term_memory}、{search_context}
+     * 搜索上下文通过 {search_context} 占位符注入模板中，而非硬拼接在末尾
      */
     private String buildSystemPrompt(String languageClause, String longTermMemoryText, String searchContext) {
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
         params.put("long_term_memory", longTermMemoryText);
+        params.put("search_context", buildSearchContextSection(searchContext));
 
         String systemPrompt;
         try {
-            // 尝试从数据库加载模板
             systemPrompt = templateService.renderTemplate(defaultTemplateName, params);
         } catch (IllegalArgumentException e) {
             log.warn("Template not found in database, using fallback template: {}", e.getMessage());
-            // 使用默认硬编码模板
             systemPrompt = FALLBACK_SYSTEM_PROMPT_TEMPLATE
                     .replace("{language_clause}", languageClause)
-                    .replace("{long_term_memory}", longTermMemoryText);
+                    .replace("{long_term_memory}", longTermMemoryText)
+                    .replace("{search_context}", params.get("search_context"));
         }
 
-        // 注入网络搜索结果和当前时间
-        if (searchContext != null && !searchContext.isBlank()) {
-            String now = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Shanghai"))
-                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss EEEE"));
-            systemPrompt = systemPrompt + "\n\n当前时间：" + now
-                    + "\n\n网络搜索结果：\n" + searchContext
-                    + "\n\n请基于以上网络搜索结果回答用户问题。如果搜索结果不足以回答问题，请结合你的知识进行补充。";
-        }
-
-        // 确保系统提示词不为空
         if (systemPrompt == null || systemPrompt.isBlank()) {
             systemPrompt = "你是一个智能助手。请根据上下文回答问题。";
         }
 
         return systemPrompt;
+    }
+
+    /**
+     * 构建搜索上下文段（含当前时间），无搜索时返回空字符串
+     */
+    private String buildSearchContextSection(String searchContext) {
+        if (searchContext == null || searchContext.isBlank()) {
+            return "";
+        }
+        String now = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Shanghai"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss EEEE"));
+        return "当前时间：" + now
+                + "\n\n网络搜索结果：\n" + searchContext
+                + "\n\n请基于以上网络搜索结果回答用户问题。如果搜索结果不足以回答问题，请结合你的知识进行补充。";
     }
 
     /**
@@ -359,10 +299,7 @@ public class PromptAssembler {
      * 降级组装（当主要流程失败时使用）
      */
     private List<ChatMessage> fallbackAssemble(String userMessage, String language) {
-        log.warn("========================================");
-        log.warn("[Prompt组装] 降级模式");
-        log.warn("[Prompt组装] - 语言: {}", language);
-        log.warn("[Prompt组装] - 用户输入长度: {}", userMessage != null ? userMessage.length() : 0);
+        log.warn("[Prompt组装] 降级模式激活 - 语言: {}", language);
 
         List<ChatMessage> messages = new ArrayList<>();
         String languageClause = buildLanguageClause(language);
@@ -370,8 +307,6 @@ public class PromptAssembler {
         messages.add(SystemMessage.from(systemPrompt));
         messages.add(UserMessage.from(userMessage));
 
-        log.warn("[Prompt组装] - 降级消息数量: {}", messages.size());
-        log.warn("========================================");
         return messages;
     }
 
@@ -415,44 +350,13 @@ public class PromptAssembler {
             int maxTokens,
             String conversationId) {
 
-        String sessionId = conversationId != null ? conversationId : "anonymous";
-
-        log.info("========================================");
-        log.info("[Prompt截断] 开始 - 会话: {}", sessionId);
-        log.info("[Prompt截断] - 最大Token限制: {}", maxTokens);
-
-        // 先组装完整消息
         List<ChatMessage> messages = assemble(shortTermMemory, longTermMemory, userMessage, language, conversationId, null);
-        int tokensBefore = calculateTokenCount(messages);
 
-        log.info("[Prompt截断] - 截断前Token数: {}", tokensBefore);
-        log.info("[Prompt截断] - 截断前消息数: {}", messages.size());
-
-        // 判断是否需要截断
-        if (tokensBefore <= maxTokens) {
-            log.info("[Prompt截断] - 无需截断 ({} <= {})", tokensBefore, maxTokens);
-            log.info("[Prompt截断] 成功 - 未截断");
-            log.info("========================================");
+        if (calculateTokenCount(messages) <= maxTokens) {
             return messages;
         }
 
-        // 执行截断
-        List<ChatMessage> truncated = truncateToTokenLimit(messages, maxTokens);
-        int tokensAfter = calculateTokenCount(truncated);
-
-        log.info("[Prompt截断] - 截断后Token数: {}", tokensAfter);
-        log.info("[Prompt截断] - 截断后消息数: {}", truncated.size());
-        log.info("[Prompt截断] - 已截断: {} 个Token", tokensBefore - tokensAfter);
-
-        // 如果发生了截断，更新指标记录
-        if (enableMetrics && truncated.size() != messages.size()) {
-            log.info("[Prompt截断] - 记录截断指标");
-        }
-
-        log.info("[Prompt截断] 成功");
-        log.info("========================================");
-
-        return truncated;
+        return truncateToTokenLimit(messages, maxTokens);
     }
 
     /**
@@ -481,33 +385,28 @@ public class PromptAssembler {
     }
 
     /**
-     * 格式化长期记忆为可读文本
-     * 
-     * 优化点：按重要性降序排序，优先展示重要的记忆
+     * 格式化长期记忆为自然语言列表
+     *
+     * 以纯自然语言呈现，不暴露内部元数据（类型枚举、重要性分数）给 LLM。
+     * 无记忆时返回空字符串，由模板中的 {long_term_memory} 占位符整体替换为空。
      *
      * @param memories 记忆 DTO 列表
-     * @return 格式化后的字符串
+     * @return 带标签的记忆列表文本，无记忆时返回空字符串
      */
     private String formatLongTermMemory(List<MemoryDTO> memories) {
         if (memories == null || memories.isEmpty()) {
-            return "无";
+            return "";
         }
 
-        // 按重要性降序排序
         List<MemoryDTO> sortedMemories = new ArrayList<>(memories);
         sortedMemories.sort((a, b) -> Integer.compare(b.getImportance(), a.getImportance()));
 
         StringBuilder sb = new StringBuilder();
+        sb.append("用户背景：\n");
         for (MemoryDTO memory : sortedMemories) {
-            sb.append("- [")
-                    .append(memory.getType())
-                    .append("] [重要性:")
-                    .append(memory.getImportance())
-                    .append("] ")
-                    .append(memory.getContent())
-                    .append("\n");
+            sb.append("- ").append(memory.getContent()).append("\n");
         }
-        return sb.toString().trim();
+        return sb.toString();
     }
 
     /**

@@ -1,14 +1,14 @@
 package com.example.app.client;
 
 import com.example.app.config.OllamaConfig;
-import com.example.app.security.InputValidator;
-import com.example.app.security.SensitiveFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.output.Response;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -36,16 +36,6 @@ public class OllamaClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final HttpStreamingTemplate httpStreamingTemplate;
-
-    /**
-     * 输入安全校验组件
-     */
-    private final InputValidator inputValidator;
-
-    /**
-     * 敏感信息脱敏组件
-     */
-    private final SensitiveFilter sensitiveFilter;
 
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
@@ -79,23 +69,13 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
 
         try {
-            // 安全过滤：对消息内容进行校验和脱敏
-            List<ChatMessage> sanitizedMessages = sanitizeMessages(messages);
-            String prompt = buildPrompt(sanitizedMessages);
-
-            // 日志脱敏处理
-            log.info("=== Final Prompt ===");
-            log.info("Model: {}", targetModel);
-            log.info("Prompt:\n{}", sensitiveFilter.sanitizeLog(prompt));
-            log.info("=== End Prompt ===");
-
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", targetModel);
-            requestBody.put("prompt", prompt);
+            requestBody.set("messages", buildMessagesArray(messages));
             requestBody.put("stream", true);
 
-            httpStreamingTemplate.streamJsonResponse(
-                    ollamaConfig.getBaseUrl() + "/api/generate",
+            httpStreamingTemplate.streamChatResponse(
+                    ollamaConfig.getBaseUrl() + "/api/chat",
                     objectMapper.writeValueAsString(requestBody),
                     callback);
 
@@ -118,17 +98,6 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
 
         try {
-            // 安全过滤：对消息内容进行校验和脱敏
-            List<ChatMessage> sanitizedMessages = sanitizeMessages(messages);
-            String prompt = buildPrompt(sanitizedMessages);
-
-            // 日志脱敏处理
-            log.info("=== Final Prompt (with images) ===");
-            log.info("Model: {}", targetModel);
-            log.info("Prompt:\n{}", sensitiveFilter.sanitizeLog(prompt));
-            log.info("Image count: {}", imageUrls != null ? imageUrls.size() : 0);
-            log.info("=== End Prompt ===");
-
             List<String> base64Images = new java.util.ArrayList<>();
             if (imageUrls != null) {
                 for (String imageUrl : imageUrls) {
@@ -145,17 +114,11 @@ public class OllamaClient {
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", targetModel);
-            requestBody.put("prompt", prompt);
+            requestBody.set("messages", buildMessagesArrayWithImages(messages, base64Images));
             requestBody.put("stream", true);
 
-            if (!base64Images.isEmpty()) {
-                ArrayNode imagesArray = objectMapper.createArrayNode();
-                base64Images.forEach(imagesArray::add);
-                requestBody.set("images", imagesArray);
-            }
-
-            httpStreamingTemplate.streamJsonResponse(
-                    ollamaConfig.getBaseUrl() + "/api/generate",
+            httpStreamingTemplate.streamChatResponse(
+                    ollamaConfig.getBaseUrl() + "/api/chat",
                     objectMapper.writeValueAsString(requestBody),
                     callback);
 
@@ -166,56 +129,56 @@ public class OllamaClient {
     }
 
     /**
-     * 对消息列表进行安全过滤
-     * 
-     * @param messages 原始消息列表
-     * @return 经过安全过滤的消息列表
+     * 将 ChatMessage 列表转换为 /api/chat 的 messages JSON 数组
+     * 保留 role 结构（system/user/assistant）
      */
-    private List<ChatMessage> sanitizeMessages(List<ChatMessage> messages) {
-        if (messages == null || messages.isEmpty()) {
-            return messages;
+    private ArrayNode buildMessagesArray(List<ChatMessage> messages) {
+        ArrayNode messagesArray = objectMapper.createArrayNode();
+        for (ChatMessage msg : messages) {
+            ObjectNode msgNode = objectMapper.createObjectNode();
+            if (msg instanceof SystemMessage) {
+                msgNode.put("role", "system");
+            } else if (msg instanceof UserMessage) {
+                msgNode.put("role", "user");
+            } else {
+                msgNode.put("role", "assistant");
+            }
+            msgNode.put("content", msg.text());
+            messagesArray.add(msgNode);
         }
-
-        List<ChatMessage> sanitizedMessages = new java.util.ArrayList<>();
-        for (ChatMessage message : messages) {
-            String sanitizedText = sensitiveFilter.sanitize(message.text());
-            sanitizedMessages = replaceMessageText(sanitizedMessages, message, sanitizedText);
-        }
-        return sanitizedMessages;
+        return messagesArray;
     }
 
     /**
-     * 替换消息文本内容（保留消息类型）
+     * 构建带图片的 messages JSON 数组
+     * 图片附加到最后一个 user 消息上（Ollama /api/chat 的 images 字段在 message 级别）
      */
-    private List<ChatMessage> replaceMessageText(List<ChatMessage> list, ChatMessage original, String newText) {
-        if (original instanceof dev.langchain4j.data.message.SystemMessage) {
-            list.add(dev.langchain4j.data.message.SystemMessage.from(newText));
-        } else if (original instanceof dev.langchain4j.data.message.UserMessage) {
-            list.add(dev.langchain4j.data.message.UserMessage.from(newText));
-        } else if (original instanceof dev.langchain4j.data.message.AiMessage) {
-            list.add(dev.langchain4j.data.message.AiMessage.from(newText));
-        } else {
-            list.add(original);
-        }
-        return list;
-    }
-
-    private String buildPrompt(List<ChatMessage> messages) {
-        StringBuilder promptBuilder = new StringBuilder();
-
-        for (ChatMessage message : messages) {
-            if (message instanceof dev.langchain4j.data.message.SystemMessage) {
-                promptBuilder.append(message.text()).append("\n\n");
-            } else if (message instanceof dev.langchain4j.data.message.UserMessage) {
-                promptBuilder.append("User: ").append(message.text()).append("\n");
-            } else if (message instanceof dev.langchain4j.data.message.AiMessage) {
-                promptBuilder.append("Assistant: ").append(message.text()).append("\n");
+    private ArrayNode buildMessagesArrayWithImages(List<ChatMessage> messages, List<String> base64Images) {
+        ArrayNode messagesArray = objectMapper.createArrayNode();
+        for (int i = 0; i < messages.size(); i++) {
+            ChatMessage msg = messages.get(i);
+            ObjectNode msgNode = objectMapper.createObjectNode();
+            if (msg instanceof SystemMessage) {
+                msgNode.put("role", "system");
+            } else if (msg instanceof UserMessage) {
+                msgNode.put("role", "user");
             } else {
-                promptBuilder.append(message.text()).append("\n");
+                msgNode.put("role", "assistant");
             }
+            msgNode.put("content", msg.text());
+
+            // 将 images 附加到最后一个 user 消息
+            boolean isLastUser = msg instanceof UserMessage
+                    && i == messages.size() - 1
+                    && !base64Images.isEmpty();
+            if (isLastUser) {
+                ArrayNode imagesArray = objectMapper.createArrayNode();
+                base64Images.forEach(imagesArray::add);
+                msgNode.set("images", imagesArray);
+            }
+            messagesArray.add(msgNode);
         }
-        promptBuilder.append("Assistant: ");
-        return promptBuilder.toString();
+        return messagesArray;
     }
 
     private String imageUrlToBase64(String imageUrl) throws IOException {

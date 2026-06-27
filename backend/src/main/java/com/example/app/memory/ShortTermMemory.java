@@ -72,11 +72,8 @@ public class ShortTermMemory {
      * @return 对话记忆对象
      */
     public ChatMemory getMemory(String conversationId) {
-        log.info("[ShortTermMemory] Getting memory for conversation: {}", conversationId);
-
         ChatMemory cachedMemory = memoryMap.get(conversationId);
         if (cachedMemory != null) {
-            log.info("[ShortTermMemory] Found cached memory for conversation: {}", conversationId);
             return cachedMemory;
         }
 
@@ -95,8 +92,6 @@ public class ShortTermMemory {
                         for (ChatMessage msg : messages) {
                             memory.add(msg);
                         }
-                        log.info("[ShortTermMemory] Loaded {} messages from Redis for conversation: {}",
-                                messages.size(), conversationId);
                     }
                 } catch (Exception e) {
                     log.warn("[ShortTermMemory] Failed to deserialize memory from Redis for conversation {}: {}",
