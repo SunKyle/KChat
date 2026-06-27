@@ -22,14 +22,16 @@ import java.util.Map;
 /**
  * Prompt 组装工具
  *
- * 负责将短期记忆、长期记忆和用户输入组装成 LLM 可理解的消息序列
- * 
- * 核心功能：
- * - 安全过滤：输入校验和敏感信息脱敏
- * - 智能截断：优先保留 SystemMessage 和当前用户输入
- * - 动态模板：支持从数据库加载模板
- * - 指标监控：记录 Token 数量、构建耗时等指标
+ * 负责将短期记忆、长期记忆和用户输入组装成 LLM 可理解的消息序列。
+ *
+ * @deprecated Since Phase 2 of the Context Pipeline migration.
+ * This class remains functional for backward compatibility but new features
+ * should use {@link com.example.app.pipeline.ContextPipelineExecutor} with
+ * individual {@link com.example.app.pipeline.ContextPipelineStage} beans instead.
+ * The pipeline decomposes the monolithic 7-step assembly into independently
+ * testable, composable stages.
  */
+@Deprecated
 @Component
 @Slf4j
 public class PromptAssembler {
