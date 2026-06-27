@@ -61,7 +61,6 @@ public class OpenAICompatibleClient {
             requestBody.put("model", modelId);
             requestBody.put("prompt", prompt);
             requestBody.put("n", 1);
-            requestBody.put("size", "1024x1024");
             requestBody.put("response_format", "url");
 
             String requestBodyStr = objectMapper.writeValueAsString(requestBody);
