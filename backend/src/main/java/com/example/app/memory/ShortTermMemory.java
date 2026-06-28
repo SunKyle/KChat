@@ -1,10 +1,16 @@
 package com.example.app.memory;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,6 +47,24 @@ public class ShortTermMemory {
      * 使用 ConcurrentHashMap 保证并发安全
      */
     private final Map<String, ChatMemory> memoryMap = new ConcurrentHashMap<>();
+
+    /**
+     * Jackson mixin that teaches ObjectMapper how to serialize/deserialize
+     * langchain4j ChatMessage subclasses with type information.
+     * Without this, deserialization from Redis fails because ChatMessage is an interface.
+     */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = SystemMessage.class, name = "system"),
+            @JsonSubTypes.Type(value = UserMessage.class, name = "user"),
+            @JsonSubTypes.Type(value = AiMessage.class, name = "ai")
+    })
+    private abstract static class ChatMessageMixin {}
+
+    @PostConstruct
+    public void configureObjectMapper() {
+        objectMapper.addMixIn(ChatMessage.class, ChatMessageMixin.class);
+    }
 
     /**
      * Redis 键前缀

@@ -27,6 +27,19 @@ public class ShortTermMemoryStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         List<ChatMessage> memory = shortTermMemoryService.getMemoryContext(ctx.getConversationId());
+
+        // Strip the trailing user message if it matches the current input.
+        // This happens when a previous request's ShortTermMemoryUpdateStage stored
+        // the user message into memory — without this, MessageAssemblyStage would
+        // add it again, causing a duplicate in the prompt.
+        if (!memory.isEmpty() && ctx.getUserMessage() != null) {
+            ChatMessage last = memory.get(memory.size() - 1);
+            if (last instanceof dev.langchain4j.data.message.UserMessage
+                    && ctx.getUserMessage().equals(last.text())) {
+                memory = memory.subList(0, memory.size() - 1);
+            }
+        }
+
         ctx.setShortTermMemory(memory);
     }
 
