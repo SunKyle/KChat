@@ -53,8 +53,8 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         String languageClause = buildLanguageClause(ctx.getLanguage());
-        String memoryText = (String) ctx.getAgentState().getOrDefault("formattedLongTermMemory", "");
-        String searchText = (String) ctx.getAgentState().getOrDefault("formattedSearchContext", "");
+        String memoryText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY, "");
+        String searchText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_SEARCH, "");
 
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
@@ -76,7 +76,7 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             systemPrompt = "你是一个智能助手。请根据上下文回答问题。";
         }
 
-        ctx.getAgentState().put("assembledSystemMessage", SystemMessage.from(systemPrompt));
+        ctx.getAgentState().put(ConversationContext.KEY_SYSTEM_MESSAGE, SystemMessage.from(systemPrompt));
     }
 
     private String buildLanguageClause(String language) {
@@ -89,6 +89,6 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
 
     @Override
     public int getOrder() {
-        return 400;
+        return 410;
     }
 }

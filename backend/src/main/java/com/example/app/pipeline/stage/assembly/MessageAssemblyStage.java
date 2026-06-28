@@ -24,7 +24,7 @@ public class MessageAssemblyStage implements ContextPipelineStage {
     public void execute(ConversationContext ctx) {
         List<ChatMessage> messages = new ArrayList<>();
 
-        SystemMessage systemMsg = (SystemMessage) ctx.getAgentState().get("assembledSystemMessage");
+        SystemMessage systemMsg = (SystemMessage) ctx.getAgentState().get(ConversationContext.KEY_SYSTEM_MESSAGE);
         if (systemMsg != null) {
             messages.add(systemMsg);
         }

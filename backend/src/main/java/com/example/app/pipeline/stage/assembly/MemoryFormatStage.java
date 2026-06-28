@@ -22,7 +22,7 @@ public class MemoryFormatStage implements ContextPipelineStage {
     public void execute(ConversationContext ctx) {
         List<MemoryDTO> memories = ctx.getLongTermMemory();
         String formatted = formatMemories(memories);
-        ctx.getAgentState().put("formattedLongTermMemory", formatted);
+        ctx.getAgentState().put(ConversationContext.KEY_FORMATTED_MEMORY, formatted);
     }
 
     private String formatMemories(List<MemoryDTO> memories) {
@@ -43,7 +43,7 @@ public class MemoryFormatStage implements ContextPipelineStage {
 
     @Override
     public int getOrder() {
-        return 410;
+        return 400;
     }
 
     @Override

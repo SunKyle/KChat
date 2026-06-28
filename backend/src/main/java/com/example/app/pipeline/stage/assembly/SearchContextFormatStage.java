@@ -22,7 +22,7 @@ public class SearchContextFormatStage implements ContextPipelineStage {
     public void execute(ConversationContext ctx) {
         String searchContext = ctx.getSearchContext();
         String formatted = formatSearchContext(searchContext);
-        ctx.getAgentState().put("formattedSearchContext", formatted);
+        ctx.getAgentState().put(ConversationContext.KEY_FORMATTED_SEARCH, formatted);
     }
 
     private String formatSearchContext(String searchContext) {
@@ -43,7 +43,7 @@ public class SearchContextFormatStage implements ContextPipelineStage {
 
     @Override
     public int getOrder() {
-        return 420;
+        return 405;
     }
 
     @Override
