@@ -15,6 +15,8 @@ public class MemoryExtractionStage implements ContextPipelineStage {
     private final AutoMemoryExtractor autoMemoryExtractor;
 
     @Override
+    public Phase getPhase() { return Phase.POSTPROCESS; }
+
     public String getName() {
         return "memoryExtractionStage";
     }

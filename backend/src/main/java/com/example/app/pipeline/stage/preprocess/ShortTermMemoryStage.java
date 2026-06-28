@@ -18,6 +18,8 @@ public class ShortTermMemoryStage implements ContextPipelineStage {
     private final ShortTermMemoryService shortTermMemoryService;
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "shortTermMemoryStage";
     }

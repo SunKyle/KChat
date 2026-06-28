@@ -25,6 +25,8 @@ public class TokenManagementStage implements ContextPipelineStage {
     private int maxTokens;
 
     @Override
+    public Phase getPhase() { return Phase.ASSEMBLY; }
+
     public String getName() {
         return "tokenManagementStage";
     }

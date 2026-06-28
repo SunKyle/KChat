@@ -22,6 +22,8 @@ public class WebSearchStage implements ContextPipelineStage {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "webSearchStage";
     }

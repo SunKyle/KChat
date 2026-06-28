@@ -23,6 +23,8 @@ public class MetricsRecordingStage implements ContextPipelineStage {
     private final PromptMetricsService metricsService;
 
     @Override
+    public Phase getPhase() { return Phase.OBSERVABILITY; }
+
     public String getName() {
         return "metricsRecordingStage";
     }

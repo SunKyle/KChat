@@ -19,6 +19,8 @@ public class LongTermMemoryStage implements ContextPipelineStage {
     private final LongTermMemoryService longTermMemoryService;
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "longTermMemoryStage";
     }

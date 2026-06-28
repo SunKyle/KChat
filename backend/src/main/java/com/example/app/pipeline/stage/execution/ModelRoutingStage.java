@@ -51,6 +51,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
             Map.entry("ru", "Русский"));
 
     @Override
+    public Phase getPhase() { return Phase.EXECUTION; }
+
     public String getName() {
         return "modelRoutingStage";
     }

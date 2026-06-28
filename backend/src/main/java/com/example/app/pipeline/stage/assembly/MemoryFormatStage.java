@@ -14,6 +14,8 @@ import java.util.List;
 public class MemoryFormatStage implements ContextPipelineStage {
 
     @Override
+    public Phase getPhase() { return Phase.ASSEMBLY; }
+
     public String getName() {
         return "memoryFormatStage";
     }

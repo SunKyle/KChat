@@ -17,6 +17,8 @@ public class InputSanitizationStage implements ContextPipelineStage {
     private final SensitiveFilter sensitiveFilter;
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "inputSanitizationStage";
     }

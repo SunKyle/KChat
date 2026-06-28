@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 public class StreamingDoneStage implements ContextPipelineStage {
 
     @Override
+    public Phase getPhase() { return Phase.POSTPROCESS; }
+
     public String getName() {
         return "streamingDoneStage";
     }

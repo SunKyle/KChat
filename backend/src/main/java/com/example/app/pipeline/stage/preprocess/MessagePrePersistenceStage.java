@@ -22,6 +22,8 @@ public class MessagePrePersistenceStage implements ContextPipelineStage {
     private final MessagePersistenceService messagePersistenceService;
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "messagePrePersistenceStage";
     }

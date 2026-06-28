@@ -23,24 +23,24 @@ public class ContextPipelineExecutor {
     }
 
     /**
-     * Streaming: run pre-LLM stages synchronously (order < 600), then return.
-     * Post-LLM stages (order >= 700) are deferred to {@link #executePostProcessing},
-     * which the ModelRoutingStage invokes from within the streaming completion callback.
+     * Streaming: run stages up through EXECUTION phase, then return.
+     * POSTPROCESS and OBSERVABILITY stages run later via {@link #executePostProcessing}
+     * which is invoked from within the ModelRoutingStage streaming completion callback.
      */
     public void executeStreaming(ConversationContext ctx) {
         List<ContextPipelineStage> preLlmStages = resolveStages(ctx).stream()
-                .filter(s -> s.getOrder() < 600)
+                .filter(s -> s.getPhase().ordinal() <= ContextPipelineStage.Phase.EXECUTION.ordinal())
                 .toList();
         runStages(preLlmStages, ctx);
     }
 
     /**
-     * Run post-LLM stages (order >= 700). Called from within the streaming
+     * Run POSTPROCESS and OBSERVABILITY stages. Called from within the streaming
      * completion callback after the LLM response is fully received.
      */
     public void executePostProcessing(ConversationContext ctx) {
         List<ContextPipelineStage> postLlmStages = resolveStages(ctx).stream()
-                .filter(s -> s.getOrder() >= 700)
+                .filter(s -> s.getPhase().ordinal() >= ContextPipelineStage.Phase.POSTPROCESS.ordinal())
                 .toList();
         runStages(postLlmStages, ctx);
     }

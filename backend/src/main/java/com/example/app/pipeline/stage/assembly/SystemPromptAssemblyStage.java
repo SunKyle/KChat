@@ -46,6 +46,8 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             """;
 
     @Override
+    public Phase getPhase() { return Phase.ASSEMBLY; }
+
     public String getName() {
         return "systemPromptAssemblyStage";
     }

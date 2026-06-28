@@ -16,6 +16,8 @@ import java.util.List;
 public class MessageAssemblyStage implements ContextPipelineStage {
 
     @Override
+    public Phase getPhase() { return Phase.ASSEMBLY; }
+
     public String getName() {
         return "messageAssemblyStage";
     }

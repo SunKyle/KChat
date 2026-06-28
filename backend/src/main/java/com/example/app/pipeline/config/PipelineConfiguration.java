@@ -8,45 +8,50 @@ import java.util.*;
 /**
  * Defines which stages compose each pipeline type.
  *
- * The same stage list serves both SIMPLE_CHAT and STREAMING_CHAT.
- * Behavioral differences are handled by:
- * - {@code isApplicable()} guards on streaming-only stages
- * - Two-phase persistence flags ({@code userMessageInMemory}, {@code userMessagePersisted})
- *   that make post-processing stages adapt to sync vs streaming.
+ * Currently SIMPLE_CHAT, STREAMING_CHAT, and AGENT_CHAT share the same stage list.
+ * Differences are handled by per-stage {@code isApplicable()} guards:
+ * - Streaming-only stages check {@code ctx.isStreaming()}
+ * - Web search stage checks {@code ctx.isWebSearchEnabled()}
+ * - Agent stages will check {@code ctx.getPipelineType() == AGENT_CHAT} (Phase 3)
  *
- * Phase 3: AGENT_CHAT pipeline will add tool-related stages.
+ * Phase 3 will add genuinely different stage lists for AGENT_CHAT
+ * (ToolDefinitionStage, ToolCallParsingStage, ToolInvocationStage, etc.)
  */
 @Component
 public class PipelineConfiguration {
 
     private final Map<PipelineType, List<String>> definitions = new LinkedHashMap<>();
 
+    /**
+     * Full pipeline in correct execution order (matches getOrder() values).
+     * Order: 100→110→200→250→260→300→310→400→405→410→430→440→500→700→710→720→800→850→900→999
+     */
     private static final List<String> FULL_PIPELINE = List.of(
-            // Pre-processing (100-399)
-            "inputSanitizationStage",
-            "languageDetectionStage",
-            "webSearchStage",
-            "shortTermMemoryPreUpdateStage",   // streaming-only: add user msg to memory pre-LLM
-            "messagePrePersistenceStage",       // streaming-only: save user msg to DB pre-LLM
-            "shortTermMemoryStage",
-            "longTermMemoryStage",
-            // Assembly (400-499)
-            "systemPromptAssemblyStage",
-            "memoryFormatStage",
-            "searchContextFormatStage",
-            "messageAssemblyStage",
-            "tokenManagementStage",
-            // Execution (500-599)
-            "modelRoutingStage",
-            // Post-processing (700-899)
-            "shortTermMemoryUpdateStage",       // adapts: sync=both, streaming=AI-only
-            "messagePersistenceStage",           // adapts: sync=both, streaming=AI-only
-            "memoryExtractionStage",
-            "titleGenerationStage",
-            "streamingDoneStage",               // streaming-only: SSE done event
-            // Observability (900+)
-            "metricsRecordingStage",
-            "pipelineAuditStage"
+            // PREPROCESS phase
+            "inputSanitizationStage",           // 100
+            "languageDetectionStage",           // 110
+            "webSearchStage",                   // 200
+            "shortTermMemoryPreUpdateStage",    // 250 streaming-only
+            "messagePrePersistenceStage",       // 260 streaming-only
+            "shortTermMemoryStage",             // 300
+            "longTermMemoryStage",              // 310
+            // ASSEMBLY phase
+            "memoryFormatStage",                // 400  writes agentState → read by 410
+            "searchContextFormatStage",         // 405  writes agentState → read by 410
+            "systemPromptAssemblyStage",        // 410  reads from 400, 405; writes → read by 430
+            "messageAssemblyStage",             // 430  reads from 410
+            "tokenManagementStage",             // 440
+            // EXECUTION phase
+            "modelRoutingStage",                // 500  LLM call; streaming: triggers post-processing
+            // POSTPROCESS phase
+            "shortTermMemoryUpdateStage",       // 700  adapts to streaming via userMessageInMemory flag
+            "messagePersistenceStage",          // 710  adapts to streaming via userMessagePersisted flag
+            "memoryExtractionStage",            // 720
+            "titleGenerationStage",             // 800
+            "streamingDoneStage",               // 850  streaming-only: SSE done event
+            // OBSERVABILITY phase
+            "metricsRecordingStage",            // 900
+            "pipelineAuditStage"                // 999
     );
 
     public PipelineConfiguration() {
@@ -55,12 +60,10 @@ public class PipelineConfiguration {
         definitions.put(PipelineType.AGENT_CHAT, FULL_PIPELINE);
     }
 
-    /** Get the ordered stage names for a given pipeline type. */
     public List<String> getStageNames(PipelineType type) {
         return definitions.getOrDefault(type, definitions.get(PipelineType.SIMPLE_CHAT));
     }
 
-    /** Register or replace a pipeline composition at runtime. */
     public void registerPipeline(PipelineType type, List<String> stageNames) {
         definitions.put(type, List.copyOf(stageNames));
     }

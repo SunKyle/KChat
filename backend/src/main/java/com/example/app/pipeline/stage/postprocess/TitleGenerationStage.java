@@ -19,6 +19,8 @@ public class TitleGenerationStage implements ContextPipelineStage {
     private final TitleGenerationService titleGenerationService;
 
     @Override
+    public Phase getPhase() { return Phase.POSTPROCESS; }
+
     public String getName() {
         return "titleGenerationStage";
     }

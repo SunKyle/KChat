@@ -15,6 +15,8 @@ public class LanguageDetectionStage implements ContextPipelineStage {
     private final UserProfileService userProfileService;
 
     @Override
+    public Phase getPhase() { return Phase.PREPROCESS; }
+
     public String getName() {
         return "languageDetectionStage";
     }

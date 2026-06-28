@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 public class PipelineAuditStage implements ContextPipelineStage {
 
     @Override
+    public Phase getPhase() { return Phase.OBSERVABILITY; }
+
     public String getName() {
         return "pipelineAuditStage";
     }

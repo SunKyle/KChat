@@ -14,6 +14,8 @@ import java.time.format.DateTimeFormatter;
 public class SearchContextFormatStage implements ContextPipelineStage {
 
     @Override
+    public Phase getPhase() { return Phase.ASSEMBLY; }
+
     public String getName() {
         return "searchContextFormatStage";
     }
