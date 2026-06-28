@@ -62,11 +62,49 @@ public class ModelRoutingStage implements ContextPipelineStage {
         String model = ctx.getModel();
         ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
 
+        logFinalPrompt(ctx, model);
+
         if (customConfig != null) {
             executeCustomModel(ctx, customConfig, model);
         } else {
             executeOllama(ctx, model);
         }
+    }
+
+    private void logFinalPrompt(ConversationContext ctx, String model) {
+        List<ChatMessage> messages = ctx.getAssembledMessages();
+        if (messages == null || messages.isEmpty()) return;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        sb.append("═══════════════════════════════════════════════════════════\n");
+        sb.append("  Final Prompt → Model: ").append(model).append("\n");
+        sb.append("  Messages: ").append(messages.size())
+                .append("  |  Tokens: ").append(ctx.getTokenCount())
+                .append("  |  Truncated: ").append(ctx.isTruncated()).append("\n");
+        sb.append("───────────────────────────────────────────────────────────\n");
+
+        for (int i = 0; i < messages.size(); i++) {
+            ChatMessage msg = messages.get(i);
+            String role;
+            if (msg instanceof dev.langchain4j.data.message.SystemMessage) {
+                role = "SYSTEM";
+            } else if (msg instanceof dev.langchain4j.data.message.UserMessage) {
+                role = "USER";
+            } else {
+                role = "AI";
+            }
+            String text = msg.text();
+            if (text != null && text.length() > 500) {
+                text = text.substring(0, 500) + "... [truncated, total " + text.length() + " chars]";
+            }
+            sb.append("  [").append(i + 1).append("/").append(messages.size())
+                    .append("] ").append(role).append(":\n");
+            sb.append("  ").append(text.replace("\n", "\n  ")).append("\n");
+        }
+        sb.append("═══════════════════════════════════════════════════════════");
+
+        log.info(sb.toString());
     }
 
     private void executeCustomModel(ConversationContext ctx, ModelConfig config, String modelId) {
@@ -110,15 +148,19 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private void executeStreamingText(ConversationContext ctx, ModelConfig config,
                                       String actualModelId, SseEmitter emitter) {
         StringBuilder fullResponse = new StringBuilder();
-
-        openAICompatibleClient.streamChatCompletion(
-                actualModelId, config.getBaseUrl(), config.getApiKey(),
-                ctx.getUserMessage(), ctx.getImageUrls(), emitter,
-                chunk -> fullResponse.append(chunk),
-                () -> {
-                    ctx.setLlmResponse(fullResponse.toString());
-                    pipelineExecutor.executePostProcessing(ctx);
-                });
+        try {
+            openAICompatibleClient.streamChatCompletion(
+                    actualModelId, config.getBaseUrl(), config.getApiKey(),
+                    ctx.getUserMessage(), ctx.getImageUrls(), emitter,
+                    chunk -> fullResponse.append(chunk),
+                    () -> {
+                        ctx.setLlmResponse(fullResponse.toString());
+                        pipelineExecutor.executePostProcessing(ctx);
+                    });
+        } catch (Exception e) {
+            log.error("Custom model streaming failed: {}", e.getMessage());
+            failStreaming(ctx, emitter, "模型请求失败: " + e.getMessage());
+        }
     }
 
     private void executeOllama(ConversationContext ctx, String model) {
@@ -140,17 +182,30 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 }
             };
 
-            if (ctx.getImageUrls() != null && !ctx.getImageUrls().isEmpty()) {
-                ollamaClient.streamGenerateWithImages(messages, ctx.getImageUrls(), callback, model);
-            } else {
-                ollamaClient.streamGenerate(messages, callback, model);
+            try {
+                if (ctx.getImageUrls() != null && !ctx.getImageUrls().isEmpty()) {
+                    ollamaClient.streamGenerateWithImages(messages, ctx.getImageUrls(), callback, model);
+                } else {
+                    ollamaClient.streamGenerate(messages, callback, model);
+                }
+                ctx.setLlmResponse(fullResponse.toString());
+                pipelineExecutor.executePostProcessing(ctx);
+            } catch (Exception e) {
+                log.error("Ollama streaming failed: {}", e.getMessage());
+                failStreaming(ctx, emitter, "Ollama请求失败: " + e.getMessage());
             }
-            ctx.setLlmResponse(fullResponse.toString());
-            // Ollama streaming is synchronous — post-processing runs after stream completes
-            pipelineExecutor.executePostProcessing(ctx);
         } else {
             String response = ollamaClient.generate(messages, model);
             ctx.setLlmResponse(response);
+        }
+    }
+
+    private void failStreaming(ConversationContext ctx, SseEmitter emitter, String message) {
+        try {
+            ctx.emitSseEvent("error", "{\"message\": \"" + JsonUtils.escapeJson(message) + "\"}");
+            emitter.completeWithError(new RuntimeException(message));
+        } catch (Exception ignored) {
+            // emitter may already be closed
         }
     }
 

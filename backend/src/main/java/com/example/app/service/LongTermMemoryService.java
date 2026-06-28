@@ -11,9 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -172,13 +170,18 @@ public class LongTermMemoryService {
         }
 
         int minImportance = vectorStoreConfig.getMinImportance();
-        log.info("[Memory Recall] Using min importance threshold: {}", minImportance);
 
-        return repository.findAllById(memoryIds).stream()
+        // Build a lookup map keyed by id, then stream in the original similarity order
+        Map<Long, LongTermMemory> memoryMap = repository.findAllById(memoryIds).stream()
+                .collect(java.util.stream.Collectors.toMap(LongTermMemory::getId, m -> m));
+
+        return memoryIds.stream()
+                .map(memoryMap::get)
+                .filter(java.util.Objects::nonNull)
                 .filter(m -> m.getUserId().equals(userId))
                 .filter(m -> m.getImportance() >= minImportance)
                 .map(MemoryDTO::fromEntity)
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

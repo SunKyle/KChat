@@ -35,12 +35,15 @@ public class MemoryFormatStage implements ContextPipelineStage {
         List<MemoryDTO> sorted = new ArrayList<>(memories);
         sorted.sort((a, b) -> Integer.compare(b.getImportance(), a.getImportance()));
 
+        if (sorted.isEmpty()) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("用户背景：\n");
         for (MemoryDTO memory : sorted) {
             sb.append("- ").append(memory.getContent()).append("\n");
         }
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     @Override
