@@ -125,12 +125,23 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SET_ACTIVE_CONVERSATION':
       return { ...state, activeConversation: action.payload }
 
-    case 'SET_MESSAGES': {
+   case 'SET_MESSAGES': {
+      const existingMessages = state.messagesByConversation[action.payload.conversationId] || []
+      const serverMessages = action.payload.messages
+
+      // Merge: keep local-only messages (e.g. temp UUIDs from optimistic updates)
+      // that have not been persisted to the server yet
+      const serverIds = new Set(serverMessages.map(m => m.id))
+      const localOnlyMessages = existingMessages.filter(m => !serverIds.has(m.id))
+
+      const merged = [...serverMessages, ...localOnlyMessages]
+      merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
       return {
         ...state,
         messagesByConversation: {
           ...state.messagesByConversation,
-          [action.payload.conversationId]: action.payload.messages,
+          [action.payload.conversationId]: merged,
         },
       }
     }
@@ -711,22 +722,49 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const abortController = new AbortController()
       abortControllersRef.current[conversationId] = abortController
 
+      // Throttle STREAM_CHUNK dispatches: buffer chunks and flush at 50ms intervals
+      // to reduce context re-render frequency during streaming (P0 perf fix)
+      let chunkBuffer = ''
+      const CHUNK_FLUSH_MS = 50
+      let chunkFlushInterval = setInterval(() => {
+        if (chunkBuffer) {
+          const content = chunkBuffer
+          chunkBuffer = ''
+          dispatch({
+            type: 'STREAM_CHUNK',
+            payload: {
+              conversationId,
+              messageId: tempMessageId,
+              content,
+              accumulated: streamingContent,
+            },
+          })
+        }
+      }, CHUNK_FLUSH_MS)
+
       try {
         await chat.stream(
           request,
           (chunk) => {
             streamingContent += chunk
-            dispatch({
-              type: 'STREAM_CHUNK',
-              payload: {
-                conversationId,
-                messageId: tempMessageId,
-                content: chunk,
-                accumulated: streamingContent,
-              },
-            })
+            chunkBuffer += chunk
           },
           (backendMessageId, title) => {
+            // Flush remaining buffered chunks before completing
+            clearInterval(chunkFlushInterval)
+            if (chunkBuffer) {
+              dispatch({
+                type: 'STREAM_CHUNK',
+                payload: {
+                  conversationId,
+                  messageId: tempMessageId,
+                  content: chunkBuffer,
+                  accumulated: streamingContent,
+                },
+              })
+              chunkBuffer = ''
+            }
+
             // 更新消息内容
             dispatch({
               type: 'UPDATE_MESSAGE',
@@ -747,6 +785,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             abortControllersRef.current[conversationId] = null
           },
           (error) => {
+            clearInterval(chunkFlushInterval)
             console.error('Streaming error:', error)
             dispatch({
               type: 'SET_ERROR',
@@ -767,6 +806,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           }
         )
       } catch (error) {
+        clearInterval(chunkFlushInterval)
         console.error('Failed to send message:', error)
         const errorMessage =
           (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
