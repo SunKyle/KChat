@@ -299,10 +299,10 @@ export function InputArea() {
         )}
 
         {/* 状态条 — 在输入框背后，从顶部滑出 */}
-        <div className='relative z-0 mx-4 lg:mx-6 mb-0'>
+        <div className='relative mx-4 lg:mx-6 mb-0'>
           {(showStatusBar || isOptimizing) &&
             (() => {
-              const isOutputting = streamingState.currentContent.length > 0
+              const isOutputting = streamingState.isStreaming && streamingState.currentContent.length > 0
               const isThinking = streamingState.isStreaming && !isOutputting
               const isOptimizingNow = isOptimizing
 
@@ -372,7 +372,7 @@ export function InputArea() {
           const isOptimizingNow = isOptimizing
           return (
             <div
-              className={`relative z-10 -mt-3 flex flex-col card-float-solid bg-transparent mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
+              className={`relative z-10 -mt-4 flex flex-col card-float-solid mx-4 mb-4 lg:mx-6 lg:mb-6 overflow-hidden transition-all duration-500 ease-out ${
                 isThinking
                   ? 'input-glow-thinking'
                   : isOutputting
