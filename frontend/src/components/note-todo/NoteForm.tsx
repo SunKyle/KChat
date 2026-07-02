@@ -128,7 +128,7 @@ export function NoteForm({
                   )}
                 </button>
                 {!aiSummarizing && (
-                  <span className='absolute bottom-full right-0 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-gray-800 whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
+                  <span className='absolute bottom-full right-0 mb-1.5 px-2.5 py-1 rounded-md text-xs text-white bg-[var(--text-primary)] whitespace-nowrap opacity-0 scale-95 pointer-events-none peer-hover:opacity-100 peer-hover:scale-100 transition-all duration-200 z-20 shadow-lg'>
                     AI 整理为 Markdown 笔记
                     <span className='absolute top-full right-3 border-4 border-transparent border-t-gray-800' />
                   </span>

@@ -90,7 +90,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
                   <img
                     src={src}
                     alt={alt || 'Generated image'}
-                    className='max-w-full max-h-96 object-contain rounded-lg shadow-lg cursor-zoom-in opacity-100 hover:shadow-xl hover:shadow-sky-500/10 transition-shadow'
+                    className='max-w-full max-h-96 object-contain rounded-lg shadow-lg cursor-zoom-in opacity-100 hover:shadow-xl hover:shadow-[var(--accent-primary)]/10 transition-shadow'
                     onClick={() => setExpandedImage(src)}
                   />
                   <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>

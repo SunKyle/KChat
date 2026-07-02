@@ -324,19 +324,19 @@ export function InputArea() {
                     <div
                       className={`w-2 h-2 rounded-full transition-all duration-500 ${
                         isOptimizingNow
-                          ? 'bg-emerald-500'
+                          ? 'bg-[var(--accent-emerald)]'
                           : isOutputting
-                            ? 'bg-sky-500'
-                            : 'bg-amber-500'
+                            ? 'bg-[var(--accent-primary)]'
+                            : 'bg-[var(--accent-amber)]'
                       } ${isOutputting ? 'animate-pulse-slow' : 'animate-pulse'}`}
                     />
                     <span
                       className={`text-xs font-semibold transition-all duration-500 ${
                         isOptimizingNow
-                          ? 'text-emerald-800'
+                          ? 'text-[var(--accent-emerald)]'
                           : isOutputting
-                            ? 'text-sky-800'
-                            : 'text-amber-800'
+                            ? 'text-[var(--accent-foreground)]'
+                            : 'text-[var(--accent-amber)]'
                       }`}
                     >
                       {isOptimizingNow
@@ -351,10 +351,10 @@ export function InputArea() {
                   <span
                     className={`text-xs font-secondary tabular-nums transition-all duration-500 ${
                       isOptimizingNow
-                        ? 'text-emerald-700/80'
+                        ? 'text-[var(--accent-emerald)]/80'
                         : isOutputting
-                          ? 'text-sky-700/80'
-                          : 'text-amber-700/80'
+                          ? 'text-[var(--accent-foreground)]/80'
+                          : 'text-[var(--accent-amber)]/80'
                     }`}
                   >
                     {elapsedSeconds}s
@@ -525,7 +525,7 @@ export function InputArea() {
                         streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed border-transparent'
                           : webSearchEnabled
-                            ? 'border-sky-400 bg-sky-500/15 text-sky-500 hover:bg-sky-500/25'
+                            ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/25'
                             : 'border-transparent hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)]'
                       }`}
                       aria-label={webSearchEnabled ? '关闭联网搜索' : '开启联网搜索'}
@@ -598,15 +598,15 @@ export function InputArea() {
                       disabled={(!hasContent && !streamingState.isStreaming) || isOptimizing}
                       className={`peer group/send relative flex items-center justify-center w-9 h-9 rounded-full transition-[background-color,box-shadow,transform,color] duration-500 ease-out ${
                         isThinking
-                          ? 'bg-amber-500 text-white hover:bg-amber-600 hover:scale-105 shadow-md shadow-amber-500/30 cursor-pointer'
+                          ? 'bg-[var(--accent-amber)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-amber)]/30 cursor-pointer'
                           : isOutputting
-                            ? 'bg-sky-500 text-white hover:bg-sky-600 hover:scale-105 shadow-md shadow-sky-500/30 cursor-pointer'
+                            ? 'bg-[var(--accent-primary)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-primary)]/30 cursor-pointer'
                             : isOptimizing
-                              ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 shadow-md shadow-emerald-500/30 cursor-pointer'
+                              ? 'bg-[var(--accent-emerald)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-emerald)]/30 cursor-pointer'
                               : uploading
-                                ? 'bg-sky-500/80 text-white cursor-wait'
+                                ? 'bg-[var(--accent-primary)]/80 text-white cursor-wait'
                                 : hasContent && charCount <= maxChars
-                                  ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 cursor-pointer'
+                                  ? 'bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)]/80 text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-xl hover:shadow-[var(--accent-primary)]/40 hover:scale-105 cursor-pointer'
                                   : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                       }`}
                       aria-label={
@@ -622,9 +622,9 @@ export function InputArea() {
                         aria-hidden='true'
                         className={`pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 ${
                           isOutputting
-                            ? 'opacity-100 animate-pulse bg-sky-400/40'
+                            ? 'opacity-100 animate-pulse bg-[var(--accent-primary)]/40'
                             : isOptimizing
-                              ? 'opacity-100 animate-pulse bg-emerald-400/40'
+                              ? 'opacity-100 animate-pulse bg-[var(--accent-emerald)]/40'
                               : 'opacity-0'
                         }`}
                         style={{ animationDuration: '1.8s' }}

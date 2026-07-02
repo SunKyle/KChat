@@ -37,7 +37,7 @@ const severityConfig = {
     buttonHover: 'hover:bg-amber-500/25',
     buttonText: 'text-amber-300',
     borderColor: 'border-amber-500/20',
-    shadowColor: 'shadow-amber-500/15',
+    shadowColor: 'shadow-[var(--accent-amber)]/15',
   },
   info: {
     icon: Info,
@@ -116,7 +116,7 @@ export function ErrorCard({
       <div
         className={`
         relative rounded-2xl border ${config.borderColor}
-        bg-gray-900/90 backdrop-blur-sm
+        bg-[var(--bg-overlay)] backdrop-blur-sm
         p-5
         shadow-lg ${config.shadowColor}
       `}
@@ -142,7 +142,7 @@ export function ErrorCard({
                   className='flex-shrink-0 icon-btn'
                   aria-label='关闭'
                 >
-                  <X className='w-4 h-4 text-gray-400 hover:text-gray-200' />
+                  <X className='w-4 h-4 text-[var(--text-muted)] hover:text-[var(--text-secondary)]' />
                 </button>
               )}
             </div>

@@ -1,0 +1,628 @@
+/* KChat Animations — @keyframes and .animate-* utility classes */
+
+/* ============================================
+   Keyframe Animations
+   ============================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-once {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes thinking-wave {
+  0% {
+    transform: scaleX(0.5);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0.5);
+    opacity: 0.3;
+  }
+}
+
+@keyframes thinking-pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes error-card-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes error-card-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes error-icon-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+}
+
+@keyframes float-slow-delayed {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(-2deg);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+   Border Radius Utility Classes
+   ============================================ */
+
+.rounded-xs {
+  border-radius: 4px;
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+  border-radius: var(--radius-full);
+}
+
+
+   Animation Utility Classes
+   ============================================ */
+
+.animate-fade-in {
+  animation: fade-in 0.25s var(--ease-out) forwards;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.25s var(--ease-out) forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s var(--ease-out) forwards;
+}
+
+.animate-pulse-once {
+  animation: pulse-once 1.5s ease-in-out infinite;
+}
+
+.animate-message-in {
+  animation: message-in 0.25s var(--ease-out) forwards;
+  opacity: 0;
+}
+
+.animate-thinking-wave {
+  animation: thinking-wave 1.2s ease-in-out infinite;
+}
+
+.animate-thinking-ring {
+  animation: thinking-pulse-ring 1.5s ease-out infinite;
+}
+
+.animate-error-card-in {
+  animation: error-card-in 0.35s var(--ease-spring) forwards;
+}
+
+.animate-error-card-out {
+  animation: error-card-out 0.25s ease-in forwards;
+}
+
+.animate-error-icon-bounce {
+  animation: error-icon-bounce 0.6s var(--ease-spring);
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s var(--ease-spring) forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-float-slow-delayed {
+  animation: float-slow-delayed 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s var(--ease-out) forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s var(--ease-out) forwards;
+}
+
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes active-item-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes stream-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+.animate-stream-pulse {
+  animation: stream-pulse 2s ease-in-out infinite;
+}
+
+@keyframes stream-bg {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(14, 165, 233, 0.04);
+  }
+}
+
+.animate-stream-bg {
+  animation: stream-bg 2.5s ease-in-out infinite;
+}
+
+/* Thinking status bar */
+@keyframes thinking-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.thinking-spinner {
+  animation: thinking-spin 1.2s linear infinite;
+}
+@keyframes thinking-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.thinking-bar-enter {
+  animation: thinking-bar-in 0.25s ease-out;
+}
+
+/* Typewriter cursor blink — 流式输出时光标闪烁 */
+@keyframes typing-cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Scroll-to-bottom button */
+@keyframes scroll-btn-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.scroll-btn-enter {
+  animation: scroll-btn-in 0.3s var(--ease-out);
+}
+@keyframes scroll-btn-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 2px 8px rgba(14, 165, 233, 0.08),
+      0 0 0 0 rgba(14, 165, 233, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 2px 8px rgba(14, 165, 233, 0.15),
+      0 0 0 6px rgba(14, 165, 233, 0);
+  }
+}
+.scroll-btn-streaming {
+  animation: scroll-btn-pulse 2s ease-in-out infinite;
+}
+
+/* Sidebar expand/collapse content animations */
+@keyframes sidebar-content-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.sidebar-content-enter {
+  animation: sidebar-content-in 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s both;
+}
+@keyframes sidebar-search-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sidebar-search-enter {
+  animation: sidebar-search-in 0.2s ease-out 0.12s both;
+}
+.scroll-btn-glass {
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+.dark .scroll-btn-glass {
+  background-color: rgba(30, 41, 59, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 5s ease infinite;
+}
+
+
+   Status Bar Slide Animation
+   ============================================ */
+
+@keyframes status-bar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%) scaleY(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes status-bar-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(40%) scaleY(0.6);
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.status-bar-enter {
+  animation: status-bar-slide-in 0.35s var(--ease-out) forwards;
+  transform-origin: bottom center;
+}
+
+.status-bar-exit {
+  animation: status-bar-slide-out 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: bottom center;
+  overflow: hidden;
+}
+
+.status-bar-color-transition {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-bar-thinking {
+  background-color: rgba(251, 191, 36, 0.4);
+}
+
+.status-bar-outputting {
+  background-color: rgba(56, 189, 248, 0.4);
+}
+
+.status-bar-optimizing {
+  background-color: rgba(48, 209, 88, 0.4);
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   Summarize Progress Bar — sliding gradient
+   ============================================ */
+
+@keyframes summarize-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-summarize-progress {
+  animation: summarize-progress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ============================================
+   Image Generation Placeholder — shimmer sweep
+   ============================================ */
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes shimmer-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer-progress {
+  animation: shimmer-progress 2.5s ease-in-out infinite;
+}
+
+/* ============================================
+   Border Beam — animated border glow (used by NoteForm)
+   ============================================ */
+
+@keyframes border-beam-travel {
+  100% {
+    offset-distance: 100%;
+  }
+}

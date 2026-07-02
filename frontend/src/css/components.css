@@ -1,0 +1,524 @@
+/* KChat Components — cards, buttons, inputs, scrollbar, tooltips */
+
+/* ============================================
+   Floating Card Effect (reusable)
+   ============================================ */
+
+.card-float {
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 1px 3px var(--shadow-color-primary),
+    0 4px 12px var(--shadow-color-secondary);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out);
+}
+
+.card-float:hover {
+  box-shadow:
+    0 2px 8px var(--shadow-color-hover),
+    0 8px 24px var(--shadow-color-hover-secondary);
+}
+
+.card-float-solid {
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 1px 3px var(--shadow-color-primary),
+    0 4px 12px var(--shadow-color-secondary);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out);
+}
+
+.card-panel-quiet {
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px var(--shadow-color-primary);
+}
+
+.card-float-solid:hover {
+  box-shadow:
+    0 2px 8px var(--shadow-color-hover),
+    0 8px 24px var(--shadow-color-hover-secondary);
+}
+
+/* Input area glow states */
+.card-float-solid.input-glow-thinking {
+  box-shadow:
+    0 0 24px rgba(245, 158, 11, 0.12),
+    0 0 48px rgba(245, 158, 11, 0.06),
+    0 4px 16px rgba(245, 158, 11, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+.card-float-solid.input-glow-outputting {
+  box-shadow:
+    0 0 24px rgba(14, 165, 233, 0.12),
+    0 0 48px rgba(14, 165, 233, 0.06),
+    0 4px 16px rgba(14, 165, 233, 0.08);
+  border-color: rgba(56, 189, 248, 0.25);
+}
+.card-float-solid.input-glow-focus:focus-within {
+  box-shadow:
+    0 0 24px rgba(14, 165, 233, 0.1),
+    0 0 48px rgba(14, 165, 233, 0.05),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+.card-float-solid.input-glow-optimizing {
+  box-shadow:
+    0 0 24px rgba(34, 197, 94, 0.12),
+    0 0 48px rgba(34, 197, 94, 0.06),
+    0 4px 16px rgba(34, 197, 94, 0.08);
+  border-color: rgba(48, 209, 88, 0.25);
+}
+
+.card-inset {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px var(--shadow-color-secondary);
+}
+
+/* ============================================
+   Error Card Shadows
+   ============================================ */
+
+.error-card-shadow {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 2px 4px -1px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.error-card-shadow-hover {
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.error-card-glow-error {
+  box-shadow:
+    0 0 20px rgba(239, 68, 68, 0.12),
+    0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.error-card-glow-warning {
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.12),
+    0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.error-card-glow-info {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.12),
+    0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.error-card-glow-success {
+  box-shadow:
+    0 0 20px rgba(16, 185, 129, 0.12),
+    0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   Micro-interaction Utilities
+   ============================================ */
+
+.micro-transition {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.micro-fast {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.hover-lift {
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+.press-effect {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.press-effect:active {
+  transform: scale(0.97);
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+.icon-btn-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn-sm:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.icon-btn-sm:active {
+  transform: scale(0.92);
+}
+
+.sidebar-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.sidebar-action-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+/* Active conversation highlight — breathing radial glow */
+.active-item-highlight {
+  background: radial-gradient(ellipse at center, rgba(30, 157, 241, 0.22) 0%, rgba(30, 157, 241, 0.08) 50%, transparent 100%);
+  animation: active-item-breathe 3s ease-in-out infinite;
+}
+
+.dark .active-item-highlight {
+  background: radial-gradient(ellipse at center, rgba(28, 156, 240, 0.24) 0%, rgba(28, 156, 240, 0.09) 50%, transparent 100%);
+}
+
+/* Empty state CTA — inviting action */
+.empty-state-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--brand-primary);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-secondary);
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.empty-state-cta:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(30, 157, 241, 0.3);
+  transform: translateY(-1px);
+}
+
+.empty-state-cta:active {
+  transform: scale(0.97);
+}
+
+/* Search keyboard shortcut hint */
+.search-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-muted);
+  background-color: var(--bg-hover);
+  border: 1px solid var(--border-primary);
+  letter-spacing: 0;
+}
+
+/* Focus ring */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Tooltip — theme-aware, touch/keyboard accessible */
+.tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-caption);
+  line-height: var(--leading-caption);
+  color: var(--bg-sidebar);
+  background-color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  scale: 0.95;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out);
+  z-index: 20;
+  box-shadow: 0 2px 8px var(--shadow-color-elevated);
+}
+
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--text-primary);
+}
+
+.peer:hover ~ .tooltip-content,
+.peer:focus-visible ~ .tooltip-content,
+.peer:active ~ .tooltip-content {
+  opacity: 1;
+  scale: 1;
+}
+
+/* ============================================
+   Body
+   ============================================ */
+
+body {
+  font-family:
+    'Open Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  font-size: var(--font-body);
+  font-weight: 400;
+  line-height: var(--leading-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Hide native search clear button to avoid duplicate icons */
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: var(--radius-full);
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.scrollbar-auto-hide {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  overscroll-behavior: contain;
+}
+
+.scrollbar-auto-hide:hover::-webkit-scrollbar-thumb,
+.scrollbar-auto-hide.scrolling::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+
+   Button System
+   ============================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--accent-primary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: var(--font-secondary);
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-secondary);
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.btn-ghost:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+/* ============================================
+   Input System
+   ============================================ */
+
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-secondary);
+  line-height: var(--leading-body);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+}
+
+.input-field::placeholder {
+  color: var(--text-placeholder);
+}
+
+.input-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Badge / Tag
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-caption);
+  font-weight: 600;
+  line-height: var(--leading-caption);
+}
+
+/* ============================================
+   Divider
+   ============================================ */
+
+.divider {
+  height: 1px;
+  background-color: var(--border-divider);
+  border: none;
+}

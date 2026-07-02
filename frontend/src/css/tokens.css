@@ -1,0 +1,260 @@
+/* KChat Design System — CSS Variables */
+/* Source of truth for all theming. Update :root in the original file first. */
+
+
+
+:root {
+  /* === Unified Typography Scale (mobile-first) === */
+
+  /* Font Sizes */
+  --font-display: 1.5rem; /* 24px */
+  --font-h1: 1.375rem; /* 22px */
+  --font-h2: 1.25rem; /* 20px */
+  --font-h3: 1.125rem; /* 18px */
+  --font-h4: 1rem; /* 16px */
+  --font-body: 0.875rem; /* 14px */
+  --font-secondary: 0.8125rem; /* 13px */
+  --font-caption: 0.6875rem; /* 11px */
+  --font-code: 0.8125rem; /* 13px */
+
+  /* Line Heights (unitless) */
+  --leading-display: 1.2;
+  --leading-heading: 1.3;
+  --leading-body: 1.7;
+  --leading-caption: 1.5;
+  --leading-code: 1.5;
+
+  /* --- Border Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* --- Transition --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+
+  /* === Reference Design Tokens (shadcn/ui convention) === */
+
+  /* Surfaces */
+  --background: #e8eaed;
+  --foreground: #0f1419;
+  --card: #fbfbfb;
+  --card-foreground: #0f1419;
+  --popover: #ffffff;
+  --popover-foreground: #0f1419;
+
+  /* Brand */
+  --primary: #1e9df1;
+  --primary-foreground: #ffffff;
+
+  /* Semantic roles */
+  --secondary: #0f1419;
+  --secondary-foreground: #ffffff;
+  --muted: #e5e5e6;
+  --muted-foreground: #536471;
+  --accent: #e3ecf6;
+  --accent-foreground: #1e9df1;
+  --destructive: #f4212e;
+  --destructive-foreground: #ffffff;
+
+  /* Structure */
+  --border: #e1eaef;
+  --input: #f7f9fa;
+  --ring: #1da1f2;
+  --radius: 1.3rem;
+
+  /* Sidebar */
+  --sidebar: #f7f8f8;
+  --sidebar-foreground: #0f1419;
+  --sidebar-primary: #1e9df1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e3ecf6;
+  --sidebar-accent-foreground: #1e9df1;
+  --sidebar-border: #e1e8ed;
+  --sidebar-ring: #1da1f2;
+
+  /* Charts */
+  --chart-1: #1e9df1;
+  --chart-2: #00b87a;
+  --chart-3: #f7b928;
+  --chart-4: #17bf63;
+  --chart-5: #e0245e;
+
+  /* === KChat Compatibility Aliases (map old names → reference tokens) === */
+  --bg-primary: var(--background);
+  --bg-sidebar: var(--sidebar);
+  --bg-card: var(--card);
+  --bg-hover: var(--muted);
+  --bg-input: var(--input);
+
+  --text-primary: var(--foreground);
+  --text-secondary: #536471;
+  --text-muted: var(--muted-foreground);
+  --text-placeholder: var(--muted-foreground);
+
+  --border-primary: var(--border);
+  --border-secondary: #eff3f4;
+
+  --brand-primary: var(--primary);
+  --brand-success: var(--chart-2);
+  --brand-danger: var(--destructive);
+  --brand-warning: var(--chart-3);
+  --brand-info: var(--primary);
+
+  --accent-primary: var(--primary);
+  --accent-emerald: var(--chart-2);
+  --accent-amber: var(--chart-3);
+  --accent-rose: var(--destructive);
+  --accent-purple: #8b5cf6;
+  --accent-orange: var(--chart-3);
+
+  --bg-code: #f8f9fa;
+  --brand-soft: var(--accent);
+
+  /* === KChat-Only Tokens (no reference equivalent) === */
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --bg-glass-border: rgba(255, 255, 255, 0.8);
+  --bg-glass-hover: rgba(255, 255, 255, 0.85);
+  --bg-toolbar-hover: rgba(0, 0, 0, 0.05);
+  --text-toolbar: #536471;
+  --text-toolbar-hover: var(--foreground);
+  --text-timestamp: rgba(0, 0, 0, 0.35);
+  --border-divider: rgba(0, 0, 0, 0.08);
+  --bg-status-connected: rgba(29, 161, 242, 0.1);
+  --bg-dropdown: var(--popover);
+  --bg-dropdown-hover: rgba(0, 0, 0, 0.04);
+
+  /* Shadow tokens */
+  --shadow-color-primary: rgba(0, 0, 0, 0.06);
+  --shadow-color-secondary: rgba(0, 0, 0, 0.03);
+  --shadow-color-hover: rgba(0, 0, 0, 0.1);
+  --shadow-color-hover-secondary: rgba(0, 0, 0, 0.05);
+  --shadow-color-elevated: rgba(0, 0, 0, 0.14);
+  --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.07);
+}
+
+/* Responsive typography: step up at tablet+ */
+@media (min-width: 768px) {
+  :root {
+    --font-display: 2rem; /* 32px */
+    --font-h1: 1.75rem; /* 28px */
+    --font-h2: 1.5rem; /* 24px */
+    --font-h3: 1.25rem; /* 20px */
+    --font-h4: 1rem; /* 16px (unchanged) */
+    --font-body: 0.9375rem; /* 15px */
+    --font-secondary: 0.875rem; /* 14px */
+    --font-caption: 0.75rem; /* 12px */
+    --font-code: 0.875rem; /* 14px */
+  }
+}
+
+.dark {
+  /* === Reference Dark Tokens === */
+
+  /* Surfaces */
+  --background: #000000;
+  --foreground: #e7e9ea;
+  --card: #1a1d23;
+  --card-foreground: #d9d9d9;
+  --popover: #000000;
+  --popover-foreground: #e7e9ea;
+
+  /* Brand */
+  --primary: #1c9cf0;
+  --primary-foreground: #ffffff;
+
+  /* Semantic roles */
+  --secondary: #f0f3f4;
+  --secondary-foreground: #0f1419;
+  --muted: #181818;
+  --muted-foreground: #72767a;
+  --accent: #061622;
+  --accent-foreground: #1c9cf0;
+  --destructive: #f4212e;
+  --destructive-foreground: #ffffff;
+
+  /* Structure */
+  --border: #242628;
+  --input: #22303c;
+  --ring: #1da1f2;
+
+  /* Sidebar */
+  --sidebar: #17181c;
+  --sidebar-foreground: #d9d9d9;
+  --sidebar-primary: #1da1f2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #061622;
+  --sidebar-accent-foreground: #1c9cf0;
+  --sidebar-border: #38444d;
+  --sidebar-ring: #1da1f2;
+
+  /* Shadow */
+  --shadow-color: rgba(29, 161, 242, 0.25);
+
+  /* Charts (same as light) */
+  --chart-1: #1e9df1;
+  --chart-2: #00b87a;
+  --chart-3: #f7b928;
+  --chart-4: #17bf63;
+  --chart-5: #e0245e;
+
+  /* === KChat Compatibility Aliases === */
+  --bg-primary: var(--background);
+  --bg-sidebar: var(--sidebar);
+  --bg-card: var(--card);
+  --bg-hover: var(--muted);
+  --bg-input: var(--input);
+
+  --text-primary: var(--foreground);
+  --text-secondary: #72767a;
+  --text-muted: var(--muted-foreground);
+  --text-placeholder: var(--muted-foreground);
+
+  --border-primary: var(--border);
+  --border-secondary: #38444d;
+
+  --brand-primary: var(--primary);
+  --brand-success: var(--chart-2);
+  --brand-danger: var(--destructive);
+  --brand-warning: var(--chart-3);
+  --brand-info: var(--primary);
+
+  --accent-primary: var(--primary);
+  --accent-emerald: var(--chart-2);
+  --accent-amber: var(--chart-3);
+  --accent-rose: var(--destructive);
+  --accent-purple: #a78bfa;
+  --accent-orange: var(--chart-3);
+
+  --bg-code: #1e1e1e;
+  --brand-soft: var(--accent);
+
+  /* === KChat-Only Dark Tokens === */
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-glass: rgba(23, 24, 28, 0.7);
+  --bg-glass-border: rgba(255, 255, 255, 0.06);
+  --bg-glass-hover: rgba(23, 24, 28, 0.85);
+  --bg-toolbar-hover: rgba(255, 255, 255, 0.06);
+  --text-toolbar: #72767a;
+  --text-toolbar-hover: var(--foreground);
+  --text-timestamp: rgba(255, 255, 255, 0.3);
+  --border-divider: rgba(255, 255, 255, 0.16);
+  --bg-status-connected: rgba(29, 161, 242, 0.1);
+  --bg-dropdown: var(--popover);
+  --bg-dropdown-hover: rgba(255, 255, 255, 0.05);
+
+  /* Shadow tokens */
+  --shadow-color-primary: rgba(0, 0, 0, 0.3);
+  --shadow-color-secondary: rgba(0, 0, 0, 0.2);
+  --shadow-color-hover: rgba(0, 0, 0, 0.35);
+  --shadow-color-hover-secondary: rgba(0, 0, 0, 0.25);
+  --shadow-color-elevated: rgba(0, 0, 0, 0.4);
+  --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.3);
+}
+
