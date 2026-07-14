@@ -111,3 +111,13 @@ rate-limit:
 
 optimization:
   model: llama3
+
+
+cognee:
+  enabled: true
+  base-url: http://localhost:8000
+  search:
+    top-k: 5
+    threshold: 0.3
+  index:
+    enabled: true

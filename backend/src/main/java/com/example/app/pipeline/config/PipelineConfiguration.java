@@ -47,6 +47,7 @@ public class PipelineConfiguration {
             "shortTermMemoryUpdateStage",       // 700  adapts to streaming via userMessageInMemory flag
             "messagePersistenceStage",          // 710  adapts to streaming via userMessagePersisted flag
             "memoryExtractionStage",            // 720
+            "cogneeMemoryIndexStage",           // 725
             "titleGenerationStage",             // 800
             "streamingDoneStage",               // 850  streaming-only: SSE done event
             // OBSERVABILITY phase

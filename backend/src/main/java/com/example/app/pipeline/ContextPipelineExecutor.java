@@ -76,7 +76,7 @@ public class ContextPipelineExecutor {
             try {
                 stage.execute(ctx);
                 ctx.recordStage(stage.getName(), System.currentTimeMillis() - t0);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 long duration = System.currentTimeMillis() - t0;
                 ctx.addError(stage.getName(), e.getMessage(), e, !stage.isCritical());
                 ctx.recordStage(stage.getName(), duration);
