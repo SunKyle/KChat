@@ -1,0 +1,18 @@
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/MessageBubble.swift":
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MessageBubble.o"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MessageBubble.swiftconstvalues"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MessageBubble.dia"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MessageBubble.swiftdeps"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MessageBubble.d"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/InputArea.swift":
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/InputArea.swiftdeps"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/InputArea.dia"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/InputArea.swiftconstvalues"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/InputArea.d"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/InputArea.o"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/MarkdownView.swift":
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MarkdownView.swiftconstvalues"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MarkdownView.swiftdeps"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MarkdownView.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MarkdownView.d"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/MarkdownView.dia"

@@ -1,0 +1,18 @@
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Settings/SettingsView.swift":
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/SettingsView.dia"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/SettingsView.swiftconstvalues"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/SettingsView.o"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/SettingsView.swiftdeps"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/SettingsView.d"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/NoteTodo/NoteTodoView.swift":
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/NoteTodoView.swiftconstvalues"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/NoteTodoView.d"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/NoteTodoView.dia"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/NoteTodoView.swiftdeps"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/NoteTodoView.o"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Common/ToastView.swift":
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/ToastView.swiftdeps"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/ToastView.swiftconstvalues"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/ToastView.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/ToastView.d"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/x86_64/ToastView.dia"

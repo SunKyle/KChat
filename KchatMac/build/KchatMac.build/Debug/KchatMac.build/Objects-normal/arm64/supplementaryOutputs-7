@@ -1,0 +1,18 @@
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/NoteTodo/Todo.swift":
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.swiftdeps"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.swiftconstvalues"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.d"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.dia"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.o"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/ChatViewModel.swift":
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.swiftconstvalues"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.d"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.o"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.swiftdeps"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.dia"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/SidebarViewModel.swift":
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.swiftconstvalues"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.d"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.swiftdeps"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.dia"

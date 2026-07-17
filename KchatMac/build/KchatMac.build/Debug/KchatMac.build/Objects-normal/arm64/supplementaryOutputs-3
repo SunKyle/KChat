@@ -1,0 +1,18 @@
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/Chat/Conversation.swift":
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.dia"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.swiftdeps"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.swiftconstvalues"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.d"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/KChatContainer.swift":
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.swiftdeps"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.swiftconstvalues"
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.dia"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.d"
+"/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/Chat/Message.swift":
+  diagnostics: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.dia"
+  swift-dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.swiftdeps"
+  object: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.o"
+  dependencies: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.d"
+  const-values: "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.swiftconstvalues"

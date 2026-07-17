@@ -1,0 +1,20 @@
+{
+  "source": "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/ChatView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "错误"
+      },
+      {
+        "comment": "",
+        "key": "确定"
+      },
+      {
+        "comment": "",
+        "key": "%lld 条消息"
+      }
+    ]
+  },
+  "version": 1
+}

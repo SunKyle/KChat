@@ -1,0 +1,36 @@
+{
+  "source": "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/KchatMacApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "选择或创建对话"
+      },
+      {
+        "comment": "",
+        "key": "在左侧选择一个对话，或创建新对话开始聊天"
+      },
+      {
+        "comment": "",
+        "key": "新建对话"
+      },
+      {
+        "comment": "",
+        "key": "笔记/待办"
+      },
+      {
+        "comment": "",
+        "key": "设置"
+      },
+      {
+        "comment": "",
+        "key": "已连接"
+      },
+      {
+        "comment": "",
+        "key": "未连接"
+      }
+    ]
+  },
+  "version": 1
+}

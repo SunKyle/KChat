@@ -1,0 +1,52 @@
+{
+  "source": "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Settings/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "设置"
+      },
+      {
+        "comment": "",
+        "key": "外观"
+      },
+      {
+        "comment": "",
+        "key": "模型配置"
+      },
+      {
+        "comment": "",
+        "key": "API 密钥"
+      },
+      {
+        "comment": "",
+        "key": "关于"
+      },
+      {
+        "comment": "",
+        "key": "主题"
+      },
+      {
+        "comment": "",
+        "key": "添加模型"
+      },
+      {
+        "comment": "",
+        "key": "添加密钥"
+      },
+      {
+        "comment": "",
+        "key": "KChat"
+      },
+      {
+        "comment": "",
+        "key": "版本 1.0.0"
+      },
+      {
+        "comment": "",
+        "key": "关闭"
+      }
+    ]
+  },
+  "version": 1
+}

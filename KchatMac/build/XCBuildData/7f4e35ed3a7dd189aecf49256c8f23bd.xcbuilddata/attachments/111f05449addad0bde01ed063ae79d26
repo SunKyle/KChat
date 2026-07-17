@@ -1,0 +1,298 @@
+{
+  "" : {
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMac-master.dia",
+    "emit-module-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMac-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMac-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMac-master.swiftdeps"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/Chat/Conversation.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Conversation~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/Chat/Message.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Message~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/KChatContainer.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KChatContainer~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/Model/ModelConfig.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ModelConfig~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/NoteTodo/Note.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Note~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Data/NoteTodo/Todo.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/Todo~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/KchatMacApp.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/KchatMacApp~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Services/APIClient.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/APIClient~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Services/ChatService.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatService~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Services/SSEParser.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SSEParser~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Services/ThemeService.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ThemeService~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Services/TokenService.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TokenService~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/ChatViewModel.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatViewModel~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/NoteTodoViewModel.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoViewModel~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/SettingsViewModel.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsViewModel~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/ViewModels/SidebarViewModel.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarViewModel~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/ChatView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ChatView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/InputArea.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/InputArea~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/MarkdownView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MarkdownView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/MessageBubble.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/MessageBubble~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/TypingIndicator.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/TypingIndicator~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Common/EmptyView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/EmptyView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Common/ErrorCard.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ErrorCard~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Common/ToastView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ToastView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/NoteTodo/NoteTodoView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/NoteTodoView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Settings/SettingsView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Sidebar/ConversationItem.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/ConversationItem~partial.swiftmodule"
+  },
+  "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Sidebar/SidebarView.swift" : {
+    "const-values" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.swiftconstvalues",
+    "dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.d",
+    "diagnostics" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.dia",
+    "index-unit-output-path" : "/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.o",
+    "llvm-bc" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.bc",
+    "object" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.o",
+    "swift-dependencies" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView.swiftdeps",
+    "swiftmodule" : "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/build/KchatMac.build/Debug/KchatMac.build/Objects-normal/arm64/SidebarView~partial.swiftmodule"
+  }
+}

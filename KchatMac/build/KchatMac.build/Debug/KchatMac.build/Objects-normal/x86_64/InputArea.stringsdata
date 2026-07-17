@@ -1,0 +1,20 @@
+{
+  "source": "/Users/sunxiaokai/Desktop/project/KChat/KchatMac/KchatMac/Views/Chat/InputArea.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "输入消息..."
+      },
+      {
+        "comment": "",
+        "key": "支持 Markdown 格式"
+      },
+      {
+        "comment": "",
+        "key": "Cmd + Enter 发送"
+      }
+    ]
+  },
+  "version": 1
+}
