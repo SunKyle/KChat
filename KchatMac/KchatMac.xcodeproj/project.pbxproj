@@ -1,0 +1,614 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7DC7F9843008C57600D498C3 /* KchatMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7F9833008C57600D498C3 /* KchatMacApp.swift */; };
+		7DC7F9863008C57600D498C3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7F9853008C57600D498C3 /* ContentView.swift */; };
+		7DC7F9883008C57700D498C3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7DC7F9873008C57700D498C3 /* Assets.xcassets */; };
+		7DC7F98C3008C57700D498C3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7DC7F98B3008C57700D498C3 /* Preview Assets.xcassets */; };
+		7DC7F9963008C57700D498C3 /* KchatMacTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7F9953008C57700D498C3 /* KchatMacTests.swift */; };
+		7DC7F9A03008C57700D498C3 /* KchatMacUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7F99F3008C57700D498C3 /* KchatMacUITests.swift */; };
+		7DC7F9A23008C57700D498C3 /* KchatMacUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7F9A13008C57700D498C3 /* KchatMacUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7DC7F9923008C57700D498C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7DC7F9783008C57600D498C3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7DC7F97F3008C57600D498C3;
+			remoteInfo = KchatMac;
+		};
+		7DC7F99C3008C57700D498C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7DC7F9783008C57600D498C3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7DC7F97F3008C57600D498C3;
+			remoteInfo = KchatMac;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		7DC7F9803008C57600D498C3 /* KchatMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KchatMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DC7F9833008C57600D498C3 /* KchatMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KchatMacApp.swift; sourceTree = "<group>"; };
+		7DC7F9853008C57600D498C3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7DC7F9873008C57700D498C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7DC7F9893008C57700D498C3 /* KchatMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KchatMac.entitlements; sourceTree = "<group>"; };
+		7DC7F98B3008C57700D498C3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		7DC7F9913008C57700D498C3 /* KchatMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KchatMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DC7F9953008C57700D498C3 /* KchatMacTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KchatMacTests.swift; sourceTree = "<group>"; };
+		7DC7F99B3008C57700D498C3 /* KchatMacUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KchatMacUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DC7F99F3008C57700D498C3 /* KchatMacUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KchatMacUITests.swift; sourceTree = "<group>"; };
+		7DC7F9A13008C57700D498C3 /* KchatMacUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KchatMacUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7DC7F97D3008C57600D498C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F98E3008C57700D498C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F9983008C57700D498C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7DC7F9773008C57600D498C3 = {
+			isa = PBXGroup;
+			children = (
+				7DC7F9823008C57600D498C3 /* KchatMac */,
+				7DC7F9943008C57700D498C3 /* KchatMacTests */,
+				7DC7F99E3008C57700D498C3 /* KchatMacUITests */,
+				7DC7F9813008C57600D498C3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7DC7F9813008C57600D498C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7DC7F9803008C57600D498C3 /* KchatMac.app */,
+				7DC7F9913008C57700D498C3 /* KchatMacTests.xctest */,
+				7DC7F99B3008C57700D498C3 /* KchatMacUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7DC7F9823008C57600D498C3 /* KchatMac */ = {
+			isa = PBXGroup;
+			children = (
+				7DC7F9833008C57600D498C3 /* KchatMacApp.swift */,
+				7DC7F9853008C57600D498C3 /* ContentView.swift */,
+				7DC7F9873008C57700D498C3 /* Assets.xcassets */,
+				7DC7F9893008C57700D498C3 /* KchatMac.entitlements */,
+				7DC7F98A3008C57700D498C3 /* Preview Content */,
+			);
+			path = KchatMac;
+			sourceTree = "<group>";
+		};
+		7DC7F98A3008C57700D498C3 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				7DC7F98B3008C57700D498C3 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		7DC7F9943008C57700D498C3 /* KchatMacTests */ = {
+			isa = PBXGroup;
+			children = (
+				7DC7F9953008C57700D498C3 /* KchatMacTests.swift */,
+			);
+			path = KchatMacTests;
+			sourceTree = "<group>";
+		};
+		7DC7F99E3008C57700D498C3 /* KchatMacUITests */ = {
+			isa = PBXGroup;
+			children = (
+				7DC7F99F3008C57700D498C3 /* KchatMacUITests.swift */,
+				7DC7F9A13008C57700D498C3 /* KchatMacUITestsLaunchTests.swift */,
+			);
+			path = KchatMacUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7DC7F97F3008C57600D498C3 /* KchatMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DC7F9A53008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMac" */;
+			buildPhases = (
+				7DC7F97C3008C57600D498C3 /* Sources */,
+				7DC7F97D3008C57600D498C3 /* Frameworks */,
+				7DC7F97E3008C57600D498C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KchatMac;
+			productName = KchatMac;
+			productReference = 7DC7F9803008C57600D498C3 /* KchatMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7DC7F9903008C57700D498C3 /* KchatMacTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DC7F9A83008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMacTests" */;
+			buildPhases = (
+				7DC7F98D3008C57700D498C3 /* Sources */,
+				7DC7F98E3008C57700D498C3 /* Frameworks */,
+				7DC7F98F3008C57700D498C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7DC7F9933008C57700D498C3 /* PBXTargetDependency */,
+			);
+			name = KchatMacTests;
+			productName = KchatMacTests;
+			productReference = 7DC7F9913008C57700D498C3 /* KchatMacTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		7DC7F99A3008C57700D498C3 /* KchatMacUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DC7F9AB3008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMacUITests" */;
+			buildPhases = (
+				7DC7F9973008C57700D498C3 /* Sources */,
+				7DC7F9983008C57700D498C3 /* Frameworks */,
+				7DC7F9993008C57700D498C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7DC7F99D3008C57700D498C3 /* PBXTargetDependency */,
+			);
+			name = KchatMacUITests;
+			productName = KchatMacUITests;
+			productReference = 7DC7F99B3008C57700D498C3 /* KchatMacUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7DC7F9783008C57600D498C3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					7DC7F97F3008C57600D498C3 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					7DC7F9903008C57700D498C3 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = 7DC7F97F3008C57600D498C3;
+					};
+					7DC7F99A3008C57700D498C3 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = 7DC7F97F3008C57600D498C3;
+					};
+				};
+			};
+			buildConfigurationList = 7DC7F97B3008C57600D498C3 /* Build configuration list for PBXProject "KchatMac" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7DC7F9773008C57600D498C3;
+			productRefGroup = 7DC7F9813008C57600D498C3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7DC7F97F3008C57600D498C3 /* KchatMac */,
+				7DC7F9903008C57700D498C3 /* KchatMacTests */,
+				7DC7F99A3008C57700D498C3 /* KchatMacUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7DC7F97E3008C57600D498C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DC7F98C3008C57700D498C3 /* Preview Assets.xcassets in Resources */,
+				7DC7F9883008C57700D498C3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F98F3008C57700D498C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F9993008C57700D498C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7DC7F97C3008C57600D498C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DC7F9863008C57600D498C3 /* ContentView.swift in Sources */,
+				7DC7F9843008C57600D498C3 /* KchatMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F98D3008C57700D498C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DC7F9963008C57700D498C3 /* KchatMacTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DC7F9973008C57700D498C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DC7F9A23008C57700D498C3 /* KchatMacUITestsLaunchTests.swift in Sources */,
+				7DC7F9A03008C57700D498C3 /* KchatMacUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7DC7F9933008C57700D498C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7DC7F97F3008C57600D498C3 /* KchatMac */;
+			targetProxy = 7DC7F9923008C57700D498C3 /* PBXContainerItemProxy */;
+		};
+		7DC7F99D3008C57700D498C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7DC7F97F3008C57600D498C3 /* KchatMac */;
+			targetProxy = 7DC7F99C3008C57700D498C3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		7DC7F9A33008C57700D498C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7DC7F9A43008C57700D498C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		7DC7F9A63008C57700D498C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KchatMac/KchatMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KchatMac/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7DC7F9A73008C57700D498C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KchatMac/KchatMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KchatMac/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7DC7F9A93008C57700D498C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMacTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KchatMac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KchatMac";
+			};
+			name = Debug;
+		};
+		7DC7F9AA3008C57700D498C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMacTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KchatMac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KchatMac";
+			};
+			name = Release;
+		};
+		7DC7F9AC3008C57700D498C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMacUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KchatMac;
+			};
+			name = Debug;
+		};
+		7DC7F9AD3008C57700D498C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = none.KchatMacUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KchatMac;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7DC7F97B3008C57600D498C3 /* Build configuration list for PBXProject "KchatMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DC7F9A33008C57700D498C3 /* Debug */,
+				7DC7F9A43008C57700D498C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7DC7F9A53008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DC7F9A63008C57700D498C3 /* Debug */,
+				7DC7F9A73008C57700D498C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7DC7F9A83008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMacTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DC7F9A93008C57700D498C3 /* Debug */,
+				7DC7F9AA3008C57700D498C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7DC7F9AB3008C57700D498C3 /* Build configuration list for PBXNativeTarget "KchatMacUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DC7F9AC3008C57700D498C3 /* Debug */,
+				7DC7F9AD3008C57700D498C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7DC7F9783008C57600D498C3 /* Project object */;
+}
