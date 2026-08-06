@@ -1,38 +1,49 @@
+# ==================== Spring Boot 基础配置 ====================
 spring:
   application:
     name: kchat-backend
+  # 文件上传配置（用于声音克隆 prompt 音频上传等场景）
   servlet:
     multipart:
       enabled: true
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 50MB              # 单个文件最大 50MB
+      max-request-size: 50MB           # 单次请求最大 50MB
+  # MySQL 数据源配置
   datasource:
     url: jdbc:mysql://localhost:3306/kchatdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8
     driverClassName: com.mysql.cj.jdbc.Driver
     username: admin
     password: sxk1997sxk
+    # HikariCP 连接池配置
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
+      maximum-pool-size: 10            # 连接池最大连接数
+      minimum-idle: 5                  # 最小空闲连接数
+      connection-timeout: 30000        # 连接获取超时 30 秒
+  # JPA / Hibernate 配置
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: update                 # 启动时自动更新表结构（开发环境，生产建议改为 validate）
+    show-sql: true                     # 控制台打印 SQL 语句
     properties:
       hibernate:
-        format_sql: true
+        format_sql: true               # 格式化 SQL 输出，便于阅读
+  # Redis 配置（缓存 + 向量存储）
   data:
     redis:
       host: localhost
       port: 6379
-      timeout: 60000ms
+      timeout: 60000ms                 # 连接超时 60 秒
       enabled: true
 
-ollama:
-  base-url: http://localhost:11434
-  default-model: llama3
+# ==================== Ollama LLM 服务配置 ====================
+ollama:'my_voice'
+  default-speed: 1.0
+  default-text-frontend: true
+  use-cache: true
+  connect-timeout-ms: 5000
+  read-timeout-ms: 180000
+  max-text-length: 2000
 
 resilience4j:
   retry:
@@ -44,6 +55,12 @@ resilience4j:
           - java.io.IOException
           - java.net.SocketTimeoutException
           - java.lang.RuntimeException
+      cosyvoiceRetry:
+        max-attempts: 2
+        wait-duration: 1s
+        retry-exceptions:
+          - java.io.IOException
+          - java.net.SocketTimeoutException
   circuitbreaker:
     instances:
       ollamaCB:
@@ -53,6 +70,13 @@ resilience4j:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
+      cosyvoiceCB:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 2
 
 memory:
   long-term:
@@ -91,7 +115,7 @@ websearch:
   timeout-seconds: 8
   max-results: 5
   engine: bing
-  bing-api-key: ""
+  bing-api-key: ''
 
 logging:
   level:
@@ -107,17 +131,41 @@ logging:
 rate-limit:
   enabled: true
   requests-per-minute: 10
-  cache-prefix: "optimize:rate:"
+  cache-prefix: 'optimize:rate:'
 
 optimization:
-  model: llama3
+  model: llama3  max-results: 5                       # 每次返回最多 5 条结果
+  engine: bing                         # 搜索引擎: bing | google
+  bing-api-key: ""                     # Bing Search API Key（留空则不启用）
 
+# ==================== 日志配置 ====================
+logging:
+  level:
+    root: INFO                         # 全局日志级别 INFO
+    com.example.app: DEBUG             # 项目代码 DEBUG 级别
+    com.example.app.service: DEBUG
+    com.example.app.controller: DEBUG
+    com.example.app.aspect: DEBUG
+    org.hibernate.SQL: WARN            # Hibernate SQL 降为 WARN（避免过多输出）
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
 
+# ==================== 限流配置 ====================
+rate-limit:
+  enabled: true                        # 是否启用接口限流
+  requests-per-minute: 10              # 每分钟最大请求数 10 次
+  cache-prefix: "optimize:rate:"       # Redis 限流计数缓存前缀
+
+# ==================== Prompt 优化模型配置 ====================
+optimization:
+  model: llama3                        # 用于 Prompt 优化的模型
+
+# ==================== Cognee 记忆图谱配置 ====================
 cognee:
-  enabled: true
-  base-url: http://localhost:8000
+  enabled: true                        # 是否启用 Cognee 知识图谱记忆
+  base-url: http://localhost:8000      # Cognee 服务地址
   search:
-    top-k: 5
-    threshold: 0.3
+    top-k: 5                           # 图谱检索返回 Top 5 相关节点
+    threshold: 0.3                     # 相似度阈值
   index:
-    enabled: true
+    enabled: true                      # 是否启用自动索引构建

@@ -372,5 +372,48 @@ export async function requestSSE(
   }
 }
 
+export async function requestBlob(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<Blob> {
+  const requestId = generateRequestId()
+  const processedOptions = await applyRequestInterceptors(options)
+
+  logRequest(requestId, endpoint, { ...processedOptions, method: processedOptions.method || 'GET' })
+
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...processedOptions,
+    })
+
+    if (!response.ok) {
+      let errorData: { message?: string; code?: string; data?: unknown } = {}
+      try {
+        errorData = await response.json()
+      } catch {
+        errorData = { message: `HTTP error! status: ${response.status}` }
+      }
+
+      const error = createApiError(
+        errorData.message || `HTTP error! status: ${response.status}`,
+        response.status,
+        errorData.code,
+        errorData.data
+      )
+      logError(requestId, error)
+      throw error
+    }
+
+    const blob = await response.blob()
+    return blob
+  } catch (error) {
+    const apiError = error instanceof Error
+      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
+      : createApiError(String(error))
+    logError(requestId, apiError)
+    throw apiError
+  }
+}
+
 export { createApiError, isNetworkError }
 export type { ApiError }
