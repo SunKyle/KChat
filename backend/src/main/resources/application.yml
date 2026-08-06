@@ -24,10 +24,10 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update # 启动时自动更新表结构（开发环境，生产建议改为 validate）
-    show-sql: true # 控制台打印 SQL 语句
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true # 格式化 SQL 输出，便于阅读
+        format_sql: false
   # Redis 配置（缓存 + 向量存储）
   data:
     redis:
@@ -140,16 +140,12 @@ websearch:
   bing-api-key: '' # Bing Search API Key（留空则不启用）
 
 # ==================== 日志配置 ====================
+# 使用 logback-spring.xml 统一管理日志输出，此处仅保留占位
+# 查看完整 prompt: tail -f logs/prompt.log
 logging:
   level:
-    root: INFO # 全局日志级别 INFO
-    com.example.app: DEBUG # 项目代码 DEBUG 级别
-    com.example.app.service: DEBUG
-    com.example.app.controller: DEBUG
-    com.example.app.aspect: DEBUG
-    org.hibernate.SQL: WARN # Hibernate SQL 降为 WARN（避免过多输出）
-  pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+    root: WARN
+    PROMPT_LOG: INFO
 
 # ==================== 限流配置 ====================
 rate-limit:

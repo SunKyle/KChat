@@ -1,5 +1,7 @@
 package com.example.app.memory;
 
+import com.example.app.entity.Message;
+import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,19 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 短期记忆管理
- *
- * 缓存策略设计：
- * 1. L1 缓存（内存）：ConcurrentHashMap，快速访问，应用重启丢失
- * 2. L2 缓存（Redis）：持久化存储，支持跨实例和重启恢复
- * 3. 回退机制：Redis 不可用时自动降级为纯内存存储
- *
- * 内存生命周期：
- * - 首次访问时从 Redis 加载或创建新记忆
- * - 每次添加消息时自动持久化到 Redis
- * - 24 小时后自动过期清理
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -41,6 +30,7 @@ public class ShortTermMemory {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+    private final MessageRepository messageRepository;
 
     /**
      * L1 内存缓存：会话ID -> 记忆对象
@@ -107,6 +97,7 @@ public class ShortTermMemory {
 
             ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
 
+            boolean loadedFromRedis = false;
             if (json != null && !json.isEmpty()) {
                 try {
                     List<ChatMessage> messages = objectMapper.readValue(json,
@@ -116,11 +107,16 @@ public class ShortTermMemory {
                         for (ChatMessage msg : messages) {
                             memory.add(msg);
                         }
+                        loadedFromRedis = true;
                     }
                 } catch (Exception e) {
-                    log.warn("[ShortTermMemory] Failed to deserialize memory from Redis for conversation {}: {}",
+                    log.warn("[ShortTermMemory] Failed to deserialize Redis memory for conversation {}: {}",
                             conversationId, e.getMessage());
                 }
+            }
+
+            if (!loadedFromRedis) {
+                loadFromDatabase(conversationId, memory);
             }
 
             RedisBackedChatMemory backedMemory = new RedisBackedChatMemory(
@@ -130,9 +126,60 @@ public class ShortTermMemory {
 
             return backedMemory;
         } catch (Exception e) {
-            log.warn("[ShortTermMemory] Redis unavailable, falling back to in-memory storage: {}", e.getMessage());
-            return memoryMap.computeIfAbsent(conversationId, id -> MessageWindowChatMemory.withMaxMessages(20));
+            log.warn("[ShortTermMemory] Redis unavailable, falling back to DB + in-memory: {}", e.getMessage());
+            ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
+            loadFromDatabase(conversationId, memory);
+            memoryMap.put(conversationId, memory);
+            return memory;
         }
+    }
+
+    /**
+     * 从数据库恢复最近的消息到短期记忆
+     * 当 Redis 缓存丢失（重启/过期）时，从数据库回退加载历史消息
+     */
+    private void loadFromDatabase(String conversationId, ChatMemory memory) {
+        try {
+            List<Message> dbMessages = messageRepository
+                    .findByConversationIdOrderByTimestampAsc(conversationId);
+
+            if (dbMessages == null || dbMessages.isEmpty()) {
+                log.debug("[ShortTermMemory] No DB messages for conversation: {}", conversationId);
+                return;
+            }
+
+            int start = Math.max(0, dbMessages.size() - 20);
+            List<Message> recentMessages = dbMessages.subList(start, dbMessages.size());
+
+            int loaded = 0;
+            for (Message msg : recentMessages) {
+                ChatMessage chatMsg = convertToChatMessage(msg);
+                if (chatMsg != null) {
+                    memory.add(chatMsg);
+                    loaded++;
+                }
+            }
+
+            log.info("[ShortTermMemory] Recovered {} messages from DB for conversation: {} (total in DB: {})",
+                    loaded, conversationId, dbMessages.size());
+        } catch (Exception e) {
+            log.warn("[ShortTermMemory] Failed to load from DB for conversation {}: {}",
+                    conversationId, e.getMessage());
+        }
+    }
+
+    /**
+     * 将数据库 Message 实体转换为 ChatMessage
+     */
+    private ChatMessage convertToChatMessage(Message msg) {
+        if (msg.getContent() == null || msg.getContent().isEmpty()) {
+            return null;
+        }
+        return switch (msg.getRole().toLowerCase()) {
+            case "user" -> UserMessage.from(msg.getContent());
+            case "assistant", "ai" -> AiMessage.from(msg.getContent());
+            default -> null;
+        };
     }
 
     /**

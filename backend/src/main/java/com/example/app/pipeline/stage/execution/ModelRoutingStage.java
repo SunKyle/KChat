@@ -22,15 +22,18 @@ import java.util.function.Consumer;
 @Slf4j
 public class ModelRoutingStage implements ContextPipelineStage {
 
+    private static final String PROMPT_LOGGER_NAME = "PROMPT_LOG";
+    private static final org.slf4j.Logger promptLog = org.slf4j.LoggerFactory.getLogger(PROMPT_LOGGER_NAME);
+
     private final ModelConfigService modelConfigService;
     private final OllamaClient ollamaClient;
     private final OpenAICompatibleClient openAICompatibleClient;
     private final ContextPipelineExecutor pipelineExecutor;
 
     public ModelRoutingStage(ModelConfigService modelConfigService,
-                             OllamaClient ollamaClient,
-                             OpenAICompatibleClient openAICompatibleClient,
-                             @Lazy ContextPipelineExecutor pipelineExecutor) {
+            OllamaClient ollamaClient,
+            OpenAICompatibleClient openAICompatibleClient,
+            @Lazy ContextPipelineExecutor pipelineExecutor) {
         this.modelConfigService = modelConfigService;
         this.ollamaClient = ollamaClient;
         this.openAICompatibleClient = openAICompatibleClient;
@@ -51,7 +54,9 @@ public class ModelRoutingStage implements ContextPipelineStage {
             Map.entry("ru", "Русский"));
 
     @Override
-    public Phase getPhase() { return Phase.EXECUTION; }
+    public Phase getPhase() {
+        return Phase.EXECUTION;
+    }
 
     public String getName() {
         return "modelRoutingStage";
@@ -73,16 +78,17 @@ public class ModelRoutingStage implements ContextPipelineStage {
 
     private void logFinalPrompt(ConversationContext ctx, String model) {
         List<ChatMessage> messages = ctx.getAssembledMessages();
-        if (messages == null || messages.isEmpty()) return;
+        if (messages == null || messages.isEmpty())
+            return;
 
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
-        sb.append("═══════════════════════════════════════════════════════════\n");
-        sb.append("  Final Prompt → Model: ").append(model).append("\n");
-        sb.append("  Messages: ").append(messages.size())
+        sb.append("╔═══════════════════════════════════════════════════════════╗\n");
+        sb.append("║  Final Prompt → Model: ").append(model).append("\n");
+        sb.append("║  Messages: ").append(messages.size())
                 .append("  |  Tokens: ").append(ctx.getTokenCount())
                 .append("  |  Truncated: ").append(ctx.isTruncated()).append("\n");
-        sb.append("───────────────────────────────────────────────────────────\n");
+        sb.append("╠═══════════════════════════════════════════════════════════╣\n");
 
         for (int i = 0; i < messages.size(); i++) {
             ChatMessage msg = messages.get(i);
@@ -95,16 +101,13 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 role = "AI";
             }
             String text = msg.text();
-            if (text != null && text.length() > 500) {
-                text = text.substring(0, 500) + "... [truncated, total " + text.length() + " chars]";
-            }
-            sb.append("  [").append(i + 1).append("/").append(messages.size())
+            sb.append("║  [").append(i + 1).append("/").append(messages.size())
                     .append("] ").append(role).append(":\n");
-            sb.append("  ").append(text.replace("\n", "\n  ")).append("\n");
+            sb.append("║  ").append(text.replace("\n", "\n║  ")).append("\n");
         }
-        sb.append("═══════════════════════════════════════════════════════════");
+        sb.append("╚═══════════════════════════════════════════════════════════╝");
 
-        log.info(sb.toString());
+        promptLog.info(sb.toString());
     }
 
     private void executeCustomModel(ConversationContext ctx, ModelConfig config, String modelId) {
@@ -119,16 +122,15 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 executeStreamingText(ctx, config, actualModelId, emitter);
             }
         } else {
-            String systemPrompt = buildSyncSystemPrompt(ctx);
+            List<ChatMessage> messages = ctx.getAssembledMessages();
             String response = openAICompatibleClient.chatCompletion(
-                    actualModelId, config.getBaseUrl(), config.getApiKey(),
-                    systemPrompt, ctx.getUserMessage());
+                    actualModelId, config.getBaseUrl(), config.getApiKey(), messages);
             ctx.setLlmResponse(response);
         }
     }
 
     private void executeImageModel(ConversationContext ctx, ModelConfig config,
-                                   String actualModelId, SseEmitter emitter) {
+            String actualModelId, SseEmitter emitter) {
         Consumer<String> onComplete = imageContent -> {
             ctx.setLlmResponse(imageContent);
             pipelineExecutor.executePostProcessing(ctx);
@@ -146,12 +148,13 @@ public class ModelRoutingStage implements ContextPipelineStage {
     }
 
     private void executeStreamingText(ConversationContext ctx, ModelConfig config,
-                                      String actualModelId, SseEmitter emitter) {
+            String actualModelId, SseEmitter emitter) {
         StringBuilder fullResponse = new StringBuilder();
         try {
+            List<ChatMessage> messages = ctx.getAssembledMessages();
             openAICompatibleClient.streamChatCompletion(
                     actualModelId, config.getBaseUrl(), config.getApiKey(),
-                    ctx.getUserMessage(), ctx.getImageUrls(), emitter,
+                    messages, ctx.getImageUrls(), emitter,
                     chunk -> fullResponse.append(chunk),
                     () -> {
                         ctx.setLlmResponse(fullResponse.toString());
@@ -169,10 +172,11 @@ public class ModelRoutingStage implements ContextPipelineStage {
         if (ctx.isStreaming()) {
             SseEmitter emitter = (SseEmitter) ctx.getSseEmitter();
             StringBuilder fullResponse = new StringBuilder();
-            boolean[] completed = {false};
+            boolean[] completed = { false };
 
             Consumer<String> callback = chunk -> {
-                if (completed[0]) return;
+                if (completed[0])
+                    return;
                 fullResponse.append(chunk);
                 try {
                     emitter.send(SseEmitter.event().name("message")
@@ -207,16 +211,6 @@ public class ModelRoutingStage implements ContextPipelineStage {
         } catch (Exception ignored) {
             // emitter may already be closed
         }
-    }
-
-    private String buildSyncSystemPrompt(ConversationContext ctx) {
-        String languageClause = "";
-        if (ctx.getLanguage() != null && !ctx.getLanguage().isBlank()) {
-            String languageName = LANGUAGE_NAMES.getOrDefault(ctx.getLanguage(), ctx.getLanguage());
-            languageClause = languageName;
-        }
-        return "You are a helpful assistant. Answer the user's question in a friendly and natural way.\n"
-                + (!languageClause.isEmpty() ? "Please respond in " + languageClause + "." : "");
     }
 
     @Override

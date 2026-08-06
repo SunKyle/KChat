@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -306,14 +310,35 @@ public class OpenAICompatibleClient {
     }
 
     /**
-     * 同步调用 OpenAI 兼容 API，返回完整响应文本
+     * 将 ChatMessage 列表转换为 OpenAI messages JSON 数组
+     */
+    private ArrayNode buildMessagesArray(List<ChatMessage> messages) {
+        ArrayNode messagesArray = objectMapper.createArrayNode();
+        for (ChatMessage msg : messages) {
+            ObjectNode msgNode = objectMapper.createObjectNode();
+            if (msg instanceof SystemMessage) {
+                msgNode.put("role", "system");
+            } else if (msg instanceof UserMessage) {
+                msgNode.put("role", "user");
+            } else if (msg instanceof AiMessage) {
+                msgNode.put("role", "assistant");
+            } else {
+                continue;
+            }
+            msgNode.put("content", msg.text());
+            messagesArray.add(msgNode);
+        }
+        return messagesArray;
+    }
+
+    /**
+     * 同步调用 OpenAI 兼容 API（支持完整对话历史）
      */
     public String chatCompletion(
             String modelId,
             String baseUrl,
             String apiKey,
-            String systemPrompt,
-            String userContent) {
+            List<ChatMessage> messages) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(2, TimeUnit.MINUTES)
@@ -321,19 +346,7 @@ public class OpenAICompatibleClient {
                 .build();
 
         try {
-            ArrayNode messagesArray = objectMapper.createArrayNode();
-
-            if (systemPrompt != null && !systemPrompt.isBlank()) {
-                ObjectNode systemMessage = objectMapper.createObjectNode();
-                systemMessage.put("role", "system");
-                systemMessage.put("content", systemPrompt);
-                messagesArray.add(systemMessage);
-            }
-
-            ObjectNode userMessage = objectMapper.createObjectNode();
-            userMessage.put("role", "user");
-            userMessage.put("content", userContent);
-            messagesArray.add(userMessage);
+            ArrayNode messagesArray = buildMessagesArray(messages);
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", modelId);
@@ -388,11 +401,28 @@ public class OpenAICompatibleClient {
         }
     }
 
+    /**
+     * 同步调用 OpenAI 兼容 API（单条消息版本，保留向后兼容）
+     */
+    public String chatCompletion(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String systemPrompt,
+            String userContent) {
+        List<ChatMessage> messages = new java.util.ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            messages.add(SystemMessage.from(systemPrompt));
+        }
+        messages.add(UserMessage.from(userContent));
+        return chatCompletion(modelId, baseUrl, apiKey, messages);
+    }
+
     public void streamChatCompletion(
             String modelId,
             String baseUrl,
             String apiKey,
-            String prompt,
+            List<ChatMessage> messages,
             List<String> imageUrls,
             SseEmitter emitter,
             Consumer<String> onChunk,
@@ -404,30 +434,26 @@ public class OpenAICompatibleClient {
                 .build();
 
         try {
-            String fullPrompt = prompt;
+            ArrayNode messagesArray = buildMessagesArray(messages);
+
             if (imageUrls != null && !imageUrls.isEmpty()) {
-                StringBuilder sb = new StringBuilder(prompt);
-                sb.append("\n\n[用户上传的图片]");
-                for (int i = 0; i < imageUrls.size(); i++) {
-                    sb.append("\n- 图片 ").append(i + 1).append(": ").append(imageUrls.get(i));
+                for (int i = messagesArray.size() - 1; i >= 0; i--) {
+                    JsonNode msg = messagesArray.get(i);
+                    if ("user".equals(msg.get("role").asText())) {
+                        StringBuilder sb = new StringBuilder(msg.get("content").asText());
+                        sb.append("\n\n[用户上传的图片]");
+                        for (int j = 0; j < imageUrls.size(); j++) {
+                            sb.append("\n- 图片 ").append(j + 1).append(": ").append(imageUrls.get(j));
+                        }
+                        ((ObjectNode) msg).put("content", sb.toString());
+                        break;
+                    }
                 }
-                fullPrompt = sb.toString();
             }
-
-            ArrayNode contentArray = objectMapper.createArrayNode();
-            contentArray.add(objectMapper.createObjectNode()
-                    .put("type", "text")
-                    .put("text", fullPrompt));
-
-            ObjectNode messageNode = objectMapper.createObjectNode();
-            messageNode.put("role", "user");
-            messageNode.set("content", contentArray);
-
-            JsonNode messages = objectMapper.createArrayNode().add(messageNode);
 
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", modelId);
-            requestBody.set("messages", messages);
+            requestBody.set("messages", messagesArray);
             requestBody.put("stream", true);
             requestBody.put("max_tokens", 4096);
             requestBody.put("temperature", 0.7);
@@ -553,6 +579,23 @@ public class OpenAICompatibleClient {
                 log.error("Failed to send error to client", ex);
             }
         }
+    }
+
+    /**
+     * 流式调用 OpenAI 兼容 API（单条消息版本，保留向后兼容）
+     */
+    public void streamChatCompletion(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String prompt,
+            List<String> imageUrls,
+            SseEmitter emitter,
+            Consumer<String> onChunk,
+            Runnable onComplete) {
+        List<ChatMessage> messages = new java.util.ArrayList<>();
+        messages.add(UserMessage.from(prompt));
+        streamChatCompletion(modelId, baseUrl, apiKey, messages, imageUrls, emitter, onChunk, onComplete);
     }
 
     private String extractContent(String jsonData) {
@@ -681,9 +724,11 @@ public class OpenAICompatibleClient {
     }
 
     private String fetchImageAsBase64(String imageUrl) {
-        if (imageUrl == null || imageUrl.isBlank()) return null;
+        if (imageUrl == null || imageUrl.isBlank())
+            return null;
 
-        if (imageUrl.startsWith("data:")) return imageUrl;
+        if (imageUrl.startsWith("data:"))
+            return imageUrl;
 
         try {
             Path uploadPath = Paths.get("uploads/images");
@@ -701,7 +746,8 @@ public class OpenAICompatibleClient {
             log.debug("Direct file read failed for img2img, trying HTTP: {}", e.getMessage());
         }
 
-        if (isLocalUrl(imageUrl)) return convertLocalUrlToBase64(imageUrl);
+        if (isLocalUrl(imageUrl))
+            return convertLocalUrlToBase64(imageUrl);
 
         try {
             java.net.URL url = new java.net.URL(imageUrl);
@@ -713,7 +759,8 @@ public class OpenAICompatibleClient {
                 byte[] bytes = is.readAllBytes();
                 String b64 = Base64.getEncoder().encodeToString(bytes);
                 String contentType = connection.getContentType();
-                if (contentType == null) contentType = "image/png";
+                if (contentType == null)
+                    contentType = "image/png";
                 return "data:" + contentType + ";base64," + b64;
             }
         } catch (Exception e) {
@@ -723,10 +770,12 @@ public class OpenAICompatibleClient {
     }
 
     private String extractFilename(String imageUrl) {
-        if (imageUrl == null) return null;
+        if (imageUrl == null)
+            return null;
         String path = imageUrl;
         int queryIndex = path.indexOf('?');
-        if (queryIndex > 0) path = path.substring(0, queryIndex);
+        if (queryIndex > 0)
+            path = path.substring(0, queryIndex);
         int lastSlash = path.lastIndexOf('/');
         if (lastSlash >= 0 && lastSlash < path.length() - 1) {
             return path.substring(lastSlash + 1);
@@ -735,13 +784,19 @@ public class OpenAICompatibleClient {
     }
 
     private String guessMimeType(String filename) {
-        if (filename == null) return "image/png";
+        if (filename == null)
+            return "image/png";
         String lower = filename.toLowerCase();
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-        if (lower.endsWith(".png")) return "image/png";
-        if (lower.endsWith(".gif")) return "image/gif";
-        if (lower.endsWith(".webp")) return "image/webp";
-        if (lower.endsWith(".svg")) return "image/svg+xml";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg"))
+            return "image/jpeg";
+        if (lower.endsWith(".png"))
+            return "image/png";
+        if (lower.endsWith(".gif"))
+            return "image/gif";
+        if (lower.endsWith(".webp"))
+            return "image/webp";
+        if (lower.endsWith(".svg"))
+            return "image/svg+xml";
         return "image/png";
     }
 }
