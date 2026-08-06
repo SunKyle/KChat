@@ -16,9 +16,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * CosyVoice FastAPI 服务客户端
@@ -32,6 +37,7 @@ public class CosyVoiceClient {
     private final CosyVoiceConfig config;
     private final ObjectMapper objectMapper;
     private final RestClient restClient;
+    private final ExecutorService streamExecutor;
 
     public CosyVoiceClient(CosyVoiceConfig config, ObjectMapper objectMapper) {
         this.config = config;
@@ -39,6 +45,11 @@ public class CosyVoiceClient {
         this.restClient = RestClient.builder()
                 .baseUrl(config.getBaseUrl())
                 .build();
+        this.streamExecutor = Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r, "cosyvoice-stream");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     /**
@@ -231,5 +242,81 @@ public class CosyVoiceClient {
             log.error("Error body: {}", errorBody);
             throw new RuntimeException("CosyVoice synthesis failed: " + errorBody, e);
         }
+    }
+
+    /**
+     * 流式合成：通过 SSE 将 CosyVoice 的流式音频分片推送给前端。
+     *
+     * CosyVoice 的 stream=true 接口返回 chunked audio/wav，
+     * 这里将每个 chunk 包装成 SSE event (base64编码) 推送给前端，
+     * 前端用 MediaSource API 实现边收边播。
+     */
+    @Retry(name = "cosyvoiceRetry")
+    @CircuitBreaker(name = "cosyvoiceCB")
+    public void synthesizeStream(String text, String spkId, SseEmitter emitter) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("tts_text", text);
+        body.add("zero_shot_spk_id", spkId);
+        body.add("speed", String.valueOf(config.getDefaultSpeed()));
+        body.add("text_frontend", String.valueOf(config.isDefaultTextFrontend()));
+        body.add("response_format", "wav");
+        body.add("stream", "true");
+        body.add("use_cache", "false");
+
+        streamExecutor.submit(() -> {
+            try {
+                log.info("Starting stream synthesis for text length: {}, spkId: {}", text.length(), spkId);
+
+                InputStream inputStream = restClient.post()
+                        .uri("/tts/zero-shot")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.parseMediaType("audio/wav"))
+                        .body(body)
+                        .exchange((request, response) -> {
+                            if (response.getStatusCode().isError()) {
+                                throw new RuntimeException("CosyVoice stream failed: HTTP " + response.getStatusCode());
+                            }
+                            return response.getBody();
+                        });
+
+                if (inputStream == null) {
+                    emitter.send(SseEmitter.event().name("error").data("No audio stream"));
+                    emitter.complete();
+                    return;
+                }
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                long totalBytes = 0;
+
+                // 发送 start 事件
+                emitter.send(SseEmitter.event().name("start").data(""));
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    byte[] chunk = new byte[bytesRead];
+                    System.arraycopy(buffer, 0, chunk, 0, bytesRead);
+                    String base64Chunk = java.util.Base64.getEncoder().encodeToString(chunk);
+
+                    emitter.send(SseEmitter.event().name("audio").data(base64Chunk));
+                    totalBytes += bytesRead;
+                }
+
+                // 发送 done 事件
+                emitter.send(SseEmitter.event().name("done").data(totalBytes));
+                emitter.complete();
+                log.info("Stream synthesis completed, total bytes: {}", totalBytes);
+
+            } catch (IOException e) {
+                log.warn("Stream synthesis interrupted: {}", e.getMessage());
+                emitter.complete();
+            } catch (Exception e) {
+                log.error("Stream synthesis failed: {}", e.getMessage(), e);
+                try {
+                    emitter.send(SseEmitter.event().name("error").data(e.getMessage()));
+                } catch (IOException ignored) {
+                }
+                emitter.completeWithError(e);
+            }
+        });
     }
 }

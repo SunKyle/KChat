@@ -37,13 +37,13 @@ export const MessageBubble = memo(function MessageBubble({
 
   // TTS Hook for voice playback
   const ttsUserId = profile?.id || 'default'
-  const { state: ttsState, error: ttsError, speak, stop } = useTts(ttsUserId)
+  const { state: ttsState, error: ttsError, speakStream, stop } = useTts(ttsUserId)
 
   const handleSpeak = async () => {
-    if (ttsState === 'playing') {
+    if (ttsState === 'playing' || ttsState === 'loading') {
       stop()
-    } else if (ttsState !== 'loading') {
-      await speak(message.content)
+    } else {
+      speakStream(message.content)
       if (ttsError) {
         toast.error(`语音合成失败: ${ttsError}`)
       }

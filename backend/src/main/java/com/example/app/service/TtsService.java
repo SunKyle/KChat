@@ -1,6 +1,7 @@
 package com.example.app.service;
 
 import com.example.app.dto.tts.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -13,6 +14,11 @@ public interface TtsService {
      * 朗读文本（使用已注册音色）
      */
     TtsResult speak(String text, String spkId, String userId);
+
+    /**
+     * 流式朗读（SSE），边生成边播放
+     */
+    SseEmitter speakStream(String text, String spkId, String userId);
 
     /**
      * 临时试听（使用临时 prompt 音频，不注册）

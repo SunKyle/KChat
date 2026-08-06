@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -69,6 +70,41 @@ public class TtsServiceImpl implements TtsService {
                 .format("wav")
                 .sampleRate(22050) // CosyVoice-300M default
                 .build();
+    }
+
+    @Override
+    public SseEmitter speakStream(String text, String spkId, String userId) {
+        validateText(text);
+
+        String targetSpkId = spkId;
+        if (targetSpkId == null || targetSpkId.isBlank()) {
+            targetSpkId = config.getDefaultSpkId();
+        }
+        if (targetSpkId == null || targetSpkId.isBlank()) {
+            List<SpeakerVo> remoteSpeakers = cosyVoiceClient.listSpeakers();
+            if (!remoteSpeakers.isEmpty()) {
+                targetSpkId = remoteSpeakers.get(0).getSpkId();
+            }
+        }
+        if (targetSpkId == null || targetSpkId.isBlank()) {
+            throw new IllegalArgumentException("未配置默认音色，请先在声音设置中添加音色，或明确指定 spkId");
+        }
+
+        // 权限校验
+        TtsSpeaker speaker = speakerRepository.findById(targetSpkId).orElse(null);
+        if (speaker != null && !speaker.getOwnerUserId().equals(userId)) {
+            throw new IllegalArgumentException("无权使用该音色");
+        }
+
+        log.info("Stream synthesizing for text length: {}, spkId: {}", text.length(), targetSpkId);
+
+        SseEmitter emitter = new SseEmitter(300_000L); // 5 min timeout
+        emitter.onCompletion(() -> log.info("Stream emitter completed"));
+        emitter.onTimeout(() -> log.warn("Stream emitter timeout for text: {}", text.length()));
+        emitter.onError(e -> log.error("Stream emitter error: {}", e.getMessage()));
+
+        cosyVoiceClient.synthesizeStream(text, targetSpkId, emitter);
+        return emitter;
     }
 
     @Override

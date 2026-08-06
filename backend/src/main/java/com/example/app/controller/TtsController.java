@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Base64;
 import java.util.List;
@@ -47,6 +48,21 @@ public class TtsController {
         headers.set("X-Duration-S", String.valueOf(result.getDurationS()));
 
         return new ResponseEntity<>(result.getAudio(), headers, 200);
+    }
+
+    /**
+     * 流式朗读（SSE）- 边生成边播放，显著降低首字节延迟
+     */
+    @PostMapping(value = "/speak/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter speakStream(
+            @RequestBody SpeakRequest request,
+            @RequestHeader(value = "X-User-Id", defaultValue = "default") String userId) {
+
+        log.info("Stream speak request, text length: {}, spkId: {}, userId: {}",
+                request.getText() != null ? request.getText().length() : 0,
+                request.getSpkId(), userId);
+
+        return ttsService.speakStream(request.getText(), request.getSpkId(), userId);
     }
 
     /**

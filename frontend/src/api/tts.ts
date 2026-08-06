@@ -26,6 +26,98 @@ export const tts = {
   },
 
   /**
+   * 流式朗读（SSE），通过回调接收音频分片
+   */
+  speakStream: (
+    req: SpeakRequest,
+    onChunk: (base64Chunk: string) => void,
+    onEvent: (event: { type: 'start' | 'done' | 'error'; message?: string; totalBytes?: number }) => void,
+    userId?: string
+  ): (() => void) => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    }
+    if (userId) {
+      headers['X-User-Id'] = userId
+    }
+
+    const controller = new AbortController()
+    const url = `${BASE_URL}/tts/speak/stream`
+
+    ;(async () => {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(req),
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const errText = await response.text()
+          onEvent({ type: 'error', message: errText })
+          return
+        }
+
+        if (!response.body) {
+          onEvent({ type: 'error', message: 'No response body' })
+          return
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let lastEvent: { type: string; data: string } | null = null
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed) {
+              // 空行 = 一个事件结束
+              if (lastEvent) {
+                handleSseEvent(lastEvent, onChunk, onEvent)
+                lastEvent = null
+              }
+              continue
+            }
+
+            if (trimmed.startsWith('event:')) {
+              lastEvent = { type: trimmed.slice(6).trim(), data: '' }
+            } else if (trimmed.startsWith('data:')) {
+              const data = trimmed.slice(5).trim()
+              if (lastEvent) {
+                lastEvent.data = data
+              }
+            }
+          }
+        }
+
+        // 处理最后一个事件
+        if (lastEvent) {
+          handleSseEvent(lastEvent, onChunk, onEvent)
+        }
+
+        if (!lastEvent || lastEvent.type !== 'done') {
+          onEvent({ type: 'done', totalBytes: 0 })
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return
+        onEvent({ type: 'error', message: (err as Error).message })
+      }
+    })()
+
+    return () => controller.abort()
+  },
+
+  /**
    * 临时试听（使用临时 prompt 音频）
    */
   preview: async (req: PreviewRequest, userId?: string): Promise<Blob> => {
@@ -107,4 +199,25 @@ export const tts = {
   health: async (): Promise<TtsHealth> => {
     return request('/tts/health')
   },
+}
+
+function handleSseEvent(
+  event: { type: string; data: string },
+  onChunk: (base64: string) => void,
+  onEvent: (e: { type: 'start' | 'done' | 'error'; message?: string; totalBytes?: number }) => void
+) {
+  switch (event.type) {
+    case 'start':
+      onEvent({ type: 'start' })
+      break
+    case 'audio':
+      onChunk(event.data)
+      break
+    case 'done':
+      onEvent({ type: 'done', totalBytes: Number(event.data) || 0 })
+      break
+    case 'error':
+      onEvent({ type: 'error', message: event.data })
+      break
+  }
 }
