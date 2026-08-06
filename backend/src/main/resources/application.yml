@@ -6,8 +6,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 50MB              # 单个文件最大 50MB
-      max-request-size: 50MB           # 单次请求最大 50MB
+      max-file-size: 50MB # 单个文件最大 50MB
+      max-request-size: 50MB # 单次请求最大 50MB
   # MySQL 数据源配置
   datasource:
     url: jdbc:mysql://localhost:3306/kchatdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8
@@ -16,156 +16,157 @@ spring:
     password: sxk1997sxk
     # HikariCP 连接池配置
     hikari:
-      maximum-pool-size: 10            # 连接池最大连接数
-      minimum-idle: 5                  # 最小空闲连接数
-      connection-timeout: 30000        # 连接获取超时 30 秒
+      maximum-pool-size: 10 # 连接池最大连接数
+      minimum-idle: 5 # 最小空闲连接数
+      connection-timeout: 30000 # 连接获取超时 30 秒
   # JPA / Hibernate 配置
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update                 # 启动时自动更新表结构（开发环境，生产建议改为 validate）
-    show-sql: true                     # 控制台打印 SQL 语句
+      ddl-auto: update # 启动时自动更新表结构（开发环境，生产建议改为 validate）
+    show-sql: true # 控制台打印 SQL 语句
     properties:
       hibernate:
-        format_sql: true               # 格式化 SQL 输出，便于阅读
+        format_sql: true # 格式化 SQL 输出，便于阅读
   # Redis 配置（缓存 + 向量存储）
   data:
     redis:
       host: localhost
       port: 6379
-      timeout: 60000ms                 # 连接超时 60 秒
+      timeout: 60000ms # 连接超时 60 秒
       enabled: true
 
 # ==================== Ollama LLM 服务配置 ====================
-ollama:'my_voice'
-  default-speed: 1.0
-  default-text-frontend: true
-  use-cache: true
-  connect-timeout-ms: 5000
-  read-timeout-ms: 180000
-  max-text-length: 2000
+ollama:
+  base-url: http://localhost:11434 # Ollama 服务地址
+  default-model: llama3 # 默认对话模型
 
+# ==================== CosyVoice TTS 语音合成配置 ====================
+cosyvoice:
+  base-url: http://127.0.0.1:50000 # CosyVoice FastAPI 服务地址
+  default-mode: zero-shot # 默认合成模式: sft | zero-shot | cross-lingual | instruct2
+  default-spk-id: 'my_voice' # 默认朗读音色 ID（需在 CosyVoice 侧已注册）
+  default-speed: 1.0 # 默认语速 (0.5~2.0)
+  default-text-frontend: true # 是否启用文本前端归一化（数字/符号转中文读法）
+  use-cache: true # 是否启用 CosyVoice 服务端 LRU 缓存
+  connect-timeout-ms: 5000 # 连接超时 5 秒
+  read-timeout-ms: 180000 # 读取超时 3 分钟（CPU 推理较慢）
+  max-text-length: 2000 # 单次合成最大文本长度（与 CosyVoice 限制对齐）
+
+# ==================== Resilience4j 容错配置 ====================
 resilience4j:
   retry:
     instances:
+      # Ollama 重试策略
       ollamaRetry:
-        max-attempts: 3
-        wait-duration: 2s
+        max-attempts: 3 # 最多重试 3 次
+        wait-duration: 2s # 每次重试间隔 2 秒
         retry-exceptions:
           - java.io.IOException
           - java.net.SocketTimeoutException
           - java.lang.RuntimeException
+      # CosyVoice 重试策略
       cosyvoiceRetry:
-        max-attempts: 2
-        wait-duration: 1s
+        max-attempts: 2 # 最多重试 2 次（TTS 不宜过多重试）
+        wait-duration: 1s # 每次重试间隔 1 秒
         retry-exceptions:
           - java.io.IOException
           - java.net.SocketTimeoutException
   circuitbreaker:
     instances:
+      # Ollama 熔断器
       ollamaCB:
         register-health-indicator: true
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10 # 滑动窗口大小 10 次调用
+        minimum-number-of-calls: 5 # 至少 5 次调用才计算失败率
+        failure-rate-threshold: 50 # 失败率阈值 50% 触发熔断
+        wait-duration-in-open-state: 10s # 熔断开启后 10 秒尝试半开
+        permitted-number-of-calls-in-half-open-state: 3 # 半开状态允许 3 次试探
+      # CosyVoice 熔断器
       cosyvoiceCB:
         register-health-indicator: true
         sliding-window-size: 10
         minimum-number-of-calls: 5
-        failure-rate-threshold: 60
+        failure-rate-threshold: 60 # 失败率阈值 60%（TTS 容忍度略高）
         wait-duration-in-open-state: 15s
         permitted-number-of-calls-in-half-open-state: 2
 
+# ==================== 记忆系统配置 ====================
 memory:
+  # 长期记忆（RAG 向量检索）
   long-term:
-    enabled: true
-    max-recall: 5
-    min-importance: 3
-    similarity-threshold: 0.3
-    vector-dimension: 384
+    enabled: true # 是否启用长期记忆召回
+    max-recall: 5 # 每次召回最多 5 条相关记忆
+    min-importance: 3 # 重要性低于 3 的记忆不召回
+    similarity-threshold: 0.3 # 相似度阈值，低于 0.3 视为不相关
+    vector-dimension: 384 # 嵌入向量维度（all-MiniLM-L6-v2 = 384）
+  # 记忆提取器（从对话中自动提取关键信息）
   extractor:
-    enabled: true
-    message-threshold: 5
-    min-confidence: 50
-    min-importance: 4
-    idle-timeout-minutes: 5
-    auto-extract-enabled: true
-    context-window-size: 20
+    enabled: true # 是否启用自动记忆提取
+    message-threshold: 5 # 每 5 条消息触发一次提取
+    min-confidence: 50 # 置信度低于 50% 的记忆不保存
+    min-importance: 4 # 重要性低于 4 的记忆不保存
+    idle-timeout-minutes: 5 # 对话空闲 5 分钟后触发提取
+    auto-extract-enabled: true # 是否启用自动提取
+    context-window-size: 20 # 提取时回看最近 20 条消息作为上下文
 
+# ==================== Prompt 工程配置 ====================
 prompt:
+  # 输入安全校验
   security:
-    max-input-length: 4096
-    min-input-length: 1
-    enable-sanitize: true
+    max-input-length: 4096 # 用户输入最大 4096 字符
+    min-input-length: 1 # 最小 1 字符
+    enable-sanitize: true # 是否启用敏感词过滤/XSS 清洗
+  # Token 管理
   token:
-    max-tokens: 8192
-    encoding-type: cl100k_base
+    max-tokens: 8192 # 单次对话最大 Token 数
+    encoding-type: cl100k_base # Token 编码方式（GPT 系列通用）
+  # Prompt 指标采集
   metrics:
-    enabled: true
-    collect-interval-seconds: 60
+    enabled: true # 是否启用 Prompt 指标采集
+    collect-interval-seconds: 60 # 每 60 秒采集一次
+  # Prompt 模板管理
   template:
-    default-id: default-system-prompt
-    cache-enabled: true
-    cache-ttl-seconds: 300
+    default-id: default-system-prompt # 默认系统 Prompt 模板 ID
+    cache-enabled: true # 是否启用模板缓存
+    cache-ttl-seconds: 300 # 模板缓存有效期 5 分钟
 
+# ==================== Web 搜索配置 ====================
 websearch:
-  enabled: true
-  timeout-seconds: 8
-  max-results: 5
-  engine: bing
-  bing-api-key: ''
-
-logging:
-  level:
-    root: INFO
-    com.example.app: DEBUG
-    com.example.app.service: DEBUG
-    com.example.app.controller: DEBUG
-    com.example.app.aspect: DEBUG
-    org.hibernate.SQL: WARN
-  pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
-
-rate-limit:
-  enabled: true
-  requests-per-minute: 10
-  cache-prefix: 'optimize:rate:'
-
-optimization:
-  model: llama3  max-results: 5                       # 每次返回最多 5 条结果
-  engine: bing                         # 搜索引擎: bing | google
-  bing-api-key: ""                     # Bing Search API Key（留空则不启用）
+  enabled: true # 是否启用联网搜索增强
+  timeout-seconds: 8 # 搜索请求超时 8 秒
+  max-results: 5 # 每次返回最多 5 条结果
+  engine: bing # 搜索引擎: bing | google
+  bing-api-key: '' # Bing Search API Key（留空则不启用）
 
 # ==================== 日志配置 ====================
 logging:
   level:
-    root: INFO                         # 全局日志级别 INFO
-    com.example.app: DEBUG             # 项目代码 DEBUG 级别
+    root: INFO # 全局日志级别 INFO
+    com.example.app: DEBUG # 项目代码 DEBUG 级别
     com.example.app.service: DEBUG
     com.example.app.controller: DEBUG
     com.example.app.aspect: DEBUG
-    org.hibernate.SQL: WARN            # Hibernate SQL 降为 WARN（避免过多输出）
+    org.hibernate.SQL: WARN # Hibernate SQL 降为 WARN（避免过多输出）
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
 
 # ==================== 限流配置 ====================
 rate-limit:
-  enabled: true                        # 是否启用接口限流
-  requests-per-minute: 10              # 每分钟最大请求数 10 次
-  cache-prefix: "optimize:rate:"       # Redis 限流计数缓存前缀
+  enabled: true # 是否启用接口限流
+  requests-per-minute: 10 # 每分钟最大请求数 10 次
+  cache-prefix: 'optimize:rate:' # Redis 限流计数缓存前缀
 
 # ==================== Prompt 优化模型配置 ====================
 optimization:
-  model: llama3                        # 用于 Prompt 优化的模型
+  model: llama3 # 用于 Prompt 优化的模型
 
 # ==================== Cognee 记忆图谱配置 ====================
 cognee:
-  enabled: true                        # 是否启用 Cognee 知识图谱记忆
-  base-url: http://localhost:8000      # Cognee 服务地址
+  enabled: true # 是否启用 Cognee 知识图谱记忆
+  base-url: http://localhost:8000 # Cognee 服务地址
   search:
-    top-k: 5                           # 图谱检索返回 Top 5 相关节点
-    threshold: 0.3                     # 相似度阈值
+    top-k: 5 # 图谱检索返回 Top 5 相关节点
+    threshold: 0.3 # 相似度阈值
   index:
-    enabled: true                      # 是否启用自动索引构建
+    enabled: true # 是否启用自动索引构建
