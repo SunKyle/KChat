@@ -1,7 +1,9 @@
 package com.example.app.pipeline.stage.assembly;
 
+import com.example.app.config.DefaultSystemPrompt;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
+import com.example.app.entity.PromptTemplate;
 import com.example.app.service.PromptTemplateService;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.RequiredArgsConstructor;
@@ -31,20 +33,6 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             Map.entry("es", "Español"),
             Map.entry("ru", "Русский"));
 
-    private static final String FALLBACK_TEMPLATE = """
-            角色：你是 KChat 智能助手，一个专业、友好的AI助手。
-
-            核心指令：
-            1. 始终使用 {language_clause}
-            2. 基于提供的用户背景信息回答问题
-            3. 回答要简洁明了，避免冗长
-            4. 对于不确定的问题，诚实告知
-
-            {long_term_memory}
-            {search_context}
-            开始回答：
-            """;
-
     @Override
     public Phase getPhase() { return Phase.ASSEMBLY; }
 
@@ -57,27 +45,36 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         String languageClause = buildLanguageClause(ctx.getLanguage());
         String memoryText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY, "");
         String searchText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_SEARCH, "");
+        String userProfileText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_USER_PROFILE, "");
 
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
         params.put("long_term_memory", memoryText);
         params.put("search_context", searchText);
+        params.put("user_profile", userProfileText);
 
         String systemPrompt;
+        int templateVersion = -1;
         try {
             systemPrompt = templateService.renderTemplate("default-system-prompt", params);
+            templateVersion = templateService.findActiveLatestVersion("default-system-prompt")
+                    .map(PromptTemplate::getVersion)
+                    .orElse(-1);
         } catch (IllegalArgumentException e) {
             log.warn("Template not found, using fallback: {}", e.getMessage());
-            systemPrompt = FALLBACK_TEMPLATE
+            systemPrompt = DefaultSystemPrompt.CONTENT
                     .replace("{language_clause}", languageClause)
+                    .replace("{user_profile}", userProfileText)
                     .replace("{long_term_memory}", memoryText)
                     .replace("{search_context}", searchText);
+            templateVersion = -1;
         }
 
         if (systemPrompt == null || systemPrompt.isBlank()) {
             systemPrompt = "你是一个智能助手。请根据上下文回答问题。";
         }
 
+        ctx.getAgentState().put(ConversationContext.KEY_PROMPT_TEMPLATE_VERSION, templateVersion);
         ctx.getAgentState().put(ConversationContext.KEY_SYSTEM_MESSAGE, SystemMessage.from(systemPrompt));
     }
 

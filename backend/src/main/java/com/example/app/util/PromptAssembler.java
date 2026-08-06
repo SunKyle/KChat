@@ -1,5 +1,6 @@
 package com.example.app.util;
 
+import com.example.app.config.DefaultSystemPrompt;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.entity.PromptMetrics;
 import com.example.app.security.InputValidator;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Prompt 组装工具
@@ -90,23 +93,10 @@ public class PromptAssembler {
      *
      * 占位符说明：
      * - {language_clause}: 语言偏好指令（如 "请使用中文（简体）回复。"），无偏好时为空字符串
-     * - {long_term_memory}: 用户长期记忆（含 "用户背景：\n- ..." 标签），无记忆时为空字符串
+     * - {user_profile}: 用户档案（可信事实，含 "用户档案（可信，由系统维护）：..." 标签），无档案时为空字符串
+     * - {long_term_memory}: 用户长期记忆（含 "长期记忆（可能过时，仅作参考）：..." 标签与时间/置信度/来源），无记忆时为空字符串
      * - {search_context}: 网络搜索上下文（含时间戳和搜索结果），无搜索时为空字符串
      */
-    private static final String FALLBACK_SYSTEM_PROMPT_TEMPLATE = """
-            角色：你是 KChat 智能助手，一个专业、友好的AI助手。
-
-            核心指令：
-            1. 始终使用 {language_clause}
-            2. 基于提供的用户背景信息回答问题
-            3. 回答要简洁明了，避免冗长
-            4. 对于不确定的问题，诚实告知
-
-            {long_term_memory}
-            {search_context}
-            开始回答：
-            """;
-
     /**
      * 语言代码到自然语言描述的映射
      */
@@ -244,14 +234,16 @@ public class PromptAssembler {
         params.put("language_clause", languageClause);
         params.put("long_term_memory", longTermMemoryText);
         params.put("search_context", buildSearchContextSection(searchContext));
+        params.put("user_profile", "");
 
         String systemPrompt;
         try {
             systemPrompt = templateService.renderTemplate(defaultTemplateName, params);
         } catch (IllegalArgumentException e) {
             log.warn("Template not found in database, using fallback template: {}", e.getMessage());
-            systemPrompt = FALLBACK_SYSTEM_PROMPT_TEMPLATE
+            systemPrompt = DefaultSystemPrompt.CONTENT
                     .replace("{language_clause}", languageClause)
+                    .replace("{user_profile}", "")
                     .replace("{long_term_memory}", longTermMemoryText)
                     .replace("{search_context}", params.get("search_context"));
         }
@@ -404,11 +396,27 @@ public class PromptAssembler {
         sortedMemories.sort((a, b) -> Integer.compare(b.getImportance(), a.getImportance()));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("用户背景：\n");
+        sb.append("长期记忆（可能过时，仅作参考）：\n");
         for (MemoryDTO memory : sortedMemories) {
-            sb.append("- ").append(memory.getContent()).append("\n");
+            sb.append("- ");
+            LocalDateTime time = memory.getUpdatedAt() != null ? memory.getUpdatedAt() : memory.getCreatedAt();
+            if (time != null) {
+                sb.append("[").append(time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("] ");
+            }
+            sb.append(memory.getContent());
+            List<String> tags = new ArrayList<>();
+            if (memory.getConfidence() != null) {
+                tags.add("置信度 " + Math.round(memory.getConfidence() * 100) + "%");
+            }
+            if (memory.getSource() != null && !memory.getSource().isBlank()) {
+                tags.add("来源 " + memory.getSource());
+            }
+            if (!tags.isEmpty()) {
+                sb.append("（").append(String.join("，", tags)).append("）");
+            }
+            sb.append("\n");
         }
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     /**

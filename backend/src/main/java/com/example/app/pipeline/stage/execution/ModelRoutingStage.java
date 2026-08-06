@@ -81,10 +81,18 @@ public class ModelRoutingStage implements ContextPipelineStage {
         if (messages == null || messages.isEmpty())
             return;
 
+        Object templateVersion = ctx.getAgentState().get(ConversationContext.KEY_PROMPT_TEMPLATE_VERSION);
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("╔═══════════════════════════════════════════════════════════╗\n");
-        sb.append("║  Final Prompt → Model: ").append(model).append("\n");
+        sb.append("║  Final Prompt → Model: ").append(model)
+                .append("  |  Temp: ").append(ctx.isStreaming()
+                        ? OpenAICompatibleClient.STREAM_CHAT_TEMPERATURE
+                        : OpenAICompatibleClient.SYNC_CHAT_TEMPERATURE)
+                .append("  |  MaxTokens: ").append(OpenAICompatibleClient.DEFAULT_CHAT_MAX_TOKENS)
+                .append("  |  Template: ")
+                .append(templateVersion instanceof Integer ? "v" + templateVersion : "fallback")
+                .append("\n");
         sb.append("║  Messages: ").append(messages.size())
                 .append("  |  Tokens: ").append(ctx.getTokenCount())
                 .append("  |  Truncated: ").append(ctx.isTruncated()).append("\n");

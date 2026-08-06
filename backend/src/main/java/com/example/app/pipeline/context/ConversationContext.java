@@ -106,10 +106,14 @@ public class ConversationContext {
 
     /** Key for formatted long-term memory text, written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410) */
     public static final String KEY_FORMATTED_MEMORY = "formattedLongTermMemory";
+    /** Key for formatted user profile text, written by UserProfileFormatStage(398), read by SystemPromptAssemblyStage(410) */
+    public static final String KEY_FORMATTED_USER_PROFILE = "formattedUserProfile";
     /** Key for formatted search context section, written by SearchContextFormatStage(405), read by SystemPromptAssemblyStage(410) */
     public static final String KEY_FORMATTED_SEARCH = "formattedSearchContext";
     /** Key for the assembled SystemMessage, written by SystemPromptAssemblyStage(410), read by MessageAssemblyStage(430) */
     public static final String KEY_SYSTEM_MESSAGE = "assembledSystemMessage";
+    /** Key for the active system prompt template version, written by SystemPromptAssemblyStage(410), read by ModelRoutingStage(500) */
+    public static final String KEY_PROMPT_TEMPLATE_VERSION = "promptTemplateVersion";
 
     // ── Convenience ────────────────────────────────────────────────
 

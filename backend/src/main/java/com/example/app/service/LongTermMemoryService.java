@@ -59,6 +59,8 @@ public class LongTermMemoryService {
                 .content(dto.getContent())
                 .type(dto.getMemoryType())
                 .importance(dto.getImportance() != null ? dto.getImportance() : 5)
+                .confidence(dto.getConfidence())
+                .source(dto.getSource())
                 .build();
 
         entity = repository.save(entity);
@@ -92,6 +94,8 @@ public class LongTermMemoryService {
                         .content(dto.getContent())
                         .type(dto.getMemoryType())
                         .importance(dto.getImportance() != null ? dto.getImportance() : 5)
+                        .confidence(dto.getConfidence())
+                        .source(dto.getSource())
                         .build())
                 .collect(Collectors.toList());
 
@@ -293,6 +297,12 @@ public class LongTermMemoryService {
         if (dto.getImportance() != null) {
             entity.setImportance(dto.getImportance());
         }
+        if (dto.getConfidence() != null) {
+            entity.setConfidence(dto.getConfidence());
+        }
+        if (dto.getSource() != null) {
+            entity.setSource(dto.getSource());
+        }
 
         entity = repository.save(entity);
 
@@ -336,6 +346,7 @@ public class LongTermMemoryService {
                 .userId(userId)
                 .content(content)
                 .type(type)
+                .source("手动写入")
                 .build();
         repository.save(memory);
         vectorStoreWrapper.add(userId, content, memory.getId());

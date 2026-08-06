@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @Slf4j
@@ -39,9 +41,25 @@ public class MemoryFormatStage implements ContextPipelineStage {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("用户背景：\n");
+        sb.append("长期记忆（可能过时，仅作参考）：\n");
         for (MemoryDTO memory : sorted) {
-            sb.append("- ").append(memory.getContent()).append("\n");
+            sb.append("- ");
+            LocalDateTime time = memory.getUpdatedAt() != null ? memory.getUpdatedAt() : memory.getCreatedAt();
+            if (time != null) {
+                sb.append("[").append(time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("] ");
+            }
+            sb.append(memory.getContent());
+            List<String> tags = new ArrayList<>();
+            if (memory.getConfidence() != null) {
+                tags.add("置信度 " + Math.round(memory.getConfidence() * 100) + "%");
+            }
+            if (memory.getSource() != null && !memory.getSource().isBlank()) {
+                tags.add("来源 " + memory.getSource());
+            }
+            if (!tags.isEmpty()) {
+                sb.append("（").append(String.join("，", tags)).append("）");
+            }
+            sb.append("\n");
         }
         return sb.toString().trim();
     }

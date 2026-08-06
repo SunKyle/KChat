@@ -34,6 +34,12 @@ public class LongTermMemory {
     @Builder.Default
     private Integer importance = 5;
 
+    @Column(name = "confidence")
+    private Double confidence;
+
+    @Column(name = "source", length = 100)
+    private String source;
+
     @Column(columnDefinition = "TEXT")
     private String embedding;
 

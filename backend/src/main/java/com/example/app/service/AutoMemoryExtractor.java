@@ -39,13 +39,17 @@ public class AutoMemoryExtractor {
      * @return 提取的记忆数量，未触发提取返回 0
      */
     public int tryExtract(String conversationId, String userId) {
+        return tryExtract(conversationId, userId, null);
+    }
+
+    public int tryExtract(String conversationId, String userId, String model) {
         log.info("[记忆提取] 尝试提取 - 会话: {}, 用户: {}", conversationId, userId);
-        
+
         if (!config.isEnabled()) {
             log.info("[记忆提取] 未触发 - 记忆提取功能已禁用");
             return 0;
         }
-        
+
         if (!config.isAutoExtractEnabled()) {
             log.info("[记忆提取] 未触发 - 自动提取已禁用");
             return 0;
@@ -53,13 +57,13 @@ public class AutoMemoryExtractor {
 
         int messageCount = messageCounter.increment(conversationId);
         int threshold = config.getMessageThreshold();
-        
+
         log.info("[记忆提取] 当前消息数: {}, 触发阈值: {}", messageCount, threshold);
 
         if (messageCount >= threshold) {
             log.info("[记忆提取] 达到阈值，开始提取...");
             messageCounter.reset(conversationId);
-            int extracted = extractAndSave(conversationId, userId);
+            int extracted = extractAndSave(conversationId, userId, model);
             log.info("[记忆提取] 提取完成 - 保存了 {} 条记忆", extracted);
             return extracted;
         }
@@ -82,9 +86,13 @@ public class AutoMemoryExtractor {
      * @return 保存的记忆数量
      */
     public int extractAndSave(String conversationId, String userId) {
+        return extractAndSave(conversationId, userId, null);
+    }
+
+    public int extractAndSave(String conversationId, String userId, String model) {
         try {
             List<ChatMessage> messages = shortTermMemoryService.getMemoryContext(conversationId);
-            return memoryExtractor.extractAndSave(conversationId, messages, userId);
+            return memoryExtractor.extractAndSave(conversationId, messages, userId, model);
         } catch (Exception e) {
             log.error("Critical failure during memory extraction for user {}: {}", userId, e.getMessage());
             return 0;

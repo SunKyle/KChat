@@ -23,7 +23,8 @@ public class MemoryExtractionStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        int extracted = autoMemoryExtractor.tryExtract(ctx.getConversationId(), ctx.getUserId());
+        int extracted = autoMemoryExtractor.tryExtract(
+                ctx.getConversationId(), ctx.getUserId(), ctx.getModel());
         log.debug("Memory extraction: {} new memories for conversation {}",
                 extracted, ctx.getConversationId());
     }

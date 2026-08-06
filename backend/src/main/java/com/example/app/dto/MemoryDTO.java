@@ -20,7 +20,10 @@ public class MemoryDTO {
     private String content;
     private String type;
     private Integer importance;
+    private Double confidence;
+    private String source;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private Double score;
 
     public static MemoryDTO fromEntity(LongTermMemory entity) {
@@ -31,6 +34,9 @@ public class MemoryDTO {
                 .type(entity.getType().name())
                 .importance(entity.getImportance())
                 .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .confidence(entity.getConfidence())
+                .source(entity.getSource())
                 .build();
     }
 

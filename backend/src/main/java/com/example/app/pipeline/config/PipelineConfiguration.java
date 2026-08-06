@@ -36,6 +36,7 @@ public class PipelineConfiguration {
             "shortTermMemoryStage",             // 300
             "longTermMemoryStage",              // 310
             // ASSEMBLY phase
+            "userProfileFormatStage",           // 398  writes agentState → read by 410
             "memoryFormatStage",                // 400  writes agentState → read by 410
             "searchContextFormatStage",         // 405  writes agentState → read by 410
             "systemPromptAssemblyStage",        // 410  reads from 400, 405; writes → read by 430

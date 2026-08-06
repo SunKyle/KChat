@@ -10,6 +10,10 @@ public interface MemoryExtractor {
 
     int extractAndSave(String conversationId, List<ChatMessage> messages, String userId);
 
+    default int extractAndSave(String conversationId, List<ChatMessage> messages, String userId, String model) {
+        return extractAndSave(conversationId, messages, userId);
+    }
+
     record MemoryExtractionResult(
             String content,
             String type,

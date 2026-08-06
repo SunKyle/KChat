@@ -211,7 +211,7 @@ public class ChatService {
             log.info("[CHAT] Updated message {} with new content", messageId);
         });
 
-        autoMemoryExtractor.tryExtract(conversationId, userId);
+        autoMemoryExtractor.tryExtract(conversationId, userId, model);
 
         return ChatResponse.builder()
                 .messageId(messageId)

@@ -1,9 +1,13 @@
 package com.example.app.service.impl;
 
+import com.example.app.client.OllamaClient;
+import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.MemoryExtractorConfig;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.entity.ModelConfig;
 import com.example.app.service.LongTermMemoryService;
 import com.example.app.service.MemoryExtractor;
+import com.example.app.service.ModelConfigService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +34,18 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      * 聊天语言模型，用于AI对话处理
      */
     private final ChatLanguageModel chatLanguageModel;
+    /**
+     * Ollama 客户端，用于按前端选择的本地模型提取记忆
+     */
+    private final OllamaClient ollamaClient;
+    /**
+     * OpenAI 兼容客户端，用于按自定义模型配置提取记忆
+     */
+    private final OpenAICompatibleClient openAICompatibleClient;
+    /**
+     * 模型配置服务，用于查找自定义模型
+     */
+    private final ModelConfigService modelConfigService;
     /**
      * 长期记忆服务，用于保存和管理记忆
      */
@@ -97,6 +113,10 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      */
     @Override
     public List<MemoryExtractionResult> extract(List<ChatMessage> messages) {
+        return extract(messages, null);
+    }
+
+    public List<MemoryExtractionResult> extract(List<ChatMessage> messages, String model) {
         if (messages == null || messages.isEmpty()) {
             return Collections.emptyList();
         }
@@ -107,7 +127,7 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         try {
             String prompt = EXTRACTION_PROMPT.replace("{conversation}", conversation);
             log.info("[记忆提取] 发送提取请求到LLM (窗口大小: {})", windowedMessages.size());
-            String response = chatLanguageModel.generate(prompt);
+            String response = generateExtraction(prompt, model);
             log.info("[记忆提取] LLM响应接收: {}",
                     response.length() > 100 ? response.substring(0, 100) + "..." : response);
             return parseExtractionResult(response);
@@ -115,6 +135,38 @@ public class MemoryExtractorImpl implements MemoryExtractor {
             log.warn("[记忆提取] LLM提取失败，降级到规则提取: {}", e.getMessage());
             return extractFallback(windowedMessages);
         }
+    }
+
+    /**
+     * 优先使用前端选择的模型提取记忆：
+     * 1. 自定义模型配置（OpenAI 兼容）命中时走 OpenAICompatibleClient
+     * 2. 否则作为 Ollama 模型名调用
+     * 3. 都失败时回退到默认 ChatLanguageModel
+     */
+    private String generateExtraction(String prompt, String model) {
+        if (model != null && !model.isBlank()) {
+            try {
+                ModelConfig config = modelConfigService.getConfigByModelId(model);
+                if (config != null) {
+                    String actualModelId = model.startsWith(config.getName() + ":")
+                            ? model.substring(config.getName().length() + 1)
+                            : model;
+                    log.info("[记忆提取] 使用自定义模型 {} 提取", actualModelId);
+                    return openAICompatibleClient.chatCompletion(
+                            actualModelId, config.getBaseUrl(), config.getApiKey(), null, prompt);
+                }
+            } catch (Exception e) {
+                log.warn("[记忆提取] 自定义模型调用失败，回退到 Ollama/默认模型: {}", e.getMessage());
+            }
+
+            try {
+                log.info("[记忆提取] 使用 Ollama 模型 {} 提取", model);
+                return ollamaClient.generate(List.of(UserMessage.from(prompt)), model);
+            } catch (Exception e) {
+                log.warn("[记忆提取] Ollama 模型调用失败，回退到默认模型: {}", e.getMessage());
+            }
+        }
+        return chatLanguageModel.generate(prompt);
     }
 
     /**
@@ -142,9 +194,14 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      */
     @Override
     public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId) {
+        return extractAndSave(conversationId, messages, userId, null);
+    }
+
+    @Override
+    public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId, String model) {
         log.info("[记忆提取] 开始提取 - 会话: {}, 用户: {}, 消息数: {}", conversationId, userId, messages.size());
 
-        List<MemoryExtractionResult> results = extract(messages);
+        List<MemoryExtractionResult> results = extract(messages, model);
         log.info("[记忆提取] 提取到 {} 条潜在记忆", results.size());
 
         if (!results.isEmpty()) {
@@ -193,6 +250,8 @@ public class MemoryExtractorImpl implements MemoryExtractor {
                     .content(normalizedContent)
                     .type(result.type())
                     .importance(result.importance())
+                    .confidence(result.confidence())
+                    .source("对话记忆提取")
                     .build();
             toSave.add(dto);
             existingContents.add(normalizedContent);

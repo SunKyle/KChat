@@ -28,6 +28,10 @@ import java.util.function.Consumer;
 @Slf4j
 public class OpenAICompatibleClient {
 
+    public static final double SYNC_CHAT_TEMPERATURE = 0.3;
+    public static final double STREAM_CHAT_TEMPERATURE = 0.7;
+    public static final int DEFAULT_CHAT_MAX_TOKENS = 4096;
+
     private final ObjectMapper objectMapper;
 
     public boolean isImageModel(String modelId) {
@@ -352,8 +356,8 @@ public class OpenAICompatibleClient {
             requestBody.put("model", modelId);
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", false);
-            requestBody.put("max_tokens", 4096);
-            requestBody.put("temperature", 0.3);
+            requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
+            requestBody.put("temperature", SYNC_CHAT_TEMPERATURE);
 
             String requestBodyStr = objectMapper.writeValueAsString(requestBody);
             RequestBody body = RequestBody.create(
@@ -455,8 +459,8 @@ public class OpenAICompatibleClient {
             requestBody.put("model", modelId);
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", true);
-            requestBody.put("max_tokens", 4096);
-            requestBody.put("temperature", 0.7);
+            requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
+            requestBody.put("temperature", STREAM_CHAT_TEMPERATURE);
 
             String requestBodyStr = objectMapper.writeValueAsString(requestBody);
             RequestBody body = RequestBody.create(
