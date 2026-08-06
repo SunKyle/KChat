@@ -33,10 +33,27 @@ for port in 8080 5173 ${COGNEE_PORT:-8000}; do
         8000) name="Cognee 记忆服务" ;;
     esac
 
-    PID=$(lsof -ti:"$port" 2>/dev/null || true)
-    if [ -n "$PID" ]; then
-        kill -9 "$PID" 2>/dev/null || true
-        echo -e "${GREEN}  ✓${NC} 端口 $port ($name) PID $PID 已停止"
+    # 获取所有占用端口的进程 PID
+    PIDS=$(lsof -ti:"$port" 2>/dev/null || true)
+    if [ -n "$PIDS" ]; then
+        # 第一轮: SIGTERM 优雅关闭 + 杀子进程
+        for pid in $PIDS; do
+            kill -15 "$pid" 2>/dev/null || true
+            pkill -P "$pid" 2>/dev/null || true
+        done
+        sleep 1
+
+        # 第二轮: 仍存活的强制杀死
+        REMAINING=$(lsof -ti:"$port" 2>/dev/null || true)
+        if [ -n "$REMAINING" ]; then
+            for pid in $REMAINING; do
+                kill -9 "$pid" 2>/dev/null || true
+                pkill -P "$pid" 2>/dev/null || true
+            done
+            sleep 0.5
+        fi
+
+        echo -e "${GREEN}  ✓${NC} 端口 $port ($name) 已停止"
         stopped=$((stopped + 1))
     else
         echo -e "  ${YELLOW}  -${NC} 端口 $port ($name) 未运行"

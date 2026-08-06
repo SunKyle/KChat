@@ -26,11 +26,23 @@ echo "=== Cognee 知识图谱可视化 ==="
 echo "输出: $OUTPUT"
 
 # 如果 cognee 服务在运行，先停止（数据库锁冲突）
-COGNEE_PID=$(lsof -ti:8000 2>/dev/null || true)
-if [ -n "$COGNEE_PID" ]; then
-    echo "检测到 cognee 服务 (PID $COGNEE_PID)，停止以释放数据库锁..."
-    kill -9 "$COGNEE_PID" 2>/dev/null || true
-    sleep 2
+COGNEE_PORT="${COGNEE_PORT:-8000}"
+COGNEE_PIDS=$(lsof -ti:"$COGNEE_PORT" 2>/dev/null || true)
+if [ -n "$COGNEE_PIDS" ]; then
+    echo "检测到 cognee 服务，停止以释放数据库锁..."
+    for pid in $COGNEE_PIDS; do
+        kill -15 "$pid" 2>/dev/null || true
+        pkill -P "$pid" 2>/dev/null || true
+    done
+    sleep 1
+    REMAINING=$(lsof -ti:"$COGNEE_PORT" 2>/dev/null || true)
+    if [ -n "$REMAINING" ]; then
+        for pid in $REMAINING; do
+            kill -9 "$pid" 2>/dev/null || true
+            pkill -P "$pid" 2>/dev/null || true
+        done
+        sleep 0.5
+    fi
     RESTART_COGNEE=true
     echo "  已停止"
 fi

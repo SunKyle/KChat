@@ -51,11 +51,22 @@ python3 -c "import cognee" 2>/dev/null || {
 }
 
 # ── 检查端口是否可用 ──────────────────────────────────────────
-if lsof -ti:"$PORT" &>/dev/null; then
-    EXISTING_PID=$(lsof -ti:"$PORT")
-    echo -e "${YELLOW}[WARN]${NC} 端口 $PORT 已被 PID $EXISTING_PID 占用，正在释放..."
-    kill -9 "$EXISTING_PID" 2>/dev/null || true
+EXISTING_PIDS=$(lsof -ti:"$PORT" 2>/dev/null || true)
+if [ -n "$EXISTING_PIDS" ]; then
+    echo -e "${YELLOW}[WARN]${NC} 端口 $PORT 已被占用，正在释放..."
+    for pid in $EXISTING_PIDS; do
+        kill -15 "$pid" 2>/dev/null || true
+        pkill -P "$pid" 2>/dev/null || true
+    done
     sleep 1
+    REMAINING=$(lsof -ti:"$PORT" 2>/dev/null || true)
+    if [ -n "$REMAINING" ]; then
+        for pid in $REMAINING; do
+            kill -9 "$pid" 2>/dev/null || true
+            pkill -P "$pid" 2>/dev/null || true
+        done
+        sleep 0.5
+    fi
 fi
 
 # ── 启动服务器 ────────────────────────────────────────────────

@@ -41,7 +41,10 @@ if os.path.exists(_env_path):
 # cognee 内部调用 tiktoken.encoding_for_model() 来获取 tokenizer，
 # 但 tiktoken 需要联网下载编码文件。本地环境没有网络访问权限，
 # 所以提供一个轻量替代对象，确保调用不会崩溃即可。
-import tiktoken
+try:
+    import tiktoken as _tiktoken
+except ImportError:
+    _tiktoken = None
 
 class _DummyTikToken:
     """极简 tokenizer：纯近似计数，绕过联网下载。嵌入服务端会自行 tokenize。"""
@@ -53,13 +56,14 @@ class _DummyTikToken:
     def name(self):
         return "local-fallback"
 
-_orig_enc_model = tiktoken.encoding_for_model
-def _safe_encoding_for_model(name):
-    try:
-        return _orig_enc_model(name)
-    except Exception:
-        return _DummyTikToken()
-tiktoken.encoding_for_model = _safe_encoding_for_model
+if _tiktoken is not None:
+    _orig_enc_model = _tiktoken.encoding_for_model
+    def _safe_encoding_for_model(name):
+        try:
+            return _orig_enc_model(name)
+        except Exception:
+            return _DummyTikToken()
+    _tiktoken.encoding_for_model = _safe_encoding_for_model
 
 # Ensure cognee's CACHING and access control are off for local dev
 os.environ.setdefault('COGNEE_CACHING', 'false')

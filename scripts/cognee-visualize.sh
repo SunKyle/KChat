@@ -21,7 +21,8 @@ if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
     # 从最近的对话日志中提取内容，或者添加示例数据
     if [ -f /tmp/kchat-backend.log ]; then
         echo "从后端日志提取最近的对话..."
-        grep -oP '"content":"[^"]+"' /tmp/kchat-backend.log 2>/dev/null | tail -5 | while read -r line; do
+        # macOS 兼容: 使用 sed + grep 替代 grep -oP (BSD grep 不支持 -P)
+        grep -Eo '"content":"[^"]*"' /tmp/kchat-backend.log 2>/dev/null | tail -5 | while read -r line; do
             content=$(echo "$line" | sed 's/"content":"//;s/"//')
             [ -n "$content" ] && curl -s -X POST http://localhost:8000/add \
                 -H "Content-Type: application/json" \
