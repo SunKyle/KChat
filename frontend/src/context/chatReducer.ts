@@ -92,12 +92,46 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
    case 'SET_MESSAGES': {
       const existingMessages = state.messagesByConversation[action.payload.conversationId] || []
-      const serverMessages = action.payload.messages
+      let serverMessages = action.payload.messages
 
-      // Merge: keep local-only messages (e.g. temp UUIDs from optimistic updates)
-      // that have not been persisted to the server yet
+      // Filter out empty placeholder messages from server
+      // These are assistant messages with no content and no images that are placeholders
+      serverMessages = serverMessages.filter(m => {
+        if (m.role !== 'assistant') return true
+        const hasContent = m.content && m.content.trim() !== ''
+        const hasImages = m.images && m.images.length > 0
+        // Keep if has content or images
+        if (hasContent || hasImages) return true
+        // Filter out empty assistant messages (they're placeholders)
+        return false
+      })
+
+      // Create a signature for deduplication (used for assistant messages only)
+      const getMessageSignature = (m: typeof serverMessages[0]) => {
+        const imgKey = (m.images || []).sort().join(',')
+        return `${m.role}:${m.content}:${imgKey}`
+      }
+
+      // Build signature set from server messages (assistant messages only)
       const serverIds = new Set(serverMessages.map(m => m.id))
-      const localOnlyMessages = existingMessages.filter(m => !serverIds.has(m.id))
+      const serverAssistantSignatures = new Set(
+        serverMessages.filter(m => m.role === 'assistant').map(getMessageSignature)
+      )
+
+      // Filter out local-only messages that are duplicates or empty placeholders
+      const localOnlyMessages = existingMessages.filter(m => {
+        if (serverIds.has(m.id)) return false
+        // Check if this is an empty placeholder message (assistant with no content/images)
+        if (m.role === 'assistant') {
+          const hasContent = m.content && m.content.trim() !== ''
+          const hasImages = m.images && m.images.length > 0
+          if (!hasContent && !hasImages) return false  // Filter out empty placeholders
+          // Check if this local message's content already exists in server messages
+          const sig = getMessageSignature(m)
+          if (serverAssistantSignatures.has(sig)) return false
+        }
+        return true
+      })
 
       const merged = [...serverMessages, ...localOnlyMessages]
       merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())

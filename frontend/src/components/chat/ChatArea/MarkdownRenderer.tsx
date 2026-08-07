@@ -86,14 +86,14 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
               if (!src) return null
               const filename = src.split('/').pop() || 'generated-image.png'
               return (
-                <div className='relative group my-4 inline-block'>
+                <span className='relative group my-4 inline-block'>
                   <img
                     src={src}
                     alt={alt || 'Generated image'}
                     className='max-w-full max-h-96 object-contain rounded-lg shadow-lg cursor-zoom-in opacity-100 hover:shadow-xl hover:shadow-[var(--accent-primary)]/10 transition-shadow'
                     onClick={() => setExpandedImage(src)}
                   />
-                  <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                  <span className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -114,8 +114,8 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
                     >
                       <Download className='w-3.5 h-3.5 theme-text-primary' />
                     </button>
-                  </div>
-                </div>
+                  </span>
+                </span>
               )
             },
             h1: ({ children }) => (
