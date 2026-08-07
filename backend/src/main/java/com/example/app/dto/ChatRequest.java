@@ -24,4 +24,6 @@ public class ChatRequest {
     private String userId;
 
     private boolean webSearch = false;
+
+    private boolean multimodal = false;
 }

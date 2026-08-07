@@ -257,10 +257,15 @@ export async function requestSSE(
   endpoint: string,
   options: RequestOptions = {},
   onMessage: (content: string) => void,
-  onComplete: (messageId: string, title?: string) => void,
+  onComplete: (
+    messageId: string,
+    title?: string,
+    artifacts?: Array<{ type: string; url: string; text?: string }>
+  ) => void,
   onError: (error: ApiError) => void,
   controller?: AbortController,
-  onSearchResults?: (results: unknown) => void
+  onSearchResults?: (results: unknown) => void,
+  onImageDone?: (url: string) => void
 ): Promise<void> {
   const requestId = generateRequestId()
   const processedOptions = await applyRequestInterceptors(options)
@@ -334,9 +339,11 @@ export async function requestSSE(
           if (eventType === 'message' && parsedData.content) {
             onMessage(parsedData.content)
           } else if (eventType === 'done' && parsedData.messageId) {
-            onComplete(parsedData.messageId, parsedData.title)
+            onComplete(parsedData.messageId, parsedData.title, parsedData.artifacts)
           } else if (eventType === 'search_results') {
             onSearchResults?.(parsedData)
+          } else if (eventType === 'image_done' && parsedData.url) {
+            onImageDone?.(parsedData.url)
           }
         } catch (e) {
           console.warn('Failed to parse SSE data:', e)

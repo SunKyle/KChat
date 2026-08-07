@@ -76,6 +76,11 @@ public class ModelRoutingStage implements ContextPipelineStage {
         }
     }
 
+    @Override
+    public boolean isApplicable(ConversationContext ctx) {
+        return !ctx.isMultimodal();
+    }
+
     private void logFinalPrompt(ConversationContext ctx, String model) {
         List<ChatMessage> messages = ctx.getAssembledMessages();
         if (messages == null || messages.isEmpty())

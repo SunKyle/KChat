@@ -34,7 +34,14 @@ export const conversations = {
 export const chat = {
   send: async (
     requestData: ChatRequest
-  ): Promise<{ messageId: string; content: string; role: 'assistant'; conversationId: string }> => {
+  ): Promise<{
+    messageId: string
+    content: string
+    role: 'assistant'
+    conversationId: string
+    images?: string[]
+    artifacts?: Array<{ type: string; url: string; text?: string }>
+  }> => {
     return request('/chat', {
       method: 'POST',
       body: JSON.stringify(requestData),
@@ -56,7 +63,8 @@ export const chat = {
     onComplete: (messageId: string, title?: string) => void,
     onError: (error: Error) => void,
     controller?: AbortController,
-    onSearchResults?: (results: unknown) => void
+    onSearchResults?: (results: unknown) => void,
+    onImageDone?: (url: string) => void
   ): Promise<void> => {
     return requestSSE(
       '/chat/stream',
@@ -68,7 +76,8 @@ export const chat = {
       onComplete,
       onError,
       controller,
-      onSearchResults
+      onSearchResults,
+      onImageDone
     )
   },
 

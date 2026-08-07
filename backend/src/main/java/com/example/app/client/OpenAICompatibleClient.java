@@ -406,6 +406,144 @@ public class OpenAICompatibleClient {
     }
 
     /**
+     * 同步多模态对话：把图片转成 data URI 后按 OpenAI 兼容 content 数组发送。
+     */
+    public String chatCompletionWithImages(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String systemPrompt,
+            String userContent,
+            List<String> imageUrls) throws IOException {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(3, TimeUnit.MINUTES)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        ArrayNode messagesArray = objectMapper.createArrayNode();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            ObjectNode systemNode = objectMapper.createObjectNode();
+            systemNode.put("role", "system");
+            systemNode.put("content", systemPrompt);
+            messagesArray.add(systemNode);
+        }
+
+        ObjectNode userNode = objectMapper.createObjectNode();
+        userNode.put("role", "user");
+        ArrayNode content = objectMapper.createArrayNode();
+        content.addObject().put("type", "text").put("text", userContent);
+        if (imageUrls != null) {
+            for (String imageUrl : imageUrls) {
+                String dataUri = fetchImageAsBase64(imageUrl);
+                if (dataUri == null) {
+                    continue;
+                }
+                ObjectNode imagePart = content.addObject();
+                imagePart.put("type", "image_url");
+                imagePart.putObject("image_url").put("url", dataUri);
+            }
+        }
+        userNode.set("content", content);
+        messagesArray.add(userNode);
+
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("model", modelId);
+        requestBody.set("messages", messagesArray);
+        requestBody.put("stream", false);
+        requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
+        requestBody.put("temperature", SYNC_CHAT_TEMPERATURE);
+
+        String requestBodyStr = objectMapper.writeValueAsString(requestBody);
+        RequestBody body = RequestBody.create(
+                requestBodyStr,
+                MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+                .url(buildFullUrl(baseUrl, "/v1/chat/completions"))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "No response body";
+                throw new RuntimeException("API request failed: " + response.code() + ". " + errorBody);
+            }
+            String responseBodyStr = response.body() != null ? response.body().string() : "";
+            JsonNode node = objectMapper.readTree(responseBodyStr);
+            JsonNode choices = node.path("choices");
+            if (choices.isArray() && choices.size() > 0) {
+                return choices.get(0).path("message").path("content").asText("");
+            }
+            throw new RuntimeException("Failed to parse multimodal response");
+        }
+    }
+
+    /**
+     * 同步文生图，返回可插入 Markdown 的图片 URL。
+     */
+    public String generateImageSync(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String prompt,
+            List<String> imageUrls) throws IOException {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(3, TimeUnit.MINUTES)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("model", modelId);
+        requestBody.put("prompt", prompt);
+        requestBody.put("n", 1);
+        requestBody.put("response_format", "url");
+
+        boolean hasReferenceImage = imageUrls != null && !imageUrls.isEmpty();
+        if (hasReferenceImage) {
+            String imageDataUri = fetchImageAsBase64(imageUrls.get(0));
+            if (imageDataUri != null) {
+                String rawBase64 = imageDataUri.contains(",")
+                        ? imageDataUri.substring(imageDataUri.indexOf(",") + 1)
+                        : imageDataUri;
+                requestBody.put("image", rawBase64);
+            }
+        }
+
+        RequestBody body = RequestBody.create(
+                objectMapper.writeValueAsString(requestBody),
+                MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+                .url(buildFullUrl(baseUrl, "/v1/images/generations"))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "No response body";
+                throw new RuntimeException("Image generation failed: " + response.code() + ". " + errorBody);
+            }
+            String responseBodyStr = response.body() != null ? response.body().string() : "";
+            JsonNode node = objectMapper.readTree(responseBodyStr);
+            JsonNode data = node.path("data");
+            if (data.isArray() && data.size() > 0) {
+                JsonNode firstItem = data.get(0);
+                if (firstItem.has("url")) {
+                    return firstItem.get("url").asText();
+                }
+                if (firstItem.has("b64_json")) {
+                    return "data:image/png;base64," + firstItem.get("b64_json").asText();
+                }
+            }
+            throw new RuntimeException("Failed to parse image generation response");
+        }
+    }
+
+    /**
      * 同步调用 OpenAI 兼容 API（单条消息版本，保留向后兼容）
      */
     public String chatCompletion(

@@ -2,6 +2,7 @@
 package com.example.app.service;
 
 import com.example.app.entity.Message;
+import com.example.app.dto.MultimodalArtifact;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,16 +42,28 @@ public class MessagePersistenceService {
 
     @Transactional
     public String saveAiMessage(String conversationId, String content) {
-        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content);
+        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, null);
     }
 
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content) {
+        return saveAiMessage(conversationId, messageId, content, null);
+    }
+
+    @Transactional
+    public String saveAiMessage(String conversationId, String content, List<MultimodalArtifact> artifacts) {
+        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, artifacts);
+    }
+
+    @Transactional
+    public String saveAiMessage(String conversationId, String messageId, String content,
+            List<MultimodalArtifact> artifacts) {
         Message aiMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
                 .content(content)
                 .role("assistant")
+                .artifacts(serializeArtifacts(artifacts))
                 .build();
         
         messageRepository.save(aiMsg);
@@ -60,10 +73,28 @@ public class MessagePersistenceService {
 
     @Transactional
     public String saveMessages(String conversationId, String userMessage, String aiResponse, List<String> imageUrls) {
+        return saveMessages(conversationId, userMessage, aiResponse, imageUrls, null);
+    }
+
+    @Transactional
+    public String saveMessages(String conversationId, String userMessage, String aiResponse,
+            List<String> imageUrls, List<MultimodalArtifact> artifacts) {
         saveUserMessage(conversationId, userMessage, imageUrls);
-        String aiMessageId = saveAiMessage(conversationId, aiResponse);
+        String aiMessageId = saveAiMessage(conversationId, aiResponse, artifacts);
         log.debug("Saved conversation messages: conversationId={}", conversationId);
         return aiMessageId;
+    }
+
+    private String serializeArtifacts(List<MultimodalArtifact> artifacts) {
+        if (artifacts == null || artifacts.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(artifacts);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize artifacts", e);
+            return null;
+        }
     }
 
     private String serializeImageUrls(List<String> imageUrls) {

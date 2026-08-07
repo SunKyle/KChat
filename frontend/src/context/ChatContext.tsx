@@ -19,7 +19,7 @@ interface ChatContextType {
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
   pinConversation: (id: string, pinned: boolean) => Promise<void>
-  sendMessage: (content: string, imageUrls?: string[], webSearch?: boolean) => Promise<void>
+  sendMessage: (content: string, imageUrls?: string[], webSearch?: boolean, multimodal?: boolean) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
@@ -255,7 +255,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string, imageUrls: string[] = [], webSearch = false) => {
+    async (content: string, imageUrls: string[] = [], webSearch = false, multimodal = false) => {
       if (!content.trim() && imageUrls.length === 0) return
 
       // Optimistic conversation creation: create inline if no active conversation
@@ -302,6 +302,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
         userId: 'default',
         webSearch,
+        multimodal,
       }
 
       const tempMessageId = crypto.randomUUID()
@@ -346,7 +347,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             streamingContent += chunk
             chunkBuffer += chunk
           },
-          (backendMessageId, title) => {
+          (backendMessageId, title, artifacts) => {
             // Flush remaining buffered chunks before completing
             clearInterval(chunkFlushInterval)
             if (chunkBuffer) {
@@ -365,7 +366,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             // 更新消息内容
             dispatch({
               type: 'UPDATE_MESSAGE',
-              payload: { id: tempMessageId, content: streamingContent, conversationId },
+              payload: {
+                id: tempMessageId,
+                content: streamingContent,
+                conversationId,
+                images: artifacts
+                  ? artifacts.filter((artifact) => artifact.type === 'image').map((artifact) => artifact.url)
+                  : undefined,
+              },
             })
             // 更新消息ID为后端实际的消息ID
             dispatch({

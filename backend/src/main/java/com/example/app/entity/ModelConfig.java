@@ -45,6 +45,9 @@ public class ModelConfig {
     @Builder.Default
     private ModelCategory category = ModelCategory.TEXT;
 
+    @Column(name = "capabilities", columnDefinition = "TEXT")
+    private String capabilities;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean enabled = true;

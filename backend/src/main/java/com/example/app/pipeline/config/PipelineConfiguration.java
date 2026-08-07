@@ -35,6 +35,7 @@ public class PipelineConfiguration {
             "messagePrePersistenceStage",       // 260 streaming-only
             "shortTermMemoryStage",             // 300
             "longTermMemoryStage",              // 310
+            "multimodalPlannerStage",           // 320 Auto 多模态规划
             // ASSEMBLY phase
             "userProfileFormatStage",           // 398  writes agentState → read by 410
             "memoryFormatStage",                // 400  writes agentState → read by 410
@@ -44,6 +45,8 @@ public class PipelineConfiguration {
             "tokenManagementStage",             // 440
             // EXECUTION phase
             "modelRoutingStage",                // 500  LLM call; streaming: triggers post-processing
+            "multimodalExecutionStage",         // 510 Auto 多模态执行
+            "multimodalCompositorStage",        // 515 Auto 多模态结果合成
             // POSTPROCESS phase
             "shortTermMemoryUpdateStage",       // 700  adapts to streaming via userMessageInMemory flag
             "messagePersistenceStage",          // 710  adapts to streaming via userMessagePersisted flag

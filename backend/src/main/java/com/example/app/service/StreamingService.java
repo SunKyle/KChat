@@ -47,6 +47,7 @@ public class StreamingService {
         ConversationContext ctx = ConversationContext.fromRequest(request);
         ctx.setConversationId(conversationId);
         ctx.setStreaming(true);
+        ctx.setMultimodal(request.isMultimodal());
         ctx.setSseEmitter(emitter);
         ctx.setPipelineType(ConversationContext.PipelineType.STREAMING_CHAT);
 

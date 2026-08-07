@@ -129,6 +129,17 @@ public class OllamaClient {
     }
 
     /**
+     * 同步多模态生成：内部复用流式接口并汇总结果。
+     */
+    @Retry(name = "ollamaRetry")
+    @CircuitBreaker(name = "ollamaCB")
+    public String generateWithImages(List<ChatMessage> messages, List<String> imageUrls, String model) {
+        StringBuilder fullResponse = new StringBuilder();
+        streamGenerateWithImages(messages, imageUrls, fullResponse::append, model);
+        return fullResponse.toString();
+    }
+
+    /**
      * 将 ChatMessage 列表转换为 /api/chat 的 messages JSON 数组
      * 保留 role 结构（system/user/assistant）
      */

@@ -38,6 +38,9 @@ public class Message {
     @Column(name = "image_urls", columnDefinition = "TEXT")
     private String imageUrls;
 
+    @Column(columnDefinition = "TEXT")
+    private String artifacts;
+
     @Column(name = "token_count")
     @Builder.Default
     private Integer tokenCount = 0;

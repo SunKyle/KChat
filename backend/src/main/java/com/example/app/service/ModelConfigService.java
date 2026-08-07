@@ -1,16 +1,22 @@
 package com.example.app.service;
 
 import com.example.app.client.OllamaClient;
+import com.example.app.config.ModelCapability;
 import com.example.app.dto.ModelConfigDTO;
 import com.example.app.entity.ModelConfig;
 import com.example.app.repository.ModelConfigRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +26,7 @@ public class ModelConfigService {
 
     private final ModelConfigRepository modelConfigRepository;
     private final OllamaClient ollamaClient;
+    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public List<ModelConfig> getAllEnabledConfigs() {
@@ -57,6 +64,7 @@ public class ModelConfigService {
                 .apiKey(dto.getApiKey())
                 .type(type)
                 .category(category)
+                .capabilities(serializeCapabilities(dto.getCapabilities()))
                 .enabled(dto.getEnabled() != null ? dto.getEnabled() : true)
                 .build();
 
@@ -165,6 +173,9 @@ public class ModelConfigService {
         if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
             config.setCategory(parseModelCategory(dto.getCategory()));
         }
+        if (dto.getCapabilities() != null) {
+            config.setCapabilities(serializeCapabilities(dto.getCapabilities()));
+        }
         if (dto.getEnabled() != null) {
             config.setEnabled(dto.getEnabled());
         }
@@ -186,5 +197,117 @@ public class ModelConfigService {
                 .filter(config -> modelId.startsWith(config.getName() + ":"))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * 返回模型能力集合；Auto 模式返回全部多模态能力。
+     */
+    public Set<String> getCapabilities(String modelId) {
+        if (modelId == null || modelId.isBlank()) {
+            return Collections.emptySet();
+        }
+        ModelConfig config = getConfigByModelId(modelId);
+        if (config != null) {
+            return resolveCapabilities(config);
+        }
+        return inferOllamaCapabilities(modelId);
+    }
+
+    /**
+     * 查找第一个具备指定能力的已启用模型配置，未配置时返回 null。
+     */
+    public ModelConfig findFirstModelWithCapability(String capability) {
+        return modelConfigRepository.findByEnabledTrue().stream()
+                .filter(config -> resolveCapabilities(config).contains(capability))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 返回第一个可用的文本模型标识（name:modelId），没有自定义配置时返回 null。
+     */
+    public String findDefaultTextModelId() {
+        return modelConfigRepository.findByEnabledTrue().stream()
+                .filter(config -> config.getCategory() == null
+                        || config.getCategory() == ModelConfig.ModelCategory.TEXT)
+                .map(config -> config.getName() + ":" + config.getModelId())
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Set<String> resolveCapabilities(ModelConfig config) {
+        Set<String> capabilities = parseCapabilities(config.getCapabilities());
+        if (config.getCategory() != null) {
+            switch (config.getCategory()) {
+                case TEXT -> {
+                    capabilities.add(ModelCapability.TEXT_IN);
+                    capabilities.add(ModelCapability.TEXT_OUT);
+                }
+                case IMAGE -> capabilities.add(ModelCapability.IMAGE_OUT);
+                case VIDEO -> {
+                    capabilities.add(ModelCapability.VIDEO_IN);
+                    capabilities.add(ModelCapability.VIDEO_OUT);
+                }
+            }
+        }
+        return capabilities;
+    }
+
+    private Set<String> inferOllamaCapabilities(String modelId) {
+        String lower = modelId.toLowerCase();
+        Set<String> capabilities = new HashSet<>();
+        capabilities.add(ModelCapability.TEXT_IN);
+        capabilities.add(ModelCapability.TEXT_OUT);
+        if (lower.contains("llava")
+                || lower.contains("vision")
+                || lower.contains("-vl")
+                || lower.contains("minicpm")
+                || lower.contains("qwen2.5-vl")) {
+            capabilities.add(ModelCapability.IMAGE_IN);
+        }
+        return capabilities;
+    }
+
+    private Set<String> parseCapabilities(String capabilities) {
+        if (capabilities == null || capabilities.isBlank()) {
+            return new HashSet<>();
+        }
+        try {
+            Set<String> parsed = new HashSet<>(objectMapper.readValue(capabilities, new TypeReference<List<String>>() {
+            }));
+            Set<String> normalized = new HashSet<>();
+            for (String capability : parsed) {
+                normalized.add(normalizeCapability(capability));
+            }
+            return normalized;
+        } catch (Exception e) {
+            log.warn("Failed to parse model capabilities: {}", e.getMessage());
+            return new HashSet<>();
+        }
+    }
+
+    private String normalizeCapability(String capability) {
+        if (capability == null) {
+            return "";
+        }
+        return switch (capability) {
+            case ModelCapability.LEGACY_VISION -> ModelCapability.IMAGE_IN;
+            case ModelCapability.LEGACY_IMAGE_GEN -> ModelCapability.IMAGE_OUT;
+            case ModelCapability.LEGACY_TTS -> ModelCapability.AUDIO_OUT;
+            case ModelCapability.LEGACY_VIDEO -> ModelCapability.VIDEO_OUT;
+            default -> capability;
+        };
+    }
+
+    private String serializeCapabilities(List<String> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(capabilities);
+        } catch (Exception e) {
+            log.warn("Failed to serialize model capabilities: {}", e.getMessage());
+            return null;
+        }
     }
 }

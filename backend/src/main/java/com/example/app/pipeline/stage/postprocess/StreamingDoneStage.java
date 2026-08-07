@@ -23,12 +23,18 @@ public class StreamingDoneStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        String doneData = "{\"messageId\": \"" + ctx.getAiMessageId() + "\""
-                + (ctx.getGeneratedTitle() != null
-                        ? ", \"title\": \"" + JsonUtils.escapeJson(ctx.getGeneratedTitle()) + "\""
-                        : "")
-                + "}";
-        ctx.emitSseEvent("done", doneData);
+        String artifactsJson = ctx.getArtifacts() != null
+                ? JsonUtils.toJson(ctx.getArtifacts())
+                : "[]";
+        StringBuilder doneData = new StringBuilder(
+                "{\"messageId\": \"" + ctx.getAiMessageId() + "\"");
+        if (ctx.getGeneratedTitle() != null) {
+            doneData.append(", \"title\": \"")
+                    .append(JsonUtils.escapeJson(ctx.getGeneratedTitle()))
+                    .append("\"");
+        }
+        doneData.append(", \"artifacts\": ").append(artifactsJson).append("}");
+        ctx.emitSseEvent("done", doneData.toString());
 
         try {
             org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter =

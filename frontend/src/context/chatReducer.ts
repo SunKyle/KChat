@@ -5,7 +5,10 @@ export type ChatAction =
   | { type: 'SET_ACTIVE_CONVERSATION'; payload: Conversation | null }
   | { type: 'SET_MESSAGES'; payload: { conversationId: string; messages: Message[] } }
   | { type: 'ADD_MESSAGE'; payload: Message }
-  | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string; conversationId: string } }
+  | {
+      type: 'UPDATE_MESSAGE'
+      payload: { id: string; content: string; conversationId: string; images?: string[] }
+    }
   | { type: 'UPDATE_MESSAGE_ID'; payload: { oldId: string; newId: string; conversationId: string } }
   | { type: 'START_STREAMING'; payload: { conversationId: string } }
   | {
@@ -125,7 +128,13 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       const msgs = state.messagesByConversation[conversationId]
       if (msgs) {
         const updatedMessages = msgs.map((msg) =>
-          msg.id === action.payload.id ? { ...msg, content: action.payload.content } : msg
+          msg.id === action.payload.id
+            ? {
+                ...msg,
+                content: action.payload.content,
+                images: action.payload.images !== undefined ? action.payload.images : msg.images,
+              }
+            : msg
         )
         return {
           ...state,

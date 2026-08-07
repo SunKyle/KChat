@@ -109,6 +109,7 @@ public class ChatService {
         ConversationContext ctx = ConversationContext.fromRequest(request);
         ctx.setConversationId(conversationId);
         ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
+        ctx.setMultimodal(request.isMultimodal());
 
         pipelineExecutor.execute(ctx);
 
@@ -118,6 +119,13 @@ public class ChatService {
                 .role("assistant")
                 .conversationId(ctx.getConversationId())
                 .title(ctx.getGeneratedTitle())
+                .images(ctx.getArtifacts() != null
+                        ? ctx.getArtifacts().stream()
+                                .filter(a -> "image".equals(a.type()))
+                                .map(a -> a.url())
+                                .toList()
+                        : null)
+                .artifacts(ctx.getArtifacts())
                 .build();
     }
 

@@ -23,6 +23,7 @@ export interface ChatRequest {
   imageUrls?: string[]
   userId?: string
   webSearch?: boolean
+  multimodal?: boolean
 }
 
 export interface ChatResponse {
@@ -30,6 +31,8 @@ export interface ChatResponse {
   content: string
   role: 'assistant'
   conversationId: string
+  images?: string[]
+  artifacts?: Array<{ type: string; url: string; text?: string }>
 }
 
 export interface SearchSnippet {

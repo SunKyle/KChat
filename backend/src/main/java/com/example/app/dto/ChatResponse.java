@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,4 +22,8 @@ public class ChatResponse {
     private String conversationId;
 
     private String title;
+
+    private List<String> images;
+
+    private List<MultimodalArtifact> artifacts;
 }

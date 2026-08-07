@@ -9,6 +9,7 @@ import {
   Paperclip,
   Loader2,
   Globe,
+  Orbit,
   Sparkles,
   X,
   Check,
@@ -30,6 +31,7 @@ export function InputArea() {
   const [input, setInput] = useState('')
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
+  const [multimodalEnabled, setMultimodalEnabled] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
@@ -52,7 +54,7 @@ export function InputArea() {
   const maxChars = 2000
   const maxImages = 5
 
-  const isImg2ImgMode = isImageModel(currentModel) && uploadingImages.length > 0
+  const isImg2ImgMode = (isImageModel(currentModel) || multimodalEnabled) && uploadingImages.length > 0
 
   // 状态条滑出/收起动画
   useEffect(() => {
@@ -158,7 +160,7 @@ export function InputArea() {
     setShowOptimizationResult(false)
     setOptimizedContent(null)
 
-    sendMessage(currentInput, currentImages, webSearchEnabled)
+    sendMessage(currentInput, currentImages, webSearchEnabled, multimodalEnabled)
   }
 
   // 内容优化处理
@@ -450,8 +452,6 @@ export function InputArea() {
                     <span className='tooltip-content'>上传文件</span>
                   </div>
 
-
-
                   {/* 生成图片按钮 */}
                   <div className='relative'>
                     <button
@@ -556,6 +556,49 @@ export function InputArea() {
                     </button>
                     <span className='tooltip-content'>
                       {webSearchEnabled ? '已开启联网搜索' : '开启联网搜索'}
+                    </span>
+                  </div>
+
+                  {/* 多模态开关 */}
+                  <div className='relative'>
+                    <button
+                      onClick={() => setMultimodalEnabled((enabled) => !enabled)}
+                      disabled={streamingState.isStreaming}
+                      className={`peer flex items-center gap-1.5 h-8 cursor-pointer rounded-full border px-1.5 py-1 transition-all ${
+                        streamingState.isStreaming
+                          ? 'opacity-40 cursor-not-allowed border-transparent'
+                          : multimodalEnabled
+                            ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/15 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/25'
+                            : 'border-transparent hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)]'
+                      }`}
+                      aria-label={multimodalEnabled ? '关闭多模态' : '开启多模态'}
+                      aria-pressed={multimodalEnabled}
+                    >
+                      <div className='flex h-4 w-4 shrink-0 items-center justify-center'>
+                        <motion.div
+                          animate={{ rotate: multimodalEnabled ? 180 : 0, scale: multimodalEnabled ? 1.1 : 1 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+                          whileHover={{ rotate: multimodalEnabled ? 180 : 15, scale: 1.1, transition: { type: 'spring', stiffness: 300, damping: 10 } }}
+                        >
+                          <Orbit className='h-4 w-4' />
+                        </motion.div>
+                      </div>
+                      <AnimatePresence>
+                        {multimodalEnabled && (
+                          <motion.span
+                            initial={{ width: 0, opacity: 0 }}
+                            animate={{ width: 'auto', opacity: 1 }}
+                            exit={{ width: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className='shrink-0 overflow-hidden whitespace-nowrap text-xs font-semibold'
+                          >
+                            多模态
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                    <span className='tooltip-content'>
+                      {multimodalEnabled ? '已开启多模态' : '开启多模态'}
                     </span>
                   </div>
                 </div>

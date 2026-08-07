@@ -2,6 +2,8 @@ package com.example.app.pipeline.context;
 
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.dto.MultimodalArtifact;
+import com.example.app.dto.MultimodalPlanStep;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
 import com.example.app.util.JsonUtils;
@@ -52,6 +54,11 @@ public class ConversationContext {
     private String language;
     private String searchContext;
     private WebSearchResult rawSearchResult;
+
+    // ── Multimodal ────────────────────────────────────────────────
+    private boolean multimodal;
+    private List<MultimodalPlanStep> multimodalPlan;
+    private List<MultimodalArtifact> artifacts;
 
     // ── Assembly state ─────────────────────────────────────────────
     private List<ChatMessage> assembledMessages;
