@@ -256,9 +256,9 @@ export function MemoryPanel() {
           </button>
         </div>
       ) : (
-        <div className='w-full bg-[var(--bg-card)] rounded-xl border border-[var(--border-secondary)] overflow-hidden'>
-          {/* 记忆列表 */}
-          <div className='w-full divide-y divide-[var(--border-secondary)]'>
+        <div className='w-full bg-[var(--bg-card)] rounded-xl border border-[var(--border-secondary)] flex flex-col max-h-[500px]'>
+          {/* 记忆列表 - 可滚动区域 */}
+          <div className='w-full divide-y divide-[var(--border-secondary)] flex-1 min-h-0 overflow-y-auto'>
             {filteredMemories.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center w-full">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--bg-input)] flex items-center justify-center mb-3">
@@ -302,11 +302,6 @@ export function MemoryPanel() {
                       ) : selectedMemories.length > 0 ? (
                         <div className='w-4 h-4 rounded-md border border-[var(--border-primary)]' />
                       ) : null}
-                    </div>
-
-                    {/* 类型图标 */}
-                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0`}>
-                      <TypeIcon className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-white' />
                     </div>
 
                     {/* 内容区域 */}
