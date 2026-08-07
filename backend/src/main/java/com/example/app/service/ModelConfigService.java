@@ -205,7 +205,7 @@ public class ModelConfigService {
     @Transactional(readOnly = true)
     public ModelConfig getConfigByModelId(String modelId) {
         return modelConfigRepository.findByEnabledTrue().stream()
-                .filter(config -> modelId.startsWith(config.getName() + ":"))
+                .filter(config -> modelId.equals(config.getName() + ":" + config.getModelId()))
                 .findFirst()
                 .orElse(null);
     }

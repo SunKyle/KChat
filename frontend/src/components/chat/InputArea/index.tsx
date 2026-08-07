@@ -26,6 +26,7 @@ import {
 } from '../../../api'
 import { useWebSearch } from '../../../hooks/useWebSearch'
 import { useToast } from '../../../hooks/useToast'
+import { toAccessibleImageUrl } from '../../../utils/imageUrl'
 
 export function InputArea() {
   const [input, setInput] = useState('')
@@ -281,7 +282,7 @@ export function InputArea() {
                     </span>
                   )}
                   <img
-                    src={imageUrl}
+                    src={toAccessibleImageUrl(imageUrl)}
                     alt={`Uploaded ${index + 1}`}
                     loading='lazy'
                     className='w-full h-full object-cover'

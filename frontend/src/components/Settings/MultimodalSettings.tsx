@@ -78,24 +78,32 @@ export function MultimodalSettings() {
         </p>
 
         <div className='space-y-5'>
-          {FIELD_OPTIONS.map(({ key, label, hint, capabilities }) => (
-            <div key={key}>
-              <label className='block font-semibold text-sm mb-1.5'>{label}</label>
-              <select
-                value={config[key] || ''}
-                onChange={(e) => updateField(key, e.target.value)}
-                className='w-full px-3 py-2 rounded-lg border theme-border-primary theme-bg-card theme-text-primary focus:outline-none focus:border-[var(--brand-primary)]'
-              >
-                <option value=''>自动选择</option>
-                {filteredOptions(capabilities).map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
-              <p className='text-xs theme-text-muted mt-1.5'>{hint}</p>
-            </div>
-          ))}
+          {FIELD_OPTIONS.map(({ key, label, hint, capabilities }) => {
+            const options = filteredOptions(capabilities)
+            return (
+              <div key={key}>
+                <label className='block font-semibold text-sm mb-1.5'>{label}</label>
+                <select
+                  value={config[key] || ''}
+                  onChange={(e) => updateField(key, e.target.value)}
+                  className='w-full px-3 py-2 rounded-lg border theme-border-primary theme-bg-card theme-text-primary focus:outline-none focus:border-[var(--brand-primary)]'
+                >
+                  <option value=''>自动选择</option>
+                  {options.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+                <p className='text-xs theme-text-muted mt-1.5'>{hint}</p>
+                {options.length === 0 && (
+                  <p className='text-xs mt-1' style={{ color: '#d97706' }}>
+                    暂无支持该能力的模型，图片理解功能将不可用，请先在模型管理中配置。
+                  </p>
+                )}
+              </div>
+            )
+          })}
 
           <div>
             <label className='block font-semibold text-sm mb-1.5'>最大执行步骤数</label>

@@ -22,3 +22,6 @@ dist/
 
 # Backend uploads
 backend/uploads/
+
+# Downloaded model artifacts (regenerated on demand)
+backend/models/

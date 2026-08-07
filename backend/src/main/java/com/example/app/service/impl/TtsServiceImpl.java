@@ -28,6 +28,7 @@ public class TtsServiceImpl implements TtsService {
 
     @Override
     public TtsResult speak(String text, String spkId, String userId) {
+        checkEnabled();
         validateText(text);
 
         // 如果未指定 spkId，使用默认配置
@@ -74,6 +75,7 @@ public class TtsServiceImpl implements TtsService {
 
     @Override
     public SseEmitter speakStream(String text, String spkId, String userId) {
+        checkEnabled();
         validateText(text);
 
         String targetSpkId = spkId;
@@ -109,6 +111,7 @@ public class TtsServiceImpl implements TtsService {
 
     @Override
     public TtsResult preview(String text, String promptText, byte[] promptWav, String userId) {
+        checkEnabled();
         validateText(text);
 
         if (promptWav == null || promptWav.length == 0) {
@@ -134,6 +137,7 @@ public class TtsServiceImpl implements TtsService {
     @Override
     @Transactional
     public SpeakerVo registerSpeaker(String name, String promptText, byte[] promptWav, String userId) {
+        checkEnabled();
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("音色名称不能为空");
         }
@@ -167,6 +171,7 @@ public class TtsServiceImpl implements TtsService {
     @Override
     @Transactional(readOnly = true)
     public List<SpeakerVo> listSpeakers(String userId) {
+        checkEnabled();
         List<TtsSpeaker> speakers = speakerRepository.findByOwnerUserId(userId);
         return speakers.stream()
                 .map(this::convertToVo)
@@ -176,6 +181,7 @@ public class TtsServiceImpl implements TtsService {
     @Override
     @Transactional
     public void deleteSpeaker(String spkId, String userId) {
+        checkEnabled();
         TtsSpeaker speaker = speakerRepository.findById(spkId)
                 .orElseThrow(() -> new IllegalArgumentException("音色不存在: " + spkId));
 
@@ -197,7 +203,16 @@ public class TtsServiceImpl implements TtsService {
 
     @Override
     public CosyVoiceHealth health() {
+        if (!config.isEnabled()) {
+            return CosyVoiceHealth.builder().status("disabled").build();
+        }
         return cosyVoiceClient.getHealth();
+    }
+
+    private void checkEnabled() {
+        if (!config.isEnabled()) {
+            throw new IllegalStateException("CosyVoice 已关闭");
+        }
     }
 
     private void validateText(String text) {

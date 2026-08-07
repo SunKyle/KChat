@@ -44,6 +44,7 @@ ollama:
 
 # ==================== CosyVoice TTS 语音合成配置 ====================
 cosyvoice:
+  enabled: false # 是否启用 CosyVoice TTS 服务（当前已关闭）
   base-url: http://127.0.0.1:50000 # CosyVoice FastAPI 服务地址
   default-mode: zero-shot # 默认合成模式: sft | zero-shot | cross-lingual | instruct2
   default-spk-id: 'my_voice' # 默认朗读音色 ID（需在 CosyVoice 侧已注册）
@@ -101,6 +102,7 @@ memory:
     min-importance: 3 # 重要性低于 3 的记忆不召回
     similarity-threshold: 0.3 # 相似度阈值，低于 0.3 视为不相关
     vector-dimension: 384 # 嵌入向量维度（all-MiniLM-L6-v2 = 384）
+    embedding-model: locusai/all-minilm-l6-v2 # Ollama 嵌入模型，用于本地嵌入模型加载失败时降级
   # 记忆提取器（从对话中自动提取关键信息）
   extractor:
     enabled: true # 是否启用自动记忆提取

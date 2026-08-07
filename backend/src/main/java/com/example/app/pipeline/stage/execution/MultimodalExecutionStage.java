@@ -14,6 +14,7 @@ import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.ModelConfigService;
 import com.example.app.service.MultimodalConfigService;
 import com.example.app.util.JsonUtils;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -78,14 +79,24 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         }
 
         StringBuilder response = new StringBuilder();
+        StringBuilder visionSummary = new StringBuilder();
         List<MultimodalArtifact> artifacts = new ArrayList<>();
 
         for (MultimodalPlanStep step : steps) {
             try {
                 switch (step.type() == null ? "" : step.type()) {
-                    case "vision" -> response.append(runVision(ctx, step, config)).append("\n\n");
+                    case "vision" -> {
+                        String visionText = runVision(ctx, step, config);
+                        response.append(visionText).append("\n\n");
+                        if (!visionText.isBlank()) {
+                            visionSummary.append(visionText).append("\n");
+                        }
+                    }
                     case "image_gen" -> runImageGen(ctx, step, response, artifacts, config);
-                    default -> response.append(runText(ctx, step, config)).append("\n\n");
+                    default -> {
+                        MultimodalPlanStep textStep = withVisionContext(step, visionSummary, ctx);
+                        response.append(runText(ctx, textStep, config)).append("\n\n");
+                    }
                 }
             } catch (Exception e) {
                 log.warn("[MultimodalExecution] step {} failed: {}", step.type(), e.getMessage());
@@ -142,14 +153,20 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         }
 
         StringBuilder response = new StringBuilder();
+        StringBuilder visionSummary = new StringBuilder();
         List<MultimodalArtifact> artifacts = new ArrayList<>();
 
         for (MultimodalPlanStep step : steps) {
             try {
                 switch (step.type() == null ? "" : step.type()) {
-                    case "vision" -> streamVision(ctx, step, response, config);
+                    case "vision" -> {
+                        String visionText = streamVision(ctx, step, response, config);
+                        if (!visionText.isBlank()) {
+                            visionSummary.append(visionText).append("\n");
+                        }
+                    }
                     case "image_gen" -> streamImageGen(ctx, step, response, artifacts, config);
-                    default -> streamText(ctx, step, response, config);
+                    default -> streamText(ctx, withVisionContext(step, visionSummary, ctx), response, config);
                 }
             } catch (Exception e) {
                 log.warn("[MultimodalExecution] step {} failed: {}", step.type(), e.getMessage());
@@ -160,34 +177,52 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         ctx.setArtifacts(artifacts);
     }
 
-    private void streamVision(ConversationContext ctx, MultimodalPlanStep step,
+    private String streamVision(ConversationContext ctx, MultimodalPlanStep step,
             StringBuilder response, MultimodalConfigDTO config) throws Exception {
         String prompt = step.prompt() != null ? step.prompt() : ctx.getUserMessage();
+        List<ChatMessage> messages = buildStepMessages(ctx, prompt);
         String model = resolveModel(
                 firstNonBlank(config.getVisionModel(), properties.getVisionModel()),
                 ModelCapability.IMAGE_IN);
+        if (model == null) {
+            model = findOllamaVisionModel();
+        }
         List<String> images = ctx.getImageUrls();
         if (images == null || images.isEmpty()) {
-            return;
+            return "";
+        }
+        promptLog.info("[MultimodalExecution] Vision model={}, images={}", model, images.size());
+
+        if (model == null) {
+            String message = "未配置图片理解（Vision）模型，无法分析上传的图片";
+            log.warn("[MultimodalExecution] {}", message);
+            appendResponse(ctx, response, "【系统提示】" + message);
+            return message;
         }
 
         ModelConfig modelConfig = model != null ? modelConfigService.getConfigByModelId(model) : null;
         if (modelConfig != null) {
             String text = openAICompatibleClient.chatCompletionWithImages(
                     extractModelId(model, modelConfig), modelConfig.getBaseUrl(), modelConfig.getApiKey(),
-                    null, prompt, images);
+                    messages, images);
             appendResponse(ctx, response, text);
-            return;
+            return text;
         }
 
+        StringBuilder collected = new StringBuilder();
         ollamaClient.streamGenerateWithImages(
-                List.of(UserMessage.from(prompt)), images,
-                chunk -> appendResponse(ctx, response, chunk), model);
+                messages, images,
+                chunk -> {
+                    collected.append(chunk);
+                    appendResponse(ctx, response, chunk);
+                }, model);
+        return collected.toString();
     }
 
     private void streamText(ConversationContext ctx, MultimodalPlanStep step,
             StringBuilder response, MultimodalConfigDTO config) throws Exception {
         String text = step.text() != null ? step.text() : ctx.getUserMessage();
+        List<ChatMessage> messages = buildStepMessages(ctx, text);
         String model = firstNonBlank(config.getTextModel(), properties.getTextModel());
         if (model == null || model.isBlank()) {
             model = modelConfigService.findDefaultTextModelId();
@@ -195,7 +230,7 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
 
         if (model == null) {
             ollamaClient.streamGenerate(
-                    List.of(UserMessage.from(text)),
+                    messages,
                     chunk -> appendResponse(ctx, response, chunk), null);
             return;
         }
@@ -204,13 +239,13 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         if (modelConfig != null) {
             String textResponse = openAICompatibleClient.chatCompletion(
                     extractModelId(model, modelConfig), modelConfig.getBaseUrl(), modelConfig.getApiKey(),
-                    null, text);
+                    messages);
             appendResponse(ctx, response, textResponse);
             return;
         }
 
         ollamaClient.streamGenerate(
-                List.of(UserMessage.from(text)),
+                messages,
                 chunk -> appendResponse(ctx, response, chunk), model);
     }
 
@@ -251,17 +286,23 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
     private String runVision(ConversationContext ctx, MultimodalPlanStep step,
             MultimodalConfigDTO config) throws Exception {
         String prompt = step.prompt() != null ? step.prompt() : ctx.getUserMessage();
+        List<ChatMessage> messages = buildStepMessages(ctx, prompt);
         String model = resolveModel(
                 firstNonBlank(config.getVisionModel(), properties.getVisionModel()),
                 ModelCapability.IMAGE_IN);
+        if (model == null) {
+            model = findOllamaVisionModel();
+        }
         List<String> images = ctx.getImageUrls();
         if (images == null || images.isEmpty()) {
             return "";
         }
+        promptLog.info("[MultimodalExecution] Vision model={}, images={}", model, images.size());
 
         if (model == null) {
-            return ollamaClient.generateWithImages(
-                    List.of(UserMessage.from(prompt)), images, null);
+            String message = "未配置图片理解（Vision）模型，无法分析上传的图片";
+            log.warn("[MultimodalExecution] {}", message);
+            return "【系统提示】" + message;
         }
 
         ModelConfig modelConfig = modelConfigService.getConfigByModelId(model);
@@ -269,30 +310,62 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
             String actualModelId = extractModelId(model, modelConfig);
             return openAICompatibleClient.chatCompletionWithImages(
                     actualModelId, modelConfig.getBaseUrl(), modelConfig.getApiKey(),
-                    null, prompt, images);
+                    messages, images);
         }
         return ollamaClient.generateWithImages(
-                List.of(UserMessage.from(prompt)), images, model);
+                messages, images, model);
     }
 
     private String runText(ConversationContext ctx, MultimodalPlanStep step,
             MultimodalConfigDTO config) throws Exception {
         String text = step.text() != null ? step.text() : ctx.getUserMessage();
+        List<ChatMessage> messages = buildStepMessages(ctx, text);
         String model = firstNonBlank(config.getTextModel(), properties.getTextModel());
         if (model == null || model.isBlank()) {
             model = modelConfigService.findDefaultTextModelId();
         }
         if (model == null) {
-            return ollamaClient.generate(List.of(UserMessage.from(text)), null);
+            return ollamaClient.generate(messages, null);
         }
 
         ModelConfig modelConfig = modelConfigService.getConfigByModelId(model);
         if (modelConfig != null) {
             return openAICompatibleClient.chatCompletion(
                     extractModelId(model, modelConfig), modelConfig.getBaseUrl(), modelConfig.getApiKey(),
-                    null, text);
+                    messages);
         }
-        return ollamaClient.generate(List.of(UserMessage.from(text)), model);
+        return ollamaClient.generate(messages, model);
+    }
+
+    private List<ChatMessage> buildStepMessages(ConversationContext ctx, String stepText) {
+        String content = stepText != null && !stepText.isBlank() ? stepText : ctx.getUserMessage();
+        List<ChatMessage> messages = ctx.getAssembledMessages() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(ctx.getAssembledMessages());
+
+        if (content == null) {
+            return messages;
+        }
+
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof UserMessage) {
+                messages.set(i, UserMessage.from(content));
+                return messages;
+            }
+        }
+        messages.add(UserMessage.from(content));
+        return messages;
+    }
+
+    private MultimodalPlanStep withVisionContext(MultimodalPlanStep step,
+            StringBuilder visionSummary, ConversationContext ctx) {
+        if (visionSummary.length() == 0) {
+            return step;
+        }
+        String text = step.text() != null ? step.text() : ctx.getUserMessage();
+        String augmented = "[图片内容]\n" + visionSummary.toString().trim()
+                + "\n\n用户问题：\n" + text;
+        return new MultimodalPlanStep("text", null, augmented, null);
     }
 
     private void runImageGen(ConversationContext ctx, MultimodalPlanStep step,
@@ -326,6 +399,27 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         }
         ModelConfig config = modelConfigService.findFirstModelWithCapability(capability);
         return config != null ? config.getName() + ":" + config.getModelId() : null;
+    }
+
+    private String findOllamaVisionModel() {
+        try {
+            return ollamaClient.listModels().stream()
+                    .filter(name -> {
+                        String lower = name.toLowerCase();
+                        return lower.contains("llava")
+                                || lower.contains("vision")
+                                || lower.contains("minicpm")
+                                || lower.contains("moondream")
+                                || lower.contains("qwen2.5-vl")
+                                || lower.contains("qwen2-vl")
+                                || lower.contains("gemma3");
+                    })
+                    .findFirst()
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("[MultimodalExecution] Failed to discover Ollama vision model: {}", e.getMessage());
+            return null;
+        }
     }
 
     private String extractModelId(String fullModelId, ModelConfig config) {

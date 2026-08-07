@@ -1,5 +1,6 @@
 package com.example.app.config;
 
+import com.example.app.client.OllamaClient;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
@@ -13,6 +14,7 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +26,10 @@ import java.util.List;
 
 @Configuration
 @Slf4j
+@RequiredArgsConstructor
 public class VectorStoreConfig {
+
+    private final OllamaClient ollamaClient;
 
     @Value("${memory.long-term.vector-dimension:384}")
     private int vectorDimension;
@@ -38,6 +43,8 @@ public class VectorStoreConfig {
     private ZooModel<NDList, NDList> embeddingModel;
     private HuggingFaceTokenizer tokenizer;
     private NDManager ndManager;
+    private volatile boolean ollamaEmbeddingUnavailable = false;
+    private volatile long lastOllamaEmbeddingAttempt = 0L;
 
     @Bean
     public EmbeddingModel embeddingModel() {
@@ -62,7 +69,8 @@ public class VectorStoreConfig {
 
             log.info("Embedding model loaded (dimension={})", vectorDimension);
         } catch (Exception e) {
-            log.error("Failed to load embedding model, falling back to hash-based (non-semantic): {}", e.getMessage());
+            log.warn("Failed to load local embedding model, will try Ollama embeddings: {}",
+                    e.getMessage());
             return createFallbackEmbeddingModel();
         }
 
@@ -123,11 +131,11 @@ public class VectorStoreConfig {
     }
 
     private EmbeddingModel createFallbackEmbeddingModel() {
-        log.warn("Using hash-based fallback embeddings — semantic recall will NOT work");
+        log.warn("Using Ollama/hash fallback embeddings; install one with: ollama pull locusai/all-minilm-l6-v2");
         return new EmbeddingModel() {
             @Override
             public Response<Embedding> embed(String text) {
-                return fallbackEmbed(text);
+                return ollamaEmbedOrFallback(text);
             }
             @Override
             public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
@@ -136,6 +144,29 @@ public class VectorStoreConfig {
                 return Response.from(results);
             }
         };
+    }
+
+    private Response<Embedding> ollamaEmbedOrFallback(String text) {
+        long now = System.currentTimeMillis();
+        if (!ollamaEmbeddingUnavailable || now - lastOllamaEmbeddingAttempt >= 60_000L) {
+            try {
+                float[] vector = ollamaClient.embed(text);
+                if (vector.length > 0) {
+                    if (vector.length != vectorDimension) {
+                        log.warn("Ollama embedding dimension {} does not match configured {}, using hash fallback",
+                                vector.length, vectorDimension);
+                    } else {
+                        ollamaEmbeddingUnavailable = false;
+                        return Response.from(new Embedding(vector));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Ollama embedding failed, using hash fallback: {}", e.getMessage());
+            }
+            ollamaEmbeddingUnavailable = true;
+            lastOllamaEmbeddingAttempt = now;
+        }
+        return fallbackEmbed(text);
     }
 
     private Response<Embedding> fallbackEmbed(String text) {

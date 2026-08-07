@@ -5,17 +5,22 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.MultimodalProperties;
 import com.example.app.dto.MultimodalPlan;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 class MultimodalPlannerServiceTest {
 
@@ -55,5 +60,26 @@ class MultimodalPlannerServiceTest {
 
         assertNotNull(plan);
         assertTrue(plan.steps().stream().anyMatch(step -> "vision".equals(step.type())));
+    }
+
+    @Test
+    void includesConversationHistoryInPlannerPrompt() {
+        List<ChatMessage> history = List.of(
+                UserMessage.from("上一轮问题"),
+                AiMessage.from("上一轮回答"));
+        String planJson = """
+                {"steps":[{"type":"text","prompt":null,"text":"回答当前问题","targetImage":null}]}
+                """.trim();
+        reset(ollamaClient);
+        when(ollamaClient.generate(anyList(), nullable(String.class))).thenReturn(planJson);
+
+        MultimodalPlan plan = service.plan("当前问题", List.of(), null, history);
+
+        assertNotNull(plan);
+        ArgumentCaptor<List<ChatMessage>> captor = ArgumentCaptor.forClass(List.class);
+        verify(ollamaClient).generate(captor.capture(), nullable(String.class));
+        String prompt = ((UserMessage) captor.getValue().get(0)).text();
+        assertTrue(prompt.contains("上一轮问题"));
+        assertTrue(prompt.contains("上一轮回答"));
     }
 }

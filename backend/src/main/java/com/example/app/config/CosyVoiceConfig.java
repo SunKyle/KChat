@@ -13,6 +13,11 @@ import org.springframework.context.annotation.Configuration;
 public class CosyVoiceConfig {
 
     /**
+     * 是否启用 CosyVoice TTS 服务
+     */
+    private boolean enabled = true;
+
+    /**
      * CosyVoice FastAPI 服务地址
      */
     private String baseUrl = "http://127.0.0.1:50000";

@@ -85,6 +85,7 @@ export interface ModelConfig {
   apiKey: string
   type: ProviderType
   category: ModelCategory
+  capabilities?: string[] | string
   enabled: boolean
   createdAt?: string
 }

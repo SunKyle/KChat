@@ -35,7 +35,8 @@ public class MultimodalPlannerStage implements ContextPipelineStage {
     public void execute(ConversationContext ctx) {
         MultimodalConfigDTO config = multimodalConfigService.getByUserId(ctx.getUserId());
         MultimodalPlan plan = plannerService.plan(
-                ctx.getUserMessage(), ctx.getImageUrls(), config.getPlannerModel());
+                ctx.getUserMessage(), ctx.getImageUrls(), config.getPlannerModel(),
+                ctx.getShortTermMemory());
         ctx.setMultimodalPlan(plan.steps());
         promptLog.info("║  [MultimodalPlanner] Plan: {}", JsonUtils.toJson(plan));
     }

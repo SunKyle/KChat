@@ -415,37 +415,32 @@ public class OpenAICompatibleClient {
             String systemPrompt,
             String userContent,
             List<String> imageUrls) throws IOException {
+        List<ChatMessage> messages = new java.util.ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            messages.add(SystemMessage.from(systemPrompt));
+        }
+        messages.add(UserMessage.from(userContent));
+        return chatCompletionWithImages(modelId, baseUrl, apiKey, messages, imageUrls);
+    }
+
+    /**
+     * 同步多模态对话（完整历史）：保留 system/assistant/user 历史，
+     * 并把图片以 content 数组形式附加到最后一条 user 消息。
+     */
+    public String chatCompletionWithImages(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            List<ChatMessage> messages,
+            List<String> imageUrls) throws IOException {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(3, TimeUnit.MINUTES)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
 
-        ArrayNode messagesArray = objectMapper.createArrayNode();
-        if (systemPrompt != null && !systemPrompt.isBlank()) {
-            ObjectNode systemNode = objectMapper.createObjectNode();
-            systemNode.put("role", "system");
-            systemNode.put("content", systemPrompt);
-            messagesArray.add(systemNode);
-        }
-
-        ObjectNode userNode = objectMapper.createObjectNode();
-        userNode.put("role", "user");
-        ArrayNode content = objectMapper.createArrayNode();
-        content.addObject().put("type", "text").put("text", userContent);
-        if (imageUrls != null) {
-            for (String imageUrl : imageUrls) {
-                String dataUri = fetchImageAsBase64(imageUrl);
-                if (dataUri == null) {
-                    continue;
-                }
-                ObjectNode imagePart = content.addObject();
-                imagePart.put("type", "image_url");
-                imagePart.putObject("image_url").put("url", dataUri);
-            }
-        }
-        userNode.set("content", content);
-        messagesArray.add(userNode);
+        ArrayNode messagesArray = buildMessagesArray(messages);
+        attachImagesAsContent(messagesArray, imageUrls);
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("model", modelId);
@@ -579,18 +574,7 @@ public class OpenAICompatibleClient {
             ArrayNode messagesArray = buildMessagesArray(messages);
 
             if (imageUrls != null && !imageUrls.isEmpty()) {
-                for (int i = messagesArray.size() - 1; i >= 0; i--) {
-                    JsonNode msg = messagesArray.get(i);
-                    if ("user".equals(msg.get("role").asText())) {
-                        StringBuilder sb = new StringBuilder(msg.get("content").asText());
-                        sb.append("\n\n[用户上传的图片]");
-                        for (int j = 0; j < imageUrls.size(); j++) {
-                            sb.append("\n- 图片 ").append(j + 1).append(": ").append(imageUrls.get(j));
-                        }
-                        ((ObjectNode) msg).put("content", sb.toString());
-                        break;
-                    }
-                }
+                attachImagesAsContent(messagesArray, imageUrls);
             }
 
             ObjectNode requestBody = objectMapper.createObjectNode();
@@ -908,6 +892,51 @@ public class OpenAICompatibleClient {
         } catch (Exception e) {
             log.error("Failed to fetch image for img2img: {}", imageUrl, e);
             return null;
+        }
+    }
+
+    /**
+     * 把图片以 base64 content 数组附加到最后一条 user 消息。
+     * 不再把 localhost URL 文本直接发给模型。
+     */
+    private void attachImagesAsContent(ArrayNode messagesArray, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+        ObjectNode userNode = null;
+        for (int i = messagesArray.size() - 1; i >= 0; i--) {
+            ObjectNode node = (ObjectNode) messagesArray.get(i);
+            if ("user".equals(node.path("role").asText())) {
+                userNode = node;
+                break;
+            }
+        }
+
+        if (userNode == null) {
+            userNode = objectMapper.createObjectNode();
+            userNode.put("role", "user");
+            userNode.put("content", "");
+            messagesArray.add(userNode);
+        }
+
+        ArrayNode content = objectMapper.createArrayNode();
+        content.addObject().put("type", "text").put("text", userNode.path("content").asText(""));
+        int attached = 0;
+        for (String imageUrl : imageUrls) {
+            String dataUri = fetchImageAsBase64(imageUrl);
+            if (dataUri == null) {
+                continue;
+            }
+            ObjectNode imagePart = content.addObject();
+            imagePart.put("type", "image_url");
+            imagePart.putObject("image_url").put("url", dataUri);
+            attached++;
+        }
+
+        if (attached > 0) {
+            userNode.set("content", content);
+        } else {
+            log.warn("No image could be attached for model request: {}", imageUrls);
         }
     }
 

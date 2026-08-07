@@ -7,6 +7,31 @@ import { Modal } from '../common/Modal'
 import { PROVIDERS, CATEGORIES } from '../../types'
 import { Button } from '../ui/Button'
 
+const INPUT_CAPABILITIES = [
+  { value: 'TEXT_IN', label: '文本输入' },
+  { value: 'IMAGE_IN', label: '图片输入' },
+  { value: 'AUDIO_IN', label: '音频输入' },
+  { value: 'VIDEO_IN', label: '视频输入' },
+] as const
+
+const OUTPUT_CAPABILITIES = [
+  { value: 'TEXT_OUT', label: '文本输出' },
+  { value: 'IMAGE_OUT', label: '图片输出' },
+  { value: 'AUDIO_OUT', label: '音频输出' },
+  { value: 'VIDEO_OUT', label: '视频输出' },
+] as const
+
+function parseCapabilities(value?: string[] | string): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export function ModelSettings() {
   const { refreshModels } = useChat()
   const [configs, setConfigs] = useState<ModelConfig[]>([])
@@ -26,6 +51,7 @@ export function ModelSettings() {
     apiKey: '',
     type: 'OPENAI' as ProviderType,
     category: 'TEXT' as ModelCategory,
+    capabilities: [] as string[],
     enabled: true,
   })
 
@@ -55,6 +81,7 @@ export function ModelSettings() {
       apiKey: '',
       type: defaultProvider.type,
       category: 'TEXT',
+      capabilities: [],
       enabled: true,
     })
     setSelectedProvider(defaultProvider.type)
@@ -71,6 +98,7 @@ export function ModelSettings() {
       apiKey: '',
       type: config.type,
       category: config.category || 'TEXT',
+      capabilities: parseCapabilities(config.capabilities),
       enabled: config.enabled,
     })
     setSelectedProvider(config.type)
@@ -101,6 +129,7 @@ export function ModelSettings() {
       const newEnabled = !config.enabled
       await modelConfigs.update(config.id, {
         ...config,
+        capabilities: parseCapabilities(config.capabilities),
         enabled: newEnabled,
       })
       setConfigs((prev) =>
@@ -148,6 +177,15 @@ export function ModelSettings() {
   const handleCategoryChange = (category: ModelCategory) => {
     setSelectedCategory(category)
     setFormData((prev) => ({ ...prev, category }))
+  }
+
+  const handleCapabilityToggle = (capability: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      capabilities: prev.capabilities.includes(capability)
+        ? prev.capabilities.filter((c) => c !== capability)
+        : [...prev.capabilities, capability],
+    }))
   }
 
   const handleChange = (
@@ -426,6 +464,54 @@ export function ModelSettings() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className='rounded-xl border theme-border-primary p-3.5 space-y-3'>
+                <div>
+                  <label className='block text-sm font-semibold theme-text-secondary mb-2'>
+                    输入能力
+                  </label>
+                  <div className='grid grid-cols-2 gap-2'>
+                    {INPUT_CAPABILITIES.map((cap) => (
+                      <label
+                        key={cap.value}
+                        className='flex items-center gap-2 text-sm theme-text-primary cursor-pointer'
+                      >
+                        <input
+                          type='checkbox'
+                          checked={formData.capabilities.includes(cap.value)}
+                          onChange={() => handleCapabilityToggle(cap.value)}
+                          className='w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]/50'
+                        />
+                        {cap.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className='block text-sm font-semibold theme-text-secondary mb-2'>
+                    输出能力
+                  </label>
+                  <div className='grid grid-cols-2 gap-2'>
+                    {OUTPUT_CAPABILITIES.map((cap) => (
+                      <label
+                        key={cap.value}
+                        className='flex items-center gap-2 text-sm theme-text-primary cursor-pointer'
+                      >
+                        <input
+                          type='checkbox'
+                          checked={formData.capabilities.includes(cap.value)}
+                          onChange={() => handleCapabilityToggle(cap.value)}
+                          className='w-4 h-4 rounded border-theme-border-secondary theme-bg-input text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]/50'
+                        />
+                        {cap.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <p className='text-xs theme-text-muted/70'>
+                  分类会补全默认能力，这里用于补充或调整模型的输入输出能力。
+                </p>
               </div>
 
               <div>

@@ -16,6 +16,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -36,6 +37,9 @@ public class OllamaClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final HttpStreamingTemplate httpStreamingTemplate;
+
+    @Value("${memory.long-term.embedding-model:locusai/all-minilm-l6-v2}")
+    private String embeddingModel;
 
     private static final long MODELS_CACHE_TTL_MS = 30_000L;
     private volatile List<String> cachedOllamaModels = null;
@@ -235,6 +239,76 @@ public class OllamaClient {
             return cachedOllamaModels;
         }
         return List.of();
+    }
+
+    /**
+     * 调用 Ollama embedding 接口，返回归一化前的向量。
+     * 优先使用新版 /api/embed，失败时回退 /api/embeddings。
+     */
+    public float[] embed(String text) {
+        if (text == null || text.isBlank()) {
+            return new float[0];
+        }
+        try {
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", embeddingModel);
+            requestBody.put("input", text);
+            String response = postJson("/api/embed", requestBody.toString());
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode embeddings = root.path("embeddings");
+            if (embeddings.isArray() && embeddings.size() > 0) {
+                return toFloatArray(embeddings.get(0));
+            }
+        } catch (Exception e) {
+            log.warn("Ollama /api/embed failed, trying /api/embeddings: {}", e.getMessage());
+        }
+
+        try {
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("model", embeddingModel);
+            requestBody.put("prompt", text);
+            String response = postJson("/api/embeddings", requestBody.toString());
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode embedding = root.path("embedding");
+            if (embedding.isArray() && embedding.size() > 0) {
+                return toFloatArray(embedding);
+            }
+        } catch (Exception e) {
+            log.warn("Ollama /api/embeddings failed: {}", e.getMessage());
+        }
+        return new float[0];
+    }
+
+    private String postJson(String endpoint, String body) throws Exception {
+        URL url = new URL(ollamaConfig.getBaseUrl() + endpoint);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(30000);
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+        try (java.io.OutputStream os = connection.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            return response.toString();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private float[] toFloatArray(JsonNode node) {
+        float[] result = new float[node.size()];
+        for (int i = 0; i < node.size(); i++) {
+            result[i] = node.get(i).floatValue();
+        }
+        return result;
     }
 
     private List<String> fetchOllamaModels() {

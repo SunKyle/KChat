@@ -12,6 +12,7 @@ import { useChat } from '../../../context/ChatContext'
 import { useTts } from '../../../hooks/useTts'
 import { chat as chatApi } from '../../../api/chat'
 import { noteApi } from '../../../api/note-todo'
+import { toAccessibleImageUrl } from '../../../utils/imageUrl'
 
 interface MessageBubbleProps {
   message: Message
@@ -160,7 +161,7 @@ export const MessageBubble = memo(function MessageBubble({
                           </div>
                         )}
                         <img
-                          src={imageUrl}
+                          src={toAccessibleImageUrl(imageUrl)}
                           alt={`Image ${index + 1}`}
                           loading='lazy'
                           className={`max-h-64 object-contain rounded-lg transition-opacity ${
