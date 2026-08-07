@@ -287,9 +287,9 @@ export function Sidebar({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className='overflow-hidden'
+              className='overflow-hidden pb-1'
             >
-              <div className='flex items-center gap-2 mt-2 px-4'>
+              <div className='flex items-center gap-2 mt-2 px-4 relative z-10'>
                 <div className='relative flex-1'>
                   <Search
                     className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]'
@@ -336,7 +336,7 @@ export function Sidebar({
                   aria-label='创建新对话'
                   className='group/btn flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 active:scale-95 transition-all duration-200 flex-shrink-0'
                 >
-                  <MessageSquarePlus className='w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:rotate-90' aria-hidden='true' />
+                  <MessageSquarePlus className='w-3.5 h-3.5 transition-transform duration-200' aria-hidden='true' />
                 </button>
               </div>
             </motion.div>

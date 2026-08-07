@@ -650,7 +650,7 @@ export function InputArea() {
                               : uploading
                                 ? 'bg-[var(--accent-primary)]/80 text-white cursor-wait'
                                 : hasContent && charCount <= maxChars
-                                  ? 'bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)]/80 text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-xl hover:shadow-[var(--accent-primary)]/40 hover:scale-105 cursor-pointer'
+                                  ? 'bg-[var(--accent-primary)] text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-xl hover:shadow-[var(--accent-primary)]/40 hover:scale-105 cursor-pointer'
                                   : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                       }`}
                       aria-label={
