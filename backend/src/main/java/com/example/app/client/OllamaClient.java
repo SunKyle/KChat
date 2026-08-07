@@ -37,6 +37,10 @@ public class OllamaClient {
     private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final HttpStreamingTemplate httpStreamingTemplate;
 
+    private static final long MODELS_CACHE_TTL_MS = 30_000L;
+    private volatile List<String> cachedOllamaModels = null;
+    private volatile long lastModelsFetchTime = 0L;
+
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public String generate(List<ChatMessage> messages, String model) {
@@ -215,6 +219,25 @@ public class OllamaClient {
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public List<String> listModels() {
+        long now = System.currentTimeMillis();
+        if (cachedOllamaModels != null && now - lastModelsFetchTime < MODELS_CACHE_TTL_MS) {
+            return cachedOllamaModels;
+        }
+
+        List<String> models = fetchOllamaModels();
+        if (!models.isEmpty()) {
+            cachedOllamaModels = models;
+            lastModelsFetchTime = now;
+            return models;
+        }
+        if (cachedOllamaModels != null) {
+            lastModelsFetchTime = now;
+            return cachedOllamaModels;
+        }
+        return List.of();
+    }
+
+    private List<String> fetchOllamaModels() {
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/tags");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -242,13 +265,15 @@ public class OllamaClient {
             }
             connection.disconnect();
         } catch (Exception e) {
-            log.error("Failed to fetch models: {}", e.getMessage());
+            log.warn("Failed to fetch Ollama models: {}", e.getMessage());
         }
         return List.of();
     }
 
     public void clearModelCache() {
         modelCache.clear();
+        cachedOllamaModels = null;
+        lastModelsFetchTime = 0L;
         log.info("Model cache cleared");
     }
 

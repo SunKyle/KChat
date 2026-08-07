@@ -3,6 +3,7 @@ package com.example.app.service;
 import com.example.app.client.OllamaClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.dto.ModelConfigDTO;
+import com.example.app.dto.ModelCapabilityInfo;
 import com.example.app.entity.ModelConfig;
 import com.example.app.repository.ModelConfigRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -125,6 +126,16 @@ public class ModelConfigService {
         }
 
         return models;
+    }
+
+    /**
+     * 返回所有模型及其输入/输出能力，供前端按能力筛选。
+     */
+    @Transactional(readOnly = true)
+    public List<ModelCapabilityInfo> listModelsWithCapabilities() {
+        return listModels(null).stream()
+                .map(model -> new ModelCapabilityInfo(model, getCapabilities(model)))
+                .toList();
     }
 
     private ModelConfig.ModelType parseModelType(String type) {

@@ -4,6 +4,7 @@ import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
+import com.example.app.dto.ModelCapabilityInfo;
 import com.example.app.dto.ConversationDTO;
 import com.example.app.dto.RegenerateRequest;
 import com.example.app.dto.RegenerateResponse;
@@ -179,6 +180,11 @@ public class ChatController {
             models = modelConfigService.listModels();
         }
         return ResponseEntity.ok(models);
+    }
+
+    @GetMapping("/models/capabilities")
+    public ResponseEntity<List<ModelCapabilityInfo>> listModelsWithCapabilities() {
+        return ResponseEntity.ok(modelConfigService.listModelsWithCapabilities());
     }
 
     /**

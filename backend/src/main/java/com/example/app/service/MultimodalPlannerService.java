@@ -48,13 +48,17 @@ public class MultimodalPlannerService {
             """;
 
     public MultimodalPlan plan(String userMessage, List<String> imageUrls) {
+        return plan(userMessage, imageUrls, null);
+    }
+
+    public MultimodalPlan plan(String userMessage, List<String> imageUrls, String configuredPlannerModel) {
         int imageCount = imageUrls == null ? 0 : imageUrls.size();
         try {
             String prompt = PLANNER_PROMPT
                     .replace("{message}", userMessage == null ? "" : userMessage)
                     .replace("{image_count}", String.valueOf(imageCount))
                     .replace("{max_steps}", String.valueOf(properties.getMaxSteps()));
-            String response = callPlanner(prompt);
+            String response = callPlanner(prompt, configuredPlannerModel);
             MultimodalPlan plan = objectMapper.readValue(response, MultimodalPlan.class);
             if (plan != null && plan.steps() != null && !plan.steps().isEmpty()) {
                 return plan;
@@ -65,8 +69,10 @@ public class MultimodalPlannerService {
         return fallbackPlan(userMessage, imageUrls);
     }
 
-    private String callPlanner(String prompt) {
-        String model = properties.getPlannerModel();
+    private String callPlanner(String prompt, String configuredPlannerModel) {
+        String model = configuredPlannerModel != null && !configuredPlannerModel.isBlank()
+                ? configuredPlannerModel
+                : properties.getPlannerModel();
         if (model == null || model.isBlank()) {
             model = modelConfigService.findDefaultTextModelId();
         }

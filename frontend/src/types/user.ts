@@ -72,3 +72,12 @@ export interface CreateAPIKeyRequest {
   name: string
   scopes: string[]
 }
+
+export interface MultimodalConfig {
+  userId: string
+  plannerModel?: string
+  visionModel?: string
+  imageModel?: string
+  textModel?: string
+  maxSteps: number
+}

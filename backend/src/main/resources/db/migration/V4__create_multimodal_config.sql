@@ -1,0 +1,12 @@
+-- 多模态模型配置表
+CREATE TABLE IF NOT EXISTS multimodal_config (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL UNIQUE,
+    planner_model VARCHAR(255),
+    vision_model VARCHAR(255),
+    image_model VARCHAR(255),
+    text_model VARCHAR(255),
+    max_steps INTEGER NOT NULL DEFAULT 5,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

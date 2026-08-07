@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory'
+export type SettingsTab = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory' | 'multimodal'
 
 export function useSettings() {
   const [showSettings, setShowSettings] = useState(false)

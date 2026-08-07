@@ -24,6 +24,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update # 启动时自动更新表结构（开发环境，生产建议改为 validate）
+    open-in-view: false # 关闭 OSIV，避免请求期间持有数据库连接
     show-sql: false
     properties:
       hibernate:

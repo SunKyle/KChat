@@ -1,8 +1,10 @@
 package com.example.app.pipeline.stage.preprocess;
 
 import com.example.app.dto.MultimodalPlan;
+import com.example.app.dto.MultimodalConfigDTO;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
+import com.example.app.service.MultimodalConfigService;
 import com.example.app.service.MultimodalPlannerService;
 import com.example.app.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class MultimodalPlannerStage implements ContextPipelineStage {
             org.slf4j.LoggerFactory.getLogger("PROMPT_LOG");
 
     private final MultimodalPlannerService plannerService;
+    private final MultimodalConfigService multimodalConfigService;
 
     @Override
     public Phase getPhase() {
@@ -30,7 +33,9 @@ public class MultimodalPlannerStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        MultimodalPlan plan = plannerService.plan(ctx.getUserMessage(), ctx.getImageUrls());
+        MultimodalConfigDTO config = multimodalConfigService.getByUserId(ctx.getUserId());
+        MultimodalPlan plan = plannerService.plan(
+                ctx.getUserMessage(), ctx.getImageUrls(), config.getPlannerModel());
         ctx.setMultimodalPlan(plan.steps());
         promptLog.info("║  [MultimodalPlanner] Plan: {}", JsonUtils.toJson(plan));
     }

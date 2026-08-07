@@ -6,6 +6,10 @@ export const models = {
     const params = category ? `?category=${category}` : ''
     return request(`/models${params}`)
   },
+
+  capabilities: async (): Promise<Array<{ model: string; capabilities: string[] }>> => {
+    return request('/models/capabilities')
+  },
 }
 
 export const modelConfigs = {
