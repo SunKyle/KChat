@@ -34,7 +34,9 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             Map.entry("ru", "Русский"));
 
     @Override
-    public Phase getPhase() { return Phase.ASSEMBLY; }
+    public Phase getPhase() {
+        return Phase.ASSEMBLY;
+    }
 
     public String getName() {
         return "systemPromptAssemblyStage";
@@ -45,7 +47,8 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         String languageClause = buildLanguageClause(ctx.getLanguage());
         String memoryText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY, "");
         String searchText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_SEARCH, "");
-        String userProfileText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_USER_PROFILE, "");
+        String userProfileText = (String) ctx.getAgentState()
+                .getOrDefault(ConversationContext.KEY_FORMATTED_USER_PROFILE, "");
 
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);

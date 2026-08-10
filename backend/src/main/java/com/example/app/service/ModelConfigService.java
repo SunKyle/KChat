@@ -214,6 +214,20 @@ public class ModelConfigService {
     }
 
     /**
+     * 按 modelId 查找配置，同时校验是否具备指定能力。
+     * 用于 Tool 调用时用户显式指定模型的场景，确保所选模型能执行该任务。
+     */
+    @Transactional(readOnly = true)
+    public ModelConfig getConfigWithCapability(String modelId, String capability) {
+        ModelConfig config = getConfigByModelId(modelId);
+        if (config == null) {
+            return null;
+        }
+        Set<String> caps = resolveCapabilities(config);
+        return caps.contains(capability) ? config : null;
+    }
+
+    /**
      * 返回模型能力集合；Auto 模式返回全部多模态能力。
      */
     public Set<String> getCapabilities(String modelId) {

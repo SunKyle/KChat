@@ -80,6 +80,8 @@ public class OpenAICompatibleClient {
                 .connectTimeout(t.getConnectSeconds(), TimeUnit.SECONDS)
                 .readTimeout(t.getReadSeconds(), TimeUnit.SECONDS)
                 .writeTimeout(t.getWriteSeconds(), TimeUnit.SECONDS)
+                // 自动重试连接失败（如 stream was reset: CANCEL），增强网络稳定性
+                .retryOnConnectionFailure(true)
                 .build();
     }
 
@@ -413,25 +415,57 @@ public class OpenAICompatibleClient {
                 .post(body)
                 .build();
 
-        try (okhttp3.Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                String errorBody = response.body() != null ? response.body().string() : "No response body";
-                throw new RuntimeException("Image generation failed: " + response.code() + ". " + errorBody);
-            }
-            String responseBodyStr = response.body() != null ? response.body().string() : "";
-            JsonNode node = objectMapper.readTree(responseBodyStr);
-            JsonNode data = node.path("data");
-            if (data.isArray() && data.size() > 0) {
-                JsonNode firstItem = data.get(0);
-                if (firstItem.has("url")) {
-                    return firstItem.get("url").asText();
-                }
-                if (firstItem.has("b64_json")) {
-                    return "data:image/png;base64," + firstItem.get("b64_json").asText();
+        IOException lastException = null;
+        int maxRetries = 2; // 额外重试次数
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            if (attempt > 0) {
+                log.warn("[generateImageSync] Retry attempt {}/{} after connection failure", attempt, maxRetries);
+                try {
+                    Thread.sleep(1000L * attempt); // 简单退避
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Retry interrupted", ie);
                 }
             }
-            throw new RuntimeException("Failed to parse image generation response");
+            try (okhttp3.Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "No response body";
+                    throw new RuntimeException("Image generation failed: " + response.code() + ". " + errorBody);
+                }
+                String responseBodyStr = response.body() != null ? response.body().string() : "";
+                JsonNode node = objectMapper.readTree(responseBodyStr);
+                JsonNode data = node.path("data");
+                if (data.isArray() && data.size() > 0) {
+                    JsonNode firstItem = data.get(0);
+                    if (firstItem.has("url")) {
+                        return firstItem.get("url").asText();
+                    }
+                    if (firstItem.has("b64_json")) {
+                        return "data:image/png;base64," + firstItem.get("b64_json").asText();
+                    }
+                }
+                throw new RuntimeException("Failed to parse image generation response");
+            } catch (IOException e) {
+                lastException = e;
+                if (!isRetryable(e) || attempt == maxRetries) {
+                    throw e;
+                }
+            }
         }
+        throw lastException != null ? lastException : new IOException("Unknown error during image generation");
+    }
+
+    /**
+     * 判断 IOException 是否为可重试的连接/流错误
+     */
+    private boolean isRetryable(IOException e) {
+        String msg = e.getMessage();
+        if (msg == null)
+            return false;
+        return msg.contains("stream was reset") ||
+                msg.contains("Connection reset") ||
+                msg.contains("SocketTimeoutException") ||
+                msg.contains("Broken pipe");
     }
 
     /**
