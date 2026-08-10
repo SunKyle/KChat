@@ -81,6 +81,22 @@ export interface WebSearchResultData {
   errorMessage?: string
 }
 
+/**
+ * 后端工具信息（对应 GET /api/tools 返回结构）
+ */
+export interface ToolInfo {
+  name: string
+  description?: string
+  parameters?: {
+    type?: string
+    properties?: Record<string, {
+      type?: string
+      description?: string
+    }>
+    required?: string[]
+  }
+}
+
 export interface StreamingState {
   isStreaming: boolean
   currentContent: string

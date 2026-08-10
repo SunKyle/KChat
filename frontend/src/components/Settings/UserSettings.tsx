@@ -6,6 +6,7 @@ import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
 import { ModelSettings } from './ModelSettings'
 import { MemoryPanel } from './Memory/MemoryPanel'
+import { ToolsPanel } from './ToolsPanel'
 import { useUser } from '../../context/UserContext'
 
 type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory' | 'agent'
@@ -71,13 +72,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
       case 'memory':
         return <MemoryPanel />
       case 'agent':
-        return (
-          <div className='p-6 text-center'>
-            <Bot className='w-10 h-10 mx-auto mb-3 theme-text-muted' />
-            <p className='font-h3 mb-1'>Agent 模式配置开发中</p>
-            <p className='font-secondary theme-text-muted'>敬请期待</p>
-          </div>
-        )
+        return <ToolsPanel />
       default:
         return <ProfileInfo />
     }
