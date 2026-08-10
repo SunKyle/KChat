@@ -42,6 +42,8 @@ export function InputArea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 输入法组合状态标记，用于避免 IME 输入过程中 Enter 被误判为发送
+  const isComposingRef = useRef(false)
 
   // 内容优化相关状态
   const [isOptimizing, setIsOptimizing] = useState(false)
@@ -107,6 +109,11 @@ export function InputArea() {
   }, [input])
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // 输入法组合状态（如中文输入法输入英文过程中）下，
+    // Enter 键应交由输入法处理（确认候选词），不触发发送。
+    // 同时检查 nativeEvent.isComposing 以兼容不同浏览器/输入法。
+    if (e.nativeEvent.isComposing || isComposingRef.current) return
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (streamingState.isStreaming) {
@@ -394,6 +401,12 @@ export function InputArea() {
                     setInput(e.target.value)
                     // 当用户手动输入时，重置撤回状态
                     setCanUndoOptimize(false)
+                  }}
+                  onCompositionStart={() => {
+                    isComposingRef.current = true
+                  }}
+                  onCompositionEnd={() => {
+                    isComposingRef.current = false
                   }}
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
