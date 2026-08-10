@@ -23,7 +23,7 @@ interface ChatContextType {
     content: string,
     imageUrls?: string[],
     webSearch?: boolean,
-    multimodal?: boolean
+    agentMode?: boolean
   ) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
@@ -278,7 +278,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string, imageUrls: string[] = [], webSearch = false, multimodal = false) => {
+    async (content: string, imageUrls: string[] = [], webSearch = false, agentMode = false) => {
       if (!content.trim() && imageUrls.length === 0) return
 
       // Optimistic conversation creation: create inline if no active conversation
@@ -328,7 +328,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
         userId: 'default',
         webSearch,
-        multimodal,
+        agentMode,
       }
 
       const tempMessageId = crypto.randomUUID()

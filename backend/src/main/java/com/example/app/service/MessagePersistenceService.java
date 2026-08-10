@@ -2,7 +2,7 @@
 package com.example.app.service;
 
 import com.example.app.entity.Message;
-import com.example.app.dto.MultimodalArtifact;
+import com.example.app.dto.Artifact;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,13 +51,13 @@ public class MessagePersistenceService {
     }
 
     @Transactional
-    public String saveAiMessage(String conversationId, String content, List<MultimodalArtifact> artifacts) {
+    public String saveAiMessage(String conversationId, String content, List<Artifact> artifacts) {
         return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, artifacts);
     }
 
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content,
-            List<MultimodalArtifact> artifacts) {
+            List<Artifact> artifacts) {
         Message aiMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
@@ -78,14 +78,14 @@ public class MessagePersistenceService {
 
     @Transactional
     public String saveMessages(String conversationId, String userMessage, String aiResponse,
-            List<String> imageUrls, List<MultimodalArtifact> artifacts) {
+            List<String> imageUrls, List<Artifact> artifacts) {
         saveUserMessage(conversationId, userMessage, imageUrls);
         String aiMessageId = saveAiMessage(conversationId, aiResponse, artifacts);
         log.debug("Saved conversation messages: conversationId={}", conversationId);
         return aiMessageId;
     }
 
-    private String serializeArtifacts(List<MultimodalArtifact> artifacts) {
+    private String serializeArtifacts(List<Artifact> artifacts) {
         if (artifacts == null || artifacts.isEmpty()) {
             return null;
         }

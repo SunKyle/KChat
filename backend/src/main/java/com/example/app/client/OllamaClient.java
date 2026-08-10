@@ -94,7 +94,7 @@ public class OllamaClient {
      * 框架负责 HTTP/SSE/JSON 序列化，onNext 回调驱动业务 callback。
      *
      * 注意：底层 OllamaStreamingChatModel.generate() 是异步的（Retrofit enqueue），
-     * 但调用方（如 MultimodalExecutionStage）依赖同步语义（在流结束后 return collected）。
+     * 但调用方（如 ModelRoutingStage）依赖同步语义（在流结束后 return collected）。
      * 因此用 CountDownLatch 阻塞当前线程，等待 onComplete/onError 释放。
      * 模型内部 timeout 会触发 onError，避免死锁。
      */
@@ -124,7 +124,7 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
         List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
         StreamingChatLanguageModel streamingModel = streamingConfig.streamingModel(targetModel);
-        blockUntilComplete(streamingModel, finalMessages, callback, "Multimodal streaming error");
+        blockUntilComplete(streamingModel, finalMessages, callback, "Image streaming error");
     }
 
     /**

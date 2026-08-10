@@ -46,28 +46,68 @@ public class ContextPipelineExecutor {
     }
 
     /**
-     * Re-entrant execution for agent tool-calling loops (Phase 3).
+     * Re-entrant execution for agent tool-calling loops.
+     *
+     * 流程：
+     * 1. 第一轮运行 PREPROCESS + ASSEMBLY + EXECUTION + AGENT（初始化上下文 + 首次 LLM 调用 + 工具检测/执行）
+     * 2. 后续轮次只运行 EXECUTION + AGENT（基于 tool 结果再次调用 LLM）
+     * 3. 循环结束后统一运行 POSTPROCESS + OBSERVABILITY（避免每轮重复持久化/标题生成/SSE done）
+     *
+     * 终止条件：toolCalls 为空（LLM 不再调用工具）/ 达到 maxIterations / 出现不可恢复错误。
      */
     public void executeWithAgentLoop(ConversationContext ctx) {
         ctx.setCurrentIteration(0);
 
-        while (ctx.getCurrentIteration() < ctx.getMaxAgentIterations()) {
-            execute(ctx);
-            ctx.setCurrentIteration(ctx.getCurrentIteration() + 1);
+        // 第一轮：PREPROCESS + ASSEMBLY + EXECUTION + AGENT
+        runStages(resolveStagesUpTo(ctx, ContextPipelineStage.Phase.AGENT), ctx);
 
-            if (ctx.getToolCalls().isEmpty()) {
-                break;
-            }
-
+        // 后续轮次：EXECUTION + AGENT，直到无 tool_calls 或达 maxIterations
+        while (!ctx.getToolCalls().isEmpty()
+                && ctx.getCurrentIteration() + 1 < ctx.getMaxAgentIterations()) {
+            int next = ctx.getCurrentIteration() + 1;
+            ctx.setCurrentIteration(next);
             log.info("[AgentLoop] Iteration {}: {} tool call(s), continuing",
-                    ctx.getCurrentIteration(), ctx.getToolCalls().size());
+                    next, ctx.getToolCalls().size());
+            // 清空上一轮 toolCalls，让 ToolCallDetectionStage 重新检测
+            ctx.getToolCalls().clear();
+            runStages(resolveStagesBetween(ctx,
+                    ContextPipelineStage.Phase.EXECUTION,
+                    ContextPipelineStage.Phase.AGENT), ctx);
         }
 
-        if (ctx.getCurrentIteration() >= ctx.getMaxAgentIterations()
-                && !ctx.getToolCalls().isEmpty()) {
+        if (!ctx.getToolCalls().isEmpty()) {
             log.warn("[AgentLoop] Reached max iterations ({}) with {} pending tool calls",
                     ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
         }
+
+        // 循环结束后统一运行 POSTPROCESS + OBSERVABILITY
+        runStages(resolveStagesFrom(ctx, ContextPipelineStage.Phase.POSTPROCESS), ctx);
+    }
+
+    /** 解析从开始到指定 phase（含）的所有 stage */
+    private List<ContextPipelineStage> resolveStagesUpTo(ConversationContext ctx,
+                                                          ContextPipelineStage.Phase upper) {
+        return resolveStages(ctx).stream()
+                .filter(s -> s.getPhase().ordinal() <= upper.ordinal())
+                .toList();
+    }
+
+    /** 解析从 from（含）到 to（含）之间的 stage */
+    private List<ContextPipelineStage> resolveStagesBetween(ConversationContext ctx,
+                                                            ContextPipelineStage.Phase from,
+                                                            ContextPipelineStage.Phase to) {
+        return resolveStages(ctx).stream()
+                .filter(s -> s.getPhase().ordinal() >= from.ordinal()
+                        && s.getPhase().ordinal() <= to.ordinal())
+                .toList();
+    }
+
+    /** 解析从指定 phase（含）到结尾的所有 stage */
+    private List<ContextPipelineStage> resolveStagesFrom(ConversationContext ctx,
+                                                         ContextPipelineStage.Phase from) {
+        return resolveStages(ctx).stream()
+                .filter(s -> s.getPhase().ordinal() >= from.ordinal())
+                .toList();
     }
 
     private void runStages(List<ContextPipelineStage> stages, ConversationContext ctx) {

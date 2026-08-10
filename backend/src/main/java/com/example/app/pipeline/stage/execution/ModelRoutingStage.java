@@ -7,9 +7,15 @@ import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineExecutor;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
+import com.example.app.pipeline.stage.agent.ToolDefinitionStage;
 import com.example.app.service.ModelConfigService;
+import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.util.JsonUtils;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -31,16 +37,19 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final OpenAICompatibleClient openAICompatibleClient;
     private final ContextPipelineExecutor pipelineExecutor;
     private final OpenAIClientProperties openAIClientProperties;
+    private final AiServiceFactory aiServiceFactory;
 
     public ModelRoutingStage(ModelConfigService modelConfigService,
             OllamaClient ollamaClient,
             OpenAICompatibleClient openAICompatibleClient,
             OpenAIClientProperties openAIClientProperties,
+            AiServiceFactory aiServiceFactory,
             @Lazy ContextPipelineExecutor pipelineExecutor) {
         this.modelConfigService = modelConfigService;
         this.ollamaClient = ollamaClient;
         this.openAICompatibleClient = openAICompatibleClient;
         this.openAIClientProperties = openAIClientProperties;
+        this.aiServiceFactory = aiServiceFactory;
         this.pipelineExecutor = pipelineExecutor;
     }
 
@@ -68,6 +77,12 @@ public class ModelRoutingStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
+        // Agent 模式：走 AiServices + 工具规格的同步调用，由 AGENT 阶段处理工具循环
+        if (ctx.isAgentMode()) {
+            executeWithTools(ctx);
+            return;
+        }
+
         String model = ctx.getModel();
         ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
 
@@ -82,7 +97,60 @@ public class ModelRoutingStage implements ContextPipelineStage {
 
     @Override
     public boolean isApplicable(ConversationContext ctx) {
-        return !ctx.isMultimodal();
+        return true;
+    }
+
+    /**
+     * Agent 模式执行路径：使用 ChatLanguageModel.generate(messages, toolSpecifications) 同步调用。
+     *
+     * LangChain4j 0.35 流式 + tool 不稳定，AGENT 模式强制同步。
+     * 返回的 AiMessage 存入 ctx.agentState，由 ToolCallDetectionStage(610) 解析工具调用，
+     * 由 ToolResultAssemblyStage(660) 回填到 assembledMessages 供下一轮调用。
+     */
+    @SuppressWarnings("unchecked")
+    private void executeWithTools(ConversationContext ctx) {
+        String model = ctx.getModel();
+        logFinalPrompt(ctx, model);
+
+        ChatLanguageModel chatModel = aiServiceFactory.getChatLanguageModel(model);
+        List<ToolSpecification> toolSpecs = resolveToolSpecifications(ctx);
+
+        List<ChatMessage> messages = ctx.getAssembledMessages();
+        if (messages == null || messages.isEmpty()) {
+            log.warn("[ModelRouting][Agent] No assembled messages, skipping LLM call");
+            ctx.setLlmResponse("");
+            return;
+        }
+
+        log.info("[ModelRouting][Agent] Calling LLM with {} message(s) and {} tool spec(s), iteration {}",
+                messages.size(), toolSpecs.size(), ctx.getCurrentIteration());
+
+        Response<AiMessage> response = chatModel.generate(messages, toolSpecs);
+        AiMessage aiMessage = response.content();
+
+        // 存入 agentState 供 ToolCallDetectionStage / ToolResultAssemblyStage 读取
+        ctx.getAgentState().put(ConversationContext.KEY_LAST_AI_MESSAGE, aiMessage);
+
+        // 更新 llmResponse（每轮覆盖，最终值为最后一轮的文本回复）
+        String text = aiMessage.text();
+        ctx.setLlmResponse(text != null ? text : "");
+
+        if (aiMessage.hasToolExecutionRequests()) {
+            log.info("[ModelRouting][Agent] LLM requested {} tool call(s)",
+                    aiMessage.toolExecutionRequests().size());
+        } else {
+            log.info("[ModelRouting][Agent] LLM returned final text response (length={})",
+                    text != null ? text.length() : 0);
+        }
+    }
+
+    /** 从 ctx.agentState 读取 ToolDefinitionStage(480) 注入的工具规格列表 */
+    private List<ToolSpecification> resolveToolSpecifications(ConversationContext ctx) {
+        Object specs = ctx.getAgentState().get(ToolDefinitionStage.KEY_TOOL_SPECIFICATIONS);
+        if (specs instanceof List<?>) {
+            return (List<ToolSpecification>) specs;
+        }
+        return List.of();
     }
 
     private void logFinalPrompt(ConversationContext ctx, String model) {

@@ -25,5 +25,5 @@ public class ChatRequest {
 
     private boolean webSearch = false;
 
-    private boolean multimodal = false;
+    private boolean agentMode = false;
 }

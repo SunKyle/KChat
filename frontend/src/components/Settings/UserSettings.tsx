@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react'
-import { User, Monitor, Lock, Key, Loader2, X, Brain, Database, Orbit } from 'lucide-react'
+import { User, Monitor, Lock, Key, Loader2, X, Brain, Database, Bot } from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
 import { ModelSettings } from './ModelSettings'
 import { MemoryPanel } from './Memory/MemoryPanel'
-import { MultimodalSettings } from './MultimodalSettings'
 import { useUser } from '../../context/UserContext'
 
-type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory' | 'multimodal'
+type TabType = 'profile' | 'preferences' | 'privacy' | 'api' | 'models' | 'memory' | 'agent'
 
 interface TabConfig {
   id: TabType
@@ -29,7 +28,7 @@ const tabs: TabConfig[] = [
   { id: 'api', label: 'API 密钥', icon: Key },
   { id: 'models', label: '模型管理', icon: Brain },
   { id: 'memory', label: '记忆管理', icon: Database },
-  { id: 'multimodal', label: '多模态模型', icon: Orbit },
+  { id: 'agent', label: 'Agent 模式', icon: Bot },
 ]
 
 export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsProps) {
@@ -71,8 +70,14 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
         return <ModelSettings />
       case 'memory':
         return <MemoryPanel />
-      case 'multimodal':
-        return <MultimodalSettings />
+      case 'agent':
+        return (
+          <div className='p-6 text-center'>
+            <Bot className='w-10 h-10 mx-auto mb-3 theme-text-muted' />
+            <p className='font-h3 mb-1'>Agent 模式配置开发中</p>
+            <p className='font-secondary theme-text-muted'>敬请期待</p>
+          </div>
+        )
       default:
         return <ProfileInfo />
     }

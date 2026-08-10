@@ -7,7 +7,7 @@ export type SettingsTab =
   | 'api'
   | 'models'
   | 'memory'
-  | 'multimodal'
+  | 'agent'
 
 export function useSettings() {
   const [showSettings, setShowSettings] = useState(false)

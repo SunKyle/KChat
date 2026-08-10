@@ -6,7 +6,6 @@ import type {
   UpdatePrivacyRequest,
   CreateAPIKeyRequest,
   APIKey,
-  MultimodalConfig,
 } from '../types/user'
 
 // 默认用户ID
@@ -84,22 +83,6 @@ export const settingsApi = {
     userId: string = DEFAULT_USER_ID
   ): Promise<void> => {
     return request(`/settings/${userId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
-}
-
-export const multimodalApi = {
-  get: async (userId: string = DEFAULT_USER_ID): Promise<MultimodalConfig> => {
-    return request(`/settings/multimodal/${userId}`)
-  },
-
-  update: async (
-    data: Partial<MultimodalConfig>,
-    userId: string = DEFAULT_USER_ID
-  ): Promise<MultimodalConfig> => {
-    return request(`/settings/multimodal/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })

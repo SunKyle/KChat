@@ -155,14 +155,6 @@ websearch:
   engine: bing # 搜索引擎: bing | google
   bing-api-key: '' # Bing Search API Key（留空则不启用）
 
-# ==================== 多模态 Auto 模式配置 ====================
-multimodal:
-  planner-model: '' # 规划模型，为空时使用默认 Ollama 模型
-  vision-model: '' # 图片理解模型，为空时按模型能力自动挑选
-  image-model: '' # 文生图模型，为空时按模型能力自动挑选
-  text-model: '' # 文本回答模型，为空时使用默认模型
-  max-steps: 5 # Auto 模式单次最大执行步骤数
-
 # ==================== 日志配置 ====================
 # 使用 logback-spring.xml 统一管理日志输出，此处仅保留占位
 # 查看完整 prompt: tail -f logs/prompt.log

@@ -1,9 +1,8 @@
 package com.example.app.pipeline.context;
 
+import com.example.app.dto.Artifact;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.MemoryDTO;
-import com.example.app.dto.MultimodalArtifact;
-import com.example.app.dto.MultimodalPlanStep;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
 import com.example.app.util.JsonUtils;
@@ -55,10 +54,10 @@ public class ConversationContext {
     private String searchContext;
     private WebSearchResult rawSearchResult;
 
-    // ── Multimodal ────────────────────────────────────────────────
-    private boolean multimodal;
-    private List<MultimodalPlanStep> multimodalPlan;
-    private List<MultimodalArtifact> artifacts;
+    // ── Agent / Skill ─────────────────────────────────────────────
+    private boolean agentMode;
+    private String activeSkillId;
+    private List<Artifact> artifacts;
 
     // ── Assembly state ─────────────────────────────────────────────
     private List<ChatMessage> assembledMessages;
@@ -76,7 +75,7 @@ public class ConversationContext {
     private boolean userMessagePersisted;
     private boolean userMessageInMemory;
 
-    // ── Agent / tool state (future phases) ────────────────────────
+    // ── Agent / tool state ────────────────────────────────────────
     private final List<ToolCallRecord> toolCalls = new ArrayList<>();
     private final List<ToolResultRecord> toolResults = new ArrayList<>();
     private final List<String> enabledToolNames = new ArrayList<>();
@@ -121,6 +120,8 @@ public class ConversationContext {
     public static final String KEY_SYSTEM_MESSAGE = "assembledSystemMessage";
     /** Key for the active system prompt template version, written by SystemPromptAssemblyStage(410), read by ModelRoutingStage(500) */
     public static final String KEY_PROMPT_TEMPLATE_VERSION = "promptTemplateVersion";
+    /** Key for the last AiMessage from ModelRoutingStage in Agent mode, read by ToolCallDetectionStage(610) and ToolResultAssemblyStage(660) */
+    public static final String KEY_LAST_AI_MESSAGE = "lastAiMessage";
 
     // ── Convenience ────────────────────────────────────────────────
 

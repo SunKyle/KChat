@@ -23,7 +23,7 @@ export interface ChatRequest {
   imageUrls?: string[]
   userId?: string
   webSearch?: boolean
-  multimodal?: boolean
+  agentMode?: boolean
 }
 
 export interface ChatResponse {

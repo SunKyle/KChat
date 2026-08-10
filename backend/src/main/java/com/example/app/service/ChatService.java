@@ -108,10 +108,14 @@ public class ChatService {
 
         ConversationContext ctx = ConversationContext.fromRequest(request);
         ctx.setConversationId(conversationId);
-        ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
-        ctx.setMultimodal(request.isMultimodal());
-
-        pipelineExecutor.execute(ctx);
+        ctx.setAgentMode(request.isAgentMode());
+        if (ctx.isAgentMode()) {
+            ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
+            pipelineExecutor.executeWithAgentLoop(ctx);
+        } else {
+            ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
+            pipelineExecutor.execute(ctx);
+        }
 
         return ChatResponse.builder()
                 .messageId(ctx.getAiMessageId())

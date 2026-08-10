@@ -9,6 +9,8 @@ import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * AiServices 工厂
  *
@@ -43,6 +45,32 @@ public class AiServiceFactory {
         return AiServices.builder(aiServiceClass)
                 .chatLanguageModel(resolveModel(modelId))
                 .build();
+    }
+
+    /**
+     * 按 modelId 创建带工具的 AiServices 代理（Agent 模式使用）。
+     *
+     * @param aiServiceClass AI 接口类型
+     * @param modelId        模型标识
+     * @param tools          工具实例列表（含 @Tool 注解方法的对象）
+     * @param <T>            接口类型
+     * @return AiServices 代理实例（带工具调用能力）
+     */
+    public <T> T create(Class<T> aiServiceClass, String modelId, List<Object> tools) {
+        AiServices<T> builder = AiServices.builder(aiServiceClass)
+                .chatLanguageModel(resolveModel(modelId));
+        if (tools != null && !tools.isEmpty()) {
+            builder.tools(tools.toArray());
+        }
+        return builder.build();
+    }
+
+    /**
+     * 解析 modelId 到具体的 {@link ChatLanguageModel}，供需要直接调用底层模型的场景使用
+     * （如 ModelRoutingStage 在 Agent 模式下手动发起带 toolSpecifications 的调用）。
+     */
+    public ChatLanguageModel getChatLanguageModel(String modelId) {
+        return resolveModel(modelId);
     }
 
     /**

@@ -25,5 +25,5 @@ public class ChatResponse {
 
     private List<String> images;
 
-    private List<MultimodalArtifact> artifacts;
+    private List<Artifact> artifacts;
 }
