@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Agent 工具结果回填阶段
@@ -72,6 +74,12 @@ public class ToolResultAssemblyStage implements ContextPipelineStage {
         ctx.setAssembledMessages(messages);
         log.info("[ToolResultAssembly] Appended AiMessage + {} ToolExecutionResultMessage(s) to assembledMessages",
                 ctx.getToolCalls().size());
+
+        // 推送 Agent 思考过程：工具结果已回填到上下文，准备下一轮 LLM 调用
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("assembledCount", ctx.getToolCalls().size());
+        data.put("totalMessages", messages.size());
+        ctx.emitAgentThinking("tool_assembly", data);
     }
 
     /** 按 toolCallId 查找执行结果文本，失败时返回错误信息。 */

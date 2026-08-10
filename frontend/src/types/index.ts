@@ -14,6 +14,38 @@ export interface Message {
   role: 'user' | 'assistant'
   timestamp: string
   images?: string[]
+  /** Agent 模式下的思考过程步骤（工具调用、LLM 调用等），仅流式推送累积 */
+  agentThinking?: AgentThinkingStep[]
+}
+
+/**
+ * Agent 思考过程的单个步骤，对应后端 SSE agent_thinking 事件的 envelope。
+ *
+ * 后端推送结构（详见 ConversationContext#emitAgentThinking）：
+ * ```json
+ * {
+ *   "type": "tool_definition" | "llm_call" | "tool_detection" | "tool_execution" | "tool_assembly" | "final_response",
+ *   "iteration": 0,
+ *   "timestamp": 1234567890,
+ *   "data": { ... }
+ * }
+ * ```
+ *
+ * `data` 的形状由顶层 `type` 决定，渲染时按 `step.type` 分支处理。
+ */
+export type AgentThinkingStep = {
+  type:
+    | 'tool_definition'
+    | 'llm_call'
+    | 'tool_detection'
+    | 'tool_execution'
+    | 'tool_assembly'
+    | 'final_response'
+  iteration: number
+  timestamp: number
+  // 后端 data 负载是松散 Map，前端按 type 自行取字段
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>
 }
 
 export interface ChatRequest {

@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Agent 工具定义注入阶段
@@ -50,6 +52,12 @@ public class ToolDefinitionStage implements ContextPipelineStage {
         }
         ctx.getAgentState().put(KEY_TOOL_SPECIFICATIONS, specs);
         log.info("[ToolDefinition] {} tool(s) enabled: {}", specs.size(), ctx.getEnabledToolNames());
+
+        // 推送 Agent 思考过程：当前可用的工具列表
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("tools", ctx.getEnabledToolNames());
+        data.put("count", specs.size());
+        ctx.emitAgentThinking("tool_definition", data);
     }
 
     @Override

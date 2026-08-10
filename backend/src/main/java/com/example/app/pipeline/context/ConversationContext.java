@@ -12,20 +12,27 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Rich context object carrying all state through the pipeline.
  *
  * Replaces the scattered parameter passing pattern where services passed
- * (shortTermMemory, longTermMemory, userMessage, language, conversationId, searchContext)
- * as individual arguments. All pipeline stages read from and write to this single context.
+ * (shortTermMemory, longTermMemory, userMessage, language, conversationId,
+ * searchContext)
+ * as individual arguments. All pipeline stages read from and write to this
+ * single context.
  *
  * Design constraints:
  * - Mutable by design — stages modify it in-place during execution
  * - Builder pattern for initial construction from ChatRequest
  * - Stage-specific sections use namespaced groups to avoid collisions
- * - Thread-safe for the lifetime of a single request (not shared across requests)
+ * - Thread-safe for the lifetime of a single request (not shared across
+ * requests)
  */
 @Data
 @Builder(toBuilder = true)
@@ -110,17 +117,35 @@ public class ConversationContext {
 
     // ── Well-known agentState keys (shared between assembly stages) ─
 
-    /** Key for formatted long-term memory text, written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410) */
+    /**
+     * Key for formatted long-term memory text, written by MemoryFormatStage(400),
+     * read by SystemPromptAssemblyStage(410)
+     */
     public static final String KEY_FORMATTED_MEMORY = "formattedLongTermMemory";
-    /** Key for formatted user profile text, written by UserProfileFormatStage(398), read by SystemPromptAssemblyStage(410) */
+    /**
+     * Key for formatted user profile text, written by UserProfileFormatStage(398),
+     * read by SystemPromptAssemblyStage(410)
+     */
     public static final String KEY_FORMATTED_USER_PROFILE = "formattedUserProfile";
-    /** Key for formatted search context section, written by SearchContextFormatStage(405), read by SystemPromptAssemblyStage(410) */
+    /**
+     * Key for formatted search context section, written by
+     * SearchContextFormatStage(405), read by SystemPromptAssemblyStage(410)
+     */
     public static final String KEY_FORMATTED_SEARCH = "formattedSearchContext";
-    /** Key for the assembled SystemMessage, written by SystemPromptAssemblyStage(410), read by MessageAssemblyStage(430) */
+    /**
+     * Key for the assembled SystemMessage, written by
+     * SystemPromptAssemblyStage(410), read by MessageAssemblyStage(430)
+     */
     public static final String KEY_SYSTEM_MESSAGE = "assembledSystemMessage";
-    /** Key for the active system prompt template version, written by SystemPromptAssemblyStage(410), read by ModelRoutingStage(500) */
+    /**
+     * Key for the active system prompt template version, written by
+     * SystemPromptAssemblyStage(410), read by ModelRoutingStage(500)
+     */
     public static final String KEY_PROMPT_TEMPLATE_VERSION = "promptTemplateVersion";
-    /** Key for the last AiMessage from ModelRoutingStage in Agent mode, read by ToolCallDetectionStage(610) and ToolResultAssemblyStage(660) */
+    /**
+     * Key for the last AiMessage from ModelRoutingStage in Agent mode, read by
+     * ToolCallDetectionStage(610) and ToolResultAssemblyStage(660)
+     */
     public static final String KEY_LAST_AI_MESSAGE = "lastAiMessage";
 
     // ── Convenience ────────────────────────────────────────────────
@@ -143,13 +168,44 @@ public class ConversationContext {
      * Silently no-ops for non-streaming contexts.
      */
     public void emitSseEvent(String eventName, String jsonData) {
-        if (!streaming || sseEmitter == null) return;
+        if (!streaming || sseEmitter == null)
+            return;
         try {
             SseEmitter emitter = (SseEmitter) sseEmitter;
             emitter.send(SseEmitter.event().name(eventName).data(jsonData));
         } catch (Exception e) {
             // emitter may already be closed/completed — don't disrupt the pipeline
         }
+    }
+
+    /**
+     * 推送 Agent 思考过程事件（agent_thinking）。
+     *
+     * <p>封装统一的 envelope 结构：
+     * <pre>{@code
+     * {
+     * "type": "tool_definition" | "llm_call" | "tool_detection" | "tool_execution"
+     * | "tool_assembly" | "final_response",
+     * "iteration": <当前 Agent 循环轮次>,
+     * "timestamp": <毫秒时间戳>,
+     * "data": <各类型自定义负载>
+     * }
+     * }</pre>
+     *
+     * <p>仅在流式上下文推送（emitSseEvent 内置判空），同步 ChatService 路径 no-op。
+     *
+     * @param type 思考步骤类型
+     * @param data 该步骤的具体负载（会被 Jackson 序列化为 JSON）
+     */
+    public void emitAgentThinking(String type, Object data) {
+        if (!streaming || sseEmitter == null)
+            return;
+        Map<String, Object> envelope = new LinkedHashMap<>();
+        envelope.put("type", type);
+        envelope.put("iteration", currentIteration);
+        envelope.put("timestamp", System.currentTimeMillis());
+        envelope.put("data", data);
+        emitSseEvent("agent_thinking", JsonUtils.toJson(envelope));
     }
 
     // ── Nested types ───────────────────────────────────────────────
@@ -160,11 +216,14 @@ public class ConversationContext {
         AGENT_CHAT
     }
 
-    public record ToolCallRecord(String toolName, String arguments, String toolCallId) {}
+    public record ToolCallRecord(String toolName, String arguments, String toolCallId) {
+    }
 
     public record ToolResultRecord(String toolName, String toolCallId, Object result,
-                                   boolean success, String errorMessage) {}
+            boolean success, String errorMessage) {
+    }
 
     public record PipelineError(String stageName, String message, Throwable cause,
-                                boolean recoverable) {}
+            boolean recoverable) {
+    }
 }

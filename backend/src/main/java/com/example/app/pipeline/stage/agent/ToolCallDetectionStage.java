@@ -7,7 +7,9 @@ import dev.langchain4j.data.message.AiMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Agent 工具调用检测阶段
@@ -57,6 +59,13 @@ public class ToolCallDetectionStage implements ContextPipelineStage {
                     req.arguments() != null ? req.arguments() : "{}",
                     req.id() != null ? req.id() : req.name());
             ctx.getToolCalls().add(record);
+
+            // 推送 Agent 思考过程：检测到 LLM 发起的一次工具调用
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("toolName", record.toolName());
+            data.put("arguments", record.arguments());
+            data.put("toolCallId", record.toolCallId());
+            ctx.emitAgentThinking("tool_detection", data);
         }
         log.info("[ToolCallDetection] Detected {} tool call(s): {}",
                 ctx.getToolCalls().size(),

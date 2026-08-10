@@ -1,4 +1,10 @@
-import type { Conversation, Message, StreamingState, WebSearchResultData } from '../types'
+import type {
+  AgentThinkingStep,
+  Conversation,
+  Message,
+  StreamingState,
+  WebSearchResultData,
+} from '../types'
 
 export type ChatAction =
   | { type: 'SET_CONVERSATIONS'; payload: Conversation[] }
@@ -22,6 +28,10 @@ export type ChatAction =
   | {
       type: 'SET_SEARCH_RESULTS'
       payload: { conversationId: string; results: WebSearchResultData }
+    }
+  | {
+      type: 'ADD_AGENT_THINKING'
+      payload: { conversationId: string; messageId: string; step: AgentThinkingStep }
     }
   | {
       type: 'END_STREAMING'
@@ -276,6 +286,25 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
           [action.payload.conversationId]: action.payload.results,
         },
       }
+
+    case 'ADD_AGENT_THINKING': {
+      const convId = action.payload.conversationId
+      const msgs = state.messagesByConversation[convId]
+      if (!msgs) return state
+      const updatedMessages = msgs.map((msg) => {
+        if (msg.id !== action.payload.messageId) return msg
+        const existing = msg.agentThinking || []
+        // 复制数组避免 muting 原对象
+        return { ...msg, agentThinking: [...existing, action.payload.step] }
+      })
+      return {
+        ...state,
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [convId]: updatedMessages,
+        },
+      }
+    }
 
     case 'END_STREAMING':
       return {

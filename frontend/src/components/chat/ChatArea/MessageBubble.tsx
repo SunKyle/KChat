@@ -3,6 +3,7 @@ import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ShiningText } from '../../ui/shining-text'
 import { ImageGenerationPlaceholder } from './ImageGenerationPlaceholder'
+import { AgentThinkingPanel } from './AgentThinkingPanel'
 import { isImageModel } from '../../../utils/model'
 import { useState, memo, useMemo } from 'react'
 import { useUser } from '../../../context/UserContext'
@@ -152,12 +153,20 @@ export const MessageBubble = memo(function MessageBubble({
               isImageModel(currentModel) ? (
                 <ImageGenerationPlaceholder />
               ) : (
-                <div className='flex items-center py-1'>
-                  <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
+                <div className='flex flex-col gap-2 py-1'>
+                  {message.agentThinking && message.agentThinking.length > 0 && (
+                    <AgentThinkingPanel steps={message.agentThinking} />
+                  )}
+                  <div className='flex items-center py-1'>
+                    <ShiningText text='AI 正在思考...' className='text-sm font-semibold' />
+                  </div>
                 </div>
               )
             ) : (
               <div className='leading-relaxed'>
+                {!isUser && message.agentThinking && message.agentThinking.length > 0 && (
+                  <AgentThinkingPanel steps={message.agentThinking} />
+                )}
                 {message.images && message.images.length > 0 && (
                   <div className='flex flex-wrap gap-2 mb-3'>
                     {message.images.map((imageUrl, index) => (

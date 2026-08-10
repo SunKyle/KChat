@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -126,6 +127,13 @@ public class ModelRoutingStage implements ContextPipelineStage {
         log.info("[ModelRouting][Agent] Calling LLM with {} message(s) and {} tool spec(s), iteration {}",
                 messages.size(), toolSpecs.size(), ctx.getCurrentIteration());
 
+        // 推送 Agent 思考过程：LLM 调用开始
+        Map<String, Object> callData = new LinkedHashMap<>();
+        callData.put("model", model);
+        callData.put("messageCount", messages.size());
+        callData.put("toolSpecCount", toolSpecs.size());
+        ctx.emitAgentThinking("llm_call", callData);
+
         Response<AiMessage> response = chatModel.generate(messages, toolSpecs);
         AiMessage aiMessage = response.content();
 
@@ -142,6 +150,11 @@ public class ModelRoutingStage implements ContextPipelineStage {
         } else {
             log.info("[ModelRouting][Agent] LLM returned final text response (length={})",
                     text != null ? text.length() : 0);
+            // 推送 Agent 思考过程：LLM 返回最终文本回复（无工具调用 → 循环将结束）
+            Map<String, Object> finalData = new LinkedHashMap<>();
+            finalData.put("text", text != null ? text : "");
+            finalData.put("length", text != null ? text.length() : 0);
+            ctx.emitAgentThinking("final_response", finalData);
         }
     }
 

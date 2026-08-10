@@ -1,4 +1,5 @@
 import { appConfig } from '../config/app.config'
+import type { AgentThinkingStep } from '../types'
 
 const BASE_URL = appConfig.api.baseUrl
 
@@ -288,7 +289,8 @@ export async function requestSSE(
   onError: (error: ApiError) => void,
   controller?: AbortController,
   onSearchResults?: (results: unknown) => void,
-  onImageDone?: (url: string) => void
+  onImageDone?: (url: string) => void,
+  onAgentThinking?: (step: AgentThinkingStep) => void
 ): Promise<void> {
   const requestId = generateRequestId()
   const processedOptions = await applyRequestInterceptors(options)
@@ -367,6 +369,8 @@ export async function requestSSE(
             onSearchResults?.(parsedData)
           } else if (eventType === 'image_done' && parsedData.url) {
             onImageDone?.(parsedData.url)
+          } else if (eventType === 'agent_thinking' && parsedData.type) {
+            onAgentThinking?.(parsedData as AgentThinkingStep)
           }
         } catch (e) {
           console.warn('Failed to parse SSE data:', e)

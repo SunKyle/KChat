@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Agent 工具调用执行阶段
  *
@@ -48,6 +51,17 @@ public class ToolInvocationStage implements ContextPipelineStage {
             if (!result.success()) {
                 log.warn("[ToolInvocation] Tool '{}' failed: {}", call.toolName(), result.errorMessage());
             }
+
+            // 推送 Agent 思考过程：单个工具执行结果
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("toolName", call.toolName());
+            data.put("toolCallId", call.toolCallId());
+            data.put("success", result.success());
+            data.put("result", result.result());
+            if (!result.success()) {
+                data.put("errorMessage", result.errorMessage());
+            }
+            ctx.emitAgentThinking("tool_execution", data);
         }
         log.info("[ToolInvocation] Executed {} tool call(s), {} success, {} failed",
                 ctx.getToolCalls().size(),

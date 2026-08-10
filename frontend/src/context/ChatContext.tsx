@@ -442,6 +442,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 results: results as import('../types').WebSearchResultData,
               },
             })
+          },
+          undefined,
+          (step) => {
+            dispatch({
+              type: 'ADD_AGENT_THINKING',
+              payload: { conversationId, messageId: tempMessageId, step },
+            })
           }
         )
       } catch (error) {

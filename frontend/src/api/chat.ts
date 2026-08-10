@@ -1,5 +1,5 @@
 import { request, requestStream, uploadFile, requestSSE } from './client'
-import type { Conversation, Message, ChatRequest } from '../types'
+import type { AgentThinkingStep, Conversation, Message, ChatRequest } from '../types'
 
 export const conversations = {
   list: async (): Promise<Conversation[]> => {
@@ -67,7 +67,8 @@ export const chat = {
     onError: (error: Error) => void,
     controller?: AbortController,
     onSearchResults?: (results: unknown) => void,
-    onImageDone?: (url: string) => void
+    onImageDone?: (url: string) => void,
+    onAgentThinking?: (step: AgentThinkingStep) => void
   ): Promise<void> => {
     return requestSSE(
       '/chat/stream',
@@ -80,7 +81,8 @@ export const chat = {
       onError,
       controller,
       onSearchResults,
-      onImageDone
+      onImageDone,
+      onAgentThinking
     )
   },
 
