@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState, useCallback } from 'react'
 import { MessageCircle, ArrowDown, Sparkles } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
+import type { VirtuosoHandle } from 'react-virtuoso'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '../../../context/ChatContext'
 import { MessageBubble } from './MessageBubble'
@@ -47,7 +48,7 @@ export function ChatArea() {
     regenerateMessage,
     getRegeneratingState,
   } = useChat()
-  const virtuosoRef = useRef<any>(null)
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
 
   // Force scroll to bottom on send message
@@ -90,7 +91,11 @@ export function ChatArea() {
           onStop={isLast ? stopStreaming : undefined}
           onRegenerate={
             message.role === 'assistant' && !isRegenerating
-              ? () => regenerateMessage(activeConversation?.id!, message.id)
+              ? () => {
+                  if (activeConversation) {
+                    regenerateMessage(activeConversation.id, message.id)
+                  }
+                }
               : undefined
           }
         />
@@ -100,7 +105,7 @@ export function ChatArea() {
       messages.length,
       streamingState.isStreaming,
       stopStreaming,
-      activeConversation?.id,
+      activeConversation,
       regenerateMessage,
       getRegeneratingState,
     ]

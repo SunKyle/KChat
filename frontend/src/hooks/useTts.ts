@@ -13,13 +13,14 @@ export function useTts(userId?: string) {
   const sourceBufferRef = useRef<SourceBuffer | null>(null)
   const streamCancelRef = useRef<(() => void) | null>(null)
   const pendingChunksRef = useRef<{ wav: Uint8Array }[]>([])
-  const isAppendingRef = useRef(false)
   const audioCtxRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     return () => {
       stop()
     }
+    // stop 在下方定义且引用 ref，无需作为依赖
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const speak = useCallback(
@@ -55,6 +56,8 @@ export function useTts(userId?: string) {
         cleanup()
       }
     },
+    // stop/cleanup 引用 ref 且为闭包内调用，避免重渲染
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId]
   )
 
@@ -120,6 +123,8 @@ export function useTts(userId?: string) {
       const cancel = tts.speakStream({ text, spkId }, onChunk, onEvent, userId)
       streamCancelRef.current = cancel
     },
+    // 内部辅助函数引用 ref，避免重渲染
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId]
   )
 
@@ -213,7 +218,9 @@ export function useTts(userId?: string) {
     // MediaSource 不可用时清理
     try {
       mediaSource.endOfStream?.()
-    } catch {}
+    } catch {
+      // noop
+    }
 
     // 累积所有 wav 数据，解析 PCM
     const totalLen = chunks.reduce((s, c) => s + c.wav.length, 0)
@@ -290,26 +297,34 @@ export function useTts(userId?: string) {
     if (sourceBufferRef.current) {
       try {
         sourceBufferRef.current.abort()
-      } catch {}
+      } catch {
+        // noop
+      }
       sourceBufferRef.current = null
     }
 
     if (mediaSourceRef.current) {
       try {
         mediaSourceRef.current.endOfStream()
-      } catch {}
+      } catch {
+        // noop
+      }
       mediaSourceRef.current = null
     }
 
     if (audioCtxRef.current) {
       try {
         audioCtxRef.current.close()
-      } catch {}
+      } catch {
+        // noop
+      }
       audioCtxRef.current = null
     }
 
     cleanup()
     setState('idle')
+    // cleanup 在下方定义且仅引用 ref，无需作为依赖
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const cleanup = useCallback(() => {

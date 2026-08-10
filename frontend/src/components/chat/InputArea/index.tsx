@@ -5,15 +5,12 @@ import {
   Send,
   Square,
   Image,
-  Trash2,
   Paperclip,
   Loader2,
   Globe,
   Orbit,
   Sparkles,
   X,
-  Check,
-  RefreshCw,
   Undo2,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
@@ -49,8 +46,6 @@ export function InputArea() {
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [canUndoOptimize, setCanUndoOptimize] = useState(false)
   const [originalContent, setOriginalContent] = useState('')
-  const [showOptimizationResult, setShowOptimizationResult] = useState(false)
-  const [optimizedContent, setOptimizedContent] = useState<string | null>(null)
   const optimizationControllerRef = useRef<AbortController | null>(null)
 
   const charCount = input.length
@@ -81,6 +76,8 @@ export function InputArea() {
     return () => {
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current)
     }
+    // showStatusBar 作为条件触发器，加入会导致循环
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamingState.isStreaming])
 
   // 计时器（支持流式响应和优化操作）
@@ -166,8 +163,6 @@ export function InputArea() {
     const currentImages = uploadingImages
     setInput('')
     setUploadingImages([])
-    setShowOptimizationResult(false)
-    setOptimizedContent(null)
 
     sendMessage(currentInput, currentImages, webSearchEnabled, multimodalEnabled)
   }
@@ -285,7 +280,7 @@ export function InputArea() {
                   className='relative group/preview w-16 h-16 rounded-xl overflow-hidden border border-[var(--border-primary)] transition-colors duration-200'
                 >
                   {index === 0 && uploadingImages.length > 1 && (
-                    <span className='absolute top-1 left-1 z-10 w-4 h-4 rounded-full bg-[var(--brand-primary)]/80 text-[10px] font-semibold text-white flex items-center justify-center'>
+                    <span className='absolute top-1 left-1 z-10 w-4 h-4 rounded-full bg-[var(--brand-primary)]/80 text-xs font-semibold text-white flex items-center justify-center'>
                       1
                     </span>
                   )}

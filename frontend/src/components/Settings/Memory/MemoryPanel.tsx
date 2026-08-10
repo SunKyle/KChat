@@ -281,7 +281,6 @@ export function MemoryPanel() {
               </div>
             ) : (
               filteredMemories.map((memory) => {
-                const TypeIcon = getTypeIcon(memory.type)
                 const colorClass = getTypeColor(memory.type)
                 const isSelected = selectedMemories.includes(memory.id)
                 const typeInfo = getTypeInfo(memory.type)

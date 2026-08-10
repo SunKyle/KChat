@@ -7,7 +7,12 @@ import { IconProvider } from './components/common/Icon'
 import { ThemeProvider } from './context/ThemeContext'
 import { ErrorProvider } from './context/ErrorContext'
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Root element not found')
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <ErrorProvider>
       <ThemeProvider>

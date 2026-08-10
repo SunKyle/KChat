@@ -12,7 +12,6 @@
  *   await cogneeMemory.search('What did we discuss about databases?')
  *   await cogneeMemory.add('User: ...\n\nAssistant: ...')
  */
-import { request } from './client'
 
 const COGNEE_BASE_URL = import.meta.env.VITE_COGNEE_URL || 'http://localhost:8000'
 

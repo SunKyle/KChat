@@ -12,10 +12,6 @@ export function useModel() {
     [dispatch]
   )
 
-  const refresh = useCallback(async (category?: string) => {
-    await loadModels(category)
-  }, [])
-
   const loadModels = useCallback(
     async (category?: string) => {
       try {
@@ -31,26 +27,36 @@ export function useModel() {
         console.error('Failed to load models:', error)
       }
     },
-    [dispatch]
+    [dispatch, stateRef]
+  )
+
+  const refresh = useCallback(
+    async (category?: string) => {
+      await loadModels(category)
+    },
+    [loadModels]
   )
 
   const getDefaultModel = useCallback(() => {
     const state = stateRef.current
     return state.availableModels[0] || 'llama3'
-  }, [])
+  }, [stateRef])
 
-  const isValidModel = useCallback((model: string): boolean => {
-    const state = stateRef.current
-    return state.availableModels.includes(model)
-  }, [])
+  const isValidModel = useCallback(
+    (model: string): boolean => {
+      const state = stateRef.current
+      return state.availableModels.includes(model)
+    },
+    [stateRef]
+  )
 
   const getCurrentModel = useCallback(() => {
     return stateRef.current.currentModel
-  }, [])
+  }, [stateRef])
 
   const getAvailableModels = useCallback(() => {
     return stateRef.current.availableModels
-  }, [])
+  }, [stateRef])
 
   return {
     select,

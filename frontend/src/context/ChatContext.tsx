@@ -111,6 +111,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       loadConversations()
       loadModels()
     }
+    // 仅初始化一次，loadModels/loadConversations 通过 ref 守卫避免重复调用
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadConversations = async () => {
@@ -250,20 +252,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const loadMessages = useCallback(async (conversationId: string) => {
-    const streamingState = state.streamingStates[conversationId]
-    if (streamingState?.isStreaming) {
-      return
-    }
+  const loadMessages = useCallback(
+    async (conversationId: string) => {
+      const streamingState = state.streamingStates[conversationId]
+      if (streamingState?.isStreaming) {
+        return
+      }
 
-    try {
-      const data = await conversations.get(conversationId)
-      dispatch({ type: 'SET_MESSAGES', payload: { conversationId, messages: data.messages || [] } })
-    } catch (error) {
-      console.error('Failed to load messages:', error)
-      dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })
-    }
-  }, [])
+      try {
+        const data = await conversations.get(conversationId)
+        dispatch({
+          type: 'SET_MESSAGES',
+          payload: { conversationId, messages: data.messages || [] },
+        })
+      } catch (error) {
+        console.error('Failed to load messages:', error)
+        dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })
+      }
+    },
+    [state.streamingStates]
+  )
 
   const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' })
@@ -404,10 +412,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               type: 'END_STREAMING',
               payload: { conversationId, messageId: backendMessageId },
             })
-            if (title) {
+            if (title && conversationId) {
               dispatch({
                 type: 'UPDATE_CONVERSATION_TITLE',
-                payload: { id: conversationId!, title },
+                payload: { id: conversationId, title },
               })
             }
             abortControllersRef.current[conversationId] = null
@@ -545,7 +553,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         })
         dispatch({ type: 'SET_ERROR', payload: response.message || '重新生成失败，请稍后重试' })
       }
-    } catch (error) {
+    } catch {
       if (abortController.signal.aborted) return
       dispatch({
         type: 'UPDATE_MESSAGE',

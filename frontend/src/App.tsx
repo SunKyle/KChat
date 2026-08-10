@@ -25,7 +25,7 @@ function AppContent() {
     toggleSidebar,
     toggleCollapsed,
   } = useSidebar()
-  const { showSettings, settingsTab, openSettings, closeSettings } = useSettings()
+  const { showSettings, settingsTab, closeSettings } = useSettings()
   const { activeConversation } = useChat()
   const { remove } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)

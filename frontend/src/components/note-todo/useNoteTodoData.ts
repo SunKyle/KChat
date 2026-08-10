@@ -10,7 +10,33 @@ import type {
 } from '../../types/note-todo'
 import { noteApi, todoApi } from '../../api/note-todo'
 
-function convertDate(date: string | null): string | null {
+interface RawNote {
+  id: string
+  userId: string
+  title: string
+  content?: string
+  category?: string
+  tags?: string[]
+  pinned?: boolean
+  createdAt: string | number[] | null
+  updatedAt: string | number[] | null
+}
+
+interface RawTodo {
+  id: string
+  userId: string
+  title: string
+  description?: string
+  status?: 'pending' | 'completed'
+  priority?: 'high' | 'medium' | 'low'
+  dueDate?: string | number[] | null
+  category?: string
+  createdAt: string | number[] | null
+  updatedAt: string | number[] | null
+  completedAt?: string | number[] | null
+}
+
+function convertDate(date: string | number[] | null): string | null {
   if (!date) return null
   if (Array.isArray(date)) {
     const [year, month, day, hour = 0, minute = 0, second = 0] = date
@@ -19,7 +45,7 @@ function convertDate(date: string | null): string | null {
   return new Date(date).toISOString()
 }
 
-export function convertNote(note: any): Note {
+export function convertNote(note: RawNote): Note {
   return {
     id: note.id,
     userId: note.userId,
@@ -33,7 +59,7 @@ export function convertNote(note: any): Note {
   }
 }
 
-export function convertTodo(todo: any): Todo {
+export function convertTodo(todo: RawTodo): Todo {
   return {
     id: todo.id,
     userId: todo.userId,
@@ -41,11 +67,11 @@ export function convertTodo(todo: any): Todo {
     description: todo.description || '',
     status: todo.status || 'pending',
     priority: todo.priority || 'medium',
-    dueDate: convertDate(todo.dueDate),
+    dueDate: convertDate(todo.dueDate ?? null),
     category: todo.category || '默认',
     createdAt: convertDate(todo.createdAt) || new Date().toISOString(),
     updatedAt: convertDate(todo.updatedAt) || new Date().toISOString(),
-    completedAt: convertDate(todo.completedAt),
+    completedAt: convertDate(todo.completedAt ?? null),
   }
 }
 

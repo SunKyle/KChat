@@ -112,7 +112,7 @@ export function Header() {
               title='服务离线，请检查网络连接'
             >
               <WifiOff className='w-3 h-3 text-red-500' />
-              <span className='font-secondary text-[11px] text-red-500'>离线</span>
+              <span className='font-secondary text-xs text-red-500'>离线</span>
             </div>
           )}
           <ThemeToggle />

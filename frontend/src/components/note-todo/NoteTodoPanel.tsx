@@ -473,8 +473,8 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                   setSelectedNote(null)
                   if (isFormOpen) cancelForm()
                 }}
-                onNoteEdit={() => handleEditNoteAction(selectedNote!)}
-                onNoteDelete={() => handleDeleteNote(selectedNote!.id)}
+                onNoteEdit={() => selectedNote && handleEditNoteAction(selectedNote)}
+                onNoteDelete={() => selectedNote && handleDeleteNote(selectedNote.id)}
                 onNoteExpand={() => {
                   if (selectedNote) {
                     setFullscreenNote(selectedNote)
@@ -485,9 +485,9 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                   setSelectedTodo(null)
                   if (isFormOpen) cancelForm()
                 }}
-                onTodoToggle={() => handleToggleTodo(selectedTodo!.id)}
-                onTodoEdit={() => handleEditTodoAction(selectedTodo!)}
-                onTodoDelete={() => handleDeleteTodo(selectedTodo!.id)}
+                onTodoToggle={() => selectedTodo && handleToggleTodo(selectedTodo.id)}
+                onTodoEdit={() => selectedTodo && handleEditTodoAction(selectedTodo)}
+                onTodoDelete={() => selectedTodo && handleDeleteTodo(selectedTodo.id)}
               />
             ) : isFormOpen ? (
               <>

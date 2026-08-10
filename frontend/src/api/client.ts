@@ -47,7 +47,7 @@ function generateRequestId(): string {
 
 function logRequest(requestId: string, endpoint: string, options: RequestOptions): void {
   if (import.meta.env.NODE_ENV !== 'development') return
-  console.debug(`[API] [${requestId}] Request: ${options.method || 'GET'} ${endpoint}`, {
+  console.log(`[API] [${requestId}] Request: ${options.method || 'GET'} ${endpoint}`, {
     body: options.body ? 'Present' : 'None',
     timeout: options.timeout,
     retries: options.retries,
@@ -56,7 +56,7 @@ function logRequest(requestId: string, endpoint: string, options: RequestOptions
 
 function logResponse(requestId: string, status: number, duration: number): void {
   if (import.meta.env.NODE_ENV !== 'development') return
-  console.debug(`[API] [${requestId}] Response: ${status} (${duration}ms)`, { status })
+  console.log(`[API] [${requestId}] Response: ${status} (${duration}ms)`, { status })
 }
 
 function logError(requestId: string, error: ApiError): void {
@@ -161,7 +161,7 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
         attempt++
         const delayMs = retryDelay * Math.pow(2, attempt - 1)
         if (import.meta.env.NODE_ENV === 'development') {
-          console.debug(`[API] [${requestId}] Retrying (${attempt}/${retries}) after ${delayMs}ms`)
+          console.log(`[API] [${requestId}] Retrying (${attempt}/${retries}) after ${delayMs}ms`)
         }
         await delay(delayMs)
         continue

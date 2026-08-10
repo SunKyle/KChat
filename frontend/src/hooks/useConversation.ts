@@ -94,7 +94,7 @@ export function useConversation() {
         }
       }
     },
-    [dispatch]
+    [dispatch, stateRef]
   )
 
   const loadAll = useCallback(async () => {
@@ -136,7 +136,7 @@ export function useConversation() {
         dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })
       }
     },
-    [dispatch]
+    [dispatch, stateRef]
   )
 
   return {

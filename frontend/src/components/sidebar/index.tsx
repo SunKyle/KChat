@@ -175,6 +175,8 @@ export function Sidebar({
     }, 200)
 
     return () => clearTimeout(timer)
+    // 仅依赖 activeConversation.id 触发，其余状态在内部按需读取
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConversation?.id])
 
   // 滚动时添加 class 以显示滚动条（用 ref 避免触发重渲染）

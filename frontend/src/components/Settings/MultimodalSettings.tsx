@@ -51,7 +51,7 @@ export function MultimodalSettings() {
       })
       .catch(() => toastError('加载多模态配置失败'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [toastError])
 
   const updateField = (key: keyof MultimodalConfig, value: string | number) => {
     setConfig((prev) => (prev ? { ...prev, [key]: value } : prev))
@@ -115,7 +115,7 @@ export function MultimodalSettings() {
                 </select>
                 <p className='text-xs theme-text-muted mt-1.5'>{hint}</p>
                 {options.length === 0 && (
-                  <p className='text-xs mt-1' style={{ color: '#d97706' }}>
+                  <p className='text-xs mt-1 text-[var(--accent-amber)]'>
                     暂无支持该能力的模型，图片理解功能将不可用，请先在模型管理中配置。
                   </p>
                 )}
