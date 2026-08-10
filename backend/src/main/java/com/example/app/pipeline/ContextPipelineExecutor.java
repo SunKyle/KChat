@@ -51,7 +51,10 @@ public class ContextPipelineExecutor {
      * 流程：
      * 1. 第一轮运行 PREPROCESS + ASSEMBLY + EXECUTION + AGENT（初始化上下文 + 首次 LLM 调用 + 工具检测/执行）
      * 2. 后续轮次只运行 EXECUTION + AGENT（基于 tool 结果再次调用 LLM）
-     * 3. 循环结束后统一运行 POSTPROCESS + OBSERVABILITY（避免每轮重复持久化/标题生成/SSE done）
+     *
+     * 注意：本方法不运行 POSTPROCESS + OBSERVABILITY。
+     * 调用方需在推送最终响应后显式调用 {@link #executePostProcessing}，
+     * 以确保 StreamingDoneStage 在 message 事件之后发送 done 事件。
      *
      * 终止条件：toolCalls 为空（LLM 不再调用工具）/ 达到 maxIterations / 出现不可恢复错误。
      */
@@ -79,9 +82,6 @@ public class ContextPipelineExecutor {
             log.warn("[AgentLoop] Reached max iterations ({}) with {} pending tool calls",
                     ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
         }
-
-        // 循环结束后统一运行 POSTPROCESS + OBSERVABILITY
-        runStages(resolveStagesFrom(ctx, ContextPipelineStage.Phase.POSTPROCESS), ctx);
     }
 
     /** 解析从开始到指定 phase（含）的所有 stage */

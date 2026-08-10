@@ -101,7 +101,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
     }
 
     /**
-     * Agent 模式执行路径：使用 ChatLanguageModel.generate(messages, toolSpecifications) 同步调用。
+     * Agent 模式执行路径：使用 ChatLanguageModel.generate(messages, toolSpecifications)
+     * 同步调用。
      *
      * LangChain4j 0.35 流式 + tool 不稳定，AGENT 模式强制同步。
      * 返回的 AiMessage 存入 ctx.agentState，由 ToolCallDetectionStage(610) 解析工具调用，
@@ -188,7 +189,12 @@ public class ModelRoutingStage implements ContextPipelineStage {
             String text = msg.text();
             sb.append("║  [").append(i + 1).append("/").append(messages.size())
                     .append("] ").append(role).append(":\n");
-            sb.append("║  ").append(text.replace("\n", "\n║  ")).append("\n");
+            if (text == null) {
+                // AiMessage 可能只有 toolExecutionRequests 而 text 为 null
+                sb.append("║  ").append("[(no text content)]").append("\n");
+            } else {
+                sb.append("║  ").append(text.replace("\n", "\n║  ")).append("\n");
+            }
         }
         sb.append("╚═══════════════════════════════════════════════════════════╝");
 

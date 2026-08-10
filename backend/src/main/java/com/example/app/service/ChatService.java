@@ -112,6 +112,7 @@ public class ChatService {
         if (ctx.isAgentMode()) {
             ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
             pipelineExecutor.executeWithAgentLoop(ctx);
+            pipelineExecutor.executePostProcessing(ctx);
         } else {
             ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
             pipelineExecutor.execute(ctx);

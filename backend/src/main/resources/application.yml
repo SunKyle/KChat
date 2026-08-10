@@ -162,6 +162,7 @@ logging:
   level:
     root: WARN
     PROMPT_LOG: INFO
+    com.example.app: INFO
 
 # ==================== 限流配置 ====================
 rate-limit:
