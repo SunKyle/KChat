@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+import { appConfig } from '../config/app.config'
+
+const BASE_URL = appConfig.api.baseUrl
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>
@@ -72,7 +74,7 @@ async function applyRequestInterceptors(options: RequestOptions): Promise<Reques
   }
 
   if (!options.skipAuth) {
-    const token = localStorage.getItem('kchat_token')
+    const token = localStorage.getItem(appConfig.storage.token)
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
@@ -116,7 +118,12 @@ async function applyResponseInterceptors<T>(response: Response, requestId: strin
 
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const requestId = generateRequestId()
-  const { timeout = 30000, retries = 2, retryDelay = 1000, ...rest } = await applyRequestInterceptors(options)
+  const {
+    timeout = appConfig.api.timeout,
+    retries = appConfig.api.retries,
+    retryDelay = appConfig.api.retryDelay,
+    ...rest
+  } = await applyRequestInterceptors(options)
 
   logRequest(requestId, endpoint, { ...rest, timeout, retries })
 
@@ -276,7 +283,7 @@ export async function requestSSE(
     const abortController = controller || new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
-    }, 60000)
+    }, appConfig.api.sseTimeout)
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',

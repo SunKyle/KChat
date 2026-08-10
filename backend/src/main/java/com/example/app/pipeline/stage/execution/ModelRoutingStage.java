@@ -2,6 +2,7 @@ package com.example.app.pipeline.stage.execution;
 
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
+import com.example.app.config.OpenAIClientProperties;
 import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineExecutor;
 import com.example.app.pipeline.ContextPipelineStage;
@@ -29,14 +30,17 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final OllamaClient ollamaClient;
     private final OpenAICompatibleClient openAICompatibleClient;
     private final ContextPipelineExecutor pipelineExecutor;
+    private final OpenAIClientProperties openAIClientProperties;
 
     public ModelRoutingStage(ModelConfigService modelConfigService,
             OllamaClient ollamaClient,
             OpenAICompatibleClient openAICompatibleClient,
+            OpenAIClientProperties openAIClientProperties,
             @Lazy ContextPipelineExecutor pipelineExecutor) {
         this.modelConfigService = modelConfigService;
         this.ollamaClient = ollamaClient;
         this.openAICompatibleClient = openAICompatibleClient;
+        this.openAIClientProperties = openAIClientProperties;
         this.pipelineExecutor = pipelineExecutor;
     }
 
@@ -92,9 +96,9 @@ public class ModelRoutingStage implements ContextPipelineStage {
         sb.append("╔═══════════════════════════════════════════════════════════╗\n");
         sb.append("║  Final Prompt → Model: ").append(model)
                 .append("  |  Temp: ").append(ctx.isStreaming()
-                        ? OpenAICompatibleClient.STREAM_CHAT_TEMPERATURE
-                        : OpenAICompatibleClient.SYNC_CHAT_TEMPERATURE)
-                .append("  |  MaxTokens: ").append(OpenAICompatibleClient.DEFAULT_CHAT_MAX_TOKENS)
+                        ? String.valueOf(openAIClientProperties.getStreamTemperature())
+                        : String.valueOf(openAIClientProperties.getSyncTemperature()))
+                .append("  |  MaxTokens: ").append(openAIClientProperties.getDefaultMaxTokens())
                 .append("  |  Template: ")
                 .append(templateVersion instanceof Integer ? "v" + templateVersion : "fallback")
                 .append("\n");

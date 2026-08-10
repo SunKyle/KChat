@@ -41,7 +41,6 @@ public class OllamaClient {
     @Value("${memory.long-term.embedding-model:locusai/all-minilm-l6-v2}")
     private String embeddingModel;
 
-    private static final long MODELS_CACHE_TTL_MS = 30_000L;
     private volatile List<String> cachedOllamaModels = null;
     private volatile long lastModelsFetchTime = 0L;
 
@@ -54,7 +53,7 @@ public class OllamaClient {
                     key -> dev.langchain4j.model.ollama.OllamaChatModel.builder()
                             .baseUrl(ollamaConfig.getBaseUrl())
                             .modelName(key)
-                            .timeout(Duration.ofMinutes(2))
+                            .timeout(Duration.ofMinutes(ollamaConfig.getTimeoutMinutes()))
                             .build());
             Response<AiMessage> response = modelInstance.generate(messages);
             return response.content().text();
@@ -203,8 +202,8 @@ public class OllamaClient {
     private String imageUrlToBase64(String imageUrl) throws IOException {
         URL url = new URL(imageUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(10000);
+        connection.setConnectTimeout(ollamaConfig.getImageFetchConnectTimeoutMs());
+        connection.setReadTimeout(ollamaConfig.getImageFetchReadTimeoutMs());
 
         try (InputStream inputStream = connection.getInputStream()) {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -224,7 +223,7 @@ public class OllamaClient {
     @CircuitBreaker(name = "ollamaCB")
     public List<String> listModels() {
         long now = System.currentTimeMillis();
-        if (cachedOllamaModels != null && now - lastModelsFetchTime < MODELS_CACHE_TTL_MS) {
+        if (cachedOllamaModels != null && now - lastModelsFetchTime < ollamaConfig.getModelsCacheTtlMs()) {
             return cachedOllamaModels;
         }
 
@@ -282,8 +281,8 @@ public class OllamaClient {
     private String postJson(String endpoint, String body) throws Exception {
         URL url = new URL(ollamaConfig.getBaseUrl() + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(30000);
+        connection.setConnectTimeout(ollamaConfig.getEmbedConnectTimeoutMs());
+        connection.setReadTimeout(ollamaConfig.getEmbedReadTimeoutMs());
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
@@ -315,8 +314,8 @@ public class OllamaClient {
         try {
             URL url = new URL(ollamaConfig.getBaseUrl() + "/api/tags");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(ollamaConfig.getListModelsConnectTimeoutMs());
+            connection.setReadTimeout(ollamaConfig.getListModelsReadTimeoutMs());
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
 

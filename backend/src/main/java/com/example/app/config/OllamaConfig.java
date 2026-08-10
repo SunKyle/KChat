@@ -7,10 +7,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 /**
  * Ollama 配置类
  *
- * 配置与本地 Ollama 服务的连接参数和默认模型
+ * 配置与本地 Ollama 服务的连接参数、默认模型、
+ * 生成超时时间，以及模型列表缓存 TTL。
  */
 @Data
 @Configuration
@@ -30,6 +33,36 @@ public class OllamaConfig {
     private String defaultModel = "llama3";
 
     /**
+     * 单次同步生成的超时时间（分钟）
+     * CPU 推理较慢时可适当放大
+     */
+    private int timeoutMinutes = 2;
+
+    /**
+     * 模型列表（/api/tags）缓存 TTL（毫秒）
+     * 在缓存期间不会重复调用 Ollama 获取模型列表
+     */
+    private long modelsCacheTtlMs = 30_000L;
+
+    /**
+     * 图片转 base64 时的连接/读取超时（毫秒）
+     */
+    private int imageFetchConnectTimeoutMs = 5000;
+    private int imageFetchReadTimeoutMs = 10_000;
+
+    /**
+     * 调用 embedding 接口的超时（毫秒）
+     */
+    private int embedConnectTimeoutMs = 5000;
+    private int embedReadTimeoutMs = 30_000;
+
+    /**
+     * 获取模型列表的超时（毫秒）
+     */
+    private int listModelsConnectTimeoutMs = 5000;
+    private int listModelsReadTimeoutMs = 10_000;
+
+    /**
      * 创建 ChatLanguageModel Bean
      *
      * 设计考虑：
@@ -43,6 +76,7 @@ public class OllamaConfig {
         return OllamaChatModel.builder()
                 .baseUrl(baseUrl)
                 .modelName(defaultModel)
+                .timeout(Duration.ofMinutes(timeoutMinutes))
                 .build();
     }
 }

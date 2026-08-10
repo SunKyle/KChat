@@ -10,15 +10,15 @@ spring:
       max-request-size: 50MB # 单次请求最大 50MB
   # MySQL 数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3306/kchatdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kchatdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8}
     driverClassName: com.mysql.cj.jdbc.Driver
-    username: admin
-    password: sxk1997sxk
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:sxk1997sxk}
     # HikariCP 连接池配置
     hikari:
-      maximum-pool-size: 10 # 连接池最大连接数
-      minimum-idle: 5 # 最小空闲连接数
-      connection-timeout: 30000 # 连接获取超时 30 秒
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
   # JPA / Hibernate 配置
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -32,15 +32,23 @@ spring:
   # Redis 配置（缓存 + 向量存储）
   data:
     redis:
-      host: localhost
-      port: 6379
-      timeout: 60000ms # 连接超时 60 秒
-      enabled: true
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: ${REDIS_TIMEOUT_MS:60000ms}
+      enabled: ${REDIS_ENABLED:true}
 
 # ==================== Ollama LLM 服务配置 ====================
 ollama:
   base-url: http://localhost:11434 # Ollama 服务地址
   default-model: llama3 # 默认对话模型
+  timeout-minutes: 2 # 单次同步生成超时时间（分钟）
+  models-cache-ttl-ms: 30000 # 模型列表缓存 TTL（毫秒）
+  image-fetch-connect-timeout-ms: 5000 # 图片转 base64 的连接超时
+  image-fetch-read-timeout-ms: 10000 # 图片转 base64 的读取超时
+  embed-connect-timeout-ms: 5000 # embedding 接口连接超时
+  embed-read-timeout-ms: 30000 # embedding 接口读取超时
+  list-models-connect-timeout-ms: 5000 # 获取模型列表连接超时
+  list-models-read-timeout-ms: 10000 # 获取模型列表读取超时
 
 # ==================== CosyVoice TTS 语音合成配置 ====================
 cosyvoice:
@@ -95,6 +103,11 @@ resilience4j:
 
 # ==================== 记忆系统配置 ====================
 memory:
+  # 短期记忆（会话级滑动窗口）
+  short-term:
+    max-messages: 20 # 最多保留最近 20 条消息作为 LLM 上下文
+    ttl-hours: 24 # Redis 中短期记忆的过期时间（小时）
+    redis-key-prefix: "kchat:memory:" # Redis 键前缀
   # 长期记忆（RAG 向量检索）
   long-term:
     enabled: true # 是否启用长期记忆召回
@@ -161,12 +174,59 @@ logging:
 # ==================== 限流配置 ====================
 rate-limit:
   enabled: true # 是否启用接口限流
-  requests-per-minute: 10 # 每分钟最大请求数 10 次
+  requests-per-minute: 10 # 每个窗口内最大请求数
   cache-prefix: 'optimize:rate:' # Redis 限流计数缓存前缀
+  window-seconds: 60 # 滑动窗口时间（秒）
 
 # ==================== Prompt 优化模型配置 ====================
 optimization:
   model: llama3 # 用于 Prompt 优化的模型
+
+# ==================== OpenAI 兼容客户端配置 ====================
+# 所有基于 OpenAI API 协议的请求（Ollama 之外的第三方、自建 OpenAI 兼容网关等）
+openai-client:
+  sync-temperature: 0.3 # 同步（非流式）对话温度
+  stream-temperature: 0.7 # 流式对话温度
+  default-max-tokens: 4096 # 单次响应默认最大 token
+  stream-buffer-size: 8192 # 流式响应读取缓冲区大小（字节）
+  sd:
+    steps: 20 # Stable Diffusion 采样步数
+    cfg-scale: 7.0 # CFG Scale（提示词相关性）
+    denoising-strength: 0.75 # img2img 去噪强度
+  image-gen:
+    connect-seconds: 30
+    read-seconds: 60
+    write-seconds: 30
+  sd-webui:
+    connect-seconds: 30
+    read-seconds: 120
+    write-seconds: 30
+  chat:
+    connect-seconds: 30
+    read-seconds: 120
+    write-seconds: 30
+  multimodal:
+    connect-seconds: 30
+    read-seconds: 180
+    write-seconds: 30
+  stream:
+    connect-seconds: 30
+    read-seconds: 300
+    write-seconds: 30
+  local-fetch:
+    connect-seconds: 5
+    read-seconds: 5
+    write-seconds: 5
+  remote-fetch:
+    connect-seconds: 10
+    read-seconds: 30
+    write-seconds: 10
+
+# ==================== 应用级配置（文件上传、图片等） ====================
+app:
+  image:
+    upload-dir: uploads/images # 本地图片上传目录
+    base-url: http://localhost:8080/api/images/ # 访问上传图片的 URL 前缀
 
 # ==================== Cognee 记忆图谱配置 ====================
 cognee:

@@ -1,5 +1,6 @@
 package com.example.app.memory;
 
+import com.example.app.config.ShortTermMemoryProperties;
 import com.example.app.entity.Message;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -31,6 +32,7 @@ public class ShortTermMemory {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
     private final MessageRepository messageRepository;
+    private final ShortTermMemoryProperties properties;
 
     /**
      * L1 内存缓存：会话ID -> 记忆对象
@@ -57,18 +59,16 @@ public class ShortTermMemory {
     }
 
     /**
-     * Redis 键前缀
+     * 记忆过期时间由 ShortTermMemoryProperties.ttlHours 读取
+     * Redis 键前缀由 ShortTermMemoryProperties.redisKeyPrefix 读取
      */
-    private static final String REDIS_KEY_PREFIX = "kchat:memory:";
+    private Duration getExpiration() {
+        return Duration.ofHours(properties.getTtlHours());
+    }
 
-    /**
-     * 记忆过期时间：24 小时
-     *
-     * 设计考虑：
-     * - 短期记忆不需要永久保存
-     * - 自动过期防止 Redis 内存无限增长
-     */
-    private static final Duration EXPIRATION = Duration.ofHours(24);
+    private String getRedisKey(String conversationId) {
+        return properties.getRedisKeyPrefix() + conversationId;
+    }
 
     /**
      * 获取对话记忆
@@ -91,11 +91,13 @@ public class ShortTermMemory {
             return cachedMemory;
         }
 
+        final int maxMessages = properties.getMaxMessages();
+
         try {
-            String key = REDIS_KEY_PREFIX + conversationId;
+            String key = getRedisKey(conversationId);
             String json = stringRedisTemplate.opsForValue().get(key);
 
-            ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
+            ChatMemory memory = MessageWindowChatMemory.withMaxMessages(maxMessages);
 
             boolean loadedFromRedis = false;
             if (json != null && !json.isEmpty()) {
@@ -116,19 +118,19 @@ public class ShortTermMemory {
             }
 
             if (!loadedFromRedis) {
-                loadFromDatabase(conversationId, memory);
+                loadFromDatabase(conversationId, memory, maxMessages);
             }
 
             RedisBackedChatMemory backedMemory = new RedisBackedChatMemory(
-                    memory, stringRedisTemplate, objectMapper, key, conversationId);
+                    memory, stringRedisTemplate, objectMapper, key, conversationId, this);
 
             memoryMap.put(conversationId, backedMemory);
 
             return backedMemory;
         } catch (Exception e) {
             log.warn("[ShortTermMemory] Redis unavailable, falling back to DB + in-memory: {}", e.getMessage());
-            ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
-            loadFromDatabase(conversationId, memory);
+            ChatMemory memory = MessageWindowChatMemory.withMaxMessages(maxMessages);
+            loadFromDatabase(conversationId, memory, maxMessages);
             memoryMap.put(conversationId, memory);
             return memory;
         }
@@ -138,7 +140,7 @@ public class ShortTermMemory {
      * 从数据库恢复最近的消息到短期记忆
      * 当 Redis 缓存丢失（重启/过期）时，从数据库回退加载历史消息
      */
-    private void loadFromDatabase(String conversationId, ChatMemory memory) {
+    private void loadFromDatabase(String conversationId, ChatMemory memory, int maxMessages) {
         try {
             List<Message> dbMessages = messageRepository
                     .findByConversationIdOrderByTimestampAsc(conversationId);
@@ -148,7 +150,7 @@ public class ShortTermMemory {
                 return;
             }
 
-            int start = Math.max(0, dbMessages.size() - 20);
+            int start = Math.max(0, dbMessages.size() - maxMessages);
             List<Message> recentMessages = dbMessages.subList(start, dbMessages.size());
 
             int loaded = 0;
@@ -192,7 +194,7 @@ public class ShortTermMemory {
     public void clearMemory(String conversationId) {
         memoryMap.remove(conversationId);
         try {
-            String key = REDIS_KEY_PREFIX + conversationId;
+            String key = getRedisKey(conversationId);
             stringRedisTemplate.delete(key);
         } catch (Exception e) {
             log.debug("[ShortTermMemory] Failed to clear memory from Redis: {}", e.getMessage());
@@ -208,7 +210,7 @@ public class ShortTermMemory {
     public void clearAll() {
         memoryMap.clear();
         try {
-            var keys = stringRedisTemplate.keys(REDIS_KEY_PREFIX + "*");
+            var keys = stringRedisTemplate.keys(properties.getRedisKeyPrefix() + "*");
             if (keys != null && !keys.isEmpty()) {
                 stringRedisTemplate.delete(keys);
             }
@@ -230,14 +232,16 @@ public class ShortTermMemory {
         private final ObjectMapper objectMapper;
         private final String key;
         private final String conversationId;
+        private final ShortTermMemory outer;
 
         public RedisBackedChatMemory(ChatMemory delegate, StringRedisTemplate redisTemplate,
-                ObjectMapper objectMapper, String key, String conversationId) {
+                ObjectMapper objectMapper, String key, String conversationId, ShortTermMemory outer) {
             this.delegate = delegate;
             this.redisTemplate = redisTemplate;
             this.objectMapper = objectMapper;
             this.key = key;
             this.conversationId = conversationId;
+            this.outer = outer;
         }
 
         /**
@@ -290,7 +294,7 @@ public class ShortTermMemory {
             try {
                 List<ChatMessage> messages = delegate.messages();
                 String json = objectMapper.writeValueAsString(messages);
-                redisTemplate.opsForValue().set(key, json, EXPIRATION);
+                redisTemplate.opsForValue().set(key, json, outer.getExpiration());
                 log.debug("[ShortTermMemory] Persisted {} messages to Redis for conversation: {}",
                         messages.size(), conversationId);
             } catch (Exception e) {

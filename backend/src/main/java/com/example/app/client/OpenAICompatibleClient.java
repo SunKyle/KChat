@@ -1,5 +1,7 @@
 package com.example.app.client;
 
+import com.example.app.config.OpenAIClientProperties;
+import com.example.app.config.OpenAIClientProperties.Timeout;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -11,6 +13,7 @@ import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -28,11 +31,11 @@ import java.util.function.Consumer;
 @Slf4j
 public class OpenAICompatibleClient {
 
-    public static final double SYNC_CHAT_TEMPERATURE = 0.3;
-    public static final double STREAM_CHAT_TEMPERATURE = 0.7;
-    public static final int DEFAULT_CHAT_MAX_TOKENS = 4096;
-
     private final ObjectMapper objectMapper;
+    private final OpenAIClientProperties props;
+
+    @Value("${app.image.upload-dir:uploads/images}")
+    private String uploadDir;
 
     public boolean isImageModel(String modelId) {
         return modelId.toLowerCase().contains("dall-e") ||
@@ -62,6 +65,14 @@ public class OpenAICompatibleClient {
         return normalizedBaseUrl + endpoint;
     }
 
+    private OkHttpClient buildClient(Timeout t) {
+        return new OkHttpClient.Builder()
+                .connectTimeout(t.getConnectSeconds(), TimeUnit.SECONDS)
+                .readTimeout(t.getReadSeconds(), TimeUnit.SECONDS)
+                .writeTimeout(t.getWriteSeconds(), TimeUnit.SECONDS)
+                .build();
+    }
+
     public void generateImage(
             String modelId,
             String baseUrl,
@@ -70,11 +81,7 @@ public class OpenAICompatibleClient {
             List<String> imageUrls,
             SseEmitter emitter,
             Consumer<String> onComplete) {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getImageGen());
 
         try {
             ObjectNode requestBody = objectMapper.createObjectNode();
@@ -197,11 +204,7 @@ public class OpenAICompatibleClient {
             List<String> imageUrls,
             SseEmitter emitter,
             Consumer<String> onComplete) {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(120, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getSdWebui());
 
         try {
             boolean hasReferenceImage = imageUrls != null && !imageUrls.isEmpty();
@@ -209,8 +212,8 @@ public class OpenAICompatibleClient {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("prompt", prompt);
             requestBody.put("negative_prompt", "");
-            requestBody.put("steps", 20);
-            requestBody.put("cfg_scale", 7);
+            requestBody.put("steps", props.getSd().getSteps());
+            requestBody.put("cfg_scale", props.getSd().getCfgScale());
 
             String normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
             String endpoint;
@@ -223,7 +226,7 @@ public class OpenAICompatibleClient {
                     ArrayNode initImages = objectMapper.createArrayNode();
                     initImages.add(rawBase64);
                     requestBody.set("init_images", initImages);
-                    requestBody.put("denoising_strength", 0.75);
+                    requestBody.put("denoising_strength", props.getSd().getDenoisingStrength());
                     log.info("SD img2img mode: using reference image ({} chars base64)", rawBase64.length());
                 }
                 endpoint = "sdapi/v1/img2img";
@@ -343,11 +346,7 @@ public class OpenAICompatibleClient {
             String baseUrl,
             String apiKey,
             List<ChatMessage> messages) {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(2, TimeUnit.MINUTES)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getChat());
 
         try {
             ArrayNode messagesArray = buildMessagesArray(messages);
@@ -356,8 +355,8 @@ public class OpenAICompatibleClient {
             requestBody.put("model", modelId);
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", false);
-            requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
-            requestBody.put("temperature", SYNC_CHAT_TEMPERATURE);
+            requestBody.put("max_tokens", props.getDefaultMaxTokens());
+            requestBody.put("temperature", props.getSyncTemperature());
 
             String requestBodyStr = objectMapper.writeValueAsString(requestBody);
             RequestBody body = RequestBody.create(
@@ -433,11 +432,7 @@ public class OpenAICompatibleClient {
             String apiKey,
             List<ChatMessage> messages,
             List<String> imageUrls) throws IOException {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(3, TimeUnit.MINUTES)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getMultimodal());
 
         ArrayNode messagesArray = buildMessagesArray(messages);
         attachImagesAsContent(messagesArray, imageUrls);
@@ -446,8 +441,8 @@ public class OpenAICompatibleClient {
         requestBody.put("model", modelId);
         requestBody.set("messages", messagesArray);
         requestBody.put("stream", false);
-        requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
-        requestBody.put("temperature", SYNC_CHAT_TEMPERATURE);
+        requestBody.put("max_tokens", props.getDefaultMaxTokens());
+        requestBody.put("temperature", props.getSyncTemperature());
 
         String requestBodyStr = objectMapper.writeValueAsString(requestBody);
         RequestBody body = RequestBody.create(
@@ -484,11 +479,7 @@ public class OpenAICompatibleClient {
             String apiKey,
             String prompt,
             List<String> imageUrls) throws IOException {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(3, TimeUnit.MINUTES)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getMultimodal());
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("model", modelId);
@@ -564,11 +555,7 @@ public class OpenAICompatibleClient {
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.MINUTES)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = buildClient(props.getStream());
 
         try {
             ArrayNode messagesArray = buildMessagesArray(messages);
@@ -581,8 +568,8 @@ public class OpenAICompatibleClient {
             requestBody.put("model", modelId);
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", true);
-            requestBody.put("max_tokens", DEFAULT_CHAT_MAX_TOKENS);
-            requestBody.put("temperature", STREAM_CHAT_TEMPERATURE);
+            requestBody.put("max_tokens", props.getDefaultMaxTokens());
+            requestBody.put("temperature", props.getStreamTemperature());
 
             String requestBodyStr = objectMapper.writeValueAsString(requestBody);
             RequestBody body = RequestBody.create(
@@ -634,7 +621,7 @@ public class OpenAICompatibleClient {
                             return;
                         }
 
-                        byte[] buffer = new byte[8192];
+                        byte[] buffer = new byte[props.getStreamBufferSize()];
                         int bytesRead;
                         StringBuilder jsonBuffer = new StringBuilder();
 
@@ -831,8 +818,8 @@ public class OpenAICompatibleClient {
         try {
             java.net.URL localUrl = new java.net.URL(url);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) localUrl.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(props.getLocalFetch().getConnectSeconds() * 1000);
+            connection.setReadTimeout(props.getLocalFetch().getReadSeconds() * 1000);
 
             try (java.io.InputStream is = connection.getInputStream()) {
                 byte[] bytes = is.readAllBytes();
@@ -857,7 +844,7 @@ public class OpenAICompatibleClient {
             return imageUrl;
 
         try {
-            Path uploadPath = Paths.get("uploads/images");
+            Path uploadPath = Paths.get(uploadDir);
             String filename = extractFilename(imageUrl);
             if (filename != null) {
                 Path filePath = uploadPath.resolve(filename);
@@ -878,8 +865,8 @@ public class OpenAICompatibleClient {
         try {
             java.net.URL url = new java.net.URL(imageUrl);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(props.getRemoteFetch().getConnectSeconds() * 1000);
+            connection.setReadTimeout(props.getRemoteFetch().getReadSeconds() * 1000);
 
             try (java.io.InputStream is = connection.getInputStream()) {
                 byte[] bytes = is.readAllBytes();

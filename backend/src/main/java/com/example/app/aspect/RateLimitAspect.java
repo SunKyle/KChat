@@ -39,6 +39,9 @@ public class RateLimitAspect {
     @Value("${rate-limit.cache-prefix:optimize:rate:}")
     private String cachePrefix;
 
+    @Value("${rate-limit.window-seconds:60}")
+    private int windowSeconds;
+
     /**
      * 限流注解
      */
@@ -66,19 +69,20 @@ public class RateLimitAspect {
         String key = cachePrefix + clientId;
 
         long currentTime = System.currentTimeMillis();
-        long windowStart = currentTime - 60 * 1000; // 窗口起始时间（1分钟前）
+        long windowMillis = (long) windowSeconds * 1000L;
+        long windowStart = currentTime - windowMillis;
 
         // 获取当前窗口内的请求数
         Long count = redisTemplate.opsForZSet().count(key, windowStart, currentTime);
 
         if (count != null && count >= requestsPerMinute) {
-            int retryAfter = 60;
+            int retryAfter = windowSeconds;
             try {
                 var range = redisTemplate.opsForZSet().rangeWithScores(key, 0, 0);
                 if (range != null && !range.isEmpty()) {
                     var firstEntry = range.iterator().next();
                     long oldestRequestTime = firstEntry.getScore().longValue();
-                    long timeUntilExpiry = 60 * 1000 - (currentTime - oldestRequestTime);
+                    long timeUntilExpiry = windowMillis - (currentTime - oldestRequestTime);
                     retryAfter = Math.max(1, (int) (timeUntilExpiry / 1000));
                 }
             } catch (Exception e) {
@@ -93,12 +97,12 @@ public class RateLimitAspect {
         // 记录当前请求时间
         redisTemplate.opsForZSet().add(key, String.valueOf(currentTime), currentTime);
 
-        // 清理过期数据（保留1分钟的数据）
-        redisTemplate.opsForZSet().removeRange(key, 0, -1);
+        // 清理过期数据
+        redisTemplate.opsForZSet().removeRangeByScore(key, 0, windowStart);
         redisTemplate.opsForZSet().add(key, String.valueOf(currentTime), currentTime);
 
         // 设置过期时间
-        redisTemplate.expire(key, 60, TimeUnit.SECONDS);
+        redisTemplate.expire(key, windowSeconds, TimeUnit.SECONDS);
 
         return joinPoint.proceed();
     }
