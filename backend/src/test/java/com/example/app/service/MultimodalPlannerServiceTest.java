@@ -1,26 +1,25 @@
 package com.example.app.service;
 
-import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.MultimodalProperties;
 import com.example.app.dto.MultimodalPlan;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.app.dto.MultimodalPlanStep;
+import com.example.app.service.ai.AiServiceFactory;
+import com.example.app.service.ai.MultimodalPlannerAI;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class MultimodalPlannerServiceTest {
 
@@ -28,10 +27,10 @@ class MultimodalPlannerServiceTest {
     private ModelConfigService modelConfigService;
 
     @Mock
-    private OpenAICompatibleClient openAICompatibleClient;
+    private AiServiceFactory aiServiceFactory;
 
     @Mock
-    private OllamaClient ollamaClient;
+    private MultimodalPlannerAI plannerAI;
 
     private MultimodalPlannerService service;
 
@@ -40,10 +39,10 @@ class MultimodalPlannerServiceTest {
         MockitoAnnotations.openMocks(this);
         MultimodalProperties properties = new MultimodalProperties();
         properties.setMaxSteps(5);
-        service = new MultimodalPlannerService(
-                properties, modelConfigService, openAICompatibleClient, ollamaClient, new ObjectMapper());
-        when(ollamaClient.generate(anyList(), isNull()))
-                .thenThrow(new RuntimeException("ollama down"));
+        service = new MultimodalPlannerService(properties, modelConfigService, aiServiceFactory);
+        // 默认 LLM 调用失败，触发 fallback 规划
+        when(aiServiceFactory.create(eq(MultimodalPlannerAI.class), any()))
+                .thenThrow(new RuntimeException("llm down"));
     }
 
     @Test
@@ -67,18 +66,18 @@ class MultimodalPlannerServiceTest {
         List<ChatMessage> history = List.of(
                 UserMessage.from("上一轮问题"),
                 AiMessage.from("上一轮回答"));
-        String planJson = """
-                {"steps":[{"type":"text","prompt":null,"text":"回答当前问题","targetImage":null}]}
-                """.trim();
-        reset(ollamaClient);
-        when(ollamaClient.generate(anyList(), nullable(String.class))).thenReturn(planJson);
+        MultimodalPlan expectedPlan = new MultimodalPlan(List.of(
+                new MultimodalPlanStep("text", null, "回答当前问题", null)));
+        // 覆盖默认 stub：让 AiServiceFactory 返回可用的 planner
+        when(aiServiceFactory.create(eq(MultimodalPlannerAI.class), any())).thenReturn(plannerAI);
+        when(plannerAI.plan(anyString())).thenReturn(expectedPlan);
 
         MultimodalPlan plan = service.plan("当前问题", List.of(), null, history);
 
         assertNotNull(plan);
-        ArgumentCaptor<List<ChatMessage>> captor = ArgumentCaptor.forClass(List.class);
-        verify(ollamaClient).generate(captor.capture(), nullable(String.class));
-        String prompt = ((UserMessage) captor.getValue().get(0)).text();
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(plannerAI).plan(captor.capture());
+        String prompt = captor.getValue();
         assertTrue(prompt.contains("上一轮问题"));
         assertTrue(prompt.contains("上一轮回答"));
     }

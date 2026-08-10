@@ -87,6 +87,12 @@
             <version>${langchain4j.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+
         <!-- DJL PyTorch engine for in-process semantic embeddings (all-MiniLM-L6-v2, ~90MB model, ~200MB engine) -->
         <dependency>
             <groupId>ai.djl</groupId>

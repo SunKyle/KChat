@@ -1,11 +1,10 @@
 package com.example.app.service;
 
-import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.MultimodalProperties;
 import com.example.app.dto.MultimodalPlan;
 import com.example.app.dto.MultimodalPlanStep;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.app.service.ai.AiServiceFactory;
+import com.example.app.service.ai.MultimodalPlannerAI;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -17,6 +16,14 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 多模态任务规划服务
+ *
+ * LLM 调用与结构化输出由 LangChain4j {@link AiServiceFactory} +
+ * {@link MultimodalPlannerAI} 统一处理，框架自动注入 JSON Schema 并反序列化为
+ * {@link MultimodalPlan}，替代原先手写的 {@code objectMapper.readValue} 解析。
+ * 规则降级（{@link #fallbackPlan}）与历史格式化保持自实现。
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,34 +34,9 @@ public class MultimodalPlannerService {
 
     private final MultimodalProperties properties;
     private final ModelConfigService modelConfigService;
-    private final OpenAICompatibleClient openAICompatibleClient;
-    private final OllamaClient ollamaClient;
-    private final ObjectMapper objectMapper;
+    private final AiServiceFactory aiServiceFactory;
 
     private static final int MAX_PLANNER_HISTORY_CHARS = 6000;
-
-    private static final String PLANNER_PROMPT = """
-            你是一个多模态任务规划器。根据最近的对话历史、用户输入和图片数量，输出一个 JSON 计划。
-
-            要求：
-            - 只输出 JSON，不要输出其他文字
-            - steps 是数组，每项包含 type、prompt、text、targetImage
-            - type 只能是 vision、image_gen、text 之一
-            - vision：需要理解用户上传图片时使用，targetImage 是图片索引（从 0 开始）
-            - image_gen：需要生成图片时使用，prompt 是生成图片的描述
-            - image_gen 的 prompt 必须是自包含的完整画面描述，不能依赖对话历史，因为它会直接发送给图像生成模型
-            - text：需要文本回答时使用
-            - 步骤数量不超过 {max_steps}
-
-            示例：
-            {"steps":[{"type":"vision","prompt":"分析图片","text":null,"targetImage":0},{"type":"text","prompt":null,"text":"用中文回答","targetImage":null}]}
-
-            最近对话历史：
-            {history}
-
-            当前用户输入：{message}
-            图片数量：{image_count}
-            """;
 
     public MultimodalPlan plan(String userMessage, List<String> imageUrls) {
         return plan(userMessage, imageUrls, null, null);
@@ -68,13 +50,11 @@ public class MultimodalPlannerService {
             String configuredPlannerModel, List<ChatMessage> history) {
         int imageCount = imageUrls == null ? 0 : imageUrls.size();
         try {
-            String prompt = PLANNER_PROMPT
-                    .replace("{message}", userMessage == null ? "" : userMessage)
-                    .replace("{history}", formatHistory(history))
-                    .replace("{image_count}", String.valueOf(imageCount))
-                    .replace("{max_steps}", String.valueOf(properties.getMaxSteps()));
-            String response = callPlanner(prompt, configuredPlannerModel);
-            MultimodalPlan plan = objectMapper.readValue(response, MultimodalPlan.class);
+            String prompt = buildPlannerPrompt(userMessage, imageCount, history);
+            String model = resolvePlannerModel(configuredPlannerModel);
+            promptLog.info("[MultimodalPlanner] 使用规划模型: {}", model);
+            MultimodalPlannerAI planner = aiServiceFactory.create(MultimodalPlannerAI.class, model);
+            MultimodalPlan plan = planner.plan(prompt);
             if (plan != null && plan.steps() != null && !plan.steps().isEmpty()) {
                 return plan;
             }
@@ -82,6 +62,39 @@ public class MultimodalPlannerService {
             log.warn("[MultimodalPlanner] LLM 规划失败，使用规则规划: {}", e.getMessage());
         }
         return fallbackPlan(userMessage, imageUrls, history);
+    }
+
+    /**
+     * 拼装传给 {@link MultimodalPlannerAI#plan(String)} 的 UserMessage 文本，
+     * 包含对话历史、当前输入、图片数量、最大步数等动态上下文。
+     */
+    private String buildPlannerPrompt(String userMessage, int imageCount, List<ChatMessage> history) {
+        return """
+                最近对话历史：
+                %s
+
+                当前用户输入：%s
+                图片数量：%d
+                步骤数量不超过 %d
+                """.formatted(
+                formatHistory(history),
+                userMessage == null ? "" : userMessage,
+                imageCount,
+                properties.getMaxSteps());
+    }
+
+    /**
+     * 解析规划模型标识：优先用调用方传入的 configuredPlannerModel，
+     * 其次用配置文件中的 multimodal.plannerModel，最后回退到默认文本模型。
+     */
+    private String resolvePlannerModel(String configuredPlannerModel) {
+        String model = configuredPlannerModel != null && !configuredPlannerModel.isBlank()
+                ? configuredPlannerModel
+                : properties.getPlannerModel();
+        if (model == null || model.isBlank()) {
+            model = modelConfigService.findDefaultTextModelId();
+        }
+        return model;
     }
 
     private String formatHistory(List<ChatMessage> history) {
@@ -111,29 +124,6 @@ public class MultimodalPlannerService {
             formatted = "…（历史过长已截断）\n" + formatted.substring(formatted.length() - MAX_PLANNER_HISTORY_CHARS);
         }
         return formatted.isEmpty() ? "（无）" : formatted;
-    }
-
-    private String callPlanner(String prompt, String configuredPlannerModel) {
-        String model = configuredPlannerModel != null && !configuredPlannerModel.isBlank()
-                ? configuredPlannerModel
-                : properties.getPlannerModel();
-        if (model == null || model.isBlank()) {
-            model = modelConfigService.findDefaultTextModelId();
-        }
-        if (model != null && !model.isBlank()) {
-            promptLog.info("[MultimodalPlanner] 使用规划模型: {}", model);
-            var config = modelConfigService.getConfigByModelId(model);
-            if (config != null) {
-                String actualModelId = model.startsWith(config.getName() + ":")
-                        ? model.substring(config.getName().length() + 1)
-                        : model;
-                return openAICompatibleClient.chatCompletion(
-                        actualModelId, config.getBaseUrl(), config.getApiKey(), null, prompt);
-            }
-            return ollamaClient.generate(List.of(UserMessage.from(prompt)), model);
-        }
-        promptLog.info("[MultimodalPlanner] 使用默认 Ollama 模型");
-        return ollamaClient.generate(List.of(UserMessage.from(prompt)), null);
     }
 
     private MultimodalPlan fallbackPlan(String userMessage, List<String> imageUrls,

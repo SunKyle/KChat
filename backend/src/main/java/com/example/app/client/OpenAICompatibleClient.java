@@ -6,13 +6,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.StreamingResponseHandler;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +46,7 @@ public class OpenAICompatibleClient {
 
     private final ObjectMapper objectMapper;
     private final OpenAIClientProperties props;
+    private final OpenAiModelFactory modelFactory;
 
     @Value("${app.image.upload-dir:uploads/images}")
     private String uploadDir;
@@ -52,16 +66,11 @@ public class OpenAICompatibleClient {
     }
 
     private String buildFullUrl(String baseUrl, String endpoint) {
-        // 如果 baseUrl 已经包含了完整的端点路径（如 /v1/chat/completions），直接返回；否则拼接
         String normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-
-        // 检查是否已经包含了类似的端点路径
         if (normalizedBaseUrl.contains("/v1/chat/completions") ||
                 normalizedBaseUrl.contains("/v1/images/generations")) {
             return baseUrl;
         }
-
-        // 否则拼接端点
         return normalizedBaseUrl + endpoint;
     }
 
@@ -130,7 +139,7 @@ public class OpenAICompatibleClient {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(Call call, okhttp3.Response response) throws IOException {
                     if (!response.isSuccessful()) {
                         String errorBody = response.body() != null ? response.body().string() : "No response body";
                         log.error("Image generation failed with code {}: {}", response.code(), errorBody);
@@ -143,7 +152,7 @@ public class OpenAICompatibleClient {
                         return;
                     }
 
-                    try (ResponseBody responseBody = response.body()) {
+                    try (okhttp3.ResponseBody responseBody = response.body()) {
                         if (responseBody == null) {
                             emitter.complete();
                             return;
@@ -260,7 +269,7 @@ public class OpenAICompatibleClient {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(Call call, okhttp3.Response response) throws IOException {
                     if (!response.isSuccessful()) {
                         String errorBody = response.body() != null ? response.body().string() : "No response body";
                         log.error("SD WebUI request failed with code {}: {}", response.code(), errorBody);
@@ -273,7 +282,7 @@ public class OpenAICompatibleClient {
                         return;
                     }
 
-                    try (ResponseBody responseBody = response.body()) {
+                    try (okhttp3.ResponseBody responseBody = response.body()) {
                         if (responseBody == null) {
                             emitter.complete();
                             return;
@@ -317,91 +326,17 @@ public class OpenAICompatibleClient {
     }
 
     /**
-     * 将 ChatMessage 列表转换为 OpenAI messages JSON 数组
-     */
-    private ArrayNode buildMessagesArray(List<ChatMessage> messages) {
-        ArrayNode messagesArray = objectMapper.createArrayNode();
-        for (ChatMessage msg : messages) {
-            ObjectNode msgNode = objectMapper.createObjectNode();
-            if (msg instanceof SystemMessage) {
-                msgNode.put("role", "system");
-            } else if (msg instanceof UserMessage) {
-                msgNode.put("role", "user");
-            } else if (msg instanceof AiMessage) {
-                msgNode.put("role", "assistant");
-            } else {
-                continue;
-            }
-            msgNode.put("content", msg.text());
-            messagesArray.add(msgNode);
-        }
-        return messagesArray;
-    }
-
-    /**
      * 同步调用 OpenAI 兼容 API（支持完整对话历史）
+     * 改用 LangChain4j OpenAiChatModel.generate()，由框架处理 HTTP/JSON。
      */
     public String chatCompletion(
             String modelId,
             String baseUrl,
             String apiKey,
             List<ChatMessage> messages) {
-        OkHttpClient client = buildClient(props.getChat());
-
-        try {
-            ArrayNode messagesArray = buildMessagesArray(messages);
-
-            ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", modelId);
-            requestBody.set("messages", messagesArray);
-            requestBody.put("stream", false);
-            requestBody.put("max_tokens", props.getDefaultMaxTokens());
-            requestBody.put("temperature", props.getSyncTemperature());
-
-            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
-            RequestBody body = RequestBody.create(
-                    requestBodyStr,
-                    MediaType.parse("application/json"));
-
-            String fullUrl = buildFullUrl(baseUrl, "/v1/chat/completions");
-
-            Request request = new Request.Builder()
-                    .url(fullUrl)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .post(body)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    String errorBody = response.body() != null ? response.body().string() : "No response body";
-                    log.error("API request failed with code {}: {}", response.code(), errorBody);
-                    throw new RuntimeException("API请求失败: " + response.code() + ". " + errorBody);
-                }
-
-                ResponseBody responseBody = response.body();
-                if (responseBody == null) {
-                    throw new RuntimeException("API返回空响应");
-                }
-
-                String responseBodyStr = responseBody.string();
-                JsonNode node = objectMapper.readTree(responseBodyStr);
-                JsonNode choices = node.get("choices");
-                if (choices != null && choices.isArray() && choices.size() > 0) {
-                    JsonNode message = choices.get(0).get("message");
-                    if (message != null && message.has("content")) {
-                        return message.get("content").asText();
-                    }
-                }
-
-                log.error("Failed to parse response: {}", responseBodyStr);
-                throw new RuntimeException("无法解析API响应");
-            }
-
-        } catch (IOException e) {
-            log.error("Synchronous chat completion failed", e);
-            throw new RuntimeException("API调用失败: " + e.getMessage(), e);
-        }
+        ChatLanguageModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
+        Response<AiMessage> response = model.generate(messages);
+        return response.content().text();
     }
 
     /**
@@ -414,7 +349,7 @@ public class OpenAICompatibleClient {
             String systemPrompt,
             String userContent,
             List<String> imageUrls) throws IOException {
-        List<ChatMessage> messages = new java.util.ArrayList<>();
+        List<ChatMessage> messages = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank()) {
             messages.add(SystemMessage.from(systemPrompt));
         }
@@ -424,7 +359,7 @@ public class OpenAICompatibleClient {
 
     /**
      * 同步多模态对话（完整历史）：保留 system/assistant/user 历史，
-     * 并把图片以 content 数组形式附加到最后一条 user 消息。
+     * 并把图片以 ImageContent 形式附加到最后一条 user 消息，框架自动序列化 OpenAI content 数组。
      */
     public String chatCompletionWithImages(
             String modelId,
@@ -432,46 +367,15 @@ public class OpenAICompatibleClient {
             String apiKey,
             List<ChatMessage> messages,
             List<String> imageUrls) throws IOException {
-        OkHttpClient client = buildClient(props.getMultimodal());
-
-        ArrayNode messagesArray = buildMessagesArray(messages);
-        attachImagesAsContent(messagesArray, imageUrls);
-
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        requestBody.put("model", modelId);
-        requestBody.set("messages", messagesArray);
-        requestBody.put("stream", false);
-        requestBody.put("max_tokens", props.getDefaultMaxTokens());
-        requestBody.put("temperature", props.getSyncTemperature());
-
-        String requestBodyStr = objectMapper.writeValueAsString(requestBody);
-        RequestBody body = RequestBody.create(
-                requestBodyStr,
-                MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-                .url(buildFullUrl(baseUrl, "/v1/chat/completions"))
-                .header("Authorization", "Bearer " + apiKey)
-                .header("Content-Type", "application/json")
-                .post(body)
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                String errorBody = response.body() != null ? response.body().string() : "No response body";
-                throw new RuntimeException("API request failed: " + response.code() + ". " + errorBody);
-            }
-            String responseBodyStr = response.body() != null ? response.body().string() : "";
-            JsonNode node = objectMapper.readTree(responseBodyStr);
-            JsonNode choices = node.path("choices");
-            if (choices.isArray() && choices.size() > 0) {
-                return choices.get(0).path("message").path("content").asText("");
-            }
-            throw new RuntimeException("Failed to parse multimodal response");
-        }
+        List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
+        ChatLanguageModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
+        Response<AiMessage> response = model.generate(finalMessages);
+        return response.content().text();
     }
 
     /**
      * 同步文生图，返回可插入 Markdown 的图片 URL。
+     * 图像生成不在 LangChain4j 范畴，保留手写 OkHttp 实现。
      */
     public String generateImageSync(
             String modelId,
@@ -508,7 +412,7 @@ public class OpenAICompatibleClient {
                 .post(body)
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (okhttp3.Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "No response body";
                 throw new RuntimeException("Image generation failed: " + response.code() + ". " + errorBody);
@@ -538,7 +442,7 @@ public class OpenAICompatibleClient {
             String apiKey,
             String systemPrompt,
             String userContent) {
-        List<ChatMessage> messages = new java.util.ArrayList<>();
+        List<ChatMessage> messages = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank()) {
             messages.add(SystemMessage.from(systemPrompt));
         }
@@ -546,6 +450,17 @@ public class OpenAICompatibleClient {
         return chatCompletion(modelId, baseUrl, apiKey, messages);
     }
 
+    /**
+     * 流式调用 OpenAI 兼容 API（完整消息历史版本）
+     *
+     * 改用 LangChain4j OpenAiStreamingChatModel.generate()，框架处理 SSE 解析与 chunk 边界。
+     * 框架为异步回调（OkHttp enqueue），与原 call.enqueue() 行为一致：
+     * 方法立即返回，onNext/onComplete/onError 在框架线程驱动 SseEmitter。
+     *
+     * 保留 tool_calls 中的图像生成工具调用识别（generate_image / dall-e）：
+     * 框架在 onComplete 交付 AiMessage.toolExecutionRequests()，从中提取 image_url 转
+     * Markdown。
+     */
     public void streamChatCompletion(
             String modelId,
             String baseUrl,
@@ -555,135 +470,59 @@ public class OpenAICompatibleClient {
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
-        OkHttpClient client = buildClient(props.getStream());
-
         try {
-            ArrayNode messagesArray = buildMessagesArray(messages);
-
-            if (imageUrls != null && !imageUrls.isEmpty()) {
-                attachImagesAsContent(messagesArray, imageUrls);
-            }
-
-            ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", modelId);
-            requestBody.set("messages", messagesArray);
-            requestBody.put("stream", true);
-            requestBody.put("max_tokens", props.getDefaultMaxTokens());
-            requestBody.put("temperature", props.getStreamTemperature());
-
-            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
-            RequestBody body = RequestBody.create(
-                    requestBodyStr,
-                    MediaType.parse("application/json"));
-
-            String fullUrl = buildFullUrl(baseUrl, "/v1/chat/completions");
-
-            Request request = new Request.Builder()
-                    .url(fullUrl)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "text/event-stream")
-                    .header("Cache-Control", "no-cache")
-                    .header("Connection", "keep-alive")
-                    .post(body)
-                    .build();
-
-            Call call = client.newCall(request);
-            emitter.onCompletion(() -> call.cancel());
-
-            call.enqueue(new Callback() {
+            List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
+            StreamingChatLanguageModel model = modelFactory.streamingModel(baseUrl, apiKey, modelId);
+            model.generate(finalMessages, new StreamingResponseHandler<AiMessage>() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onNext(String partial) {
+                    if (partial == null || partial.isEmpty()) {
+                        return;
+                    }
+                    onChunk.accept(partial);
                     try {
-                        emitter.completeWithError(e);
+                        emitter.send(SseEmitter.event()
+                                .name("message")
+                                .data("{\"content\": \"" + escapeJson(partial) + "\"}"));
+                    } catch (Exception e) {
+                        log.error("Failed to send SSE event: {}", e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onComplete(Response<AiMessage> response) {
+                    // 检查 tool_calls 中的图像生成工具调用，转换为 Markdown 图片输出
+                    AiMessage aiMessage = response.content();
+                    List<ToolExecutionRequest> toolCalls = aiMessage.toolExecutionRequests();
+                    if (toolCalls != null && !toolCalls.isEmpty()) {
+                        String imageMarkdown = extractImageFromToolCalls(toolCalls);
+                        if (imageMarkdown != null) {
+                            onChunk.accept(imageMarkdown);
+                            try {
+                                emitter.send(SseEmitter.event()
+                                        .name("message")
+                                        .data("{\"content\": \"" + escapeJson(imageMarkdown) + "\"}"));
+                            } catch (Exception e) {
+                                log.error("Failed to send tool-call image SSE: {}", e.getMessage());
+                            }
+                        }
+                    }
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
+                    emitter.complete();
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    log.error("Streaming chat completion error: {}", error.getMessage());
+                    try {
+                        emitter.completeWithError(error);
                     } catch (Exception ex) {
                         log.error("Failed to send error to client", ex);
                     }
                 }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (!response.isSuccessful()) {
-                        String errorBody = response.body() != null ? response.body().string() : "No response body";
-                        log.error("API request failed with code {}: {}", response.code(), errorBody);
-                        try {
-                            emitter.completeWithError(new RuntimeException(
-                                    "API request failed: " + response.code() + ". Details: " + errorBody));
-                        } catch (Exception ex) {
-                            log.error("Failed to send error to client", ex);
-                        }
-                        return;
-                    }
-
-                    try (ResponseBody responseBody = response.body()) {
-                        if (responseBody == null) {
-                            emitter.complete();
-                            return;
-                        }
-
-                        byte[] buffer = new byte[props.getStreamBufferSize()];
-                        int bytesRead;
-                        StringBuilder jsonBuffer = new StringBuilder();
-
-                        StringBuilder contentBuilder = new StringBuilder();
-
-                        while ((bytesRead = responseBody.byteStream().read(buffer)) != -1) {
-                            String chunk = new String(buffer, 0, bytesRead);
-                            String[] lines = chunk.split("\n");
-
-                            boolean isHtmlResponse = false;
-
-                            for (String line : lines) {
-                                if (line.trim().isEmpty())
-                                    continue;
-
-                                if (line.trim().startsWith("<!DOCTYPE") || line.trim().startsWith("<html")) {
-                                    isHtmlResponse = true;
-                                    log.error("API returned HTML instead of JSON! Base URL may be incorrect.");
-                                    break;
-                                }
-
-                                if (line.startsWith("data: ")) {
-                                    String data = line.substring(6);
-                                    if (data.equals("[DONE]")) {
-                                        onComplete.run();
-                                        emitter.complete();
-                                        return;
-                                    }
-                                    try {
-                                        String content = extractContent(data);
-                                        if (content != null && !content.isEmpty()) {
-                                            contentBuilder.append(content);
-                                            onChunk.accept(content);
-                                            emitter.send(SseEmitter.event()
-                                                    .name("message")
-                                                    .data("{\"content\": \"" + escapeJson(content) + "\"}"));
-                                        }
-                                    } catch (Exception e) {
-                                        log.error("Failed to send SSE event: {}", e.getMessage());
-                                        return;
-                                    }
-                                }
-                            }
-
-                            if (isHtmlResponse) {
-                                log.error("API returned HTML response. Please check your baseUrl configuration.");
-                                emitter.completeWithError(new RuntimeException("API返回了HTML页面，请检查baseUrl配置是否正确。"));
-                                return;
-                            }
-                        }
-                        onComplete.run();
-                        emitter.complete();
-                    } catch (Exception e) {
-                        try {
-                            emitter.completeWithError(e);
-                        } catch (Exception ex) {
-                            log.error("Failed to send error to client", ex);
-                        }
-                    }
-                }
             });
-
         } catch (Exception e) {
             log.error("Failed to start streaming", e);
             try {
@@ -706,50 +545,99 @@ public class OpenAICompatibleClient {
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
-        List<ChatMessage> messages = new java.util.ArrayList<>();
+        List<ChatMessage> messages = new ArrayList<>();
         messages.add(UserMessage.from(prompt));
         streamChatCompletion(modelId, baseUrl, apiKey, messages, imageUrls, emitter, onChunk, onComplete);
     }
 
-    private String extractContent(String jsonData) {
-        try {
-            JsonNode node = objectMapper.readTree(jsonData);
-
-            JsonNode choices = node.get("choices");
-            if (choices != null && choices.isArray() && choices.size() > 0) {
-                JsonNode choice = choices.get(0);
-                JsonNode delta = choice.get("delta");
-
-                if (delta != null) {
-                    JsonNode content = delta.get("content");
-                    if (content != null && !content.isNull()) {
-                        return content.asText();
-                    }
-
-                    JsonNode toolCalls = delta.get("tool_calls");
-                    if (toolCalls != null && toolCalls.isArray() && toolCalls.size() > 0) {
-                        return extractImageFromToolCall(toolCalls);
-                    }
-                }
-
-                JsonNode message = choice.get("message");
-                if (message != null) {
-                    JsonNode toolCalls = message.get("tool_calls");
-                    if (toolCalls != null && toolCalls.isArray() && toolCalls.size() > 0) {
-                        return extractImageFromToolCall(toolCalls);
-                    }
-                }
-            }
-
-            JsonNode data = node.get("data");
-            if (data != null && data.isArray() && data.size() > 0) {
-                return extractImageFromData(data);
-            }
-
-        } catch (Exception e) {
-            log.debug("Failed to extract content from JSON: {}", e.getMessage());
+    /**
+     * 把 imageUrls 转换为 ImageContent 并附加到最后一条 UserMessage。
+     * 复用 fetchImageAsBase64 的本地文件/localhost/远程 URL 处理逻辑，
+     * 框架的 OpenAI 集成会把 Image.base64Data 重新拼装为 data:<mime>;base64,<data> URL。
+     */
+    private List<ChatMessage> attachImagesToLastUserMessage(List<ChatMessage> messages, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return messages;
         }
-        return null;
+
+        int lastUserIdx = -1;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof UserMessage) {
+                lastUserIdx = i;
+                break;
+            }
+        }
+        if (lastUserIdx == -1) {
+            return messages;
+        }
+
+        List<ImageContent> imageContents = new ArrayList<>();
+        for (String imageUrl : imageUrls) {
+            String dataUri = fetchImageAsBase64(imageUrl);
+            ImageContent ic = toImageContent(dataUri);
+            if (ic != null) {
+                imageContents.add(ic);
+            }
+        }
+        if (imageContents.isEmpty()) {
+            log.warn("No image could be attached for model request: {}", imageUrls);
+            return messages;
+        }
+
+        UserMessage original = (UserMessage) messages.get(lastUserIdx);
+        ImageContent[] imageArray = imageContents.toArray(new ImageContent[0]);
+        UserMessage withImages = UserMessage.from(original.text(), imageArray);
+
+        List<ChatMessage> result = new ArrayList<>(messages);
+        result.set(lastUserIdx, withImages);
+        return result;
+    }
+
+    /**
+     * 将 data URI（data:<mime>;base64,<data>）转换为 ImageContent。
+     * 非 data URI（http/https URL）直接当作 URL 传入。
+     */
+    private ImageContent toImageContent(String dataUri) {
+        if (dataUri == null || dataUri.isBlank()) {
+            return null;
+        }
+        if (!dataUri.startsWith("data:")) {
+            return ImageContent.from(Image.builder().url(dataUri).build());
+        }
+        int comma = dataUri.indexOf(',');
+        if (comma < 0) {
+            return null;
+        }
+        String meta = dataUri.substring(5, comma);
+        String base64 = dataUri.substring(comma + 1);
+        String mime = "image/png";
+        int semi = meta.indexOf(';');
+        if (semi > 0) {
+            mime = meta.substring(0, semi);
+        }
+        return ImageContent.from(Image.builder().base64Data(base64).mimeType(mime).build());
+    }
+
+    /**
+     * 从 ToolExecutionRequest 列表中识别图像生成工具调用（generate_image / dall-e），
+     * 返回可插入 Markdown 的图片语法。保留原 extractImageFromToolCall 的业务逻辑。
+     */
+    private String extractImageFromToolCalls(List<ToolExecutionRequest> toolCalls) {
+        try {
+            ArrayNode arr = objectMapper.createArrayNode();
+            for (ToolExecutionRequest req : toolCalls) {
+                ObjectNode tc = objectMapper.createObjectNode();
+                ObjectNode fn = objectMapper.createObjectNode();
+                fn.put("name", req.name());
+                fn.put("arguments", req.arguments());
+                tc.set("function", fn);
+                arr.add(tc);
+            }
+            return extractImageFromToolCall(arr);
+        } catch (Exception e) {
+            log.debug("Failed to extract image from tool calls: {}", e.getMessage());
+            return null;
+        }
     }
 
     private String extractImageFromToolCall(JsonNode toolCalls) {
@@ -775,6 +663,7 @@ public class OpenAICompatibleClient {
         return null;
     }
 
+    @SuppressWarnings("unused")
     private String extractImageFromData(JsonNode data) {
         try {
             JsonNode firstItem = data.get(0);
@@ -879,51 +768,6 @@ public class OpenAICompatibleClient {
         } catch (Exception e) {
             log.error("Failed to fetch image for img2img: {}", imageUrl, e);
             return null;
-        }
-    }
-
-    /**
-     * 把图片以 base64 content 数组附加到最后一条 user 消息。
-     * 不再把 localhost URL 文本直接发给模型。
-     */
-    private void attachImagesAsContent(ArrayNode messagesArray, List<String> imageUrls) {
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            return;
-        }
-        ObjectNode userNode = null;
-        for (int i = messagesArray.size() - 1; i >= 0; i--) {
-            ObjectNode node = (ObjectNode) messagesArray.get(i);
-            if ("user".equals(node.path("role").asText())) {
-                userNode = node;
-                break;
-            }
-        }
-
-        if (userNode == null) {
-            userNode = objectMapper.createObjectNode();
-            userNode.put("role", "user");
-            userNode.put("content", "");
-            messagesArray.add(userNode);
-        }
-
-        ArrayNode content = objectMapper.createArrayNode();
-        content.addObject().put("type", "text").put("text", userNode.path("content").asText(""));
-        int attached = 0;
-        for (String imageUrl : imageUrls) {
-            String dataUri = fetchImageAsBase64(imageUrl);
-            if (dataUri == null) {
-                continue;
-            }
-            ObjectNode imagePart = content.addObject();
-            imagePart.put("type", "image_url");
-            imagePart.putObject("image_url").put("url", dataUri);
-            attached++;
-        }
-
-        if (attached > 0) {
-            userNode.set("content", content);
-        } else {
-            log.warn("No image could be attached for model request: {}", imageUrls);
         }
     }
 

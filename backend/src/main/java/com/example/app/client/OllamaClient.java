@@ -1,15 +1,19 @@
 package com.example.app.client;
 
 import com.example.app.config.OllamaConfig;
+import com.example.app.config.StreamingConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.image.Image;
+import dev.langchain4j.model.StreamingResponseHandler;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.output.Response;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -23,8 +27,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -34,9 +44,9 @@ public class OllamaClient {
 
     private final ChatLanguageModel chatLanguageModel;
     private final OllamaConfig ollamaConfig;
+    private final StreamingConfig streamingConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final java.util.Map<String, dev.langchain4j.model.ollama.OllamaChatModel> modelCache = new java.util.concurrent.ConcurrentHashMap<>();
-    private final HttpStreamingTemplate httpStreamingTemplate;
+    private final Map<String, OllamaChatModel> modelCache = new ConcurrentHashMap<>();
 
     @Value("${memory.long-term.embedding-model:locusai/all-minilm-l6-v2}")
     private String embeddingModel;
@@ -44,17 +54,26 @@ public class OllamaClient {
     private volatile List<String> cachedOllamaModels = null;
     private volatile long lastModelsFetchTime = 0L;
 
+    /**
+     * 按 modelName 获取 Ollama 同步聊天模型实例（缓存）。
+     * 供 AiServiceFactory 在 Ollama 模型路由时使用。
+     */
+    public ChatLanguageModel chatModel(String modelName) {
+        String targetModel = (modelName != null && !modelName.isBlank()) ? modelName : ollamaConfig.getDefaultModel();
+        return modelCache.computeIfAbsent(targetModel,
+                key -> OllamaChatModel.builder()
+                        .baseUrl(ollamaConfig.getBaseUrl())
+                        .modelName(key)
+                        .timeout(Duration.ofMinutes(ollamaConfig.getTimeoutMinutes()))
+                        .build());
+    }
+
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public String generate(List<ChatMessage> messages, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
         try {
-            dev.langchain4j.model.ollama.OllamaChatModel modelInstance = modelCache.computeIfAbsent(targetModel,
-                    key -> dev.langchain4j.model.ollama.OllamaChatModel.builder()
-                            .baseUrl(ollamaConfig.getBaseUrl())
-                            .modelName(key)
-                            .timeout(Duration.ofMinutes(ollamaConfig.getTimeoutMinutes()))
-                            .build());
+            OllamaChatModel modelInstance = (OllamaChatModel) chatModel(targetModel);
             Response<AiMessage> response = modelInstance.generate(messages);
             return response.content().text();
         } catch (Exception e) {
@@ -70,26 +89,21 @@ public class OllamaClient {
         return generate(messages, null);
     }
 
+    /**
+     * 流式生成：使用 LangChain4j 的 OllamaStreamingChatModel，
+     * 框架负责 HTTP/SSE/JSON 序列化，onNext 回调驱动业务 callback。
+     *
+     * 注意：底层 OllamaStreamingChatModel.generate() 是异步的（Retrofit enqueue），
+     * 但调用方（如 MultimodalExecutionStage）依赖同步语义（在流结束后 return collected）。
+     * 因此用 CountDownLatch 阻塞当前线程，等待 onComplete/onError 释放。
+     * 模型内部 timeout 会触发 onError，避免死锁。
+     */
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public void streamGenerate(List<ChatMessage> messages, Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
-
-        try {
-            ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", targetModel);
-            requestBody.set("messages", buildMessagesArray(messages));
-            requestBody.put("stream", true);
-
-            httpStreamingTemplate.streamChatResponse(
-                    ollamaConfig.getBaseUrl() + "/api/chat",
-                    objectMapper.writeValueAsString(requestBody),
-                    callback);
-
-        } catch (Exception e) {
-            log.error("Streaming error: {}", e.getMessage());
-            throw new RuntimeException("AI model connection timeout or service unavailable", e);
-        }
+        StreamingChatLanguageModel streamingModel = streamingConfig.streamingModel(targetModel);
+        blockUntilComplete(streamingModel, messages, callback, "Streaming error");
     }
 
     @Retry(name = "ollamaRetry")
@@ -98,40 +112,62 @@ public class OllamaClient {
         streamGenerate(messages, callback, null);
     }
 
+    /**
+     * 多模态流式生成：把 imageUrls 转为 ImageContent 附加到最后一条 UserMessage，
+     * 框架自动处理 base64 编码与 Ollama /api/chat 的 images 字段序列化。
+     * 保留 per-image 容错：单张图片获取失败不影响其他图片。
+     */
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public void streamGenerateWithImages(List<ChatMessage> messages, List<String> imageUrls,
             Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
+        List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
+        StreamingChatLanguageModel streamingModel = streamingConfig.streamingModel(targetModel);
+        blockUntilComplete(streamingModel, finalMessages, callback, "Multimodal streaming error");
+    }
 
-        try {
-            List<String> base64Images = new java.util.ArrayList<>();
-            if (imageUrls != null) {
-                for (String imageUrl : imageUrls) {
-                    try {
-                        String base64Image = imageUrlToBase64(imageUrl);
-                        if (!base64Image.isEmpty()) {
-                            base64Images.add(base64Image);
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to convert image: {}", imageUrl);
-                    }
+    /**
+     * 同步等待流式生成完成：底层 generate() 异步回调，用 latch 阻塞当前线程。
+     * latch 超时设为模型 timeout + 60s 缓冲，作为兜底（正常路径靠 onComplete/onError 释放）。
+     */
+    private void blockUntilComplete(StreamingChatLanguageModel streamingModel, List<ChatMessage> messages,
+            Consumer<String> callback, String errorLabel) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+        streamingModel.generate(messages, new StreamingResponseHandler<AiMessage>() {
+            @Override
+            public void onNext(String partial) {
+                if (partial != null && !partial.isEmpty()) {
+                    callback.accept(partial);
                 }
             }
 
-            ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", targetModel);
-            requestBody.set("messages", buildMessagesArrayWithImages(messages, base64Images));
-            requestBody.put("stream", true);
+            @Override
+            public void onComplete(Response<AiMessage> response) {
+                latch.countDown();
+            }
 
-            httpStreamingTemplate.streamChatResponse(
-                    ollamaConfig.getBaseUrl() + "/api/chat",
-                    objectMapper.writeValueAsString(requestBody),
-                    callback);
+            @Override
+            public void onError(Throwable error) {
+                log.error("{}: {}", errorLabel, error.getMessage());
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
 
-        } catch (Exception e) {
-            log.error("Multimodal streaming error: {}", e.getMessage());
-            throw new RuntimeException("AI model connection timeout or service unavailable", e);
+        long latchTimeoutSeconds = ollamaConfig.getTimeoutMinutes() * 60L + 60L;
+        try {
+            if (!latch.await(latchTimeoutSeconds, TimeUnit.SECONDS)) {
+                throw new RuntimeException("AI model streaming timed out after " + latchTimeoutSeconds + "s");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Streaming interrupted", e);
+        }
+        Throwable error = errorRef.get();
+        if (error != null) {
+            throw new RuntimeException("AI model connection timeout or service unavailable", error);
         }
     }
 
@@ -147,56 +183,50 @@ public class OllamaClient {
     }
 
     /**
-     * 将 ChatMessage 列表转换为 /api/chat 的 messages JSON 数组
-     * 保留 role 结构（system/user/assistant）
+     * 将 imageUrls 转换为 ImageContent 并附加到最后一条 UserMessage。
+     * 保留 imageUrlToBase64 的 per-image 容错：单张失败跳过，不影响其他图片。
      */
-    private ArrayNode buildMessagesArray(List<ChatMessage> messages) {
-        ArrayNode messagesArray = objectMapper.createArrayNode();
-        for (ChatMessage msg : messages) {
-            ObjectNode msgNode = objectMapper.createObjectNode();
-            if (msg instanceof SystemMessage) {
-                msgNode.put("role", "system");
-            } else if (msg instanceof UserMessage) {
-                msgNode.put("role", "user");
-            } else {
-                msgNode.put("role", "assistant");
-            }
-            msgNode.put("content", msg.text());
-            messagesArray.add(msgNode);
+    private List<ChatMessage> attachImagesToLastUserMessage(List<ChatMessage> messages, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return messages;
         }
-        return messagesArray;
-    }
 
-    /**
-     * 构建带图片的 messages JSON 数组
-     * 图片附加到最后一个 user 消息上（Ollama /api/chat 的 images 字段在 message 级别）
-     */
-    private ArrayNode buildMessagesArrayWithImages(List<ChatMessage> messages, List<String> base64Images) {
-        ArrayNode messagesArray = objectMapper.createArrayNode();
-        for (int i = 0; i < messages.size(); i++) {
-            ChatMessage msg = messages.get(i);
-            ObjectNode msgNode = objectMapper.createObjectNode();
-            if (msg instanceof SystemMessage) {
-                msgNode.put("role", "system");
-            } else if (msg instanceof UserMessage) {
-                msgNode.put("role", "user");
-            } else {
-                msgNode.put("role", "assistant");
+        int lastUserIdx = -1;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof UserMessage) {
+                lastUserIdx = i;
+                break;
             }
-            msgNode.put("content", msg.text());
-
-            // 将 images 附加到最后一个 user 消息
-            boolean isLastUser = msg instanceof UserMessage
-                    && i == messages.size() - 1
-                    && !base64Images.isEmpty();
-            if (isLastUser) {
-                ArrayNode imagesArray = objectMapper.createArrayNode();
-                base64Images.forEach(imagesArray::add);
-                msgNode.set("images", imagesArray);
-            }
-            messagesArray.add(msgNode);
         }
-        return messagesArray;
+        if (lastUserIdx == -1) {
+            return messages;
+        }
+
+        List<ImageContent> imageContents = new ArrayList<>();
+        if (imageUrls != null) {
+            for (String imageUrl : imageUrls) {
+                try {
+                    String base64Image = imageUrlToBase64(imageUrl);
+                    if (!base64Image.isEmpty()) {
+                        Image image = Image.builder().base64Data(base64Image).build();
+                        imageContents.add(ImageContent.from(image));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to convert image: {}", imageUrl);
+                }
+            }
+        }
+        if (imageContents.isEmpty()) {
+            return messages;
+        }
+
+        UserMessage original = (UserMessage) messages.get(lastUserIdx);
+        ImageContent[] imageArray = imageContents.toArray(new ImageContent[0]);
+        UserMessage withImages = UserMessage.from(original.text(), imageArray);
+
+        List<ChatMessage> result = new ArrayList<>(messages);
+        result.set(lastUserIdx, withImages);
+        return result;
     }
 
     private String imageUrlToBase64(String imageUrl) throws IOException {
@@ -345,6 +375,7 @@ public class OllamaClient {
 
     public void clearModelCache() {
         modelCache.clear();
+        streamingConfig.evictAll();
         cachedOllamaModels = null;
         lastModelsFetchTime = 0L;
         log.info("Model cache cleared");
@@ -352,6 +383,7 @@ public class OllamaClient {
 
     public void removeFromCache(String modelName) {
         modelCache.remove(modelName);
+        streamingConfig.evict(modelName);
     }
 
     public int getCacheSize() {

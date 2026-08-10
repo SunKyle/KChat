@@ -1,40 +1,32 @@
 package com.example.app.service;
 
-import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
-import com.example.app.entity.ModelConfig;
-import dev.langchain4j.data.message.ChatMessage;
+import com.example.app.service.ai.AiServiceFactory;
+import com.example.app.service.ai.TitleGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+/**
+ * 标题生成服务
+ *
+ * LLM 调用与 prompt 模板由 LangChain4j {@link AiServiceFactory} +
+ * {@link TitleGenerator} 统一处理，用 {@code @UserMessage} 模板替代原先手写的
+ * prompt 拼装。模型路由由 {@link AiServiceFactory} 内部完成。
+ * 文本截断与返回值清洗保持自实现。
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TitleGenerationService {
 
-    private final OllamaClient ollamaClient;
-    private final OpenAICompatibleClient openAICompatibleClient;
-    private final ModelConfigService modelConfigService;
+    private final AiServiceFactory aiServiceFactory;
 
     public String generateTitle(String userMessage, String aiResponse, String model) {
-        String prompt = buildTitlePrompt(userMessage, aiResponse);
-        String raw;
+        String truncatedUser = userMessage.length() > 200 ? userMessage.substring(0, 200) : userMessage;
+        String truncatedAi = aiResponse.length() > 200 ? aiResponse.substring(0, 200) : aiResponse;
 
-        ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
-        if (customConfig != null) {
-            String actualModelId = model.substring(customConfig.getName().length() + 1);
-            raw = openAICompatibleClient.chatCompletion(
-                    actualModelId, customConfig.getBaseUrl(), customConfig.getApiKey(),
-                    null, prompt);
-        } else {
-            List<ChatMessage> messages = List.of(
-                    dev.langchain4j.data.message.UserMessage.from(prompt));
-            raw = ollamaClient.generate(messages, model);
-        }
-
+        TitleGenerator generator = aiServiceFactory.create(TitleGenerator.class, model);
+        String raw = generator.generate(truncatedUser, truncatedAi);
         return cleanTitle(raw);
     }
 
@@ -48,13 +40,5 @@ public class TitleGenerationService {
             title = title.substring(0, 50);
         }
         return title;
-    }
-
-    private String buildTitlePrompt(String userMessage, String aiResponse) {
-        String truncatedUser = userMessage.length() > 200 ? userMessage.substring(0, 200) : userMessage;
-        String truncatedAi = aiResponse.length() > 200 ? aiResponse.substring(0, 200) : aiResponse;
-        return String.format(
-                "根据以下对话内容，生成一个简短的标题（3-15个字）。直接输出标题，不要加引号、编号或其他修饰。\n\n用户：%s\nAI：%s",
-                truncatedUser, truncatedAi);
     }
 }

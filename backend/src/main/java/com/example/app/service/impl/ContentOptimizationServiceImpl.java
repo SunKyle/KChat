@@ -1,7 +1,7 @@
 package com.example.app.service.impl;
 
 import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
+import com.example.app.client.OpenAiModelFactory;
 import com.example.app.dto.ContentOptimizationRequest;
 import com.example.app.dto.ContentOptimizationResponse;
 import com.example.app.dto.ContentOptimizationResponse.OptimizationDetail;
@@ -9,6 +9,9 @@ import com.example.app.entity.ModelConfig;
 import com.example.app.entity.ModelConfig.ModelType;
 import com.example.app.service.ContentOptimizationService;
 import com.example.app.service.ModelConfigService;
+import com.example.app.service.ai.ContentOptimizer;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +20,12 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-
 /**
  * 内容优化服务实现
+ *
+ * LLM 调用与 prompt 模板由 LangChain4j {@link AiServices} + {@link ContentOptimizer}
+ * 统一处理，用 {@code @SystemMessage} 模板替代原先手写的 {@code buildSystemPrompt}。
+ * 请求级模型路由（请求参数 > 数据库配置 > 默认模型）、降级清洗、详情构建保持自实现。
  */
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ import dev.langchain4j.data.message.UserMessage;
 public class ContentOptimizationServiceImpl implements ContentOptimizationService {
 
     private final OllamaClient ollamaClient;
-    private final OpenAICompatibleClient openAICompatibleClient;
+    private final OpenAiModelFactory openAiModelFactory;
     private final ModelConfigService modelConfigService;
 
     @Value("${optimization.model:llama3}")
@@ -68,94 +71,86 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
     }
 
     /**
-     * 执行优化处理
+     * 执行优化处理：解析模型 → 构建 AiServices 代理 → 调用 LLM
      */
     private String processOptimization(ContentOptimizationRequest request) {
         String content = request.getContent();
-        String optimizationType = request.getOptimizationType();
-        String systemPrompt = buildSystemPrompt(optimizationType);
+        String instruction = buildInstruction(request.getOptimizationType());
 
-        // 优先使用请求中指定的模型配置
+        try {
+            ChatLanguageModel model = resolveModel(request);
+            ContentOptimizer optimizer = AiServices.builder(ContentOptimizer.class)
+                    .chatLanguageModel(model)
+                    .build();
+            return optimizer.optimize(instruction, content);
+        } catch (Exception e) {
+            log.warn("使用指定模型失败，尝试使用备用优化策略: {}", e.getMessage());
+            return fallbackOptimization(content);
+        }
+    }
+
+    /**
+     * 解析请求到具体的 {@link ChatLanguageModel}：
+     * <ol>
+     *   <li>请求指定 modelId + modelType=OLLAMA → {@link OllamaClient#chatModel(String)}</li>
+     *   <li>请求指定 modelId + OpenAI 兼容 + 完整 baseUrl/apiKey → {@link OpenAiModelFactory#chatModel}</li>
+     *   <li>请求指定 modelId + OpenAI 兼容 + 缺配置 → 查数据库补全后走 OpenAiModelFactory</li>
+     *   <li>请求未指定 modelId → 查数据库（命中则按类型路由）</li>
+     *   <li>都未命中 → 默认 Ollama 模型</li>
+     * </ol>
+     */
+    private ChatLanguageModel resolveModel(ContentOptimizationRequest request) {
         String modelId = request.getModelId();
         String modelType = request.getModelType();
         String baseUrl = request.getBaseUrl();
         String apiKey = request.getApiKey();
 
-        try {
-            // 检查请求中是否指定了模型
-            if (modelId != null && !modelId.isEmpty()) {
-                log.info("使用请求指定的模型: {}, 类型: {}", modelId, modelType);
+        if (modelId != null && !modelId.isEmpty()) {
+            log.info("使用请求指定的模型: {}, 类型: {}", modelId, modelType);
 
-                // 根据模型类型选择调用方式
-                if (isOllamaType(modelType)) {
-                    // Ollama 类型模型
-                    List<ChatMessage> messages = List.of(
-                            SystemMessage.from(systemPrompt),
-                            UserMessage.from(content));
-                    return ollamaClient.generate(messages, modelId);
-                } else {
-                    // OpenAI 兼容类型模型（包括 OPENAI_COMPATIBLE, OPENAI, AZURE, CUSTOM）
-                    // 如果没有提供完整配置，尝试从数据库获取
-                    if ((baseUrl == null || baseUrl.isEmpty()) || (apiKey == null || apiKey.isEmpty())) {
-                        log.info("请求缺少 baseUrl 或 apiKey，尝试从数据库获取配置");
-                        ModelConfig customConfig = modelConfigService.getConfigByModelId(modelId);
-                        if (customConfig != null) {
-                            log.info("使用数据库配置的模型: {}", customConfig.getModelId());
-                            String actualModelId = extractModelId(customConfig.getModelId(), customConfig.getName());
-                            return openAICompatibleClient.chatCompletion(
-                                    actualModelId,
-                                    customConfig.getBaseUrl(),
-                                    customConfig.getApiKey(),
-                                    systemPrompt,
-                                    content);
-                        }
-                        log.warn("数据库中未找到模型配置: {}", modelId);
-                    }
-                    
-                    // 使用请求中提供的配置或默认值
-                    String actualBaseUrl = baseUrl != null && !baseUrl.isEmpty() ? baseUrl
-                            : "https://api.openai.com/v1";
-                    String actualApiKey = apiKey != null && !apiKey.isEmpty() ? apiKey : "";
-                    log.info("使用请求配置或默认配置: baseUrl={}", actualBaseUrl);
-                    return openAICompatibleClient.chatCompletion(modelId, actualBaseUrl, actualApiKey, systemPrompt,
-                            content);
-                }
+            if (isOllamaType(modelType)) {
+                return ollamaClient.chatModel(modelId);
             }
 
-            // 如果请求中没有指定模型，尝试从数据库获取用户配置的模型
+            // OpenAI 兼容类型：缺 baseUrl/apiKey 时尝试从数据库补全
+            if ((baseUrl == null || baseUrl.isEmpty()) || (apiKey == null || apiKey.isEmpty())) {
+                log.info("请求缺少 baseUrl 或 apiKey，尝试从数据库获取配置");
+                ModelConfig customConfig = modelConfigService.getConfigByModelId(modelId);
+                if (customConfig != null) {
+                    log.info("使用数据库配置的模型: {}", customConfig.getModelId());
+                    String actualModelId = extractModelId(customConfig.getModelId(), customConfig.getName());
+                    return openAiModelFactory.chatModel(
+                            customConfig.getBaseUrl(), customConfig.getApiKey(), actualModelId);
+                }
+                log.warn("数据库中未找到模型配置: {}", modelId);
+            }
+
+            // 使用请求中提供的配置或默认值
+            String actualBaseUrl = baseUrl != null && !baseUrl.isEmpty() ? baseUrl
+                    : "https://api.openai.com/v1";
+            String actualApiKey = apiKey != null && !apiKey.isEmpty() ? apiKey : "";
+            log.info("使用请求配置或默认配置: baseUrl={}", actualBaseUrl);
+            return openAiModelFactory.chatModel(actualBaseUrl, actualApiKey, modelId);
+        }
+
+        // 请求未指定 modelId，尝试从数据库获取用户配置的模型
+        if (modelId != null) {
             log.info("请求未指定模型，尝试从数据库获取配置");
             ModelConfig customConfig = modelConfigService.getConfigByModelId(modelId);
             if (customConfig != null) {
                 log.info("使用数据库配置的模型: {}", customConfig.getModelId());
-
                 if (customConfig.getType() == ModelType.OLLAMA) {
-                    List<ChatMessage> messages = List.of(
-                            SystemMessage.from(systemPrompt),
-                            UserMessage.from(content));
-                    return ollamaClient.generate(messages, customConfig.getModelId());
-                } else {
-                    // 提取实际模型ID（移除前缀）
-                    String actualModelId = extractModelId(customConfig.getModelId(), customConfig.getName());
-                    return openAICompatibleClient.chatCompletion(
-                            actualModelId,
-                            customConfig.getBaseUrl(),
-                            customConfig.getApiKey(),
-                            systemPrompt,
-                            content);
+                    return ollamaClient.chatModel(customConfig.getModelId());
                 }
+                String actualModelId = extractModelId(customConfig.getModelId(), customConfig.getName());
+                return openAiModelFactory.chatModel(
+                        customConfig.getBaseUrl(), customConfig.getApiKey(), actualModelId);
             }
-
-            // 使用默认模型
-            log.info("使用默认模型: {}", defaultModel);
-            List<ChatMessage> messages = List.of(
-                    SystemMessage.from(systemPrompt),
-                    UserMessage.from(content));
-            return ollamaClient.generate(messages, defaultModel);
-
-        } catch (Exception e) {
-            log.warn("使用指定模型失败，尝试使用备用优化策略: {}", e.getMessage());
-            return fallbackOptimization(content);
         }
+
+        // 使用默认模型
+        log.info("使用默认模型: {}", defaultModel);
+        return ollamaClient.chatModel(defaultModel);
     }
 
     /**
@@ -179,37 +174,20 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
     }
 
     /**
-     * 构建系统提示词
+     * 根据 optimizationType 拼装优化指令，作为 {@link ContentOptimizer#optimize} 的 instruction 参数。
+     * 替代原先手写的 buildSystemPrompt。
      */
-    private String buildSystemPrompt(String optimizationType) {
-        StringBuilder prompt = new StringBuilder();
-
-        prompt.append("优化文本：");
-
+    private String buildInstruction(String optimizationType) {
         if (optimizationType == null || optimizationType.isEmpty() || "all".equalsIgnoreCase(optimizationType)) {
-            prompt.append("进行语法纠错、语义优化、格式规范和风格提升");
-        } else {
-            switch (optimizationType.toLowerCase()) {
-                case "grammar":
-                    prompt.append("进行语法纠错");
-                    break;
-                case "semantic":
-                    prompt.append("进行语义优化");
-                    break;
-                case "format":
-                    prompt.append("进行格式规范");
-                    break;
-                case "keyword":
-                    prompt.append("进行关键词强化");
-                    break;
-                default:
-                    prompt.append("进行全面优化");
-            }
+            return "进行语法纠错、语义优化、格式规范和风格提升";
         }
-
-        prompt.append("。保持原意，只输出优化后的文本，不解释，不说明。\n\n");
-
-        return prompt.toString();
+        return switch (optimizationType.toLowerCase()) {
+            case "grammar" -> "进行语法纠错";
+            case "semantic" -> "进行语义优化";
+            case "format" -> "进行格式规范";
+            case "keyword" -> "进行关键词强化";
+            default -> "进行全面优化";
+        };
     }
 
     /**

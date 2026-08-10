@@ -1,20 +1,14 @@
 package com.example.app.service.impl;
 
-import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.MemoryExtractorConfig;
 import com.example.app.dto.MemoryDTO;
-import com.example.app.entity.ModelConfig;
 import com.example.app.service.LongTermMemoryService;
 import com.example.app.service.MemoryExtractor;
-import com.example.app.service.ModelConfigService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.app.service.ai.AiServiceFactory;
+import com.example.app.service.ai.MemoryExtractionAI;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +18,11 @@ import java.util.stream.Collectors;
 
 /**
  * 记忆提取服务实现类，用于从对话中提取重要信息并保存为长期记忆
+ *
+ * LLM 调用与结构化输出由 LangChain4j {@link AiServiceFactory} +
+ * {@link MemoryExtractionAI} 统一处理，框架自动注入 JSON Schema 并反序列化为
+ * {@link MemoryExtractionAI.MemoryExtractionResult}，替代原先手写的 JSON 解析。
+ * 业务流程（上下文窗口、去重、阈值过滤、降级规则提取）保持自实现。
  */
 @Service
 @RequiredArgsConstructor
@@ -31,79 +30,17 @@ import java.util.stream.Collectors;
 public class MemoryExtractorImpl implements MemoryExtractor {
 
     /**
-     * 聊天语言模型，用于AI对话处理
+     * AiServices 工厂，按 modelId 动态构建 LLM 代理
      */
-    private final ChatLanguageModel chatLanguageModel;
-    /**
-     * Ollama 客户端，用于按前端选择的本地模型提取记忆
-     */
-    private final OllamaClient ollamaClient;
-    /**
-     * OpenAI 兼容客户端，用于按自定义模型配置提取记忆
-     */
-    private final OpenAICompatibleClient openAICompatibleClient;
-    /**
-     * 模型配置服务，用于查找自定义模型
-     */
-    private final ModelConfigService modelConfigService;
+    private final AiServiceFactory aiServiceFactory;
     /**
      * 长期记忆服务，用于保存和管理记忆
      */
     private final LongTermMemoryService longTermMemoryService;
     /**
-     * 对象映射器，用于JSON处理
-     */
-    private final ObjectMapper objectMapper;
-    /**
      * 记忆提取配置，包含提取规则和阈值设置
      */
     private final MemoryExtractorConfig config;
-
-    /**
-     * 记忆提取的提示词模板，定义了提取规则和输出格式
-     */
-    private static final String EXTRACTION_PROMPT = """
-            你是一个专业的记忆提取与总结专家。请从以下对话中：
-
-            1. 提取值得长期记忆的重要事实信息
-            2. 对相关信息进行总结归纳
-            3. 识别用户的身份、技能、偏好、项目、任务、知识、关系、事件等
-
-            提取规则：
-            - 只提取事实性信息，不要保存对话内容本身
-            - 忽略问候语、闲聊、一次性问题
-            - 每条记忆保持简洁（不超过50字）
-            - 对相关信息进行合并总结
-            - 为每条记忆标注类型：PROFILE/PREFERENCE/PROJECT/SKILL/TASK/KNOWLEDGE/RELATION/EVENT
-            - 为每条记忆评估重要性（1-10分，越高越重要）
-            - 为每条记忆评估置信度（0.0-1.0）
-
-            记忆类型说明：
-            - PROFILE: 用户身份、职业、角色等基本信息
-            - PREFERENCE: 用户偏好、喜好、习惯等
-            - PROJECT: 用户正在进行的项目或工作
-            - SKILL: 用户掌握的技能、技术栈
-            - TASK: 用户的任务、目标、待办事项
-            - KNOWLEDGE: 用户拥有的知识、专业领域
-            - RELATION: 用户的人际关系、社交网络
-            - EVENT: 用户参与的事件、活动、时间安排
-
-            对话：
-            {conversation}
-
-            请输出JSON格式：
-            {
-              "summary": "对对话内容的简要总结（不超过100字）",
-              "memories": [
-                {
-                  "content": "用户使用Java开发",
-                  "type": "SKILL",
-                  "importance": 8,
-                  "confidence": 0.95
-                }
-              ]
-            }
-            """;
 
     /**
      * 从消息列表中提取记忆（应用上下文窗口限制）
@@ -125,12 +62,14 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         String conversation = formatConversation(windowedMessages);
 
         try {
-            String prompt = EXTRACTION_PROMPT.replace("{conversation}", conversation);
             log.info("[记忆提取] 发送提取请求到LLM (窗口大小: {})", windowedMessages.size());
-            String response = generateExtraction(prompt, model);
-            log.info("[记忆提取] LLM响应接收: {}",
-                    response.length() > 100 ? response.substring(0, 100) + "..." : response);
-            return parseExtractionResult(response);
+            MemoryExtractionAI extractor = aiServiceFactory.create(MemoryExtractionAI.class, model);
+            MemoryExtractionAI.MemoryExtractionResult result = extractor.extract(conversation);
+            log.info("[记忆提取] LLM响应接收, summary: {}",
+                    result.summary() != null && result.summary().length() > 50
+                            ? result.summary().substring(0, 50) + "..."
+                            : result.summary());
+            return convertResult(result);
         } catch (Exception e) {
             log.warn("[记忆提取] LLM提取失败，降级到规则提取: {}", e.getMessage());
             return extractFallback(windowedMessages);
@@ -138,35 +77,21 @@ public class MemoryExtractorImpl implements MemoryExtractor {
     }
 
     /**
-     * 优先使用前端选择的模型提取记忆：
-     * 1. 自定义模型配置（OpenAI 兼容）命中时走 OpenAICompatibleClient
-     * 2. 否则作为 Ollama 模型名调用
-     * 3. 都失败时回退到默认 ChatLanguageModel
+     * 将 LangChain4j 反序列化后的 {@link MemoryExtractionAI.MemoryExtractionResult}
+     * 转换为业务层使用的 {@link MemoryExtractionResult} 列表，过滤无效条目。
      */
-    private String generateExtraction(String prompt, String model) {
-        if (model != null && !model.isBlank()) {
-            try {
-                ModelConfig config = modelConfigService.getConfigByModelId(model);
-                if (config != null) {
-                    String actualModelId = model.startsWith(config.getName() + ":")
-                            ? model.substring(config.getName().length() + 1)
-                            : model;
-                    log.info("[记忆提取] 使用自定义模型 {} 提取", actualModelId);
-                    return openAICompatibleClient.chatCompletion(
-                            actualModelId, config.getBaseUrl(), config.getApiKey(), null, prompt);
-                }
-            } catch (Exception e) {
-                log.warn("[记忆提取] 自定义模型调用失败，回退到 Ollama/默认模型: {}", e.getMessage());
-            }
-
-            try {
-                log.info("[记忆提取] 使用 Ollama 模型 {} 提取", model);
-                return ollamaClient.generate(List.of(UserMessage.from(prompt)), model);
-            } catch (Exception e) {
-                log.warn("[记忆提取] Ollama 模型调用失败，回退到默认模型: {}", e.getMessage());
-            }
+    private List<MemoryExtractionResult> convertResult(MemoryExtractionAI.MemoryExtractionResult result) {
+        if (result == null || result.memories() == null) {
+            return Collections.emptyList();
         }
-        return chatLanguageModel.generate(prompt);
+        return result.memories().stream()
+                .filter(item -> item.content() != null && !item.content().isBlank() && item.type() != null)
+                .map(item -> new MemoryExtractionResult(
+                        item.content().trim(),
+                        item.type().toUpperCase(),
+                        item.importance(),
+                        item.confidence()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -280,92 +205,6 @@ public class MemoryExtractorImpl implements MemoryExtractor {
             sb.append(role).append(": ").append(message.text()).append("\n");
         }
         return sb.toString();
-    }
-
-    /**
-     * 解析提取结果（支持包含summary的新格式）
-     *
-     * @param response LLM返回的响应
-     * @return 解析后的记忆结果列表
-     */
-    private List<MemoryExtractionResult> parseExtractionResult(String response) {
-        try {
-            String jsonContent = extractJson(response);
-            log.info("[Memory Extract] Extracted JSON: {}",
-                    jsonContent.length() > 50 ? jsonContent.substring(0, 50) + "..." : jsonContent);
-
-            Map<String, Object> result = objectMapper.readValue(jsonContent,
-                    new TypeReference<Map<String, Object>>() {
-                    });
-
-            // 记录总结信息
-            if (result.containsKey("summary")) {
-                String summary = (String) result.get("summary");
-                log.info("[Memory Extract] Conversation summary: {}",
-                        summary.length() > 50 ? summary.substring(0, 50) + "..." : summary);
-            }
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> memories = (List<Map<String, Object>>) result.get("memories");
-
-            if (memories == null || memories.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            return memories.stream()
-                    .map(this::parseMemoryItem)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        } catch (JsonProcessingException e) {
-            log.warn("[Memory Extract] Failed to parse extraction result: {}", e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * 从响应中提取JSON内容
-     *
-     * @param response LLM返回的响应
-     * @return JSON字符串
-     */
-    private String extractJson(String response) {
-        int start = response.indexOf("{");
-        int end = response.lastIndexOf("}");
-
-        if (start == -1 || end == -1 || start > end) {
-            return response;
-        }
-
-        return response.substring(start, end + 1);
-    }
-
-    /**
-     * 解析单个记忆项
-     *
-     * @param item 记忆项的Map表示
-     * @return 记忆结果对象
-     */
-    private MemoryExtractionResult parseMemoryItem(Map<String, Object> item) {
-        try {
-            String content = (String) item.get("content");
-            String type = (String) item.get("type");
-            int importance = item.get("importance") instanceof Number
-                    ? ((Number) item.get("importance")).intValue()
-                    : 5;
-            double confidence = item.get("confidence") instanceof Number
-                    ? ((Number) item.get("confidence")).doubleValue()
-                    : 0.5;
-
-            if (content == null || content.trim().isEmpty() || type == null) {
-                log.warn("[Memory Extract] Skipping memory item with empty content");
-                return null;
-            }
-
-            return new MemoryExtractionResult(content.trim(), type.toUpperCase(), importance, confidence);
-        } catch (Exception e) {
-            log.warn("[Memory Extract] Failed to parse memory item: {}", e.getMessage());
-            return null;
-        }
     }
 
     /**
