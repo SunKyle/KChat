@@ -27,8 +27,7 @@ import java.util.List;
 @Slf4j
 public class MultimodalExecutionStage implements ContextPipelineStage {
 
-    private static final org.slf4j.Logger promptLog =
-            org.slf4j.LoggerFactory.getLogger("PROMPT_LOG");
+    private static final org.slf4j.Logger promptLog = org.slf4j.LoggerFactory.getLogger("PROMPT_LOG");
 
     private final MultimodalProperties properties;
     private final ModelConfigService modelConfigService;
@@ -271,7 +270,7 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
                 extractModelId(model, modelConfig), modelConfig.getBaseUrl(), modelConfig.getApiKey(),
                 prompt, ctx.getImageUrls());
         ctx.emitSseEvent("image_done", "{\"url\": \"" + JsonUtils.escapeJson(imageUrl) + "\"}");
-        response.append("![Generated Image](").append(imageUrl).append(")");
+        // 方案B：图片 URL 仅通过 artifacts/images 字段传递，不写入 content，避免前端双通道渲染重复
         artifacts.add(new MultimodalArtifact("image", imageUrl, prompt));
     }
 
@@ -389,7 +388,7 @@ public class MultimodalExecutionStage implements ContextPipelineStage {
         String imageUrl = openAICompatibleClient.generateImageSync(
                 extractModelId(model, modelConfig), modelConfig.getBaseUrl(), modelConfig.getApiKey(),
                 prompt, ctx.getImageUrls());
-        response.append("![Generated Image](").append(imageUrl).append(")");
+        // 方案B：图片 URL 仅通过 artifacts/images 字段传递，不写入 content，避免前端双通道渲染重复
         artifacts.add(new MultimodalArtifact("image", imageUrl, prompt));
     }
 

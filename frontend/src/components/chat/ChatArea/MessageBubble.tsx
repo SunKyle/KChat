@@ -4,7 +4,7 @@ import { MarkdownRenderer } from './MarkdownRenderer'
 import { ShiningText } from '../../ui/shining-text'
 import { ImageGenerationPlaceholder } from './ImageGenerationPlaceholder'
 import { isImageModel } from '../../../utils/model'
-import { useState, memo } from 'react'
+import { useState, memo, useMemo } from 'react'
 import { useUser } from '../../../context/UserContext'
 import { useModel } from '../../../hooks/useModel'
 import { useToast } from '../../../hooks/useToast'
@@ -13,6 +13,7 @@ import { useTts } from '../../../hooks/useTts'
 import { chat as chatApi } from '../../../api/chat'
 import { noteApi } from '../../../api/note-todo'
 import { toAccessibleImageUrl } from '../../../utils/imageUrl'
+import { Image as UIImage } from '../../ui/Image'
 
 interface MessageBubbleProps {
   message: Message
@@ -30,7 +31,6 @@ export const MessageBubble = memo(function MessageBubble({
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({})
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
@@ -110,9 +110,16 @@ export const MessageBubble = memo(function MessageBubble({
     }
   }
 
-  const handleImageLoad = (imageUrl: string) => {
-    setImageLoaded((prev) => ({ ...prev, [imageUrl]: true }))
-  }
+  // 剥离已在 images 数组中的图片 Markdown，避免双通道渲染重复（兼容旧数据：方案B 前持久化的 content 含 ![](url)）
+  const renderContent = useMemo(() => {
+    if (!message.images || message.images.length === 0) return message.content
+    let result = message.content
+    for (const url of message.images) {
+      const escaped = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      result = result.replace(new RegExp(`!\\[[^\\]]*\\]\\(${escaped}\\)`, 'g'), '')
+    }
+    return result.trim()
+  }, [message.content, message.images])
 
   const bubbleContent = (
     <div>
@@ -154,26 +161,16 @@ export const MessageBubble = memo(function MessageBubble({
                 {message.images && message.images.length > 0 && (
                   <div className='flex flex-wrap gap-2 mb-3'>
                     {message.images.map((imageUrl, index) => (
-                      <div key={index} className='relative rounded-lg overflow-hidden max-w-xs'>
-                        {!imageLoaded[imageUrl] && (
-                          <div className='absolute inset-0 theme-bg-hover/30 flex items-center justify-center z-10'>
-                            <div className='w-6 h-6 border-2 theme-border-primary border-t-transparent rounded-full animate-spin' />
-                          </div>
-                        )}
-                        <img
-                          src={toAccessibleImageUrl(imageUrl)}
-                          alt={`Image ${index + 1}`}
-                          loading='lazy'
-                          className={`max-h-64 object-contain rounded-lg transition-opacity ${
-                            imageLoaded[imageUrl] ? 'opacity-100' : 'opacity-50'
-                          }`}
-                          onLoad={() => handleImageLoad(imageUrl)}
-                        />
-                      </div>
+                      <UIImage
+                        key={`${imageUrl}-${index}`}
+                        src={toAccessibleImageUrl(imageUrl)}
+                        alt={`Image ${index + 1}`}
+                        maxHeightClass='max-h-64'
+                      />
                     ))}
                   </div>
                 )}
-                <MarkdownRenderer content={message.content} />
+                <MarkdownRenderer content={renderContent} />
               </div>
             )}
           </div>
