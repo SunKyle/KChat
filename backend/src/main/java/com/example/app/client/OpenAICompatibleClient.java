@@ -470,6 +470,13 @@ public class OpenAICompatibleClient {
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
+        // 标记是否已通过 onNext 投递过流式内容，用于 onError 区分"流末尾回收噪声"与"真实错误"
+        java.util.concurrent.atomic.AtomicBoolean receivedContent = new java.util.concurrent.atomic.AtomicBoolean(
+                false);
+        // 标记业务 onComplete 回调是否已执行，防止 LangChain4j 在 onComplete 抛异常后
+        // 转调 onError 导致 onComplete.run() 重复执行（如重复保存消息）
+        java.util.concurrent.atomic.AtomicBoolean completed = new java.util.concurrent.atomic.AtomicBoolean(
+                false);
         try {
             List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
             StreamingChatLanguageModel model = modelFactory.streamingModel(baseUrl, apiKey, modelId);
@@ -479,6 +486,7 @@ public class OpenAICompatibleClient {
                     if (partial == null || partial.isEmpty()) {
                         return;
                     }
+                    receivedContent.set(true);
                     onChunk.accept(partial);
                     try {
                         emitter.send(SseEmitter.event()
@@ -507,19 +515,51 @@ public class OpenAICompatibleClient {
                             }
                         }
                     }
-                    if (onComplete != null) {
-                        onComplete.run();
+                    if (onComplete != null && completed.compareAndSet(false, true)) {
+                        try {
+                            onComplete.run();
+                        } catch (Exception e) {
+                            log.warn("onComplete callback failed: {}", e.getMessage());
+                        }
                     }
-                    emitter.complete();
+                    try {
+                        emitter.complete();
+                    } catch (Exception e) {
+                        // 客户端断开后 ServletResponse 会被容器回收，emitter 操作失败属正常
+                        log.debug("emitter.complete() failed (client likely disconnected): {}", e.getMessage());
+                    }
                 }
 
                 @Override
                 public void onError(Throwable error) {
-                    log.error("Streaming chat completion error: {}", error.getMessage());
+                    String errorMsg = error.getMessage();
+                    // LangChain4j 0.35.0 OpenAiStreamingChatModel 在 SSE 流结束后，
+                    // 客户端若已断开，Tomcat 回收 ServletResponse，框架访问已关闭对象
+                    // 触发 "recycled" 异常。此时内容已通过 onNext 投递完毕，
+                    // 降级为正常结束，避免前端收到误报的流错误。
+                    if (errorMsg != null && errorMsg.contains("recycled") && receivedContent.get()) {
+                        log.debug("Streaming response recycled after content delivered (ignored): {}", errorMsg);
+                        if (onComplete != null && completed.compareAndSet(false, true)) {
+                            try {
+                                onComplete.run();
+                            } catch (Exception e) {
+                                log.warn("onComplete callback failed: {}", e.getMessage());
+                            }
+                        }
+                        try {
+                            emitter.complete();
+                        } catch (Exception e) {
+                            log.debug("emitter.complete() failed (client likely disconnected): {}",
+                                    e.getMessage());
+                        }
+                        return;
+                    }
+                    log.error("Streaming chat completion error: {}", errorMsg, error);
                     try {
                         emitter.completeWithError(error);
                     } catch (Exception ex) {
-                        log.error("Failed to send error to client", ex);
+                        log.debug("Failed to send error to client (client likely disconnected): {}",
+                                ex.getMessage());
                     }
                 }
             });
