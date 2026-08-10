@@ -114,28 +114,25 @@ export function Modal({
       >
         {title && (
           <div className='flex items-center justify-between px-6 py-4 border-b theme-border-primary'>
-            <h3 id={titleId} className='font-title'>{title}</h3>
+            <h3 id={titleId} className='font-title'>
+              {title}
+            </h3>
             {!hasConfirm && (
-              <button
-                onClick={onClose}
-                className='icon-btn'
-                aria-label='关闭对话框'
-              >
+              <button onClick={onClose} className='icon-btn' aria-label='关闭对话框'>
                 <X className='w-5 h-5' aria-hidden='true' />
               </button>
             )}
           </div>
         )}
-        <div className={`${hasConfirm ? 'p-6' : `p-6 ${autoHeight ? 'flex-1 overflow-y-auto min-h-0' : ''}`}`}>
+        <div
+          className={`${hasConfirm ? 'p-6' : `p-6 ${autoHeight ? 'flex-1 overflow-y-auto min-h-0' : ''}`}`}
+        >
           {message && <p className='font-secondary mb-6 leading-relaxed'>{message}</p>}
           {children}
         </div>
         {hasConfirm && (
           <div className='flex items-center justify-end gap-3 px-6 pb-6'>
-            <button
-              onClick={onClose}
-              className='btn-ghost px-5 py-2.5 text-sm'
-            >
+            <button onClick={onClose} className='btn-ghost px-5 py-2.5 text-sm'>
               {cancelText}
             </button>
             <button

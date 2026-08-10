@@ -73,45 +73,66 @@ export function useNoteTodoData() {
     }
   }, [])
 
-  const createNote = useCallback(async (formState: { title: string; content: string; category: string; tags: string[]; pinned: boolean }) => {
-    try {
-      const request: CreateNoteRequest = {
-        title: formState.title || '无标题',
-        content: formState.content,
-        category: formState.category,
-        tags: formState.tags,
-        pinned: formState.pinned,
+  const createNote = useCallback(
+    async (formState: {
+      title: string
+      content: string
+      category: string
+      tags: string[]
+      pinned: boolean
+    }) => {
+      try {
+        const request: CreateNoteRequest = {
+          title: formState.title || '无标题',
+          content: formState.content,
+          category: formState.category,
+          tags: formState.tags,
+          pinned: formState.pinned,
+        }
+        const newNote = await noteApi.create(request)
+        setNotes((prev) => [convertNote(newNote), ...prev])
+        successRef.current('笔记创建成功')
+        return true
+      } catch (err) {
+        console.error('Failed to create note:', err)
+        errorRef.current('创建笔记失败')
+        return false
       }
-      const newNote = await noteApi.create(request)
-      setNotes((prev) => [convertNote(newNote), ...prev])
-      successRef.current('笔记创建成功')
-      return true
-    } catch (err) {
-      console.error('Failed to create note:', err)
-      errorRef.current('创建笔记失败')
-      return false
-    }
-  }, [])
+    },
+    []
+  )
 
-  const updateNote = useCallback(async (noteId: string, formState: { title: string; content: string; category: string; tags: string[]; pinned: boolean }) => {
-    try {
-      const request: UpdateNoteRequest = {
-        title: formState.title || '无标题',
-        content: formState.content,
-        category: formState.category,
-        tags: formState.tags,
-        pinned: formState.pinned,
+  const updateNote = useCallback(
+    async (
+      noteId: string,
+      formState: {
+        title: string
+        content: string
+        category: string
+        tags: string[]
+        pinned: boolean
       }
-      const updatedNote = await noteApi.update(noteId, request)
-      setNotes((prev) => prev.map((n) => (n.id === noteId ? convertNote(updatedNote) : n)))
-      successRef.current('笔记更新成功')
-      return true
-    } catch (err) {
-      console.error('Failed to update note:', err)
-      errorRef.current('更新笔记失败')
-      return false
-    }
-  }, [])
+    ) => {
+      try {
+        const request: UpdateNoteRequest = {
+          title: formState.title || '无标题',
+          content: formState.content,
+          category: formState.category,
+          tags: formState.tags,
+          pinned: formState.pinned,
+        }
+        const updatedNote = await noteApi.update(noteId, request)
+        setNotes((prev) => prev.map((n) => (n.id === noteId ? convertNote(updatedNote) : n)))
+        successRef.current('笔记更新成功')
+        return true
+      } catch (err) {
+        console.error('Failed to update note:', err)
+        errorRef.current('更新笔记失败')
+        return false
+      }
+    },
+    []
+  )
 
   const deleteNote = useCallback(async (id: string) => {
     try {
@@ -137,45 +158,66 @@ export function useNoteTodoData() {
     }
   }, [])
 
-  const createTodo = useCallback(async (formState: { title: string; description: string; priority: 'high' | 'medium' | 'low'; dueDate: string; category: string }) => {
-    try {
-      const request: CreateTodoRequest = {
-        title: formState.title || '未命名待办',
-        description: formState.description,
-        priority: formState.priority,
-        dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
-        category: formState.category,
+  const createTodo = useCallback(
+    async (formState: {
+      title: string
+      description: string
+      priority: 'high' | 'medium' | 'low'
+      dueDate: string
+      category: string
+    }) => {
+      try {
+        const request: CreateTodoRequest = {
+          title: formState.title || '未命名待办',
+          description: formState.description,
+          priority: formState.priority,
+          dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
+          category: formState.category,
+        }
+        const newTodo = await todoApi.create(request)
+        setTodos((prev) => [convertTodo(newTodo), ...prev])
+        successRef.current('待办创建成功')
+        return true
+      } catch (err) {
+        console.error('Failed to create todo:', err)
+        errorRef.current('创建待办失败')
+        return false
       }
-      const newTodo = await todoApi.create(request)
-      setTodos((prev) => [convertTodo(newTodo), ...prev])
-      successRef.current('待办创建成功')
-      return true
-    } catch (err) {
-      console.error('Failed to create todo:', err)
-      errorRef.current('创建待办失败')
-      return false
-    }
-  }, [])
+    },
+    []
+  )
 
-  const updateTodo = useCallback(async (todoId: string, formState: { title: string; description: string; priority: 'high' | 'medium' | 'low'; dueDate: string; category: string }) => {
-    try {
-      const request: UpdateTodoRequest = {
-        title: formState.title || '未命名待办',
-        description: formState.description,
-        priority: formState.priority,
-        dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
-        category: formState.category,
+  const updateTodo = useCallback(
+    async (
+      todoId: string,
+      formState: {
+        title: string
+        description: string
+        priority: 'high' | 'medium' | 'low'
+        dueDate: string
+        category: string
       }
-      const updatedTodo = await todoApi.update(todoId, request)
-      setTodos((prev) => prev.map((t) => (t.id === todoId ? convertTodo(updatedTodo) : t)))
-      successRef.current('待办更新成功')
-      return true
-    } catch (err) {
-      console.error('Failed to update todo:', err)
-      errorRef.current('更新待办失败')
-      return false
-    }
-  }, [])
+    ) => {
+      try {
+        const request: UpdateTodoRequest = {
+          title: formState.title || '未命名待办',
+          description: formState.description,
+          priority: formState.priority,
+          dueDate: formState.dueDate ? new Date(formState.dueDate).toISOString() : null,
+          category: formState.category,
+        }
+        const updatedTodo = await todoApi.update(todoId, request)
+        setTodos((prev) => prev.map((t) => (t.id === todoId ? convertTodo(updatedTodo) : t)))
+        successRef.current('待办更新成功')
+        return true
+      } catch (err) {
+        console.error('Failed to update todo:', err)
+        errorRef.current('更新待办失败')
+        return false
+      }
+    },
+    []
+  )
 
   const deleteTodo = useCallback(async (id: string) => {
     try {

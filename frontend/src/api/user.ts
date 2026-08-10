@@ -79,7 +79,10 @@ export const settingsApi = {
     return request(`/settings/${userId}`)
   },
 
-  update: async (data: { autoTitle?: boolean }, userId: string = DEFAULT_USER_ID): Promise<void> => {
+  update: async (
+    data: { autoTitle?: boolean },
+    userId: string = DEFAULT_USER_ID
+  ): Promise<void> => {
     return request(`/settings/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),

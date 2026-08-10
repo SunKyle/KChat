@@ -12,15 +12,13 @@ export function Card({ children, className = '' }: CardProps) {
   const isAnimalIsland = theme === 'animal-island'
 
   if (isAnimalIsland) {
-    return (
-      <AnimalCard className={className}>
-        {children}
-      </AnimalCard>
-    )
+    return <AnimalCard className={className}>{children}</AnimalCard>
   }
 
   return (
-    <div className={`rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] ${className}`}>
+    <div
+      className={`rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] ${className}`}
+    >
       {children}
     </div>
   )

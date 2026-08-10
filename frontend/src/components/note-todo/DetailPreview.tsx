@@ -30,7 +30,14 @@ interface NotePreviewProps {
   onExpand: () => void
 }
 
-function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand }: NotePreviewProps) {
+function NotePreview({
+  note,
+  formatDateFull,
+  onBack,
+  onEdit,
+  onDelete,
+  onExpand,
+}: NotePreviewProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -98,7 +105,9 @@ function NotePreview({ note, formatDateFull, onBack, onEdit, onDelete, onExpand 
         <div className='flex items-center gap-2 mb-4 text-xs text-[var(--text-muted)] flex-wrap'>
           <span>{formatDateFull(note.updatedAt)}</span>
           <span className='w-1 h-1 rounded-full bg-[var(--text-muted)]/30' />
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}
+          >
             {note.category}
           </span>
           {note.tags.map((tag) => (
@@ -166,7 +175,11 @@ function TodoPreview({
       </div>
       <div className='flex-1 overflow-y-auto p-4'>
         <div className='flex items-start gap-3 mb-4'>
-          <button onClick={onToggle} aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为已完成'} className='mt-0.5 flex-shrink-0'>
+          <button
+            onClick={onToggle}
+            aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为已完成'}
+            className='mt-0.5 flex-shrink-0'
+          >
             {todo.status === 'completed' ? (
               <CheckCircle2 className='w-5 h-5 text-[var(--brand-primary)]' />
             ) : (

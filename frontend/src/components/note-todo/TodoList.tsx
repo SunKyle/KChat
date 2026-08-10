@@ -82,7 +82,9 @@ function TodoListItem({
               >
                 {priorityMeta[todo.priority].label}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(todo.category).bg} ${getCategoryStyles(todo.category).text} ${getCategoryStyles(todo.category).border}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(todo.category).bg} ${getCategoryStyles(todo.category).text} ${getCategoryStyles(todo.category).border}`}
+              >
                 {todo.category}
               </span>
               {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
@@ -199,9 +201,7 @@ export function TodoList({
         <div>
           <div className='flex items-center gap-2 px-0.5 pt-2 pb-3'>
             <div className='w-1 h-4 rounded-full bg-[var(--text-muted)]/40' />
-            <span className='text-xs font-semibold text-[var(--text-muted)]'>
-              已完成
-            </span>
+            <span className='text-xs font-semibold text-[var(--text-muted)]'>已完成</span>
           </div>
           <div className='space-y-3'>
             {completedTodos.map((todo) => (

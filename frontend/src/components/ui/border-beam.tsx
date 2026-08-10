@@ -34,7 +34,7 @@ export const BorderBeam = ({
       }}
     >
       <div
-        className="absolute"
+        className='absolute'
         style={{
           width: `${size}px`,
           height: `${size}px`,

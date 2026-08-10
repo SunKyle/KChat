@@ -150,7 +150,18 @@ export const PROVIDERS: ProviderInfo[] = [
   { type: 'CUSTOM', displayName: '自定义', icon: '🔧', color: 'bg-gray-600' },
 ]
 
-export type MemoryType = 'KNOWLEDGE' | 'RULE' | 'FACT' | 'PREFERENCE' | 'EXPERIENCE' | 'PROFILE' | 'SKILL' | 'PROJECT' | 'TASK' | 'RELATION' | 'EVENT'
+export type MemoryType =
+  | 'KNOWLEDGE'
+  | 'RULE'
+  | 'FACT'
+  | 'PREFERENCE'
+  | 'EXPERIENCE'
+  | 'PROFILE'
+  | 'SKILL'
+  | 'PROJECT'
+  | 'TASK'
+  | 'RELATION'
+  | 'EVENT'
 
 export interface Memory {
   id: number

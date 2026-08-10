@@ -132,10 +132,10 @@ export function ProfileInfo() {
           <h3 className='font-semibold theme-text-primary'>基本信息</h3>
           {editing ? (
             <div className='flex items-center gap-2'>
-              <Button 
-                onClick={handleSave} 
+              <Button
+                onClick={handleSave}
                 disabled={isLoading}
-                className="disabled:opacity-50 disabled:cursor-not-allowed"
+                className='disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 {isLoading ? (
                   <Loader2 className='w-3.5 h-3.5 animate-spin' />
@@ -144,8 +144,8 @@ export function ProfileInfo() {
                 )}
                 保存
               </Button>
-              <Button 
-                variant="ghost"
+              <Button
+                variant='ghost'
                 onClick={() => {
                   setEditing(false)
                   setLocalProfile({
@@ -155,14 +155,14 @@ export function ProfileInfo() {
                   })
                   setErrors({})
                 }}
-                className="text-sm"
+                className='text-sm'
               >
                 <X className='w-3.5 h-3.5' />
                 取消
               </Button>
             </div>
           ) : (
-            <Button variant="ghost" onClick={() => setEditing(true)} className="text-sm">
+            <Button variant='ghost' onClick={() => setEditing(true)} className='text-sm'>
               编辑
             </Button>
           )}

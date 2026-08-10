@@ -86,11 +86,7 @@ export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsPr
           <p className='font-secondary theme-text-muted'>管理您的账户和偏好设置</p>
         </div>
         {onClose && (
-          <button
-            onClick={onClose}
-            className='icon-btn'
-            title='返回对话'
-          >
+          <button onClick={onClose} className='icon-btn' title='返回对话'>
             <X className='w-5 h-5' />
           </button>
         )}

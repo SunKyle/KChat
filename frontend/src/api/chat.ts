@@ -48,7 +48,10 @@ export const chat = {
     })
   },
 
-  summarize: async (content: string, model: string): Promise<{ title: string; summary: string }> => {
+  summarize: async (
+    content: string,
+    model: string
+  ): Promise<{ title: string; summary: string }> => {
     return request('/chat/summarize', {
       method: 'POST',
       body: JSON.stringify({ content, model, userId: 'default' }),
@@ -81,7 +84,12 @@ export const chat = {
     )
   },
 
-  regenerate: async (conversationId: string, messageId: string, userId?: string, model?: string): Promise<{
+  regenerate: async (
+    conversationId: string,
+    messageId: string,
+    userId?: string,
+    model?: string
+  ): Promise<{
     success: boolean
     messageId: string
     conversationId: string

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import './ProfileCard.css'
 
-const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg, var(--brand-primary) 0%, var(--accent-purple) 100%)'
+const DEFAULT_INNER_GRADIENT =
+  'linear-gradient(145deg, var(--brand-primary) 0%, var(--accent-purple) 100%)'
 
 const ANIMATION_CONFIG = {
   INITIAL_DURATION: 1200,
@@ -182,7 +183,7 @@ const ProfileCardComponent = ({
       const { x, y } = getOffsets(event, shell)
       tiltEngine.setTarget(x, y)
     },
-    [tiltEngine],
+    [tiltEngine]
   )
 
   const handlePointerEnter = useCallback(
@@ -197,7 +198,7 @@ const ProfileCardComponent = ({
       const { x, y } = getOffsets(event, shell)
       tiltEngine.setTarget(x, y)
     },
-    [tiltEngine],
+    [tiltEngine]
   )
 
   const handlePointerLeave = useCallback(() => {
@@ -230,11 +231,11 @@ const ProfileCardComponent = ({
       const y = clamp(
         centerY + (beta - ANIMATION_CONFIG.DEVICE_BETA_OFFSET) * mobileTiltSensitivity,
         0,
-        shell.clientHeight,
+        shell.clientHeight
       )
       tiltEngine.setTarget(x, y)
     },
-    [tiltEngine, mobileTiltSensitivity],
+    [tiltEngine, mobileTiltSensitivity]
   )
 
   useEffect(() => {
@@ -300,7 +301,7 @@ const ProfileCardComponent = ({
       '--behind-glow-color': behindGlowColor ?? 'rgba(125, 190, 255, 0.67)',
       '--behind-glow-size': behindGlowSize ?? '50%',
     }),
-    [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize],
+    [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize]
   )
 
   const handleContactClick = useCallback(() => {
@@ -308,7 +309,11 @@ const ProfileCardComponent = ({
   }, [onContactClick])
 
   return (
-    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle as React.CSSProperties}>
+    <div
+      ref={wrapRef}
+      className={`pc-card-wrapper ${className}`.trim()}
+      style={cardStyle as React.CSSProperties}
+    >
       {behindGlowEnabled && <div className='pc-behind' />}
       <div ref={shellRef} className='pc-card-shell'>
         <section className='pc-card'>
@@ -320,7 +325,7 @@ const ProfileCardComponent = ({
                 alt={`${name || 'User'} avatar`}
                 loading='lazy'
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none'
+                  ;(e.target as HTMLImageElement).style.display = 'none'
                 }}
               />
               {showUserInfo && (

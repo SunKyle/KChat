@@ -60,7 +60,7 @@ const formatDate = (dateString: string) => {
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
+
   if (days === 0) return '今天'
   if (days === 1) return '昨天'
   if (days < 7) return `${days}天前`
@@ -215,8 +215,18 @@ export function MemoryPanel() {
               ))}
             </select>
             {/* 下拉箭头 */}
-            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+            <svg
+              className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M19 9l-7 7-7-7'
+              />
             </svg>
           </div>
 
@@ -260,13 +270,13 @@ export function MemoryPanel() {
           {/* 记忆列表 - 可滚动区域 */}
           <div className='w-full divide-y divide-[var(--border-secondary)] flex-1 min-h-0 overflow-y-auto'>
             {filteredMemories.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center w-full">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--bg-input)] flex items-center justify-center mb-3">
-                  <Database className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--text-muted)]" />
+              <div className='flex flex-col items-center justify-center py-8 sm:py-12 text-center w-full'>
+                <div className='w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--bg-input)] flex items-center justify-center mb-3'>
+                  <Database className='w-5 h-5 sm:w-6 sm:h-6 text-[var(--text-muted)]' />
                 </div>
-                <h3 className="text-sm font-semibold text-[var(--text-secondary)]">暂无记忆</h3>
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  {searchQuery ? "没有找到匹配的记忆" : "开始对话后，系统会自动提取记忆"}
+                <h3 className='text-sm font-semibold text-[var(--text-secondary)]'>暂无记忆</h3>
+                <p className='text-xs text-[var(--text-muted)] mt-1'>
+                  {searchQuery ? '没有找到匹配的记忆' : '开始对话后，系统会自动提取记忆'}
                 </p>
               </div>
             ) : (
@@ -295,8 +305,18 @@ export function MemoryPanel() {
                     <div className='flex-shrink-0'>
                       {isSelected ? (
                         <div className='w-4 h-4 rounded-md bg-[var(--accent-primary)] flex items-center justify-center'>
-                          <svg className='w-3 h-3 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
+                          <svg
+                            className='w-3 h-3 text-white'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={3}
+                              d='M5 13l4 4L19 7'
+                            />
                           </svg>
                         </div>
                       ) : selectedMemories.length > 0 ? (
@@ -310,7 +330,7 @@ export function MemoryPanel() {
                         <h4 className='text-sm font-semibold text-[var(--text-primary)] leading-relaxed line-clamp-2'>
                           {memory.content}
                         </h4>
-                        
+
                         {/* 操作按钮 */}
                         <div className='flex items-center gap-1 opacity-0 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'>
                           <button
@@ -338,7 +358,9 @@ export function MemoryPanel() {
 
                       <div className='flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap'>
                         {/* 类型标签 */}
-                        <span className={`px-1.5 sm:px-2 py-0.5 rounded-md text-xs text-white ${colorClass}`}>
+                        <span
+                          className={`px-1.5 sm:px-2 py-0.5 rounded-md text-xs text-white ${colorClass}`}
+                        >
                           {typeInfo.label}
                         </span>
 
@@ -355,7 +377,9 @@ export function MemoryPanel() {
                             <Star
                               key={i}
                               className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
-                                i < importance ? 'text-amber-400 fill-amber-400' : 'text-[var(--border-primary)]'
+                                i < importance
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-[var(--border-primary)]'
                               }`}
                             />
                           ))}
@@ -420,7 +444,9 @@ export function MemoryPanel() {
             {/* 头部 */}
             <div className='flex items-center justify-between px-5 py-4 border-b border-[var(--border-secondary)] bg-gradient-to-r from-[var(--bg-input)] to-[var(--bg-card)]'>
               <div className='flex items-center gap-3'>
-                <div className={`w-8 h-8 rounded-xl ${editingMemory ? 'bg-violet-500' : 'bg-[var(--accent-primary)]'} flex items-center justify-center`}>
+                <div
+                  className={`w-8 h-8 rounded-xl ${editingMemory ? 'bg-violet-500' : 'bg-[var(--accent-primary)]'} flex items-center justify-center`}
+                >
                   {editingMemory ? (
                     <Edit2 className='w-4 h-4 text-white' />
                   ) : (
@@ -444,7 +470,12 @@ export function MemoryPanel() {
                 className='p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-muted)]hover:text-[var(--text-secondary)] transition-colors'
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M6 18L18 6M6 6l12 12'
+                  />
                 </svg>
               </button>
             </div>
@@ -545,15 +576,19 @@ export function MemoryPanel() {
                             : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                         }`}
                       >
-                        <Star className={`w-5 h-5 ${i < currentImportance ? 'fill-current' : ''}`} />
+                        <Star
+                          className={`w-5 h-5 ${i < currentImportance ? 'fill-current' : ''}`}
+                        />
                       </button>
                     )
                   })}
                   <span className='ml-2 text-sm text-[var(--text-secondary)] font-semibold'>
-                    {(editingMemory?.importance || 3)}/5
+                    {editingMemory?.importance || 3}/5
                   </span>
                   <span className='text-xs text-[var(--text-muted)]ml-1'>
-                    ({['最低', '较低', '中等', '较高', '最高'][(editingMemory?.importance || 3) - 1]})
+                    (
+                    {['最低', '较低', '中等', '较高', '最高'][(editingMemory?.importance || 3) - 1]}
+                    )
                   </span>
                 </div>
               </div>
@@ -578,7 +613,10 @@ export function MemoryPanel() {
                   className='w-4 h-4 rounded border-[var(--brand-danger)]/30 bg-[var(--bg-card)] text-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50 focus:ring-offset-0'
                 />
                 <div>
-                  <label htmlFor='isRule' className='text-sm font-semibold text-[var(--brand-danger)] cursor-pointer'>
+                  <label
+                    htmlFor='isRule'
+                    className='text-sm font-semibold text-[var(--brand-danger)] cursor-pointer'
+                  >
                     标记为规则
                   </label>
                   <p className='text-xs text-[var(--brand-danger)] mt-0.5'>

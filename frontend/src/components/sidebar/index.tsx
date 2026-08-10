@@ -6,7 +6,6 @@ import {
   Search,
   X,
   Settings,
-
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProfileCard from '../common/ProfileCard'
@@ -51,8 +50,14 @@ export function Sidebar({
   const searchInputRef = useRef<HTMLInputElement>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { conversations, activeConversation, getStreamingState, getHasNewReply, resetNewReply, getSummarizingState } =
-    useChat()
+  const {
+    conversations,
+    activeConversation,
+    getStreamingState,
+    getHasNewReply,
+    resetNewReply,
+    getSummarizingState,
+  } = useChat()
 
   const { create, update, pin, select } = useConversation()
 
@@ -263,9 +268,7 @@ export function Sidebar({
                 />
               </div>
               {!collapsed && (
-                <h1 className='font-logo-system text-[var(--brand-primary)] leading-none'>
-                  KChat
-                </h1>
+                <h1 className='font-logo-system text-[var(--brand-primary)] leading-none'>KChat</h1>
               )}
             </div>
             {!collapsed && (
@@ -327,7 +330,9 @@ export function Sidebar({
                         <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
                       </button>
                     ) : (
-                      <span className='search-kbd' aria-hidden='true'>⌘K</span>
+                      <span className='search-kbd' aria-hidden='true'>
+                        ⌘K
+                      </span>
                     )}
                   </div>
                 </div>
@@ -336,7 +341,10 @@ export function Sidebar({
                   aria-label='创建新对话'
                   className='group/btn flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 active:scale-95 transition-all duration-200 flex-shrink-0'
                 >
-                  <MessageSquarePlus className='w-3.5 h-3.5 transition-transform duration-200' aria-hidden='true' />
+                  <MessageSquarePlus
+                    className='w-3.5 h-3.5 transition-transform duration-200'
+                    aria-hidden='true'
+                  />
                 </button>
               </div>
             </motion.div>
@@ -357,113 +365,123 @@ export function Sidebar({
             />
           )}
           <div className='relative z-[1]'>
-          {conversations.length === 0 ? (
-            <div className='text-center py-12 px-4'>
-              <div className='w-12 h-12 mx-auto mb-4 rounded-full theme-bg-hover/50 flex items-center justify-center'>
-                <MessageSquare className='w-5 h-5 theme-text-muted' />
-              </div>
-              {!collapsed && (
-                <>
-                  <p className='theme-text-secondary text-sm mb-1 font-semibold'>开始你的第一次对话</p>
-                  <p className='text-xs theme-text-muted mb-5'>选择模型，提出问题，获得答案</p>
-                  <button onClick={create} className='empty-state-cta'>
-                    <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
-                    新建对话
-                  </button>
-                </>
-              )}
-            </div>
-          ) : filteredGrouped.length === 0 ? (
-            <div className='text-center py-12 px-4'>
-              <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
-              <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
-              {searchQuery && (
-                <button
-                  onClick={() => { setSearchQuery(''); searchInputRef.current?.focus() }}
-                  className='mt-3 text-xs theme-brand-primary hover:underline'
-                >
-                  清除搜索
-                </button>
-              )}
-            </div>
-          ) : (
-            <div role='listbox' id='conversation-list' className='space-y-3'>
-              {filteredGrouped.map(({ group, items }) => (
-                <div key={group} className='space-y-0.5'>
-                  {!collapsed && (
-                    <button
-                      onClick={() => toggleGroup(group)}
-                      aria-expanded={expandedGroups.has(group)}
-                      aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
-                      className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
-                    >
-                      <span className='flex items-center gap-1.5'>
-                        <ChevronRight
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                            expandedGroups.has(group) ? 'rotate-90' : ''
-                          }`}
-                          aria-hidden='true'
-                        />
-                        <span className='group-hover/header:theme-text-primary transition-colors'>
-                          {group}
-                        </span>
-                      </span>
-                    </button>
-                  )}
-                  {(collapsed || expandedGroups.has(group)) && (
-                    <motion.div
-                      key={`${group}-items-${expandedGroups.has(group)}`}
-                      variants={{
-                        visible: { transition: { staggerChildren: 0.03 } },
-                      }}
-                      initial='hidden'
-                      animate='visible'
-                    >
-                      {items.map((conversation, idx) => (
-                        <motion.div
-                          key={conversation.id}
-                          variants={{
-                            hidden: { opacity: 0, y: 3 },
-                            visible: { opacity: 1, y: 0 },
-                          }}
-                          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                        >
-                          <ConversationItem
-                            conversation={conversation}
-                            isActive={activeConversation?.id === conversation.id}
-                            isStreaming={getStreamingState(conversation.id).isStreaming}
-                            isSummarizing={getSummarizingState(conversation.id)}
-                            hasNewReply={getHasNewReply(conversation.id)}
-                            onClick={() => {
-                              resetNewReply(conversation.id)
-                              select(conversation)
-                              onConversationClick?.()
-                            }}
-                            onDelete={() => handleDelete(conversation.id, conversation.title)}
-                            onUpdate={update}
-                            onPin={pin}
-                            collapsed={collapsed}
-                            index={idx}
-                            total={items.length}
-                            registerRef={registerItemRef}
-                          />
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
+            {conversations.length === 0 ? (
+              <div className='text-center py-12 px-4'>
+                <div className='w-12 h-12 mx-auto mb-4 rounded-full theme-bg-hover/50 flex items-center justify-center'>
+                  <MessageSquare className='w-5 h-5 theme-text-muted' />
                 </div>
-              ))}
-            </div>
-          )}
+                {!collapsed && (
+                  <>
+                    <p className='theme-text-secondary text-sm mb-1 font-semibold'>
+                      开始你的第一次对话
+                    </p>
+                    <p className='text-xs theme-text-muted mb-5'>选择模型，提出问题，获得答案</p>
+                    <button onClick={create} className='empty-state-cta'>
+                      <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+                      新建对话
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : filteredGrouped.length === 0 ? (
+              <div className='text-center py-12 px-4'>
+                <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
+                <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('')
+                      searchInputRef.current?.focus()
+                    }}
+                    className='mt-3 text-xs theme-brand-primary hover:underline'
+                  >
+                    清除搜索
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div role='listbox' id='conversation-list' className='space-y-3'>
+                {filteredGrouped.map(({ group, items }) => (
+                  <div key={group} className='space-y-0.5'>
+                    {!collapsed && (
+                      <button
+                        onClick={() => toggleGroup(group)}
+                        aria-expanded={expandedGroups.has(group)}
+                        aria-label={`${expandedGroups.has(group) ? '收起' : '展开'}${group}分组`}
+                        className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
+                      >
+                        <span className='flex items-center gap-1.5'>
+                          <ChevronRight
+                            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                              expandedGroups.has(group) ? 'rotate-90' : ''
+                            }`}
+                            aria-hidden='true'
+                          />
+                          <span className='group-hover/header:theme-text-primary transition-colors'>
+                            {group}
+                          </span>
+                        </span>
+                      </button>
+                    )}
+                    {(collapsed || expandedGroups.has(group)) && (
+                      <motion.div
+                        key={`${group}-items-${expandedGroups.has(group)}`}
+                        variants={{
+                          visible: { transition: { staggerChildren: 0.03 } },
+                        }}
+                        initial='hidden'
+                        animate='visible'
+                      >
+                        {items.map((conversation, idx) => (
+                          <motion.div
+                            key={conversation.id}
+                            variants={{
+                              hidden: { opacity: 0, y: 3 },
+                              visible: { opacity: 1, y: 0 },
+                            }}
+                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                          >
+                            <ConversationItem
+                              conversation={conversation}
+                              isActive={activeConversation?.id === conversation.id}
+                              isStreaming={getStreamingState(conversation.id).isStreaming}
+                              isSummarizing={getSummarizingState(conversation.id)}
+                              hasNewReply={getHasNewReply(conversation.id)}
+                              onClick={() => {
+                                resetNewReply(conversation.id)
+                                select(conversation)
+                                onConversationClick?.()
+                              }}
+                              onDelete={() => handleDelete(conversation.id, conversation.title)}
+                              onUpdate={update}
+                              onPin={pin}
+                              collapsed={collapsed}
+                              index={idx}
+                              total={items.length}
+                              registerRef={registerItemRef}
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        <div ref={userAreaRef} className={`px-2 pb-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        <div
+          ref={userAreaRef}
+          className={`px-2 pb-3 ${collapsed ? 'flex flex-col items-center' : ''}`}
+        >
           <div
             onClick={handleUserAreaClick}
             className={`w-full flex items-center gap-3 rounded-[var(--radius-xl)] ${collapsed ? '' : 'border border-[var(--border-primary)]'} bg-[var(--bg-card)]/60 p-2.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer ${collapsed ? 'justify-center w-fit mx-auto' : 'group'}`}
           >
-            <div className={`rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] ${collapsed ? 'w-10 h-10' : 'w-9 h-9'}`}>
+            <div
+              className={`rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] ${collapsed ? 'w-10 h-10' : 'w-9 h-9'}`}
+            >
               {profile?.avatar ? (
                 <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
               ) : (
@@ -492,7 +510,9 @@ export function Sidebar({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
+                  window.dispatchEvent(
+                    new CustomEvent('open-settings', { detail: { tab: 'profile' } })
+                  )
                 }}
                 className='flex-shrink-0 p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
                 aria-label='设置'

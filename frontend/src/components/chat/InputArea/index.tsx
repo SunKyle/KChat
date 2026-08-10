@@ -57,7 +57,8 @@ export function InputArea() {
   const maxChars = 2000
   const maxImages = 5
 
-  const isImg2ImgMode = (isImageModel(currentModel) || multimodalEnabled) && uploadingImages.length > 0
+  const isImg2ImgMode =
+    (isImageModel(currentModel) || multimodalEnabled) && uploadingImages.length > 0
 
   // 状态条滑出/收起动画
   useEffect(() => {
@@ -312,7 +313,8 @@ export function InputArea() {
         <div className='relative mx-4 lg:mx-6 mb-0'>
           {(showStatusBar || isOptimizing) &&
             (() => {
-              const isOutputting = streamingState.isStreaming && streamingState.currentContent.length > 0
+              const isOutputting =
+                streamingState.isStreaming && streamingState.currentContent.length > 0
               const isThinking = streamingState.isStreaming && !isOutputting
               const isOptimizingNow = isOptimizing
 
@@ -488,7 +490,9 @@ export function InputArea() {
                     >
                       <Image className='w-4 h-4' />
                     </button>
-                    <span className='tooltip-content'>{isImg2ImgMode ? '图生图模式' : '生成图片'}</span>
+                    <span className='tooltip-content'>
+                      {isImg2ImgMode ? '图生图模式' : '生成图片'}
+                    </span>
                   </div>
 
                   {/* 内容优化按钮 */}
@@ -547,9 +551,16 @@ export function InputArea() {
                     >
                       <div className='flex h-4 w-4 shrink-0 items-center justify-center'>
                         <motion.div
-                          animate={{ rotate: webSearchEnabled ? 180 : 0, scale: webSearchEnabled ? 1.1 : 1 }}
+                          animate={{
+                            rotate: webSearchEnabled ? 180 : 0,
+                            scale: webSearchEnabled ? 1.1 : 1,
+                          }}
                           transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-                          whileHover={{ rotate: webSearchEnabled ? 180 : 15, scale: 1.1, transition: { type: 'spring', stiffness: 300, damping: 10 } }}
+                          whileHover={{
+                            rotate: webSearchEnabled ? 180 : 15,
+                            scale: 1.1,
+                            transition: { type: 'spring', stiffness: 300, damping: 10 },
+                          }}
                         >
                           <Globe className='h-4 w-4' />
                         </motion.div>
@@ -590,9 +601,16 @@ export function InputArea() {
                     >
                       <div className='flex h-4 w-4 shrink-0 items-center justify-center'>
                         <motion.div
-                          animate={{ rotate: multimodalEnabled ? 180 : 0, scale: multimodalEnabled ? 1.1 : 1 }}
+                          animate={{
+                            rotate: multimodalEnabled ? 180 : 0,
+                            scale: multimodalEnabled ? 1.1 : 1,
+                          }}
                           transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-                          whileHover={{ rotate: multimodalEnabled ? 180 : 15, scale: 1.1, transition: { type: 'spring', stiffness: 300, damping: 10 } }}
+                          whileHover={{
+                            rotate: multimodalEnabled ? 180 : 15,
+                            scale: 1.1,
+                            transition: { type: 'spring', stiffness: 300, damping: 10 },
+                          }}
                         >
                           <Orbit className='h-4 w-4' />
                         </motion.div>

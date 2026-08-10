@@ -105,23 +105,28 @@ function AppContent() {
           className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4 lg:pb-4 lg:pl-[var(--sidebar-pad,20rem)] lg:pr-[var(--note-pad,3.25rem)] transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
           style={
             isLg
-              ? {
+              ? ({
                   '--sidebar-pad': sidebarCollapsed ? '6rem' : '20rem',
                   '--note-pad': noteTodoDrawerOpen ? '27rem' : '3.25rem',
-                } as React.CSSProperties
+                } as React.CSSProperties)
               : undefined
           }
         >
           <div className='flex flex-col h-full card-float-solid relative overflow-hidden'>
-            <div className='absolute inset-0 pointer-events-none' style={{
-              background: `
+            <div
+              className='absolute inset-0 pointer-events-none'
+              style={{
+                background: `
                 radial-gradient(ellipse 60% 50% at 50% 40%, var(--accent-primary-opacity-8, rgba(30,157,241,0.08)) 0%, transparent 70%),
                 radial-gradient(ellipse 50% 40% at 80% 60%, var(--accent-purple-opacity-6, rgba(139,92,246,0.06)) 0%, transparent 70%),
                 radial-gradient(ellipse 40% 35% at 20% 30%, var(--accent-amber-opacity-4, rgba(251,191,36,0.04)) 0%, transparent 60%)
-              `
-            }} />
+              `,
+              }}
+            />
             <Header />
-            <div className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}>
+            <div
+              className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}
+            >
               <ChatArea />
               {activeConversation && <InputArea />}
             </div>
@@ -145,7 +150,11 @@ function AppContent() {
         type='danger'
       />
 
-      <NoteTodoPanel isOpen={noteTodoDrawerOpen} onClose={() => setNoteTodoDrawerOpen(false)} onOpen={() => setNoteTodoDrawerOpen(true)} />
+      <NoteTodoPanel
+        isOpen={noteTodoDrawerOpen}
+        onClose={() => setNoteTodoDrawerOpen(false)}
+        onOpen={() => setNoteTodoDrawerOpen(true)}
+      />
 
       <ToastContainer />
     </>

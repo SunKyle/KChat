@@ -39,7 +39,10 @@ export function Preferences() {
   const [autoTitleLoading, setAutoTitleLoading] = useState(false)
 
   useEffect(() => {
-    settingsApi.get().then(s => setAutoTitle(s.autoTitle)).catch(() => {})
+    settingsApi
+      .get()
+      .then((s) => setAutoTitle(s.autoTitle))
+      .catch(() => {})
   }, [])
 
   const handleAutoTitleChange = async (value: boolean) => {
@@ -159,9 +162,7 @@ export function Preferences() {
             <label className='block text-sm font-semibold theme-text-secondary mb-3'>
               AI 回复语言
             </label>
-            <p className='text-xs theme-text-muted mb-3'>
-              设置后，AI 将使用您选择的语言进行回复
-            </p>
+            <p className='text-xs theme-text-muted mb-3'>设置后，AI 将使用您选择的语言进行回复</p>
             <select
               value={profile.preferences.language || 'zh-CN'}
               onChange={(e) => handleLanguageChange(e.target.value)}
@@ -178,85 +179,85 @@ export function Preferences() {
         </div>
 
         <div className='card-float-solid rounded-2xl p-6'>
-        <div className='flex items-center gap-2 mb-4'>
-          <Bell className='w-[18px] h-[18px] theme-text-muted' />
-          <h3 className='font-semibold theme-text-primary'>通知设置</h3>
+          <div className='flex items-center gap-2 mb-4'>
+            <Bell className='w-[18px] h-[18px] theme-text-muted' />
+            <h3 className='font-semibold theme-text-primary'>通知设置</h3>
+          </div>
+
+          <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                  <Bell className='w-4 h-4 theme-text-muted' />
+                </div>
+                <div>
+                  <div className='text-sm font-semibold theme-text-primary'>消息通知</div>
+                  <div className='text-xs theme-text-muted'>接收新消息时发送通知</div>
+                </div>
+              </div>
+              <Toggle
+                id='pref-notify-message'
+                enabled={profile.preferences.notifications.message}
+                onChange={(value) => handleNotificationChange('message', value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                  <Mail className='w-4 h-4 theme-text-muted' />
+                </div>
+                <div>
+                  <div className='text-sm font-semibold theme-text-primary'>邮件通知</div>
+                  <div className='text-xs theme-text-muted'>发送重要更新到您的邮箱</div>
+                </div>
+              </div>
+              <Toggle
+                id='pref-notify-email'
+                enabled={profile.preferences.notifications.email}
+                onChange={(value) => handleNotificationChange('email', value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                  <Smartphone className='w-4 h-4 theme-text-muted' />
+                </div>
+                <div>
+                  <div className='text-sm font-semibold theme-text-primary'>推送通知</div>
+                  <div className='text-xs theme-text-muted'>浏览器推送通知</div>
+                </div>
+              </div>
+              <Toggle
+                id='pref-notify-push'
+                enabled={profile.preferences.notifications.push}
+                onChange={(value) => handleNotificationChange('push', value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
+                  <Volume2 className='w-4 h-4 theme-text-muted' />
+                </div>
+                <div>
+                  <div className='text-sm font-semibold theme-text-primary'>通知声音</div>
+                  <div className='text-xs theme-text-muted'>接收通知时播放声音</div>
+                </div>
+              </div>
+              <Toggle
+                id='pref-notify-sound'
+                enabled={profile.preferences.notifications.sound}
+                onChange={(value) => handleNotificationChange('sound', value)}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
         </div>
-
-        <div className='space-y-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                <Bell className='w-4 h-4 theme-text-muted' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold theme-text-primary'>消息通知</div>
-                <div className='text-xs theme-text-muted'>接收新消息时发送通知</div>
-              </div>
-            </div>
-            <Toggle
-              id='pref-notify-message'
-              enabled={profile.preferences.notifications.message}
-              onChange={(value) => handleNotificationChange('message', value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                <Mail className='w-4 h-4 theme-text-muted' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold theme-text-primary'>邮件通知</div>
-                <div className='text-xs theme-text-muted'>发送重要更新到您的邮箱</div>
-              </div>
-            </div>
-            <Toggle
-              id='pref-notify-email'
-              enabled={profile.preferences.notifications.email}
-              onChange={(value) => handleNotificationChange('email', value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                <Smartphone className='w-4 h-4 theme-text-muted' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold theme-text-primary'>推送通知</div>
-                <div className='text-xs theme-text-muted'>浏览器推送通知</div>
-              </div>
-            </div>
-            <Toggle
-              id='pref-notify-push'
-              enabled={profile.preferences.notifications.push}
-              onChange={(value) => handleNotificationChange('push', value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                <Volume2 className='w-4 h-4 theme-text-muted' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold theme-text-primary'>通知声音</div>
-                <div className='text-xs theme-text-muted'>接收通知时播放声音</div>
-              </div>
-            </div>
-            <Toggle
-              id='pref-notify-sound'
-              enabled={profile.preferences.notifications.sound}
-              onChange={(value) => handleNotificationChange('sound', value)}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-      </div>
       </div>
 
       <div className='card-float-solid rounded-2xl p-6'>

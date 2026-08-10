@@ -13,7 +13,10 @@ export function useConversation() {
       conversationStorage.add(newConversation)
       dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
       dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
-      dispatch({ type: 'SET_MESSAGES', payload: { conversationId: newConversation.id, messages: [] } })
+      dispatch({
+        type: 'SET_MESSAGES',
+        payload: { conversationId: newConversation.id, messages: [] },
+      })
     } catch (error) {
       console.error('Failed to create conversation:', error)
       dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
@@ -68,14 +71,20 @@ export function useConversation() {
       const isStreaming = state.streamingStates[conv.id]?.isStreaming
 
       dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: conv })
-      dispatch({ type: 'SET_MESSAGES', payload: { conversationId: conv.id, messages: cachedMessages || [] } })
+      dispatch({
+        type: 'SET_MESSAGES',
+        payload: { conversationId: conv.id, messages: cachedMessages || [] },
+      })
 
       if (!cachedMessages && !isStreaming) {
         dispatch({ type: 'SET_LOADING', payload: true })
         try {
           const data = await conversationAPI.get(conv.id)
           if (stateRef.current.activeConversation?.id === conv.id) {
-            dispatch({ type: 'SET_MESSAGES', payload: { conversationId: conv.id, messages: data.messages || [] } })
+            dispatch({
+              type: 'SET_MESSAGES',
+              payload: { conversationId: conv.id, messages: data.messages || [] },
+            })
           }
         } catch (error) {
           console.error('Failed to load messages:', error)
@@ -118,7 +127,10 @@ export function useConversation() {
 
       try {
         const data = await conversationAPI.get(conversationId)
-        dispatch({ type: 'SET_MESSAGES', payload: { conversationId, messages: data.messages || [] } })
+        dispatch({
+          type: 'SET_MESSAGES',
+          payload: { conversationId, messages: data.messages || [] },
+        })
       } catch (error) {
         console.error('Failed to load messages:', error)
         dispatch({ type: 'SET_ERROR', payload: '加载消息失败，请稍后重试' })

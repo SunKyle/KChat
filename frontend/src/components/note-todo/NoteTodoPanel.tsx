@@ -11,12 +11,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useDebounce } from '../../hooks/useDebounce'
-import type {
-  Note,
-  Todo,
-  NoteTodoMode,
-  UpdateNoteRequest,
-} from '../../types/note-todo'
+import type { Note, Todo, NoteTodoMode, UpdateNoteRequest } from '../../types/note-todo'
 import { noteApi } from '../../api/note-todo'
 import { NoteList } from './NoteList'
 import { TodoList } from './TodoList'
@@ -157,7 +152,11 @@ function NoteTodoSearchBar({
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
-              {tab === 'all' ? `全部 (${todos.length})` : tab === 'pending' ? `进行中 (${todos.filter((t) => t.status === 'pending').length})` : `已完成 (${todos.filter((t) => t.status === 'completed').length})`}
+              {tab === 'all'
+                ? `全部 (${todos.length})`
+                : tab === 'pending'
+                  ? `进行中 (${todos.filter((t) => t.status === 'pending').length})`
+                  : `已完成 (${todos.filter((t) => t.status === 'completed').length})`}
             </button>
           ))}
         </div>
@@ -169,10 +168,14 @@ function NoteTodoSearchBar({
             onClick={onFilterToggle}
             className='flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
           >
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`} />
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
+            />
             筛选标签
             {filterTags.length > 0 && (
-              <span className='text-[var(--brand-primary)] normal-case tracking-normal font-semibold'>({filterTags.length})</span>
+              <span className='text-[var(--brand-primary)] normal-case tracking-normal font-semibold'>
+                ({filterTags.length})
+              </span>
             )}
           </button>
           {filterExpanded && (
@@ -182,7 +185,9 @@ function NoteTodoSearchBar({
                   key={name}
                   onClick={() =>
                     onFilterTagsChange(
-                      filterTags.includes(name) ? filterTags.filter((t) => t !== name) : [...filterTags, name]
+                      filterTags.includes(name)
+                        ? filterTags.filter((t) => t !== name)
+                        : [...filterTags, name]
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 ${filterTags.includes(name) ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
@@ -250,15 +255,31 @@ function isOverdue(dueDate: string | null, status: string) {
 
 export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const {
-    notes, setNotes, todos, isLoading,
-    loadData, createNote, updateNote, deleteNote, pinNote,
-    createTodo, updateTodo, deleteTodo, toggleTodo,
+    notes,
+    setNotes,
+    todos,
+    isLoading,
+    loadData,
+    createNote,
+    updateNote,
+    deleteNote,
+    pinNote,
+    createTodo,
+    updateTodo,
+    deleteTodo,
+    toggleTodo,
   } = useNoteTodoData()
 
   const {
-    isFormOpen, editingNote, editingTodo,
-    formState, setFormState,
-    openCreateForm, editNote, editTodo, cancelForm,
+    isFormOpen,
+    editingNote,
+    editingTodo,
+    formState,
+    setFormState,
+    openCreateForm,
+    editNote,
+    editTodo,
+    cancelForm,
   } = useNoteTodoForm()
 
   const [mode, setMode] = useState<NoteTodoMode>('note')
@@ -274,10 +295,14 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
-  useEffect(() => { if (isOpen) loadData() }, [isOpen, loadData])
+  useEffect(() => {
+    if (isOpen) loadData()
+  }, [isOpen, loadData])
 
   useEffect(() => {
-    const handler = () => { if (isOpen) loadData() }
+    const handler = () => {
+      if (isOpen) loadData()
+    }
     window.addEventListener('note-created', handler)
     return () => window.removeEventListener('note-created', handler)
   }, [isOpen, loadData])
@@ -294,31 +319,43 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, isFormOpen, openCreateForm, cancelForm])
 
-  const handleModeChange = useCallback((newMode: NoteTodoMode) => {
-    setMode(newMode)
-    setSelectedNote(null)
-    setSelectedTodo(null)
-    setSearchQuery('')
-    setActiveTab('all')
-    setFilterTags([])
-    cancelForm()
-  }, [cancelForm])
+  const handleModeChange = useCallback(
+    (newMode: NoteTodoMode) => {
+      setMode(newMode)
+      setSelectedNote(null)
+      setSelectedTodo(null)
+      setSearchQuery('')
+      setActiveTab('all')
+      setFilterTags([])
+      cancelForm()
+    },
+    [cancelForm]
+  )
 
   const handleCreateNote = useCallback(async () => {
     const ok = await createNote(formState)
-    if (ok) { cancelForm(); setSelectedNote(null) }
+    if (ok) {
+      cancelForm()
+      setSelectedNote(null)
+    }
   }, [createNote, formState, cancelForm])
 
   const handleUpdateNote = useCallback(async () => {
     if (!editingNote) return
     const ok = await updateNote(editingNote.id, formState)
-    if (ok) { cancelForm(); setEditingNote(null) }
+    if (ok) {
+      cancelForm()
+      setEditingNote(null)
+    }
   }, [editingNote, updateNote, formState, cancelForm])
 
-  const handleDeleteNote = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id)
-    if (note) setDeleteConfirm({ type: 'note', id, title: note.title })
-  }, [notes])
+  const handleDeleteNote = useCallback(
+    (id: string) => {
+      const note = notes.find((n) => n.id === id)
+      if (note) setDeleteConfirm({ type: 'note', id, title: note.title })
+    },
+    [notes]
+  )
 
   const confirmDeleteNote = useCallback(async () => {
     if (!deleteConfirm || deleteConfirm.type !== 'note') return
@@ -329,30 +366,44 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     }
   }, [deleteConfirm, deleteNote, selectedNote])
 
-  const handlePinNote = useCallback(async (note: Note) => {
-    await pinNote(note)
-  }, [pinNote])
+  const handlePinNote = useCallback(
+    async (note: Note) => {
+      await pinNote(note)
+    },
+    [pinNote]
+  )
 
-  const handleEditNoteAction = useCallback((note: Note) => {
-    editNote(note)
-    setSelectedNote(null)
-  }, [editNote])
+  const handleEditNoteAction = useCallback(
+    (note: Note) => {
+      editNote(note)
+      setSelectedNote(null)
+    },
+    [editNote]
+  )
 
   const handleCreateTodo = useCallback(async () => {
     const ok = await createTodo(formState)
-    if (ok) { cancelForm() }
+    if (ok) {
+      cancelForm()
+    }
   }, [createTodo, formState, cancelForm])
 
   const handleUpdateTodo = useCallback(async () => {
     if (!editingTodo) return
     const ok = await updateTodo(editingTodo.id, formState)
-    if (ok) { cancelForm(); setEditingTodo(null) }
+    if (ok) {
+      cancelForm()
+      setEditingTodo(null)
+    }
   }, [editingTodo, updateTodo, formState, cancelForm])
 
-  const handleDeleteTodo = useCallback((id: string) => {
-    const todo = todos.find((t) => t.id === id)
-    if (todo) setDeleteConfirm({ type: 'todo', id, title: todo.title })
-  }, [todos])
+  const handleDeleteTodo = useCallback(
+    (id: string) => {
+      const todo = todos.find((t) => t.id === id)
+      if (todo) setDeleteConfirm({ type: 'todo', id, title: todo.title })
+    },
+    [todos]
+  )
 
   const confirmDeleteTodo = useCallback(async () => {
     if (!deleteConfirm || deleteConfirm.type !== 'todo') return
@@ -363,10 +414,13 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     }
   }, [deleteConfirm, deleteTodo, selectedTodo])
 
-  const handleEditTodoAction = useCallback((todo: Todo) => {
-    editTodo(todo)
-    setSelectedTodo(null)
-  }, [editTodo])
+  const handleEditTodoAction = useCallback(
+    (todo: Todo) => {
+      editTodo(todo)
+      setSelectedTodo(null)
+    },
+    [editTodo]
+  )
 
   const filteredNotes = notes.filter((n) => {
     const matchesSearch =
@@ -415,11 +469,22 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 formatDateFull={formatDateFull}
                 formatDate={formatDate}
                 isOverdue={isOverdue}
-                onNoteBack={() => { setSelectedNote(null); if (isFormOpen) cancelForm() }}
+                onNoteBack={() => {
+                  setSelectedNote(null)
+                  if (isFormOpen) cancelForm()
+                }}
                 onNoteEdit={() => handleEditNoteAction(selectedNote!)}
                 onNoteDelete={() => handleDeleteNote(selectedNote!.id)}
-                onNoteExpand={() => { if (selectedNote) { setFullscreenNote(selectedNote); setShowFullscreenEditor(true) } }}
-                onTodoBack={() => { setSelectedTodo(null); if (isFormOpen) cancelForm() }}
+                onNoteExpand={() => {
+                  if (selectedNote) {
+                    setFullscreenNote(selectedNote)
+                    setShowFullscreenEditor(true)
+                  }
+                }}
+                onTodoBack={() => {
+                  setSelectedTodo(null)
+                  if (isFormOpen) cancelForm()
+                }}
                 onTodoToggle={() => handleToggleTodo(selectedTodo!.id)}
                 onTodoEdit={() => handleEditTodoAction(selectedTodo!)}
                 onTodoDelete={() => handleDeleteTodo(selectedTodo!.id)}
@@ -434,7 +499,9 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                     <ChevronLeft className='w-4 h-4' />
                     返回
                   </button>
-                  <span className='text-base font-semibold text-[var(--text-primary)]'>{formTitle}</span>
+                  <span className='text-base font-semibold text-[var(--text-primary)]'>
+                    {formTitle}
+                  </span>
                   <div className='w-12' />
                 </div>
                 {editingNote || mode === 'note' ? (
@@ -509,19 +576,27 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
       {deleteConfirm && (
         <div className='fixed inset-0 z-[60] flex items-center justify-center'>
-          <div className='absolute inset-0 bg-[var(--bg-overlay)]' onClick={() => setDeleteConfirm(null)} />
+          <div
+            className='absolute inset-0 bg-[var(--bg-overlay)]'
+            onClick={() => setDeleteConfirm(null)}
+          />
           <div className='relative bg-[var(--bg-sidebar)] rounded-xl shadow-xl p-5 w-full max-w-sm mx-4 animate-fade-in-up border border-[var(--border-divider)]'>
             <div className='flex items-start gap-3 mb-4'>
               <div className='w-9 h-9 bg-[var(--brand-danger)]/[0.08] rounded-full flex items-center justify-center flex-shrink-0'>
                 <Trash2 className='w-4 h-4 text-[var(--brand-danger)]' />
               </div>
               <div className='flex-1'>
-                <h3 className='text-base font-semibold text-[var(--text-primary)]'>确定要删除「{deleteConfirm.title}」吗？</h3>
+                <h3 className='text-base font-semibold text-[var(--text-primary)]'>
+                  确定要删除「{deleteConfirm.title}」吗？
+                </h3>
                 <p className='text-xs text-[var(--text-muted)] mt-1'>此操作无法撤销</p>
               </div>
             </div>
             <div className='flex items-center justify-end gap-2'>
-              <button onClick={() => setDeleteConfirm(null)} className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-lg text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'
+              >
                 取消
               </button>
               <button
@@ -540,7 +615,10 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
           title={fullscreenNote ? fullscreenNote.title : formState.title}
           content={fullscreenNote ? fullscreenNote.content : formState.content}
           initialMode={fullscreenNote ? 'preview' : 'split'}
-          onClose={() => { setShowFullscreenEditor(false); setFullscreenNote(null) }}
+          onClose={() => {
+            setShowFullscreenEditor(false)
+            setFullscreenNote(null)
+          }}
           onSave={async (title, content) => {
             if (fullscreenNote) {
               try {

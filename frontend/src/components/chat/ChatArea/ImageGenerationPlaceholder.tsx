@@ -19,8 +19,7 @@ export function ImageGenerationPlaceholder() {
             <span
               className='absolute inset-0 rounded-full animate-pulse'
               style={{
-                background:
-                  'radial-gradient(circle, rgba(210,180,140,0.25) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(210,180,140,0.25) 0%, transparent 70%)',
                 transform: 'scale(2.8)',
               }}
             />

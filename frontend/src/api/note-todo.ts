@@ -1,5 +1,12 @@
 import { request } from './client'
-import type { Note, Todo, CreateNoteRequest, UpdateNoteRequest, CreateTodoRequest, UpdateTodoRequest } from '../types/note-todo'
+import type {
+  Note,
+  Todo,
+  CreateNoteRequest,
+  UpdateNoteRequest,
+  CreateTodoRequest,
+  UpdateTodoRequest,
+} from '../types/note-todo'
 
 const DEFAULT_USER_ID = 'default'
 
@@ -31,7 +38,11 @@ export const noteApi = {
   /**
    * 更新笔记
    */
-  update: async (noteId: string, data: UpdateNoteRequest, userId: string = DEFAULT_USER_ID): Promise<Note> => {
+  update: async (
+    noteId: string,
+    data: UpdateNoteRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Note> => {
     return request(`/notes/${noteId}?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -90,7 +101,11 @@ export const todoApi = {
   /**
    * 更新待办
    */
-  update: async (todoId: string, data: UpdateTodoRequest, userId: string = DEFAULT_USER_ID): Promise<Todo> => {
+  update: async (
+    todoId: string,
+    data: UpdateTodoRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Todo> => {
     return request(`/todos/${todoId}?userId=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -125,14 +140,20 @@ export const todoApi = {
   /**
    * 按状态查询待办
    */
-  getByStatus: async (status: 'pending' | 'completed', userId: string = DEFAULT_USER_ID): Promise<Todo[]> => {
+  getByStatus: async (
+    status: 'pending' | 'completed',
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Todo[]> => {
     return request(`/todos?userId=${userId}&status=${status}`)
   },
 
   /**
    * 按优先级查询待办
    */
-  getByPriority: async (priority: 'high' | 'medium' | 'low', userId: string = DEFAULT_USER_ID): Promise<Todo[]> => {
+  getByPriority: async (
+    priority: 'high' | 'medium' | 'low',
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Todo[]> => {
     return request(`/todos?userId=${userId}&priority=${priority}`)
   },
 

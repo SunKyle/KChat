@@ -1,8 +1,6 @@
 /* KChat Design System — CSS Variables */
 /* Source of truth for all theming. Update :root in the original file first. */
 
-
-
 :root {
   /* === Unified Typography Scale (mobile-first) === */
 
@@ -257,4 +255,3 @@
   --shadow-color-elevated: rgba(0, 0, 0, 0.4);
   --shadow-color-elevated-secondary: rgba(0, 0, 0, 0.3);
 }
-

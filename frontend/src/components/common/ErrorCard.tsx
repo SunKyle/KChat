@@ -137,19 +137,13 @@ export function ErrorCard({
               <h3 className={`text-xl font-weight-semibold ${config.titleColor}`}>{title}</h3>
 
               {showCloseButton && onClose && (
-                <button
-                  onClick={onClose}
-                  className='flex-shrink-0 icon-btn'
-                  aria-label='关闭'
-                >
+                <button onClick={onClose} className='flex-shrink-0 icon-btn' aria-label='关闭'>
                   <X className='w-4 h-4 text-[var(--text-muted)] hover:text-[var(--text-secondary)]' />
                 </button>
               )}
             </div>
 
-            {description && (
-              <p className='mt-2 font-secondary leading-relaxed'>{description}</p>
-            )}
+            {description && <p className='mt-2 font-secondary leading-relaxed'>{description}</p>}
 
             {(showRetryButton || onRetry) && (
               <button

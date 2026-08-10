@@ -53,7 +53,10 @@ export interface ChatState {
   activeConversation: Conversation | null
   messagesByConversation: Record<string, Message[]>
   streamingStates: Record<string, StreamingState>
-  regeneratingStates: Record<string, { isRegenerating: boolean; messageId: string | null; savedContent?: string }>
+  regeneratingStates: Record<
+    string,
+    { isRegenerating: boolean; messageId: string | null; savedContent?: string }
+  >
   summarizingStates: Record<string, boolean>
   summarizingMessageId: string | null
   searchResultsByConversation: Record<string, WebSearchResultData>
@@ -90,13 +93,13 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SET_ACTIVE_CONVERSATION':
       return { ...state, activeConversation: action.payload }
 
-   case 'SET_MESSAGES': {
+    case 'SET_MESSAGES': {
       const existingMessages = state.messagesByConversation[action.payload.conversationId] || []
       let serverMessages = action.payload.messages
 
       // Filter out empty placeholder messages from server
       // These are assistant messages with no content and no images that are placeholders
-      serverMessages = serverMessages.filter(m => {
+      serverMessages = serverMessages.filter((m) => {
         if (m.role !== 'assistant') return true
         const hasContent = m.content && m.content.trim() !== ''
         const hasImages = m.images && m.images.length > 0
@@ -107,25 +110,25 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       })
 
       // Create a signature for deduplication (used for assistant messages only)
-      const getMessageSignature = (m: typeof serverMessages[0]) => {
+      const getMessageSignature = (m: (typeof serverMessages)[0]) => {
         const imgKey = (m.images || []).sort().join(',')
         return `${m.role}:${m.content}:${imgKey}`
       }
 
       // Build signature set from server messages (assistant messages only)
-      const serverIds = new Set(serverMessages.map(m => m.id))
+      const serverIds = new Set(serverMessages.map((m) => m.id))
       const serverAssistantSignatures = new Set(
-        serverMessages.filter(m => m.role === 'assistant').map(getMessageSignature)
+        serverMessages.filter((m) => m.role === 'assistant').map(getMessageSignature)
       )
 
       // Filter out local-only messages that are duplicates or empty placeholders
-      const localOnlyMessages = existingMessages.filter(m => {
+      const localOnlyMessages = existingMessages.filter((m) => {
         if (serverIds.has(m.id)) return false
         // Check if this is an empty placeholder message (assistant with no content/images)
         if (m.role === 'assistant') {
           const hasContent = m.content && m.content.trim() !== ''
           const hasImages = m.images && m.images.length > 0
-          if (!hasContent && !hasImages) return false  // Filter out empty placeholders
+          if (!hasContent && !hasImages) return false // Filter out empty placeholders
           // Check if this local message's content already exists in server messages
           const sig = getMessageSignature(m)
           if (serverAssistantSignatures.has(sig)) return false

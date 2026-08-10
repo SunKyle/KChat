@@ -242,7 +242,12 @@ export function FullscreenMarkdownEditor({
                   code({ node: _node, inline, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
                     return !inline && match ? (
-                      <SyntaxHighlighter style={oneLight} language={match[1]} PreTag='div' {...props}>
+                      <SyntaxHighlighter
+                        style={oneLight}
+                        language={match[1]}
+                        PreTag='div'
+                        {...props}
+                      >
                         {String(children).replace(/\n$/, '')}
                       </SyntaxHighlighter>
                     ) : (
@@ -338,10 +343,10 @@ export function FullscreenMarkdownEditor({
                     </td>
                   ),
                 }}
-            >
-              {editorContent}
-            </ReactMarkdown>
-          </div>
+              >
+                {editorContent}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
 

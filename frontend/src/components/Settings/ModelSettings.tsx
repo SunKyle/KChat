@@ -42,7 +42,9 @@ export function ModelSettings() {
   const [selectedCategory, setSelectedCategory] = useState<ModelCategory | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | number | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string | number; name: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string | number; name: string } | null>(
+    null
+  )
 
   const [formData, setFormData] = useState({
     name: '',
@@ -337,10 +339,14 @@ export function ModelSettings() {
                                 <Copy className='w-3 h-3' />
                               </button>
                               {(() => {
-                                const cat = CATEGORIES.find((c) => c.type === (config.category || 'TEXT'))
+                                const cat = CATEGORIES.find(
+                                  (c) => c.type === (config.category || 'TEXT')
+                                )
                                 if (!cat) return null
                                 return (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full text-white ${cat.color} flex-shrink-0`}>
+                                  <span
+                                    className={`text-[10px] px-1.5 py-0.5 rounded-full text-white ${cat.color} flex-shrink-0`}
+                                  >
                                     {cat.displayName}
                                   </span>
                                 )
@@ -395,10 +401,7 @@ export function ModelSettings() {
               <h3 className='text-base font-semibold theme-text-primary'>
                 {editingConfig ? '编辑模型' : '添加模型'}
               </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className='icon-btn'
-              >
+              <button onClick={() => setShowAddModal(false)} className='icon-btn'>
                 <X className='w-5 h-5' />
               </button>
             </div>

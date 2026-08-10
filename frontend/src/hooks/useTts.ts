@@ -22,96 +22,106 @@ export function useTts(userId?: string) {
     }
   }, [])
 
-  const speak = useCallback(async (text: string, spkId?: string) => {
-    stop()
-    setState('loading')
-    setError(null)
-    setCurrentText(text)
+  const speak = useCallback(
+    async (text: string, spkId?: string) => {
+      stop()
+      setState('loading')
+      setError(null)
+      setCurrentText(text)
 
-    try {
-      const blob = await tts.speak({ text, spkId }, userId)
-      const url = URL.createObjectURL(blob)
-      objectUrlRef.current = url
+      try {
+        const blob = await tts.speak({ text, spkId }, userId)
+        const url = URL.createObjectURL(blob)
+        objectUrlRef.current = url
 
-      const audio = new Audio(url)
-      audioRef.current = audio
+        const audio = new Audio(url)
+        audioRef.current = audio
 
-      audio.onplay = () => setState('playing')
-      audio.onended = () => {
-        setState('idle')
-        cleanup()
-      }
-      audio.onerror = () => {
+        audio.onplay = () => setState('playing')
+        audio.onended = () => {
+          setState('idle')
+          cleanup()
+        }
+        audio.onerror = () => {
+          setState('error')
+          setError('音频播放失败')
+          cleanup()
+        }
+
+        await audio.play()
+      } catch (err) {
         setState('error')
-        setError('音频播放失败')
+        setError(err instanceof Error ? err.message : '合成失败')
         cleanup()
       }
-
-      await audio.play()
-    } catch (err) {
-      setState('error')
-      setError(err instanceof Error ? err.message : '合成失败')
-      cleanup()
-    }
-  }, [userId])
+    },
+    [userId]
+  )
 
   /**
    * 流式 TTS：边生成边播放
    * 使用 MediaSource API 接收音频分片，实现秒开体验
    */
-  const speakStream = useCallback((text: string, spkId?: string) => {
-    stop()
-    setState('loading')
-    setError(null)
-    setCurrentText(text)
+  const speakStream = useCallback(
+    (text: string, spkId?: string) => {
+      stop()
+      setState('loading')
+      setError(null)
+      setCurrentText(text)
 
-    const chunks: { wav: Uint8Array }[] = []
-    pendingChunksRef.current = chunks
+      const chunks: { wav: Uint8Array }[] = []
+      pendingChunksRef.current = chunks
 
-    // 解析 base64 分片，累积成完整 wav
-    const base64ToUint8 = (b64: string) => {
-      const binary = atob(b64)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-      return bytes
-    }
-
-    const onChunk = (b64: string) => {
-      try {
-        const bytes = base64ToUint8(b64)
-        chunks.push({ wav: bytes })
-
-        // 首个 chunk 初始化 MediaSource 并立即播放
-        if (!mediaSourceRef.current && chunks.length === 1) {
-          initStreamPlayback(chunks)
-        } else if (mediaSourceRef.current && sourceBufferRef.current) {
-          appendChunkToBuffer(bytes)
-        }
-      } catch (e) {
-        console.error('Stream chunk decode error:', e)
+      // 解析 base64 分片，累积成完整 wav
+      const base64ToUint8 = (b64: string) => {
+        const binary = atob(b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        return bytes
       }
-    }
 
-    const onEvent = (e: { type: 'start' | 'done' | 'error'; message?: string; totalBytes?: number }) => {
-      if (e.type === 'error') {
-        setState('error')
-        setError(e.message || '流式合成失败')
-        cleanup()
-      } else if (e.type === 'done') {
-        // 所有 chunk 已接收，结束 SourceBuffer
-        if (sourceBufferRef.current) {
-          try {
-            sourceBufferRef.current.endOfStream()
-          } catch {
-            // ignore
+      const onChunk = (b64: string) => {
+        try {
+          const bytes = base64ToUint8(b64)
+          chunks.push({ wav: bytes })
+
+          // 首个 chunk 初始化 MediaSource 并立即播放
+          if (!mediaSourceRef.current && chunks.length === 1) {
+            initStreamPlayback(chunks)
+          } else if (mediaSourceRef.current && sourceBufferRef.current) {
+            appendChunkToBuffer(bytes)
+          }
+        } catch (e) {
+          console.error('Stream chunk decode error:', e)
+        }
+      }
+
+      const onEvent = (e: {
+        type: 'start' | 'done' | 'error'
+        message?: string
+        totalBytes?: number
+      }) => {
+        if (e.type === 'error') {
+          setState('error')
+          setError(e.message || '流式合成失败')
+          cleanup()
+        } else if (e.type === 'done') {
+          // 所有 chunk 已接收，结束 SourceBuffer
+          if (sourceBufferRef.current) {
+            try {
+              sourceBufferRef.current.endOfStream()
+            } catch {
+              // ignore
+            }
           }
         }
       }
-    }
 
-    const cancel = tts.speakStream({ text, spkId }, onChunk, onEvent, userId)
-    streamCancelRef.current = cancel
-  }, [userId])
+      const cancel = tts.speakStream({ text, spkId }, onChunk, onEvent, userId)
+      streamCancelRef.current = cancel
+    },
+    [userId]
+  )
 
   /**
    * 初始化流式播放：创建 MediaSource + Audio + SourceBuffer
@@ -199,26 +209,30 @@ export function useTts(userId?: string) {
   /**
    * AudioContext PCM 播放备选方案
    */
-  const setupAudioContextPlayback = (
-    chunks: { wav: Uint8Array }[],
-    mediaSource: MediaSource
-  ) => {
+  const setupAudioContextPlayback = (chunks: { wav: Uint8Array }[], mediaSource: MediaSource) => {
     // MediaSource 不可用时清理
-    try { mediaSource.endOfStream?.() } catch {
-    }
+    try {
+      mediaSource.endOfStream?.()
+    } catch {}
 
     // 累积所有 wav 数据，解析 PCM
     const totalLen = chunks.reduce((s, c) => s + c.wav.length, 0)
     const merged = new Uint8Array(totalLen)
     let off = 0
-    for (const c of chunks) { merged.set(c.wav, off); off += c.wav.length }
+    for (const c of chunks) {
+      merged.set(c.wav, off)
+      off += c.wav.length
+    }
 
     // WAV 头部是 44 字节，跳过得到 PCM 数据
     const pcm = merged.subarray(44)
     const sampleRate = 22050
     const numSamples = pcm.length / 2
 
-    const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const audioCtx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )()
     audioCtxRef.current = audioCtx
 
     const buffer = audioCtx.createBuffer(1, numSamples, sampleRate)
@@ -276,24 +290,21 @@ export function useTts(userId?: string) {
     if (sourceBufferRef.current) {
       try {
         sourceBufferRef.current.abort()
-      } catch {
-      }
+      } catch {}
       sourceBufferRef.current = null
     }
 
     if (mediaSourceRef.current) {
       try {
         mediaSourceRef.current.endOfStream()
-      } catch {
-      }
+      } catch {}
       mediaSourceRef.current = null
     }
 
     if (audioCtxRef.current) {
       try {
         audioCtxRef.current.close()
-      } catch {
-      }
+      } catch {}
       audioCtxRef.current = null
     }
 
@@ -309,9 +320,12 @@ export function useTts(userId?: string) {
     pendingChunksRef.current = []
   }, [])
 
-  const isCurrentlyPlaying = useCallback((text: string) => {
-    return state === 'playing' && currentText === text
-  }, [state, currentText])
+  const isCurrentlyPlaying = useCallback(
+    (text: string) => {
+      return state === 'playing' && currentText === text
+    },
+    [state, currentText]
+  )
 
   return {
     state,

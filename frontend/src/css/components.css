@@ -228,12 +228,22 @@
 
 /* Active conversation highlight — breathing radial glow */
 .active-item-highlight {
-  background: radial-gradient(ellipse at center, rgba(30, 157, 241, 0.22) 0%, rgba(30, 157, 241, 0.08) 50%, transparent 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(30, 157, 241, 0.22) 0%,
+    rgba(30, 157, 241, 0.08) 50%,
+    transparent 100%
+  );
   animation: active-item-breathe 3s ease-in-out infinite;
 }
 
 .dark .active-item-highlight {
-  background: radial-gradient(ellipse at center, rgba(28, 156, 240, 0.24) 0%, rgba(28, 156, 240, 0.09) 50%, transparent 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(28, 156, 240, 0.24) 0%,
+    rgba(28, 156, 240, 0.09) 50%,
+    transparent 100%
+  );
 }
 
 /* Empty state CTA — inviting action */
@@ -270,7 +280,9 @@
   gap: 2px;
   padding: 1px 5px;
   border-radius: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.4;
@@ -402,11 +414,7 @@ input[type='search']::-webkit-search-decoration {
   display: none;
 }
 
-
-   Button System
-   ============================================ */
-
-.btn-primary {
+Button System ============================================ */ .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -6,10 +6,30 @@ import type { MultimodalConfig } from '../../types/user'
 import { useToast } from '../../hooks/useToast'
 
 const FIELD_OPTIONS = [
-  { key: 'plannerModel', label: '规划模型（Planner）', hint: '负责分析输入并生成多模态计划，建议选快且 JSON 稳定的模型', capabilities: ['TEXT_IN', 'TEXT_OUT'] },
-  { key: 'visionModel', label: '图片理解模型（Vision）', hint: '负责理解上传的图片，支持 IMAGE_IN 能力', capabilities: ['IMAGE_IN'] },
-  { key: 'imageModel', label: '文生图模型（Image Gen）', hint: '负责生成图片，支持 IMAGE_OUT 能力', capabilities: ['IMAGE_OUT'] },
-  { key: 'textModel', label: '文本回答模型（Text）', hint: '负责普通文本回答，支持 TEXT_IN/TEXT_OUT', capabilities: ['TEXT_IN', 'TEXT_OUT'] },
+  {
+    key: 'plannerModel',
+    label: '规划模型（Planner）',
+    hint: '负责分析输入并生成多模态计划，建议选快且 JSON 稳定的模型',
+    capabilities: ['TEXT_IN', 'TEXT_OUT'],
+  },
+  {
+    key: 'visionModel',
+    label: '图片理解模型（Vision）',
+    hint: '负责理解上传的图片，支持 IMAGE_IN 能力',
+    capabilities: ['IMAGE_IN'],
+  },
+  {
+    key: 'imageModel',
+    label: '文生图模型（Image Gen）',
+    hint: '负责生成图片，支持 IMAGE_OUT 能力',
+    capabilities: ['IMAGE_OUT'],
+  },
+  {
+    key: 'textModel',
+    label: '文本回答模型（Text）',
+    hint: '负责普通文本回答，支持 TEXT_IN/TEXT_OUT',
+    capabilities: ['TEXT_IN', 'TEXT_OUT'],
+  },
 ] as const
 
 export function MultimodalSettings() {
@@ -54,9 +74,7 @@ export function MultimodalSettings() {
 
   const filteredOptions = (requiredCapabilities: readonly string[]) =>
     modelOptions.filter((model) =>
-      requiredCapabilities.every((capability) =>
-        capabilitiesByModel[model]?.includes(capability)
-      )
+      requiredCapabilities.every((capability) => capabilitiesByModel[model]?.includes(capability))
     )
 
   if (loading) {
@@ -115,7 +133,9 @@ export function MultimodalSettings() {
               onChange={(e) => updateField('maxSteps', Number(e.target.value))}
               className='w-32 px-3 py-2 rounded-lg border theme-border-primary theme-bg-card theme-text-primary focus:outline-none focus:border-[var(--brand-primary)]'
             />
-            <p className='text-xs theme-text-muted mt-1.5'>单次多模态任务最多执行的模型步骤数，建议 1-10。</p>
+            <p className='text-xs theme-text-muted mt-1.5'>
+              单次多模态任务最多执行的模型步骤数，建议 1-10。
+            </p>
           </div>
         </div>
 

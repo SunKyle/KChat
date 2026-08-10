@@ -25,9 +25,7 @@ export const conversationStorage = {
 
   update(id: string, updates: Partial<Conversation>): void {
     const conversations = this.get()
-    const updated = conversations.map((c) =>
-      c.id === id ? { ...c, ...updates } : c
-    )
+    const updated = conversations.map((c) => (c.id === id ? { ...c, ...updates } : c))
     this.set(updated)
   },
 

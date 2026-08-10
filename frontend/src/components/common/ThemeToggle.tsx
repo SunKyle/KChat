@@ -25,7 +25,7 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="relative">
+    <div className='relative'>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className='p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-110 micro-fast focus-ring theme-text-muted hover:theme-text-primary'
@@ -47,9 +47,11 @@ export function ThemeToggle() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 w-40 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)] shadow-lg py-1 z-50"
+            className='absolute top-full right-0 mt-2 w-40 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)] shadow-lg py-1 z-50'
           >
-            {(Object.entries(themeLabels) as Array<[string, { label: string; icon: typeof Sun }]>).map(([name, { label, icon: Icon }]) => (
+            {(
+              Object.entries(themeLabels) as Array<[string, { label: string; icon: typeof Sun }]>
+            ).map(([name, { label, icon: Icon }]) => (
               <button
                 key={name}
                 onClick={() => handleSelectTheme(name)}
@@ -59,7 +61,7 @@ export function ThemeToggle() {
                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className='w-4 h-4' />
                 {label}
               </button>
             ))}

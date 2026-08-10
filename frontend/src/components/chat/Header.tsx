@@ -65,7 +65,9 @@ export function Header() {
             <span className='text-xs sm:text-sm font-secondary theme-text-primary truncate max-w-[100px] sm:max-w-none'>
               {currentModel}
             </span>
-            <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`}
+            />
           </button>
 
           {isModelDropdownOpen && (
@@ -91,7 +93,9 @@ export function Header() {
                     }`}
                   >
                     <span>{model}</span>
-                    {model === currentModel && <Check className='w-4 h-4 theme-brand-primary ml-auto' />}
+                    {model === currentModel && (
+                      <Check className='w-4 h-4 theme-brand-primary ml-auto' />
+                    )}
                   </button>
                 ))}
               </div>

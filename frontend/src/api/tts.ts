@@ -31,7 +31,11 @@ export const tts = {
   speakStream: (
     req: SpeakRequest,
     onChunk: (base64Chunk: string) => void,
-    onEvent: (event: { type: 'start' | 'done' | 'error'; message?: string; totalBytes?: number }) => void,
+    onEvent: (event: {
+      type: 'start' | 'done' | 'error'
+      message?: string
+      totalBytes?: number
+    }) => void,
     userId?: string
   ): (() => void) => {
     const headers: Record<string, string> = {

@@ -74,19 +74,36 @@ export function ChatArea() {
 
   const renderItem = useCallback(
     (index: number, message: Message) => {
-      const isLast = index === messages.length - 1 && streamingState.isStreaming && message.role === 'assistant'
-      const regeneratingState = activeConversation ? getRegeneratingState(activeConversation.id) : { isRegenerating: false, messageId: null }
-      const isRegenerating = regeneratingState.isRegenerating && regeneratingState.messageId === message.id && message.role === 'assistant'
+      const isLast =
+        index === messages.length - 1 && streamingState.isStreaming && message.role === 'assistant'
+      const regeneratingState = activeConversation
+        ? getRegeneratingState(activeConversation.id)
+        : { isRegenerating: false, messageId: null }
+      const isRegenerating =
+        regeneratingState.isRegenerating &&
+        regeneratingState.messageId === message.id &&
+        message.role === 'assistant'
       return (
         <MessageWrapper
           message={message}
           isLastAssistant={isLast || isRegenerating}
           onStop={isLast ? stopStreaming : undefined}
-          onRegenerate={message.role === 'assistant' && !isRegenerating ? () => regenerateMessage(activeConversation?.id!, message.id) : undefined}
+          onRegenerate={
+            message.role === 'assistant' && !isRegenerating
+              ? () => regenerateMessage(activeConversation?.id!, message.id)
+              : undefined
+          }
         />
       )
     },
-    [messages.length, streamingState.isStreaming, stopStreaming, activeConversation?.id, regenerateMessage, getRegeneratingState]
+    [
+      messages.length,
+      streamingState.isStreaming,
+      stopStreaming,
+      activeConversation?.id,
+      regenerateMessage,
+      getRegeneratingState,
+    ]
   )
 
   if (!activeConversation) {
@@ -99,7 +116,9 @@ export function ChatArea() {
             </div>
           </div>
           <h2 className='text-lg font-semibold theme-text-primary mb-1.5'>选择或创建对话</h2>
-          <p className='text-sm theme-text-secondary'>从左侧列表选择一个对话，或创建新对话开始聊天</p>
+          <p className='text-sm theme-text-secondary'>
+            从左侧列表选择一个对话，或创建新对话开始聊天
+          </p>
         </div>
       </div>
     )
@@ -132,48 +151,52 @@ export function ChatArea() {
           aria-label='聊天消息'
           className='flex-1 min-h-0'
         >
-        {isLoading ? (
-          <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full p-6 space-y-4'>
-            <MessageSkeleton />
-            <MessageSkeleton />
-            <MessageSkeleton />
-          </div>
-        ) : messages.length === 0 ? (
-          <div className='flex flex-col items-center justify-center h-full px-6 max-w-lg mx-auto'>
-            <div className='mb-7'>
-              <div className='w-14 h-14 rounded-2xl bg-[var(--brand-primary)]/10 flex items-center justify-center'>
-                <MessageCircle className='w-7 h-7 text-[var(--brand-primary)]' />
-              </div>
+          {isLoading ? (
+            <div className='max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full p-6 space-y-4'>
+              <MessageSkeleton />
+              <MessageSkeleton />
+              <MessageSkeleton />
             </div>
-            <h1 className='text-2xl font-semibold theme-text-primary mb-2 text-center'>欢迎使用 KChat</h1>
-            <p className='text-sm theme-text-secondary mb-8 text-center leading-relaxed'>智能助手随时为您服务，开始一段对话吧</p>
-            <button
-              onClick={() => sendMessage('请帮我写一段代码', [], false)}
-              className='group flex items-center gap-2 px-4 py-2.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-card)]/60 text-sm theme-text-secondary hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary)]/5 transition-all duration-200 cursor-pointer'
-            >
-              <Sparkles className='w-3.5 h-3.5 text-[var(--brand-primary)]/60 group-hover:text-[var(--brand-primary)]' />
-              <span>试试问：帮我写一段 Python 爬虫</span>
-            </button>
-          </div>
-        ) : (
-          <div className='h-full flex flex-col'>
-            {activeConversation && (
-              <div className='flex-shrink-0 px-4 sm:px-6 lg:px-8 pt-4 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full'>
-                <SearchResultsCard results={getSearchResults(activeConversation.id)} />
+          ) : messages.length === 0 ? (
+            <div className='flex flex-col items-center justify-center h-full px-6 max-w-lg mx-auto'>
+              <div className='mb-7'>
+                <div className='w-14 h-14 rounded-2xl bg-[var(--brand-primary)]/10 flex items-center justify-center'>
+                  <MessageCircle className='w-7 h-7 text-[var(--brand-primary)]' />
+                </div>
               </div>
-            )}
-            <Virtuoso
-              ref={virtuosoRef}
-              data={messages}
-              followOutput={'smooth'}
-              atBottomStateChange={handleAtBottomStateChange}
-              increaseViewportBy={{ top: 600, bottom: 1200 }}
-              className='scrollbar-auto-hide'
-              computeItemKey={(_: number, msg: Message) => msg.id}
-              itemContent={renderItem}
-            />
-          </div>
-        )}
+              <h1 className='text-2xl font-semibold theme-text-primary mb-2 text-center'>
+                欢迎使用 KChat
+              </h1>
+              <p className='text-sm theme-text-secondary mb-8 text-center leading-relaxed'>
+                智能助手随时为您服务，开始一段对话吧
+              </p>
+              <button
+                onClick={() => sendMessage('请帮我写一段代码', [], false)}
+                className='group flex items-center gap-2 px-4 py-2.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-card)]/60 text-sm theme-text-secondary hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary)]/5 transition-all duration-200 cursor-pointer'
+              >
+                <Sparkles className='w-3.5 h-3.5 text-[var(--brand-primary)]/60 group-hover:text-[var(--brand-primary)]' />
+                <span>试试问：帮我写一段 Python 爬虫</span>
+              </button>
+            </div>
+          ) : (
+            <div className='h-full flex flex-col'>
+              {activeConversation && (
+                <div className='flex-shrink-0 px-4 sm:px-6 lg:px-8 pt-4 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto w-full'>
+                  <SearchResultsCard results={getSearchResults(activeConversation.id)} />
+                </div>
+              )}
+              <Virtuoso
+                ref={virtuosoRef}
+                data={messages}
+                followOutput={'smooth'}
+                atBottomStateChange={handleAtBottomStateChange}
+                increaseViewportBy={{ top: 600, bottom: 1200 }}
+                className='scrollbar-auto-hide'
+                computeItemKey={(_: number, msg: Message) => msg.id}
+                itemContent={renderItem}
+              />
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 

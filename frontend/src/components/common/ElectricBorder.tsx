@@ -47,7 +47,7 @@ const ElectricBorder = ({
 
       return a * (1 - ux) * (1 - uy) + b * ux * (1 - uy) + c * (1 - ux) * uy + d * ux * uy
     },
-    [random],
+    [random]
   )
 
   const octavedNoise = useCallback(
@@ -60,7 +60,7 @@ const ElectricBorder = ({
       baseFrequency: number,
       time: number,
       seed: number,
-      baseFlatness: number,
+      baseFlatness: number
     ) => {
       let y = 0
       let amplitude = baseAmplitude
@@ -78,7 +78,7 @@ const ElectricBorder = ({
 
       return y
     },
-    [noise2D],
+    [noise2D]
   )
 
   const getCornerPoint = useCallback(
@@ -88,7 +88,7 @@ const ElectricBorder = ({
       radius: number,
       startAngle: number,
       arcLength: number,
-      progress: number,
+      progress: number
     ) => {
       const angle = startAngle + progress * arcLength
       return {
@@ -96,7 +96,7 @@ const ElectricBorder = ({
         y: centerY + radius * Math.sin(angle),
       }
     },
-    [],
+    []
   )
 
   const getRoundedRectPoint = useCallback(
@@ -123,7 +123,7 @@ const ElectricBorder = ({
           radius,
           -Math.PI / 2,
           Math.PI / 2,
-          progress,
+          progress
         )
       }
       accumulated += cornerArc
@@ -142,7 +142,7 @@ const ElectricBorder = ({
           radius,
           0,
           Math.PI / 2,
-          progress,
+          progress
         )
       }
       accumulated += cornerArc
@@ -161,7 +161,7 @@ const ElectricBorder = ({
           radius,
           Math.PI / 2,
           Math.PI / 2,
-          progress,
+          progress
         )
       }
       accumulated += cornerArc
@@ -175,7 +175,7 @@ const ElectricBorder = ({
       const progress = (distance - accumulated) / cornerArc
       return getCornerPoint(left + radius, top + radius, radius, Math.PI, Math.PI / 2, progress)
     },
-    [getCornerPoint],
+    [getCornerPoint]
   )
 
   useEffect(() => {
@@ -243,30 +243,36 @@ const ElectricBorder = ({
       const maxRadius = Math.min(borderWidth, borderHeight) / 2
       const radius = Math.min(borderRadius, maxRadius)
 
-      const approximatePerimeter =
-        2 * (borderWidth + borderHeight) + 2 * Math.PI * radius
+      const approximatePerimeter = 2 * (borderWidth + borderHeight) + 2 * Math.PI * radius
       const sampleCount = Math.floor(approximatePerimeter / 2)
 
       ctx.beginPath()
 
       for (let i = 0; i <= sampleCount; i++) {
         const progress = i / sampleCount
-        const point = getRoundedRectPoint(
-          progress,
-          left,
-          top,
-          borderWidth,
-          borderHeight,
-          radius,
-        )
+        const point = getRoundedRectPoint(progress, left, top, borderWidth, borderHeight, radius)
 
         const xNoise = octavedNoise(
-          progress * 8, octaves, lacunarity, gain, amplitude, frequency,
-          timeRef.current, 0, baseFlatness,
+          progress * 8,
+          octaves,
+          lacunarity,
+          gain,
+          amplitude,
+          frequency,
+          timeRef.current,
+          0,
+          baseFlatness
         )
         const yNoise = octavedNoise(
-          progress * 8, octaves, lacunarity, gain, amplitude, frequency,
-          timeRef.current, 1, baseFlatness,
+          progress * 8,
+          octaves,
+          lacunarity,
+          gain,
+          amplitude,
+          frequency,
+          timeRef.current,
+          1,
+          baseFlatness
         )
 
         const displacedX = point.x + xNoise * scale

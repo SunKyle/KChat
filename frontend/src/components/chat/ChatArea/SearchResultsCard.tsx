@@ -77,9 +77,7 @@ export function SearchResultsCard({ results }: SearchResultsCardProps) {
                     <p className='text-xs text-[var(--text-secondary)] mt-0.5 line-clamp-2'>
                       {item.snippet}
                     </p>
-                    <p className='text-xs text-[var(--text-muted)] mt-1 truncate'>
-                      {item.url}
-                    </p>
+                    <p className='text-xs text-[var(--text-muted)] mt-1 truncate'>{item.url}</p>
                   </div>
                 </div>
               </a>

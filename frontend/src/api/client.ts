@@ -28,7 +28,8 @@ function isRetryableError(error: ApiError): boolean {
   if (error.message.includes('请求超时')) return true
   if (error.message.includes('NetworkError')) return true
   if (error.message.includes('Failed to fetch')) return true
-  if (error.status === 500 || error.status === 502 || error.status === 503 || error.status === 504) return true
+  if (error.status === 500 || error.status === 502 || error.status === 503 || error.status === 504)
+    return true
   return false
 }
 
@@ -145,9 +146,14 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     } catch (error) {
       clearTimeout(timeoutId)
 
-      const apiError = error instanceof Error
-        ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
-        : createApiError(String(error))
+      const apiError =
+        error instanceof Error
+          ? createApiError(
+              error.message,
+              undefined,
+              isNetworkError(error) ? 'NETWORK_ERROR' : undefined
+            )
+          : createApiError(String(error))
 
       lastError = apiError
 
@@ -228,9 +234,14 @@ export async function requestStream<T>(
       }
     }
   } catch (error) {
-    const apiError = error instanceof Error
-      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
-      : createApiError(String(error))
+    const apiError =
+      error instanceof Error
+        ? createApiError(
+            error.message,
+            undefined,
+            isNetworkError(error) ? 'NETWORK_ERROR' : undefined
+          )
+        : createApiError(String(error))
     onError?.(apiError)
     throw apiError
   }
@@ -252,9 +263,14 @@ export async function uploadFile(endpoint: string, file: File): Promise<{ url: s
 
     return applyResponseInterceptors<{ url: string }>(response, requestId)
   } catch (error) {
-    const apiError = error instanceof Error
-      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
-      : createApiError(String(error))
+    const apiError =
+      error instanceof Error
+        ? createApiError(
+            error.message,
+            undefined,
+            isNetworkError(error) ? 'NETWORK_ERROR' : undefined
+          )
+        : createApiError(String(error))
     logError(requestId, apiError)
     throw apiError
   }
@@ -378,18 +394,20 @@ export async function requestSSE(
       }
     }
   } catch (error) {
-    const apiError = error instanceof Error
-      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
-      : createApiError(String(error))
+    const apiError =
+      error instanceof Error
+        ? createApiError(
+            error.message,
+            undefined,
+            isNetworkError(error) ? 'NETWORK_ERROR' : undefined
+          )
+        : createApiError(String(error))
     logError(requestId, apiError)
     onError(apiError)
   }
 }
 
-export async function requestBlob(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<Blob> {
+export async function requestBlob(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
   const requestId = generateRequestId()
   const processedOptions = await applyRequestInterceptors(options)
 
@@ -421,9 +439,14 @@ export async function requestBlob(
     const blob = await response.blob()
     return blob
   } catch (error) {
-    const apiError = error instanceof Error
-      ? createApiError(error.message, undefined, isNetworkError(error) ? 'NETWORK_ERROR' : undefined)
-      : createApiError(String(error))
+    const apiError =
+      error instanceof Error
+        ? createApiError(
+            error.message,
+            undefined,
+            isNetworkError(error) ? 'NETWORK_ERROR' : undefined
+          )
+        : createApiError(String(error))
     logError(requestId, apiError)
     throw apiError
   }

@@ -25,12 +25,21 @@ interface TodoFormProps {
   onSubmit: () => void
 }
 
-export function TodoForm({ formState, setFormState, categories, isEditing, onCancel, onSubmit }: TodoFormProps) {
+export function TodoForm({
+  formState,
+  setFormState,
+  categories,
+  isEditing,
+  onCancel,
+  onSubmit,
+}: TodoFormProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <div className='flex-1 overflow-y-auto p-4 space-y-5'>
         <div>
-          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>标题</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
+            标题
+          </label>
           <input
             type='text'
             value={formState.title}
@@ -40,7 +49,9 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           />
         </div>
         <div>
-          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>描述</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
+            描述
+          </label>
           <textarea
             value={formState.description}
             onChange={(e) => setFormState((p) => ({ ...p, description: e.target.value }))}
@@ -50,7 +61,9 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           />
         </div>
         <div>
-          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>分类与优先级</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
+            分类与优先级
+          </label>
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1.5 flex-wrap flex-1'>
               {categories.map((c) => (
@@ -85,7 +98,9 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
           </div>
         </div>
         <div>
-          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>截止日期</label>
+          <label className='block text-xs font-semibold text-[var(--text-secondary)] mb-2'>
+            截止日期
+          </label>
           <input
             type='date'
             value={formState.dueDate}
@@ -95,10 +110,18 @@ export function TodoForm({ formState, setFormState, categories, isEditing, onCan
         </div>
       </div>
       <div className='flex-shrink-0 flex items-center justify-end gap-2.5 px-4 py-3 border-t border-[var(--border-divider)]'>
-        <button onClick={onCancel} aria-label='取消' className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'>
+        <button
+          onClick={onCancel}
+          aria-label='取消'
+          className='px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--bg-input)] transition-colors'
+        >
           取消
         </button>
-        <button onClick={onSubmit} aria-label={isEditing ? '保存' : '创建'} className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'>
+        <button
+          onClick={onSubmit}
+          aria-label={isEditing ? '保存' : '创建'}
+          className='px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[var(--brand-primary)] hover:brightness-110 transition-all shadow-sm shadow-[var(--brand-primary)]/20'
+        >
           {isEditing ? '保存' : '创建'}
         </button>
       </div>

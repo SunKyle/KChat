@@ -163,8 +163,7 @@ export function Icon({ name, size, strokeWidth, className, style }: IconProps) {
     return null
   }
 
-  const computedSize =
-    typeof size === 'string' ? ICON_SIZES[size] : (size ?? theme.size)
+  const computedSize = typeof size === 'string' ? ICON_SIZES[size] : (size ?? theme.size)
   const computedStrokeWidth = strokeWidth ?? theme.strokeWidth
 
   return (

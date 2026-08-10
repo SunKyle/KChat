@@ -6,7 +6,7 @@ export function ToastContainer() {
     <ToastifyContainer
       role='alert'
       aria-live='polite'
-      position="top-right"
+      position='top-right'
       autoClose={3000}
       hideProgressBar={false}
       newestOnTop={false}
@@ -15,7 +15,7 @@ export function ToastContainer() {
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="light"
+      theme='light'
       style={{
         top: '80px',
         zIndex: 9999,

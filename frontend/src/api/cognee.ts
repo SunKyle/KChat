@@ -78,10 +78,7 @@ export const cogneeMemory = {
    * @param content  Text content to index
    * @param metadata Optional metadata (conversationId, type, etc.)
    */
-  add: async (
-    content: string,
-    metadata?: Record<string, unknown>
-  ): Promise<boolean> => {
+  add: async (content: string, metadata?: Record<string, unknown>): Promise<boolean> => {
     try {
       const response = await fetch(`${COGNEE_BASE_URL}/add`, {
         method: 'POST',

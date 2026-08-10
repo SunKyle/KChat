@@ -58,7 +58,6 @@
   }
 }
 
-
 @keyframes thinking-wave {
   0% {
     transform: scaleX(0.5);
@@ -220,11 +219,7 @@
   }
 }
 
-
-   Border Radius Utility Classes
-   ============================================ */
-
-.rounded-xs {
+Border Radius Utility Classes ============================================ */ .rounded-xs {
   border-radius: 4px;
 }
 
@@ -252,11 +247,7 @@
   border-radius: var(--radius-full);
 }
 
-
-   Animation Utility Classes
-   ============================================ */
-
-.animate-fade-in {
+Animation Utility Classes ============================================ */ .animate-fade-in {
   animation: fade-in 0.25s var(--ease-out) forwards;
 }
 
@@ -498,11 +489,14 @@
   animation: gradient-shift 5s ease infinite;
 }
 
-
-   Status Bar Slide Animation
-   ============================================ */
-
-@keyframes status-bar-slide-in {
+Status
+  Bar
+  Slide
+  Animation
+  ============================================
+  */
+  @keyframes
+  status-bar-slide-in {
   from {
     opacity: 0;
     transform: translateY(-100%) scaleY(0.8);

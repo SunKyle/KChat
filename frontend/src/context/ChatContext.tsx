@@ -19,7 +19,12 @@ interface ChatContextType {
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
   pinConversation: (id: string, pinned: boolean) => Promise<void>
-  sendMessage: (content: string, imageUrls?: string[], webSearch?: boolean, multimodal?: boolean) => Promise<void>
+  sendMessage: (
+    content: string,
+    imageUrls?: string[],
+    webSearch?: boolean,
+    multimodal?: boolean
+  ) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
   clearError: () => void
@@ -37,7 +42,11 @@ interface ChatContextType {
   startSummarizing: (conversationId: string, messageId: string) => void
   endSummarizing: (conversationId: string) => void
   regenerateMessage: (conversationId: string, messageId: string) => Promise<void>
-  getRegeneratingState: (conversationId: string) => { isRegenerating: boolean; messageId: string | null; savedContent?: string }
+  getRegeneratingState: (conversationId: string) => {
+    isRegenerating: boolean
+    messageId: string | null
+    savedContent?: string
+  }
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -67,9 +76,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const refreshModels = useCallback(async (category?: string) => {
-    await loadModels(category)
-  }, [loadModels])
+  const refreshModels = useCallback(
+    async (category?: string) => {
+      await loadModels(category)
+    },
+    [loadModels]
+  )
 
   const stopStreaming = useCallback((conversationId?: string) => {
     if (conversationId) {
@@ -175,7 +187,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         )
       )
       dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
-      dispatch({ type: 'SET_MESSAGES', payload: { conversationId: newConversation.id, messages: [] } })
+      dispatch({
+        type: 'SET_MESSAGES',
+        payload: { conversationId: newConversation.id, messages: [] },
+      })
     } catch (error) {
       console.error('Failed to create conversation:', error)
       dispatch({ type: 'SET_ERROR', payload: '创建对话失败' })
@@ -265,7 +280,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const newConversation = await conversations.create()
           dispatch({ type: 'ADD_CONVERSATION', payload: newConversation })
           dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: newConversation })
-          dispatch({ type: 'SET_MESSAGES', payload: { conversationId: newConversation.id, messages: [] } })
+          dispatch({
+            type: 'SET_MESSAGES',
+            payload: { conversationId: newConversation.id, messages: [] },
+          })
           conversationId = newConversation.id
           localStorage.setItem(
             'kchat_conversations',
@@ -324,7 +342,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // to reduce context re-render frequency during streaming (P0 perf fix)
       let chunkBuffer = ''
       const CHUNK_FLUSH_MS = 50
-      let chunkFlushInterval = setInterval(() => {
+      const chunkFlushInterval = setInterval(() => {
         if (chunkBuffer) {
           const content = chunkBuffer
           chunkBuffer = ''
@@ -371,7 +389,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 content: streamingContent,
                 conversationId,
                 images: artifacts
-                  ? artifacts.filter((artifact) => artifact.type === 'image').map((artifact) => artifact.url)
+                  ? artifacts
+                      .filter((artifact) => artifact.type === 'image')
+                      .map((artifact) => artifact.url)
                   : undefined,
               },
             })
@@ -385,7 +405,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               payload: { conversationId, messageId: backendMessageId },
             })
             if (title) {
-              dispatch({ type: 'UPDATE_CONVERSATION_TITLE', payload: { id: conversationId!, title } })
+              dispatch({
+                type: 'UPDATE_CONVERSATION_TITLE',
+                payload: { id: conversationId!, title },
+              })
             }
             abortControllersRef.current[conversationId] = null
           },
@@ -406,7 +429,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           (results) => {
             dispatch({
               type: 'SET_SEARCH_RESULTS',
-              payload: { conversationId, results: results as import('../types').WebSearchResultData },
+              payload: {
+                conversationId,
+                results: results as import('../types').WebSearchResultData,
+              },
             })
           }
         )
@@ -481,61 +507,66 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'END_SUMMARIZING', payload: conversationId })
   }, [])
 
-  const regenerateMessage = useCallback(
-    async (conversationId: string, messageId: string) => {
-      const currentState = stateRef.current
-      const isAlreadyStreaming = currentState.streamingStates[conversationId]?.isStreaming
-      const isAlreadyRegenerating = currentState.regeneratingStates[conversationId]?.isRegenerating
+  const regenerateMessage = useCallback(async (conversationId: string, messageId: string) => {
+    const currentState = stateRef.current
+    const isAlreadyStreaming = currentState.streamingStates[conversationId]?.isStreaming
+    const isAlreadyRegenerating = currentState.regeneratingStates[conversationId]?.isRegenerating
 
-      if (isAlreadyStreaming || isAlreadyRegenerating) return
+    if (isAlreadyStreaming || isAlreadyRegenerating) return
 
-      const originalContent = currentState.messagesByConversation[conversationId]
-        ?.find((m) => m.id === messageId)?.content || ''
+    const originalContent =
+      currentState.messagesByConversation[conversationId]?.find((m) => m.id === messageId)
+        ?.content || ''
 
-      dispatch({ type: 'START_REGENERATING', payload: { conversationId, messageId } })
+    dispatch({ type: 'START_REGENERATING', payload: { conversationId, messageId } })
 
-      const abortController = new AbortController()
-      abortControllersRef.current[conversationId] = abortController
+    const abortController = new AbortController()
+    abortControllersRef.current[conversationId] = abortController
 
-      try {
-        const response = await chat.regenerate(conversationId, messageId, 'default', stateRef.current.currentModel)
+    try {
+      const response = await chat.regenerate(
+        conversationId,
+        messageId,
+        'default',
+        stateRef.current.currentModel
+      )
 
-        if (abortController.signal.aborted) return
+      if (abortController.signal.aborted) return
 
-        if (response.success) {
-          dispatch({
-            type: 'UPDATE_MESSAGE',
-            payload: { id: messageId, content: response.content, conversationId },
-          })
-        } else {
-          dispatch({
-            type: 'UPDATE_MESSAGE',
-            payload: { id: messageId, content: originalContent, conversationId },
-          })
-          dispatch({ type: 'SET_ERROR', payload: response.message || '重新生成失败，请稍后重试' })
-        }
-      } catch (error) {
-        if (abortController.signal.aborted) return
+      if (response.success) {
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: { id: messageId, content: response.content, conversationId },
+        })
+      } else {
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: { id: messageId, content: originalContent, conversationId },
         })
-        dispatch({ type: 'SET_ERROR', payload: '重新生成失败，请检查网络或模型状态' })
-      } finally {
-        abortControllersRef.current[conversationId] = null
-        dispatch({ type: 'END_REGENERATING', payload: { conversationId } })
+        dispatch({ type: 'SET_ERROR', payload: response.message || '重新生成失败，请稍后重试' })
       }
-    },
-    []
-  )
+    } catch (error) {
+      if (abortController.signal.aborted) return
+      dispatch({
+        type: 'UPDATE_MESSAGE',
+        payload: { id: messageId, content: originalContent, conversationId },
+      })
+      dispatch({ type: 'SET_ERROR', payload: '重新生成失败，请检查网络或模型状态' })
+    } finally {
+      abortControllersRef.current[conversationId] = null
+      dispatch({ type: 'END_REGENERATING', payload: { conversationId } })
+    }
+  }, [])
 
   const getRegeneratingState = useCallback(
     (conversationId: string) => {
-      return state.regeneratingStates[conversationId] || {
-        isRegenerating: false,
-        messageId: null,
-        savedContent: undefined,
-      }
+      return (
+        state.regeneratingStates[conversationId] || {
+          isRegenerating: false,
+          messageId: null,
+          savedContent: undefined,
+        }
+      )
     },
     [state.regeneratingStates]
   )

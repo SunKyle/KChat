@@ -86,10 +86,7 @@ export function Drawer({
   const titleId = title ? `drawer-title-${title.replace(/\s+/g, '-')}` : undefined
 
   return (
-    <div
-      className='fixed inset-0 z-50 flex justify-end'
-      onClick={onClose}
-    >
+    <div className='fixed inset-0 z-50 flex justify-end' onClick={onClose}>
       <div
         className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
           isAnimating ? 'opacity-0' : 'opacity-100'
@@ -108,7 +105,9 @@ export function Drawer({
       >
         {title && (
           <div className='flex items-center justify-between px-6 py-4 border-b border-[var(--border-primary)]/30 bg-[var(--bg-card)]/80 backdrop-blur-sm'>
-            <h2 id={titleId} className='font-title theme-text-primary'>{title}</h2>
+            <h2 id={titleId} className='font-title theme-text-primary'>
+              {title}
+            </h2>
             <button
               onClick={onClose}
               className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
@@ -119,9 +118,7 @@ export function Drawer({
           </div>
         )}
 
-        <div className={`flex-1 overflow-y-auto ${className}`}>
-          {children}
-        </div>
+        <div className={`flex-1 overflow-y-auto ${className}`}>{children}</div>
       </div>
     </div>
   )
