@@ -1,6 +1,6 @@
 package com.example.app.config;
 
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +27,7 @@ public class StreamingConfig {
      * 按 modelName 获取 Ollama 流式聊天模型实例。
      * 相同 modelName 复用同一实例。
      */
-    public StreamingChatLanguageModel streamingModel(String modelName) {
+    public StreamingChatModel streamingModel(String modelName) {
         return cache.computeIfAbsent(modelName, k -> OllamaStreamingChatModel.builder()
                 .baseUrl(ollamaConfig.getBaseUrl())
                 .modelName(k)
@@ -40,7 +40,7 @@ public class StreamingConfig {
      * 保留以兼容已有按类型注入的调用方。
      */
     @Bean
-    public StreamingChatLanguageModel streamingChatLanguageModel() {
+    public StreamingChatModel streamingChatLanguageModel() {
         return streamingModel(ollamaConfig.getDefaultModel());
     }
 

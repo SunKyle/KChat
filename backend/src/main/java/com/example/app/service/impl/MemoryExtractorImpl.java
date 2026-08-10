@@ -8,6 +8,7 @@ import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.service.ai.MemoryExtractionAI;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -202,7 +203,7 @@ public class MemoryExtractorImpl implements MemoryExtractor {
         StringBuilder sb = new StringBuilder();
         for (ChatMessage message : messages) {
             String role = message instanceof UserMessage ? "用户" : message instanceof AiMessage ? "AI" : "系统";
-            sb.append(role).append(": ").append(message.text()).append("\n");
+            sb.append(role).append(": ").append(getMessageText(message)).append("\n");
         }
         return sb.toString();
     }
@@ -221,7 +222,7 @@ public class MemoryExtractorImpl implements MemoryExtractor {
                 continue;
             }
 
-            String text = message.text();
+            String text = ((UserMessage) message).singleText();
             List<MemoryExtractionResult> extracted = extractFromText(text);
             results.addAll(extracted);
         }
@@ -319,5 +320,16 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      */
     private String normalizeContent(String content) {
         return content.trim().toLowerCase().replaceAll("\\s+", " ");
+    }
+
+    private static String getMessageText(ChatMessage message) {
+        if (message instanceof UserMessage userMsg) {
+            return userMsg.singleText();
+        } else if (message instanceof AiMessage aiMsg) {
+            return aiMsg.text();
+        } else if (message instanceof SystemMessage sysMsg) {
+            return sysMsg.text();
+        }
+        return null;
     }
 }

@@ -34,8 +34,8 @@ public class ShortTermMemoryStage implements ContextPipelineStage {
         // add it again, causing a duplicate in the prompt.
         if (!memory.isEmpty() && ctx.getUserMessage() != null) {
             ChatMessage last = memory.get(memory.size() - 1);
-            if (last instanceof dev.langchain4j.data.message.UserMessage
-                    && ctx.getUserMessage().equals(last.text())) {
+            if (last instanceof dev.langchain4j.data.message.UserMessage userMsg
+                    && ctx.getUserMessage().equals(userMsg.singleText())) {
                 memory = memory.subList(0, memory.size() - 1);
             }
         }

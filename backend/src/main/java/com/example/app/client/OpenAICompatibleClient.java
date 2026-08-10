@@ -13,10 +13,11 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.StreamingResponseHandler;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -327,16 +328,16 @@ public class OpenAICompatibleClient {
 
     /**
      * 同步调用 OpenAI 兼容 API（支持完整对话历史）
-     * 改用 LangChain4j OpenAiChatModel.generate()，由框架处理 HTTP/JSON。
+     * 改用 LangChain4j OpenAiChatModel.chat()，由框架处理 HTTP/JSON。
      */
     public String chatCompletion(
             String modelId,
             String baseUrl,
             String apiKey,
             List<ChatMessage> messages) {
-        ChatLanguageModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
-        Response<AiMessage> response = model.generate(messages);
-        return response.content().text();
+        ChatModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
+        ChatResponse response = model.chat(messages);
+        return response.aiMessage().text();
     }
 
     /**
@@ -368,9 +369,9 @@ public class OpenAICompatibleClient {
             List<ChatMessage> messages,
             List<String> imageUrls) throws IOException {
         List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
-        ChatLanguageModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
-        Response<AiMessage> response = model.generate(finalMessages);
-        return response.content().text();
+        ChatModel model = modelFactory.chatModel(baseUrl, apiKey, modelId);
+        ChatResponse response = model.chat(finalMessages);
+        return response.aiMessage().text();
     }
 
     /**
@@ -453,9 +454,9 @@ public class OpenAICompatibleClient {
     /**
      * 流式调用 OpenAI 兼容 API（完整消息历史版本）
      *
-     * 改用 LangChain4j OpenAiStreamingChatModel.generate()，框架处理 SSE 解析与 chunk 边界。
+     * 改用 LangChain4j OpenAiStreamingChatModel.chat()，框架处理 SSE 解析与 chunk 边界。
      * 框架为异步回调（OkHttp enqueue），与原 call.enqueue() 行为一致：
-     * 方法立即返回，onNext/onComplete/onError 在框架线程驱动 SseEmitter。
+     * 方法立即返回，onPartialResponse/onCompleteResponse/onError 在框架线程驱动 SseEmitter。
      *
      * 保留 tool_calls 中的图像生成工具调用识别（generate_image / dall-e）：
      * 框架在 onComplete 交付 AiMessage.toolExecutionRequests()，从中提取 image_url 转
@@ -470,37 +471,37 @@ public class OpenAICompatibleClient {
             SseEmitter emitter,
             Consumer<String> onChunk,
             Runnable onComplete) {
-        // 标记是否已通过 onNext 投递过流式内容，用于 onError 区分"流末尾回收噪声"与"真实错误"
+        // 标记是否已通过 onPartialResponse 投递过流式内容，用于 onError 区分"流末尾回收噪声"与"真实错误"
         java.util.concurrent.atomic.AtomicBoolean receivedContent = new java.util.concurrent.atomic.AtomicBoolean(
                 false);
-        // 标记业务 onComplete 回调是否已执行，防止 LangChain4j 在 onComplete 抛异常后
-        // 转调 onError 导致 onComplete.run() 重复执行（如重复保存消息）
+        // 标记业务 onComplete 回调是否已执行，防止重复执行
         java.util.concurrent.atomic.AtomicBoolean completed = new java.util.concurrent.atomic.AtomicBoolean(
                 false);
         try {
             List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
-            StreamingChatLanguageModel model = modelFactory.streamingModel(baseUrl, apiKey, modelId);
-            model.generate(finalMessages, new StreamingResponseHandler<AiMessage>() {
+            StreamingChatModel model = modelFactory.streamingModel(baseUrl, apiKey, modelId);
+            ChatRequest chatRequest = ChatRequest.builder().messages(finalMessages).build();
+            model.chat(chatRequest, new StreamingChatResponseHandler() {
                 @Override
-                public void onNext(String partial) {
-                    if (partial == null || partial.isEmpty()) {
+                public void onPartialResponse(String partialResponse) {
+                    if (partialResponse == null || partialResponse.isEmpty()) {
                         return;
                     }
                     receivedContent.set(true);
-                    onChunk.accept(partial);
+                    onChunk.accept(partialResponse);
                     try {
                         emitter.send(SseEmitter.event()
                                 .name("message")
-                                .data("{\"content\": \"" + escapeJson(partial) + "\"}"));
+                                .data("{\"content\": \"" + escapeJson(partialResponse) + "\"}"));
                     } catch (Exception e) {
                         log.error("Failed to send SSE event: {}", e.getMessage());
                     }
                 }
 
                 @Override
-                public void onComplete(Response<AiMessage> response) {
+                public void onCompleteResponse(ChatResponse chatResponse) {
                     // 检查 tool_calls 中的图像生成工具调用，转换为 Markdown 图片输出
-                    AiMessage aiMessage = response.content();
+                    AiMessage aiMessage = chatResponse.aiMessage();
                     List<ToolExecutionRequest> toolCalls = aiMessage.toolExecutionRequests();
                     if (toolCalls != null && !toolCalls.isEmpty()) {
                         String imageMarkdown = extractImageFromToolCalls(toolCalls);
@@ -525,7 +526,6 @@ public class OpenAICompatibleClient {
                     try {
                         emitter.complete();
                     } catch (Exception e) {
-                        // 客户端断开后 ServletResponse 会被容器回收，emitter 操作失败属正常
                         log.debug("emitter.complete() failed (client likely disconnected): {}", e.getMessage());
                     }
                 }
@@ -533,9 +533,9 @@ public class OpenAICompatibleClient {
                 @Override
                 public void onError(Throwable error) {
                     String errorMsg = error.getMessage();
-                    // LangChain4j 0.35.0 OpenAiStreamingChatModel 在 SSE 流结束后，
+                    // LangChain4j 1.x 在 SSE 流结束后，
                     // 客户端若已断开，Tomcat 回收 ServletResponse，框架访问已关闭对象
-                    // 触发 "recycled" 异常。此时内容已通过 onNext 投递完毕，
+                    // 触发 "recycled" 异常。此时内容已通过 onPartialResponse 投递完毕，
                     // 降级为正常结束，避免前端收到误报的流错误。
                     if (errorMsg != null && errorMsg.contains("recycled") && receivedContent.get()) {
                         log.debug("Streaming response recycled after content delivered (ignored): {}", errorMsg);
@@ -626,7 +626,7 @@ public class OpenAICompatibleClient {
 
         UserMessage original = (UserMessage) messages.get(lastUserIdx);
         ImageContent[] imageArray = imageContents.toArray(new ImageContent[0]);
-        UserMessage withImages = UserMessage.from(original.text(), imageArray);
+        UserMessage withImages = UserMessage.from(original.singleText(), imageArray);
 
         List<ChatMessage> result = new ArrayList<>(messages);
         result.set(lastUserIdx, withImages);

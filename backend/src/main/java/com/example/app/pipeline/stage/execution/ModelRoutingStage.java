@@ -14,8 +14,11 @@ import com.example.app.util.JsonUtils;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -24,6 +27,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @Component
@@ -102,19 +108,20 @@ public class ModelRoutingStage implements ContextPipelineStage {
     }
 
     /**
-     * Agent 模式执行路径：使用 ChatLanguageModel.generate(messages, toolSpecifications)
-     * 同步调用。
+     * Agent 模式执行路径：使用 StreamingChatModel.chat() + StreamingChatResponseHandler
+     * 实现真正的流式输出，同时通过 CountDownLatch 保持同步语义供 Agent 循环使用。
      *
-     * LangChain4j 0.35 流式 + tool 不稳定，AGENT 模式强制同步。
-     * 返回的 AiMessage 存入 ctx.agentState，由 ToolCallDetectionStage(610) 解析工具调用，
-     * 由 ToolResultAssemblyStage(660) 回填到 assembledMessages 供下一轮调用。
+     * LangChain4j 1.4.0 已支持流式 + tool，onPartialResponse 推送 token 到 SSE，
+     * onCompleteResponse 交付完整 AiMessage（含 toolExecutionRequests）。
+     * 返回的 AiMessage 存入 ctx.agentState，由 ToolCallDetectionStage 解析工具调用，
+     * 由 ToolResultAssemblyStage 回填到 assembledMessages 供下一轮调用。
      */
     @SuppressWarnings("unchecked")
     private void executeWithTools(ConversationContext ctx) {
         String model = ctx.getModel();
         logFinalPrompt(ctx, model);
 
-        ChatLanguageModel chatModel = aiServiceFactory.getChatLanguageModel(model);
+        boolean isStreaming = ctx.isStreaming();
         List<ToolSpecification> toolSpecs = resolveToolSpecifications(ctx);
 
         List<ChatMessage> messages = ctx.getAssembledMessages();
@@ -134,9 +141,108 @@ public class ModelRoutingStage implements ContextPipelineStage {
         callData.put("toolSpecCount", toolSpecs.size());
         ctx.emitAgentThinking("llm_call", callData);
 
-        Response<AiMessage> response = chatModel.generate(messages, toolSpecs);
-        AiMessage aiMessage = response.content();
+        ChatRequest chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .toolSpecifications(toolSpecs)
+                .build();
 
+        if (isStreaming) {
+            executeWithToolsStreaming(ctx, model, chatRequest);
+        } else {
+            executeWithToolsSync(ctx, model, chatRequest);
+        }
+    }
+
+    /**
+     * 同步路径：使用 ChatModel.chat()（兼容非流式 Agent 调用）
+     */
+    private void executeWithToolsSync(ConversationContext ctx, String model, ChatRequest chatRequest) {
+        ChatModel chatModel = aiServiceFactory.getChatModel(model);
+        ChatResponse response = chatModel.chat(chatRequest);
+        AiMessage aiMessage = response.aiMessage();
+        storeAiMessage(ctx, aiMessage);
+    }
+
+    /**
+     * 流式路径：使用 StreamingChatModel.chat() + StreamingChatResponseHandler
+     * onPartialResponse 实时推送 token 到 SSE，onCompleteResponse 交付完整 AiMessage。
+     * 通过 CountDownLatch 保持同步语义，确保 Agent 循环按序执行。
+     */
+    private void executeWithToolsStreaming(ConversationContext ctx, String model, ChatRequest chatRequest) {
+        StreamingChatModel streamingModel = aiServiceFactory.getStreamingChatModel(model);
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+        AtomicReference<AiMessage> aiMessageRef = new AtomicReference<>();
+        StringBuilder fullResponse = new StringBuilder();
+        SseEmitter emitter = (SseEmitter) ctx.getSseEmitter();
+
+        streamingModel.chat(chatRequest, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                if (partialResponse == null || partialResponse.isEmpty()) {
+                    return;
+                }
+                fullResponse.append(partialResponse);
+                if (emitter != null) {
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name("message")
+                                .data("{\"content\": \"" + JsonUtils.escapeJson(partialResponse) + "\"}"));
+                    } catch (Exception e) {
+                        log.debug("Failed to send agent streaming SSE: {}", e.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse chatResponse) {
+                AiMessage aiMessage = chatResponse.aiMessage();
+                aiMessageRef.set(aiMessage);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                log.error("[ModelRouting][Agent] Streaming error: {}", error.getMessage());
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
+
+        try {
+            if (!latch.await(10, TimeUnit.MINUTES)) {
+                throw new RuntimeException("Agent streaming timed out");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Agent streaming interrupted", e);
+        }
+
+        Throwable error = errorRef.get();
+        if (error != null) {
+            throw new RuntimeException("Agent streaming failed", error);
+        }
+
+        AiMessage aiMessage = aiMessageRef.get();
+        if (aiMessage == null) {
+            log.warn("[ModelRouting][Agent] No AI message received from streaming");
+            ctx.setLlmResponse("");
+            return;
+        }
+
+        // 推送最终响应（如果有完整文本且已通过 partial 推送过，可跳过）
+        String fullText = fullResponse.toString();
+        if (!fullText.isEmpty() && emitter != null) {
+            // 文本已通过 partial 推送，此处不再重复推送
+        }
+
+        storeAiMessage(ctx, aiMessage);
+    }
+
+    /**
+     * 存储 AiMessage 到 agentState 并更新 llmResponse
+     */
+    private void storeAiMessage(ConversationContext ctx, AiMessage aiMessage) {
         // 存入 agentState 供 ToolCallDetectionStage / ToolResultAssemblyStage 读取
         ctx.getAgentState().put(ConversationContext.KEY_LAST_AI_MESSAGE, aiMessage);
 
@@ -192,14 +298,19 @@ public class ModelRoutingStage implements ContextPipelineStage {
         for (int i = 0; i < messages.size(); i++) {
             ChatMessage msg = messages.get(i);
             String role;
-            if (msg instanceof dev.langchain4j.data.message.SystemMessage) {
+            String text = null;
+            if (msg instanceof dev.langchain4j.data.message.SystemMessage sysMsg) {
                 role = "SYSTEM";
-            } else if (msg instanceof dev.langchain4j.data.message.UserMessage) {
+                text = sysMsg.text();
+            } else if (msg instanceof dev.langchain4j.data.message.UserMessage userMsg) {
                 role = "USER";
-            } else {
+                text = userMsg.singleText();
+            } else if (msg instanceof dev.langchain4j.data.message.AiMessage aiMsg) {
                 role = "AI";
+                text = aiMsg.text();
+            } else {
+                role = "UNKNOWN";
             }
-            String text = msg.text();
             sb.append("║  [").append(i + 1).append("/").append(messages.size())
                     .append("] ").append(role).append(":\n");
             if (text == null) {

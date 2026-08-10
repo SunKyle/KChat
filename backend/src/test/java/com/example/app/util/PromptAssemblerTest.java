@@ -92,7 +92,7 @@ class PromptAssemblerTest {
         assertTrue(result.get(2) instanceof UserMessage);
         
         // 验证系统消息包含长期记忆信息
-        String systemText = result.get(0).text();
+        String systemText = ((SystemMessage) result.get(0)).text();
         assertTrue(systemText.contains("用户使用Java开发") || systemText.contains("智能助手"), 
                    "System message should contain memory or fallback content");
     }
@@ -116,7 +116,7 @@ class PromptAssemblerTest {
         assertTrue(result.get(2) instanceof UserMessage);
         
         // 验证系统消息有效
-        assertTrue(result.get(0).text().contains("智能助手"), 
+        assertTrue(((SystemMessage) result.get(0)).text().contains("智能助手"), 
                    "System message should contain fallback content");
     }
 

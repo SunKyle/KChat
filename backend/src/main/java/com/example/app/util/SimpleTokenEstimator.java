@@ -40,20 +40,20 @@ public class SimpleTokenEstimator implements TokenEstimator {
      * 全角标点 (U+3000–U+303F, U+FF00–U+FFEF)
      */
     private static boolean isCjkOrFullwidth(int codePoint) {
-        return (codePoint >= 0x4E00 && codePoint <= 0x9FFF)   // CJK Unified
-                || (codePoint >= 0x3400 && codePoint <= 0x4DBF)   // CJK Ext-A
-                || (codePoint >= 0xF900 && codePoint <= 0xFAFF)   // CJK Compat
-                || (codePoint >= 0x2E80 && codePoint <= 0x2FDF)   // CJK Radicals
-                || (codePoint >= 0x3000 && codePoint <= 0x303F)   // CJK Punctuation
-                || (codePoint >= 0xFF00 && codePoint <= 0xFFEF);  // Fullwidth Forms
+        return (codePoint >= 0x4E00 && codePoint <= 0x9FFF) // CJK Unified
+                || (codePoint >= 0x3400 && codePoint <= 0x4DBF) // CJK Ext-A
+                || (codePoint >= 0xF900 && codePoint <= 0xFAFF) // CJK Compat
+                || (codePoint >= 0x2E80 && codePoint <= 0x2FDF) // CJK Radicals
+                || (codePoint >= 0x3000 && codePoint <= 0x303F) // CJK Punctuation
+                || (codePoint >= 0xFF00 && codePoint <= 0xFFEF); // Fullwidth Forms
     }
 
     @Override
     public int estimate(ChatMessage message) {
-        if (message == null || message.text() == null) {
+        if (message == null || getMessageText(message) == null) {
             return 0;
         }
-        return estimateText(message.text());
+        return estimateText(getMessageText(message));
     }
 
     @Override
@@ -103,5 +103,16 @@ public class SimpleTokenEstimator implements TokenEstimator {
     @Override
     public String getEncodingType() {
         return "cjk-aware-char-count";
+    }
+
+    private static String getMessageText(ChatMessage message) {
+        if (message instanceof dev.langchain4j.data.message.UserMessage userMsg) {
+            return userMsg.singleText();
+        } else if (message instanceof dev.langchain4j.data.message.AiMessage aiMsg) {
+            return aiMsg.text();
+        } else if (message instanceof dev.langchain4j.data.message.SystemMessage sysMsg) {
+            return sysMsg.text();
+        }
+        return null;
     }
 }

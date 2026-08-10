@@ -1,6 +1,6 @@
 package com.example.app.config;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -63,7 +63,7 @@ public class OllamaConfig {
     private int listModelsReadTimeoutMs = 10_000;
 
     /**
-     * 创建 ChatLanguageModel Bean
+     * 创建 ChatModel Bean
      *
      * 设计考虑：
      * - 作为 Spring Bean 管理，便于依赖注入和测试替换
@@ -72,7 +72,7 @@ public class OllamaConfig {
      * @return 配置好的 OllamaChatModel
      */
     @Bean
-    public ChatLanguageModel chatLanguageModel() {
+    public ChatModel chatLanguageModel() {
         return OllamaChatModel.builder()
                 .baseUrl(baseUrl)
                 .modelName(defaultModel)

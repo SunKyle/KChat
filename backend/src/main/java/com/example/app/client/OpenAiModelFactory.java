@@ -1,8 +1,8 @@
 package com.example.app.client;
 
 import com.example.app.config.OpenAIClientProperties;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * OpenAI 兼容模型工厂
  *
- * 按 (baseUrl, apiKey, modelId) 维度缓存 ChatLanguageModel / StreamingChatLanguageModel 实例，
+ * 按 (baseUrl, apiKey, modelId) 维度缓存 ChatModel / StreamingChatModel 实例，
  * 避免每次请求都重新构建。线程安全。
  *
  * 设计参考 OllamaClient.modelCache 的做法，统一 OpenAI 兼容模型的实例管理。
@@ -26,8 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OpenAiModelFactory {
 
     private final OpenAIClientProperties props;
-    private final ConcurrentHashMap<String, ChatLanguageModel> chatCache = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, StreamingChatLanguageModel> streamCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ChatModel> chatCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, StreamingChatModel> streamCache = new ConcurrentHashMap<>();
 
     /** 构建缓存 key，apiKey 用 hashCode 避免明文堆积 */
     private String key(String baseUrl, String apiKey, String modelId) {
@@ -37,7 +37,7 @@ public class OpenAiModelFactory {
     /**
      * 获取同步聊天模型（OpenAI 兼容协议）
      */
-    public ChatLanguageModel chatModel(String baseUrl, String apiKey, String modelId) {
+    public ChatModel chatModel(String baseUrl, String apiKey, String modelId) {
         String k = key(baseUrl, apiKey, modelId);
         return chatCache.computeIfAbsent(k, ignored -> {
             log.debug("Building OpenAiChatModel: baseUrl={}, model={}", baseUrl, modelId);
@@ -55,7 +55,7 @@ public class OpenAiModelFactory {
     /**
      * 获取流式聊天模型（OpenAI 兼容协议）
      */
-    public StreamingChatLanguageModel streamingModel(String baseUrl, String apiKey, String modelId) {
+    public StreamingChatModel streamingModel(String baseUrl, String apiKey, String modelId) {
         String k = key(baseUrl, apiKey, modelId);
         return streamCache.computeIfAbsent(k, ignored -> {
             log.debug("Building OpenAiStreamingChatModel: baseUrl={}, model={}", baseUrl, modelId);

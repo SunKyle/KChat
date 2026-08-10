@@ -64,10 +64,10 @@ public class DefaultTokenEstimator implements TokenEstimator {
 
     @Override
     public int estimate(ChatMessage message) {
-        if (message == null || message.text() == null) {
+        if (message == null || getMessageText(message) == null) {
             return 0;
         }
-        return estimateText(message.text());
+        return estimateText(getMessageText(message));
     }
 
     @Override
@@ -109,6 +109,17 @@ public class DefaultTokenEstimator implements TokenEstimator {
             return encodingType;
         }
         return "simple-char-count (fallback)";
+    }
+
+    private static String getMessageText(ChatMessage message) {
+        if (message instanceof dev.langchain4j.data.message.UserMessage userMsg) {
+            return userMsg.singleText();
+        } else if (message instanceof dev.langchain4j.data.message.AiMessage aiMsg) {
+            return aiMsg.text();
+        } else if (message instanceof dev.langchain4j.data.message.SystemMessage sysMsg) {
+            return sysMsg.text();
+        }
+        return null;
     }
 
     /**

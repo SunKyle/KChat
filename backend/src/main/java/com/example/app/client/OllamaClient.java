@@ -10,11 +10,13 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.image.Image;
-import dev.langchain4j.model.StreamingResponseHandler;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.chat.request.ChatRequest;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,7 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class OllamaClient {
 
-    private final ChatLanguageModel chatLanguageModel;
+    private final ChatModel chatLanguageModel;
     private final OllamaConfig ollamaConfig;
     private final StreamingConfig streamingConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -58,7 +60,7 @@ public class OllamaClient {
      * 按 modelName 获取 Ollama 同步聊天模型实例（缓存）。
      * 供 AiServiceFactory 在 Ollama 模型路由时使用。
      */
-    public ChatLanguageModel chatModel(String modelName) {
+    public ChatModel chatModel(String modelName) {
         String targetModel = (modelName != null && !modelName.isBlank()) ? modelName : ollamaConfig.getDefaultModel();
         return modelCache.computeIfAbsent(targetModel,
                 key -> OllamaChatModel.builder()
@@ -74,8 +76,8 @@ public class OllamaClient {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
         try {
             OllamaChatModel modelInstance = (OllamaChatModel) chatModel(targetModel);
-            Response<AiMessage> response = modelInstance.generate(messages);
-            return response.content().text();
+            ChatResponse response = modelInstance.chat(messages);
+            return response.aiMessage().text();
         } catch (Exception e) {
             log.error("Ollama generate failed: {}", e.getMessage());
             modelCache.remove(targetModel);
@@ -90,20 +92,19 @@ public class OllamaClient {
     }
 
     /**
-     * 流式生成：使用 LangChain4j 的 OllamaStreamingChatModel，
-     * 框架负责 HTTP/SSE/JSON 序列化，onNext 回调驱动业务 callback。
+     * 流式生成：使用 LangChain4j 1.x 的 StreamingChatModel.chat() +
+     * StreamingChatResponseHandler，
+     * 支持流式工具调用回调（onPartialToolCall / onCompleteToolCall）。
      *
-     * 注意：底层 OllamaStreamingChatModel.generate() 是异步的（Retrofit enqueue），
-     * 但调用方（如 ModelRoutingStage）依赖同步语义（在流结束后 return collected）。
-     * 因此用 CountDownLatch 阻塞当前线程，等待 onComplete/onError 释放。
-     * 模型内部 timeout 会触发 onError，避免死锁。
+     * 注意：底层是异步的，用 CountDownLatch 阻塞当前线程等待完成。
      */
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
     public void streamGenerate(List<ChatMessage> messages, Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
-        StreamingChatLanguageModel streamingModel = streamingConfig.streamingModel(targetModel);
-        blockUntilComplete(streamingModel, messages, callback, "Streaming error");
+        StreamingChatModel streamingModel = streamingConfig.streamingModel(targetModel);
+        ChatRequest chatRequest = ChatRequest.builder().messages(messages).build();
+        blockUntilComplete(streamingModel, chatRequest, callback, "Streaming error");
     }
 
     @Retry(name = "ollamaRetry")
@@ -113,9 +114,7 @@ public class OllamaClient {
     }
 
     /**
-     * 多模态流式生成：把 imageUrls 转为 ImageContent 附加到最后一条 UserMessage，
-     * 框架自动处理 base64 编码与 Ollama /api/chat 的 images 字段序列化。
-     * 保留 per-image 容错：单张图片获取失败不影响其他图片。
+     * 多模态流式生成：把 imageUrls 转为 ImageContent 附加到最后一条 UserMessage。
      */
     @Retry(name = "ollamaRetry")
     @CircuitBreaker(name = "ollamaCB")
@@ -123,28 +122,28 @@ public class OllamaClient {
             Consumer<String> callback, String model) {
         String targetModel = (model != null && !model.isBlank()) ? model : ollamaConfig.getDefaultModel();
         List<ChatMessage> finalMessages = attachImagesToLastUserMessage(messages, imageUrls);
-        StreamingChatLanguageModel streamingModel = streamingConfig.streamingModel(targetModel);
-        blockUntilComplete(streamingModel, finalMessages, callback, "Image streaming error");
+        StreamingChatModel streamingModel = streamingConfig.streamingModel(targetModel);
+        ChatRequest chatRequest = ChatRequest.builder().messages(finalMessages).build();
+        blockUntilComplete(streamingModel, chatRequest, callback, "Image streaming error");
     }
 
     /**
-     * 同步等待流式生成完成：底层 generate() 异步回调，用 latch 阻塞当前线程。
-     * latch 超时设为模型 timeout + 60s 缓冲，作为兜底（正常路径靠 onComplete/onError 释放）。
+     * 同步等待流式生成完成。
      */
-    private void blockUntilComplete(StreamingChatLanguageModel streamingModel, List<ChatMessage> messages,
+    private void blockUntilComplete(StreamingChatModel streamingModel, ChatRequest chatRequest,
             Consumer<String> callback, String errorLabel) {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<Throwable> errorRef = new AtomicReference<>();
-        streamingModel.generate(messages, new StreamingResponseHandler<AiMessage>() {
+        streamingModel.chat(chatRequest, new StreamingChatResponseHandler() {
             @Override
-            public void onNext(String partial) {
-                if (partial != null && !partial.isEmpty()) {
-                    callback.accept(partial);
+            public void onPartialResponse(String partialResponse) {
+                if (partialResponse != null && !partialResponse.isEmpty()) {
+                    callback.accept(partialResponse);
                 }
             }
 
             @Override
-            public void onComplete(Response<AiMessage> response) {
+            public void onCompleteResponse(ChatResponse chatResponse) {
                 latch.countDown();
             }
 
@@ -222,7 +221,7 @@ public class OllamaClient {
 
         UserMessage original = (UserMessage) messages.get(lastUserIdx);
         ImageContent[] imageArray = imageContents.toArray(new ImageContent[0]);
-        UserMessage withImages = UserMessage.from(original.text(), imageArray);
+        UserMessage withImages = UserMessage.from(original.singleText(), imageArray);
 
         List<ChatMessage> result = new ArrayList<>(messages);
         result.set(lastUserIdx, withImages);

@@ -2,9 +2,12 @@ package com.example.app.service.ai;
 
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAiModelFactory;
+import com.example.app.config.OllamaConfig;
+import com.example.app.config.StreamingConfig;
 import com.example.app.entity.ModelConfig;
 import com.example.app.service.ModelConfigService;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +19,10 @@ import java.util.List;
  *
  * 按 modelId 动态构建 LangChain4j {@link AiServices} 代理：
  * <ul>
- *   <li>命中 {@link ModelConfigService#getConfigByModelId(String)} 时走 OpenAI 兼容协议</li>
- *   <li>否则视为 Ollama 本地模型，复用 {@link OllamaClient#chatModel(String)} 缓存</li>
- *   <li>modelId 为空时回退到默认 {@link ChatLanguageModel} Bean</li>
+ * <li>命中 {@link ModelConfigService#getConfigByModelId(String)} 时走 OpenAI
+ * 兼容协议</li>
+ * <li>否则视为 Ollama 本地模型，复用 {@link OllamaClient#chatModel(String)} 缓存</li>
+ * <li>modelId 为空时回退到默认 {@link ChatModel} Bean</li>
  * </ul>
  *
  * 业务层只关心接口类型与 modelId，模型实例管理与 JSON Schema 注入由框架统一处理。
@@ -30,12 +34,15 @@ public class AiServiceFactory {
     private final ModelConfigService modelConfigService;
     private final OpenAiModelFactory openAiModelFactory;
     private final OllamaClient ollamaClient;
-    private final ChatLanguageModel defaultChatModel;
+    private final StreamingConfig streamingConfig;
+    private final OllamaConfig ollamaConfig;
+    private final ChatModel defaultChatModel;
 
     /**
      * 按 modelId 创建 AiServices 代理。
      *
-     * @param aiServiceClass AI 接口类型（带 {@link dev.langchain4j.service.SystemMessage} /
+     * @param aiServiceClass AI 接口类型（带 {@link dev.langchain4j.service.SystemMessage}
+     *                       /
      *                       {@link dev.langchain4j.service.UserMessage} 注解）
      * @param modelId        模型标识，可携带 {@code configName:} 前缀；为空时用默认模型
      * @param <T>            接口类型
@@ -43,7 +50,7 @@ public class AiServiceFactory {
      */
     public <T> T create(Class<T> aiServiceClass, String modelId) {
         return AiServices.builder(aiServiceClass)
-                .chatLanguageModel(resolveModel(modelId))
+                .chatModel(resolveModel(modelId))
                 .build();
     }
 
@@ -58,7 +65,7 @@ public class AiServiceFactory {
      */
     public <T> T create(Class<T> aiServiceClass, String modelId, List<Object> tools) {
         AiServices<T> builder = AiServices.builder(aiServiceClass)
-                .chatLanguageModel(resolveModel(modelId));
+                .chatModel(resolveModel(modelId));
         if (tools != null && !tools.isEmpty()) {
             builder.tools(tools.toArray());
         }
@@ -66,18 +73,37 @@ public class AiServiceFactory {
     }
 
     /**
-     * 解析 modelId 到具体的 {@link ChatLanguageModel}，供需要直接调用底层模型的场景使用
+     * 解析 modelId 到具体的 {@link ChatModel}，供需要直接调用底层模型的场景使用
      * （如 ModelRoutingStage 在 Agent 模式下手动发起带 toolSpecifications 的调用）。
      */
-    public ChatLanguageModel getChatLanguageModel(String modelId) {
+    public ChatModel getChatModel(String modelId) {
         return resolveModel(modelId);
     }
 
     /**
-     * 解析 modelId 到具体的 {@link ChatLanguageModel}。
+     * 解析 modelId 到具体的 {@link StreamingChatModel}，供 Agent 模式流式调用使用。
+     */
+    public StreamingChatModel getStreamingChatModel(String modelId) {
+        if (modelId == null || modelId.isBlank()) {
+            return streamingConfig.streamingModel(ollamaConfig.getDefaultModel());
+        }
+
+        ModelConfig config = modelConfigService.getConfigByModelId(modelId);
+        if (config != null) {
+            String actualId = modelId.startsWith(config.getName() + ":")
+                    ? modelId.substring(config.getName().length() + 1)
+                    : modelId;
+            return openAiModelFactory.streamingModel(config.getBaseUrl(), config.getApiKey(), actualId);
+        }
+
+        return streamingConfig.streamingModel(modelId);
+    }
+
+    /**
+     * 解析 modelId 到具体的 {@link ChatModel}。
      * 命中 ModelConfig 走 OpenAI 兼容协议；否则按 Ollama 模型处理；空值回退默认 Bean。
      */
-    private ChatLanguageModel resolveModel(String modelId) {
+    private ChatModel resolveModel(String modelId) {
         if (modelId == null || modelId.isBlank()) {
             return defaultChatModel;
         }

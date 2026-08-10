@@ -10,7 +10,7 @@ import com.example.app.entity.ModelConfig.ModelType;
 import com.example.app.service.ContentOptimizationService;
 import com.example.app.service.ModelConfigService;
 import com.example.app.service.ai.ContentOptimizer;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,9 +78,9 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
         String instruction = buildInstruction(request.getOptimizationType());
 
         try {
-            ChatLanguageModel model = resolveModel(request);
+            ChatModel model = resolveModel(request);
             ContentOptimizer optimizer = AiServices.builder(ContentOptimizer.class)
-                    .chatLanguageModel(model)
+                    .chatModel(model)
                     .build();
             return optimizer.optimize(instruction, content);
         } catch (Exception e) {
@@ -90,16 +90,18 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
     }
 
     /**
-     * 解析请求到具体的 {@link ChatLanguageModel}：
+     * 解析请求到具体的 {@link ChatModel}：
      * <ol>
-     *   <li>请求指定 modelId + modelType=OLLAMA → {@link OllamaClient#chatModel(String)}</li>
-     *   <li>请求指定 modelId + OpenAI 兼容 + 完整 baseUrl/apiKey → {@link OpenAiModelFactory#chatModel}</li>
-     *   <li>请求指定 modelId + OpenAI 兼容 + 缺配置 → 查数据库补全后走 OpenAiModelFactory</li>
-     *   <li>请求未指定 modelId → 查数据库（命中则按类型路由）</li>
-     *   <li>都未命中 → 默认 Ollama 模型</li>
+     * <li>请求指定 modelId + modelType=OLLAMA →
+     * {@link OllamaClient#chatModel(String)}</li>
+     * <li>请求指定 modelId + OpenAI 兼容 + 完整 baseUrl/apiKey →
+     * {@link OpenAiModelFactory#chatModel}</li>
+     * <li>请求指定 modelId + OpenAI 兼容 + 缺配置 → 查数据库补全后走 OpenAiModelFactory</li>
+     * <li>请求未指定 modelId → 查数据库（命中则按类型路由）</li>
+     * <li>都未命中 → 默认 Ollama 模型</li>
      * </ol>
      */
-    private ChatLanguageModel resolveModel(ContentOptimizationRequest request) {
+    private ChatModel resolveModel(ContentOptimizationRequest request) {
         String modelId = request.getModelId();
         String modelType = request.getModelType();
         String baseUrl = request.getBaseUrl();
@@ -174,7 +176,8 @@ public class ContentOptimizationServiceImpl implements ContentOptimizationServic
     }
 
     /**
-     * 根据 optimizationType 拼装优化指令，作为 {@link ContentOptimizer#optimize} 的 instruction 参数。
+     * 根据 optimizationType 拼装优化指令，作为 {@link ContentOptimizer#optimize} 的 instruction
+     * 参数。
      * 替代原先手写的 buildSystemPrompt。
      */
     private String buildInstruction(String optimizationType) {
