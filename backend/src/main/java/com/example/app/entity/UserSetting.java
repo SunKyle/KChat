@@ -52,6 +52,12 @@ public class UserSetting {
     @Builder.Default
     private Map<String, String> toolModels = new HashMap<>();
 
+    /** 工具启用状态映射：工具名 → 是否启用。空表示全部启用（默认）。 */
+    @Convert(converter = com.example.app.entity.converter.EnabledToolsConverter.class)
+    @Column(name = "enabled_tools", columnDefinition = "TEXT")
+    @Builder.Default
+    private Map<String, Boolean> enabledTools = new HashMap<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

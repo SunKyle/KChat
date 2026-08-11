@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   FunctionSquare,
   Check,
+  Power,
 } from 'lucide-react'
 import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
 import type { ToolInfo, ModelConfig } from '../../types'
@@ -20,6 +21,8 @@ const DEFAULT_USER_ID = 'default'
  *
  * 对依赖特定模型能力的工具（如图片生成/识别），额外提供模型下拉框，
  * 用户可为该工具指定默认模型，持久化到 user_setting.tool_models。
+ *
+ * 每个工具支持启用/关闭切换，关闭的工具对 LLM 不可见。
  */
 export function ToolsPanel() {
   const [toolList, setToolList] = useState<ToolInfo[]>([])
@@ -27,12 +30,14 @@ export function ToolsPanel() {
   const [error, setError] = useState<string | null>(null)
   const [modelList, setModelList] = useState<ModelConfig[]>([])
   const [toolModels, setToolModels] = useState<Record<string, string>>({})
+  const [enabledTools, setEnabledTools] = useState<Record<string, boolean>>({})
+  const [togglingTools, setTogglingTools] = useState<Set<string>>(new Set())
 
   const loadTools = async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await toolsApi.list()
+      const data = await toolsApi.list(DEFAULT_USER_ID)
       setToolList(data)
     } catch (err) {
       console.error('Failed to load tools:', err)
@@ -54,6 +59,9 @@ export function ToolsPanel() {
         if (settings.toolModels) {
           setToolModels(settings.toolModels)
         }
+        if (settings.enabledTools) {
+          setEnabledTools(settings.enabledTools)
+        }
       } catch (err) {
         console.error('Failed to load models/settings:', err)
       }
@@ -71,14 +79,63 @@ export function ToolsPanel() {
       }
       // 后台保存
       settingsApi
-        .update({ toolModels: next }, DEFAULT_USER_ID)
+        .update({ toolModels: next, enabledTools }, DEFAULT_USER_ID)
         .then(() => {
           // 成功
         })
         .catch((err) => console.error('Failed to save tool model:', err))
       return next
     })
-  }, [])
+  }, [enabledTools])
+
+  // 切换工具启用/关闭状态
+  const toggleToolEnabled = useCallback(async (toolName: string, enabled: boolean) => {
+    setTogglingTools((prev) => {
+      const next = new Set(prev)
+      next.add(toolName)
+      return next
+    })
+
+    // 立即更新本地状态
+    setEnabledTools((prev) => {
+      const next = { ...prev }
+      if (enabled) {
+        delete next[toolName] // 启用时从 map 中移除（默认启用）
+      } else {
+        next[toolName] = false
+      }
+      // 后台保存
+      settingsApi
+        .update({ enabledTools: next, toolModels }, DEFAULT_USER_ID)
+        .then(() => {
+          // 同步更新 toolList 中的 enabled 状态
+          setToolList((tools) =>
+            tools.map((t) => (t.name === toolName ? { ...t, enabled } : t))
+          )
+        })
+        .catch((err) => {
+          console.error('Failed to save tool enabled state:', err)
+          // 回滚本地状态
+          setEnabledTools((prev) => {
+            const rollback = { ...prev }
+            if (enabled) {
+              rollback[toolName] = false
+            } else {
+              delete rollback[toolName]
+            }
+            return rollback
+          })
+        })
+        .finally(() => {
+          setTogglingTools((prev) => {
+            const next = new Set(prev)
+            next.delete(toolName)
+            return next
+          })
+        })
+      return next
+    })
+  }, [toolModels])
 
   return (
     <div className='space-y-6'>
@@ -89,6 +146,11 @@ export function ToolsPanel() {
           {!loading && !error && (
             <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-secondary'>
               {toolList.length} 个工具
+              {toolList.some((t) => t.enabled === false) && (
+                <span className='ml-1 text-amber-500'>
+                  · {toolList.filter((t) => t.enabled === false).length} 已关闭
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -103,7 +165,8 @@ export function ToolsPanel() {
       </div>
 
       <p className='text-sm theme-text-muted'>
-        Agent 模式下 LLM 可调用以下工具。依赖模型能力的工具可为它指定默认模型；不指定时自动选择。
+        Agent 模式下 LLM 可调用以下工具。关闭的工具对大模型不可见。
+        依赖模型能力的工具可为它指定默认模型；不指定时自动选择。
       </p>
 
       {loading ? (
@@ -138,7 +201,9 @@ export function ToolsPanel() {
               tool={tool}
               modelList={modelList}
               currentModel={toolModels[tool.name] ?? ''}
+              isToggling={togglingTools.has(tool.name)}
               onModelChange={(modelId) => saveToolModel(tool.name, modelId)}
+              onToggleEnabled={(enabled) => toggleToolEnabled(tool.name, enabled)}
             />
           ))}
         </div>
@@ -151,12 +216,15 @@ interface ToolCardProps {
   tool: ToolInfo
   modelList: ModelConfig[]
   currentModel: string
+  isToggling: boolean
   onModelChange: (modelId: string) => void
+  onToggleEnabled: (enabled: boolean) => void
 }
 
-function ToolCard({ tool, modelList, currentModel, onModelChange }: ToolCardProps) {
+function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, onToggleEnabled }: ToolCardProps) {
   const paramEntries = Object.entries(tool.parameters?.properties ?? {})
   const requiredSet = new Set(tool.parameters?.required ?? [])
+  const isEnabled = tool.enabled !== false
 
   // 该工具是否需要模型能力，以及具备该能力的可选模型
   const needCapability = Boolean(tool.modelCapability)
@@ -165,7 +233,11 @@ function ToolCard({ tool, modelList, currentModel, onModelChange }: ToolCardProp
     : []
 
   return (
-    <div className='card-float-solid rounded-2xl p-4'>
+    <div
+      className={`card-float-solid rounded-2xl p-4 transition-opacity ${
+        !isEnabled ? 'opacity-50' : ''
+      }`}
+    >
       <div className='flex items-start gap-3 mb-2'>
         <div className='flex-shrink-0 w-9 h-9 rounded-lg bg-[var(--accent-primary)]/10 flex items-center justify-center'>
           <FunctionSquare className='w-5 h-5 text-[var(--accent-primary)]' />
@@ -180,6 +252,11 @@ function ToolCard({ tool, modelList, currentModel, onModelChange }: ToolCardProp
                 {tool.modelCapability}
               </span>
             )}
+            {!isEnabled && (
+              <span className='text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 font-medium'>
+                已关闭
+              </span>
+            )}
           </div>
           {tool.description && (
             <p className='text-sm theme-text-secondary mt-1 leading-relaxed'>
@@ -187,6 +264,29 @@ function ToolCard({ tool, modelList, currentModel, onModelChange }: ToolCardProp
             </p>
           )}
         </div>
+        {/* 启用/关闭切换按钮 */}
+        <button
+          onClick={() => onToggleEnabled(!isEnabled)}
+          disabled={isToggling}
+          className={`flex-shrink-0 relative w-11 h-6 rounded-full transition-colors ${
+            isEnabled
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'theme-bg-hover hover:bg-red-500/30'
+          } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
+          title={isEnabled ? '点击关闭（对 LLM 不可见）' : '点击启用'}
+        >
+          <span
+            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
+              isEnabled ? 'translate-x-5' : 'translate-x-0.5'
+            }`}
+          >
+            {isToggling ? (
+              <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
+            ) : (
+              <Power className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
+            )}
+          </span>
+        </button>
       </div>
 
       {needCapability && (

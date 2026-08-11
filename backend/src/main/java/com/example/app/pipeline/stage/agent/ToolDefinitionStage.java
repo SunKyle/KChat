@@ -45,7 +45,7 @@ public class ToolDefinitionStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications();
+        List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications(ctx.getUserId());
         ctx.getEnabledToolNames().clear();
         for (ToolSpecification spec : specs) {
             ctx.getEnabledToolNames().add(spec.name());

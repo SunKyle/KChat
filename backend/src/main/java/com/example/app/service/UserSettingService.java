@@ -32,6 +32,8 @@ public class UserSettingService {
                 .defaultModel("llama3")
                 .contextSize(10)
                 .autoTitle(true)
+                .toolModels(new java.util.HashMap<>())
+                .enabledTools(new java.util.HashMap<>())
                 .build();
         repository.save(setting);
         log.info("Created default settings for user: {}", userId);
@@ -60,6 +62,9 @@ public class UserSettingService {
         if (updateSetting.getToolModels() != null) {
             setting.setToolModels(updateSetting.getToolModels());
         }
+        if (updateSetting.getEnabledTools() != null) {
+            setting.setEnabledTools(updateSetting.getEnabledTools());
+        }
         
         repository.save(setting);
         log.info("Updated settings for user: {}", userId);
@@ -79,6 +84,31 @@ public class UserSettingService {
             return null;
         }
         return setting.getToolModels().get(toolName);
+    }
+
+    /**
+     * 查询某用户的工具启用状态映射。
+     * 返回工具名 → 是否启用的 Map，空 Map 表示全部默认启用。
+     */
+    public java.util.Map<String, Boolean> getEnabledTools(String userId) {
+        if (userId == null) {
+            return new java.util.HashMap<>();
+        }
+        UserSetting setting = repository.findByUserId(userId).orElse(null);
+        if (setting == null || setting.getEnabledTools() == null) {
+            return new java.util.HashMap<>();
+        }
+        return setting.getEnabledTools();
+    }
+
+    /**
+     * 判断某工具对指定用户是否启用。
+     * 未配置（Map 中无该工具记录）时默认启用。
+     */
+    public boolean isToolEnabled(String userId, String toolName) {
+        java.util.Map<String, Boolean> enabledTools = getEnabledTools(userId);
+        Boolean enabled = enabledTools.get(toolName);
+        return enabled == null || enabled;
     }
 
     @Transactional

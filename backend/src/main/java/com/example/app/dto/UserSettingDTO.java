@@ -22,4 +22,6 @@ public class UserSettingDTO {
     private Boolean autoTitle;
     /** 工具默认模型映射：工具名 → 模型ID。空表示自动选择。 */
     private Map<String, String> toolModels;
+    /** 工具启用状态映射：工具名 → 是否启用。空表示全部启用。 */
+    private Map<String, Boolean> enabledTools;
 }

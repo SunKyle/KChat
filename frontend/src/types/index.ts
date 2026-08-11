@@ -97,6 +97,8 @@ export interface ToolInfo {
   }
   /** 该工具所需的模型能力（如 IMAGE_IN / IMAGE_OUT）。为 null/undefined 表示不依赖特定能力的模型。 */
   modelCapability?: string | null
+  /** 工具是否启用。true 表示启用，false 表示已关闭（对 LLM 不可见）。 */
+  enabled?: boolean
 }
 
 export interface StreamingState {

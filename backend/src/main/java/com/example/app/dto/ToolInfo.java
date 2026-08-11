@@ -33,4 +33,7 @@ public class ToolInfo {
      * 为 null 表示不依赖特定能力的模型。前端据此在工具箱页面对应工具下提供模型选择。
      */
     private String modelCapability;
+
+    /** 工具是否启用。null 或 true 表示启用，false 表示已关闭（对 LLM 不可见）。 */
+    private Boolean enabled;
 }

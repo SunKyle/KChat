@@ -1,6 +1,7 @@
 package com.example.app.controller;
 
 import com.example.app.dto.ToolInfo;
+import com.example.app.service.UserSettingService;
 import com.example.app.service.tool.ToolRegistry;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
@@ -49,24 +51,33 @@ import java.util.Map;
 public class ToolController {
 
     private final ToolRegistry toolRegistry;
+    private final UserSettingService userSettingService;
 
     @GetMapping
-    public ResponseEntity<List<ToolInfo>> listTools() {
+    public ResponseEntity<List<ToolInfo>> listTools(
+            @RequestParam(required = false, defaultValue = "default") String userId) {
         List<ToolSpecification> specs = toolRegistry.getSpecifications();
 
+        Map<String, Boolean> enabledTools = userSettingService.getEnabledTools(userId);
+
         List<ToolInfo> tools = specs.stream()
-                .map(this::toToolInfo)
+                .map(spec -> toToolInfo(spec, enabledTools))
                 .toList();
 
-        log.debug("[ToolController] listed {} tools", tools.size());
+        log.debug("[ToolController] listed {} tools for user {}", tools.size(), userId);
         return ResponseEntity.ok(tools);
     }
 
-    private ToolInfo toToolInfo(ToolSpecification spec) {
+    private ToolInfo toToolInfo(ToolSpecification spec, Map<String, Boolean> enabledTools) {
+        Boolean enabled = enabledTools.get(spec.name());
+        // null or true means enabled (default)
+        boolean isEnabled = enabled == null || enabled;
+
         ToolInfo.ToolInfoBuilder builder = ToolInfo.builder()
                 .name(spec.name())
                 .description(spec.description())
-                .modelCapability(toolRegistry.getRequiredCapability(spec.name()));
+                .modelCapability(toolRegistry.getRequiredCapability(spec.name()))
+                .enabled(isEnabled);
 
         Object parameters = spec.parameters();
         if (parameters instanceof JsonObjectSchema schema) {

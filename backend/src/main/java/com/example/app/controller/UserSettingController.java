@@ -32,6 +32,7 @@ public class UserSettingController {
                 .contextSize(dto.getContextSize())
                 .autoTitle(dto.getAutoTitle())
                 .toolModels(dto.getToolModels())
+                .enabledTools(dto.getEnabledTools())
                 .build();
         
         UserSetting setting = userSettingService.update(userId, updateSetting);
@@ -53,6 +54,7 @@ public class UserSettingController {
                 .contextSize(setting.getContextSize())
                 .autoTitle(setting.getAutoTitle())
                 .toolModels(setting.getToolModels())
+                .enabledTools(setting.getEnabledTools())
                 .build();
     }
 }
