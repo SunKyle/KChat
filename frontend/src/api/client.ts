@@ -248,13 +248,17 @@ export async function requestStream<T>(
   }
 }
 
-export async function uploadFile(endpoint: string, file: File): Promise<{ url: string }> {
+export async function uploadFile<T = { url: string }>(
+  endpoint: string,
+  file: File,
+  fieldName: string = 'image'
+): Promise<T> {
   const requestId = generateRequestId()
 
   logRequest(requestId, endpoint, { method: 'POST', body: 'FormData' })
 
   const formData = new FormData()
-  formData.append('image', file)
+  formData.append(fieldName, file)
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -262,7 +266,7 @@ export async function uploadFile(endpoint: string, file: File): Promise<{ url: s
       body: formData,
     })
 
-    return applyResponseInterceptors<{ url: string }>(response, requestId)
+    return applyResponseInterceptors<T>(response, requestId)
   } catch (error) {
     const apiError =
       error instanceof Error

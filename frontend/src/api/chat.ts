@@ -192,3 +192,16 @@ export const images = {
     })
   },
 }
+
+export interface UploadedFile {
+  fileId: string
+  fileName: string
+  size: number
+  contentType: string
+}
+
+export const files = {
+  upload: async (file: File): Promise<UploadedFile> => {
+    return uploadFile<UploadedFile>('/files/upload', file, 'file')
+  },
+}

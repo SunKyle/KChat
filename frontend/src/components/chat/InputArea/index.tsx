@@ -12,14 +12,17 @@ import {
   Sparkles,
   X,
   Undo2,
+  FileText,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { isImageModel } from '../../../utils/model'
 import {
   images,
+  files,
   optimization,
   type OptimizationResponse,
   type OptimizationRequest,
+  type UploadedFile,
 } from '../../../api'
 import { useWebSearch } from '../../../hooks/useWebSearch'
 import { useToast } from '../../../hooks/useToast'
@@ -28,6 +31,7 @@ import { toAccessibleImageUrl } from '../../../utils/imageUrl'
 export function InputArea() {
   const [input, setInput] = useState('')
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [uploading, setUploading] = useState(false)
   const [agentModeEnabled, setAgentModeEnabled] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -122,22 +126,33 @@ export function InputArea() {
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || uploadingImages.length >= maxImages) return
+    const selectedFiles = e.target.files
+    if (!selectedFiles) return
 
     setUploading(true)
     const newImages: string[] = [...uploadingImages]
+    const newFiles: UploadedFile[] = [...uploadedFiles]
 
-    for (const file of Array.from(files)) {
-      if (newImages.length >= maxImages) break
-      if (!file.type.startsWith('image/')) continue
-
-      try {
-        const result = await images.upload(file)
-        newImages.push(result.url)
-        setUploadingImages([...newImages])
-      } catch (error) {
-        console.error('Failed to upload image:', error)
+    for (const file of Array.from(selectedFiles)) {
+      if (file.type.startsWith('image/')) {
+        if (newImages.length >= maxImages) break
+        try {
+          const result = await images.upload(file)
+          newImages.push(result.url)
+          setUploadingImages([...newImages])
+        } catch (error) {
+          console.error('Failed to upload image:', error)
+          toastError('图片上传失败')
+        }
+      } else {
+        try {
+          const result = await files.upload(file)
+          newFiles.push(result)
+          setUploadedFiles([...newFiles])
+        } catch (error) {
+          console.error('Failed to upload file:', error)
+          toastError('文件上传失败')
+        }
       }
     }
 
@@ -150,18 +165,34 @@ export function InputArea() {
     setUploadingImages(newImages)
   }
 
+  const handleRemoveFile = (index: number) => {
+    const newFiles = uploadedFiles.filter((_, i) => i !== index)
+    setUploadedFiles(newFiles)
+  }
+
   const handleSend = async () => {
     if (
-      (!input.trim() && uploadingImages.length === 0) ||
+      (!input.trim() && uploadingImages.length === 0 && uploadedFiles.length === 0) ||
       streamingState.isStreaming ||
       charCount > maxChars
     )
       return
 
-    const currentInput = input
+    let currentInput = input
     const currentImages = uploadingImages
+    const currentFiles = [...uploadedFiles]
+
+    // 有文档附件时，在消息内容前注入文件标记，供 agent 识别并调用 parseFile
+    if (currentFiles.length > 0) {
+      const fileMarkers = currentFiles
+        .map((f) => `[已上传文件: ${f.fileName} (fileId: ${f.fileId})]`)
+        .join('\n')
+      currentInput = fileMarkers + '\n' + currentInput
+    }
+
     setInput('')
     setUploadingImages([])
+    setUploadedFiles([])
 
     sendMessage(currentInput, currentImages, webSearchEnabled, agentModeEnabled)
   }
@@ -257,7 +288,7 @@ export function InputArea() {
     return 'OPENAI_COMPATIBLE'
   }
 
-  const hasContent = input.trim() || uploadingImages.length > 0
+  const hasContent = input.trim() || uploadingImages.length > 0 || uploadedFiles.length > 0
 
   return (
     <div className='p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]'>
@@ -296,6 +327,32 @@ export function InputArea() {
                     aria-label='移除图片'
                   >
                     <X className='w-3 h-3 text-white' />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 已上传文档文件预览 */}
+        {uploadedFiles.length > 0 && (
+          <div className='mb-4 mx-4 lg:mx-6'>
+            <div className='flex flex-wrap gap-2'>
+              {uploadedFiles.map((f, index) => (
+                <div
+                  key={index}
+                  className='relative flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-toolbar-hover)] transition-colors duration-200'
+                >
+                  <FileText className='w-4 h-4 text-[var(--text-toolbar)] shrink-0' />
+                  <span className='text-sm theme-text-primary max-w-[160px] truncate'>
+                    {f.fileName}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveFile(index)}
+                    className='w-5 h-5 hover:bg-red-500 rounded-full flex items-center justify-center transition-all duration-200 text-[var(--text-muted)] hover:text-white'
+                    aria-label='移除文件'
+                  >
+                    <X className='w-3 h-3' />
                   </button>
                 </div>
               ))}
@@ -428,26 +485,18 @@ export function InputArea() {
                   <input
                     ref={generalFileInputRef}
                     type='file'
-                    accept='image/*,.txt,.pdf,.doc,.docx'
+                    accept='image/*,.txt,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.md,.csv,.json,.html'
                     multiple
                     onChange={handleFileUpload}
-                    disabled={
-                      uploading || streamingState.isStreaming || uploadingImages.length >= maxImages
-                    }
+                    disabled={uploading || streamingState.isStreaming}
                     className='hidden'
                   />
                   <div className='relative'>
                     <button
                       onClick={() => generalFileInputRef.current?.click()}
-                      disabled={
-                        uploading ||
-                        streamingState.isStreaming ||
-                        uploadingImages.length >= maxImages
-                      }
+                      disabled={uploading || streamingState.isStreaming}
                       className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
-                        uploading ||
-                        streamingState.isStreaming ||
-                        uploadingImages.length >= maxImages
+                        uploading || streamingState.isStreaming
                           ? 'opacity-40 cursor-not-allowed'
                           : 'hover:bg-[var(--bg-toolbar-hover)] cursor-pointer'
                       }`}
@@ -724,7 +773,7 @@ export function InputArea() {
         {uploading && (
           <div className='mt-3 text-xs theme-text-muted flex items-center gap-2'>
             <Loader2 className='w-3 h-3 animate-spin' />
-            正在上传图片...
+            正在上传...
           </div>
         )}
       </div>

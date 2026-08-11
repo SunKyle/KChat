@@ -1,5 +1,5 @@
-export { conversations, chat, images, optimization } from './chat'
-export type { OptimizationResponse, OptimizationRequest } from './chat'
+export { conversations, chat, images, files, optimization } from './chat'
+export type { OptimizationResponse, OptimizationRequest, UploadedFile } from './chat'
 export { models, modelConfigs } from './models'
 export { memory } from './memory'
 export { userApi, settingsApi } from './user'
