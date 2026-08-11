@@ -2,6 +2,7 @@ package com.example.app.pipeline.stage.execution;
 
 import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
+import com.example.app.config.ModelCapability;
 import com.example.app.config.OpenAIClientProperties;
 import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineExecutor;
@@ -14,6 +15,8 @@ import com.example.app.util.JsonUtils;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -129,6 +132,30 @@ public class ModelRoutingStage implements ContextPipelineStage {
             log.warn("[ModelRouting][Agent] No assembled messages, skipping LLM call");
             ctx.setLlmResponse("");
             return;
+        }
+
+        // Agent 模式下附加用户上传的图片到最后一条 UserMessage。
+        // 仅在第一轮迭代附加：后续轮次的消息是工具执行结果（ToolExecutionResultMessage），
+        // 不应携带图片；且图片已在第一轮被模型"看到"，无需重复发送。
+        // attachImagesToLastUserMessage 返回新列表，不修改 ctx.assembledMessages，
+        // 避免污染上下文导致下一轮重复附加。
+        if (ctx.getCurrentIteration() == 0) {
+            List<String> imageUrls = ctx.getImageUrls();
+            if (imageUrls != null && !imageUrls.isEmpty()) {
+                boolean hasVision = modelConfigService.getCapabilities(model)
+                        .contains(ModelCapability.IMAGE_IN);
+                if (hasVision) {
+                    int before = messages.size();
+                    messages = openAICompatibleClient.attachImagesToLastUserMessage(messages, imageUrls);
+                    log.info("[ModelRouting][Agent] Attached {} image(s) to last user message (messages: {} -> {})",
+                            imageUrls.size(), before, messages.size());
+                } else {
+                    log.warn("[ModelRouting][Agent] Model {} does NOT support IMAGE_IN, skipping image attachment. "
+                            + "User uploaded {} image(s) but they will be invisible to the model.",
+                            model, imageUrls.size());
+                    messages = annotateMissingVisionInUserMessage(messages, imageUrls, true);
+                }
+            }
         }
 
         log.info("[ModelRouting][Agent] Calling LLM with {} message(s) and {} tool spec(s), iteration {}",
@@ -337,7 +364,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 executeStreamingText(ctx, config, actualModelId, emitter);
             }
         } else {
-            List<ChatMessage> messages = ctx.getAssembledMessages();
+            List<ChatMessage> messages = resolveMessagesForImageAwareRequest(
+                    ctx.getAssembledMessages(), ctx.getImageUrls(), modelId);
             String response = openAICompatibleClient.chatCompletion(
                     actualModelId, config.getBaseUrl(), config.getApiKey(), messages);
             ctx.setLlmResponse(response);
@@ -366,10 +394,23 @@ public class ModelRoutingStage implements ContextPipelineStage {
             String actualModelId, SseEmitter emitter) {
         StringBuilder fullResponse = new StringBuilder();
         try {
+            // capability 前置过滤：模型不具备 IMAGE_IN 时不传 imageUrls，
+            // 改为在 UserMessage 追加纯文本提示，避免 LangChain4j 序列化出
+            // "image_url" content 导致纯文本模型 API 拒绝请求。
             List<ChatMessage> messages = ctx.getAssembledMessages();
+            List<String> imageUrls = ctx.getImageUrls();
+            boolean hasVision = modelConfigService.getCapabilities(
+                    config.getName() + ":" + actualModelId).contains(ModelCapability.IMAGE_IN);
+            List<String> effectiveImageUrls = hasVision ? imageUrls : List.of();
+            List<ChatMessage> effectiveMessages = messages;
+            if (!hasVision && imageUrls != null && !imageUrls.isEmpty()) {
+                log.warn("[ModelRouting] Model {}:{} does NOT support IMAGE_IN, skipping {} image(s)",
+                        config.getName(), actualModelId, imageUrls.size());
+                effectiveMessages = annotateMissingVisionInUserMessage(messages, imageUrls, false);
+            }
             openAICompatibleClient.streamChatCompletion(
                     actualModelId, config.getBaseUrl(), config.getApiKey(),
-                    messages, ctx.getImageUrls(), emitter,
+                    effectiveMessages, effectiveImageUrls, emitter,
                     chunk -> fullResponse.append(chunk),
                     () -> {
                         ctx.setLlmResponse(fullResponse.toString());
@@ -383,6 +424,16 @@ public class ModelRoutingStage implements ContextPipelineStage {
 
     private void executeOllama(ConversationContext ctx, String model) {
         List<ChatMessage> messages = ctx.getAssembledMessages();
+        List<String> imageUrls = ctx.getImageUrls();
+        boolean hasVision = modelConfigService.getCapabilities(model)
+                .contains(ModelCapability.IMAGE_IN);
+        List<ChatMessage> effectiveMessages = messages;
+        if (!hasVision && imageUrls != null && !imageUrls.isEmpty()) {
+            log.warn("[ModelRouting] Ollama model {} does NOT support IMAGE_IN, skipping {} image(s)",
+                    model, imageUrls.size());
+            effectiveMessages = annotateMissingVisionInUserMessage(messages, imageUrls, false);
+        }
+        List<String> effectiveImageUrls = hasVision ? imageUrls : List.of();
 
         if (ctx.isStreaming()) {
             SseEmitter emitter = (SseEmitter) ctx.getSseEmitter();
@@ -402,10 +453,11 @@ public class ModelRoutingStage implements ContextPipelineStage {
             };
 
             try {
-                if (ctx.getImageUrls() != null && !ctx.getImageUrls().isEmpty()) {
-                    ollamaClient.streamGenerateWithImages(messages, ctx.getImageUrls(), callback, model);
+                if (effectiveImageUrls != null && !effectiveImageUrls.isEmpty()) {
+                    ollamaClient.streamGenerateWithImages(effectiveMessages, effectiveImageUrls,
+                            callback, model);
                 } else {
-                    ollamaClient.streamGenerate(messages, callback, model);
+                    ollamaClient.streamGenerate(effectiveMessages, callback, model);
                 }
                 ctx.setLlmResponse(fullResponse.toString());
                 pipelineExecutor.executePostProcessing(ctx);
@@ -414,9 +466,105 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 failStreaming(ctx, emitter, "Ollama请求失败: " + e.getMessage());
             }
         } else {
-            String response = ollamaClient.generate(messages, model);
+            String response;
+            if (effectiveImageUrls != null && !effectiveImageUrls.isEmpty()) {
+                response = ollamaClient.generateWithImages(effectiveMessages, effectiveImageUrls, model);
+            } else {
+                response = ollamaClient.generate(effectiveMessages, model);
+            }
             ctx.setLlmResponse(response);
         }
+    }
+
+    /**
+     * 按模型 IMAGE_IN capability 决定图片处理方式：
+     * <ul>
+     * <li>支持视觉：通过 {@link OpenAICompatibleClient#attachImagesToLastUserMessage}
+     * 把 imageUrls 转为 ImageContent 附加到最后一条 UserMessage；
+     * <li>不支持视觉：通过 {@link #annotateMissingVisionInUserMessage}
+     * 在 UserMessage 末尾追加纯文本提示，且不再向外传递 imageUrls，
+     * 避免 LangChain4j 序列化出 "image_url" content 被纯文本模型 API 拒绝。
+     * </ul>
+     *
+     * <p>
+     * 返回值设计为 messages 本身（已含图片或已追加注释），调用侧直接把
+     * {@code null} / {@code List.of()} 作为 imageUrls 参数传入即可。
+     */
+    private List<ChatMessage> resolveMessagesForImageAwareRequest(
+            List<ChatMessage> messages, List<String> imageUrls, String modelId) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return messages;
+        }
+        boolean hasVision = modelConfigService.getCapabilities(modelId)
+                .contains(ModelCapability.IMAGE_IN);
+        if (hasVision) {
+            return openAICompatibleClient.attachImagesToLastUserMessage(messages, imageUrls);
+        }
+        log.warn("[ModelRouting] Model {} does NOT support IMAGE_IN, skipping {} image(s)",
+                modelId, imageUrls.size());
+        return annotateMissingVisionInUserMessage(messages, imageUrls, false);
+    }
+
+    /**
+     * 当模型不具备 IMAGE_IN 能力但用户上传了图片时，在最后一条 UserMessage 末尾追加
+     * 一段纯文本注释。
+     *
+     * <p>
+     * 行为分两种模式：
+     * <ul>
+     * <li><b>Agent 模式</b>（{@code suggestTool=true}）：列出图片 URL 并提示 LLM
+     * 调用 {@code analyzeImage} 工具识别图片内容，让纯文本主模型也能通过
+     * function calling 间接获得视觉能力。</li>
+     * <li><b>非 Agent 模式</b>：提示模型告知用户切换到支持视觉的模型，
+     * 不要假装看到了图片。</li>
+     * </ul>
+     *
+     * <p>
+     * 返回新列表，不修改入参（与 attachImagesToLastUserMessage 保持一致的不可变语义）。
+     */
+    private List<ChatMessage> annotateMissingVisionInUserMessage(List<ChatMessage> messages,
+            List<String> imageUrls, boolean suggestTool) {
+        if (messages == null || messages.isEmpty() || imageUrls == null || imageUrls.isEmpty()) {
+            return messages;
+        }
+        int lastUserIdx = -1;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof UserMessage) {
+                lastUserIdx = i;
+                break;
+            }
+        }
+        if (lastUserIdx == -1) {
+            return messages;
+        }
+
+        UserMessage original = (UserMessage) messages.get(lastUserIdx);
+        String originalText = original.singleText();
+
+        StringBuilder note = new StringBuilder("\n\n[系统提示：用户上传了 ")
+                .append(imageUrls.size())
+                .append(" 张图片，但你当前使用的模型不具备视觉（IMAGE_IN）能力，")
+                .append("无法直接看到图片内容。");
+
+        if (suggestTool) {
+            note.append("你可以调用 analyzeImage 工具来识别图片内容，")
+                    .append("工具会委托具备视觉能力的模型分析图片并返回文本描述。")
+                    .append("调用时把下方 URL 作为 imageUrl 参数传入，")
+                    .append("把用户的具体问题作为 question 参数传入。")
+                    .append("图片 URL 列表：");
+            for (int i = 0; i < imageUrls.size(); i++) {
+                note.append("\n  ").append(i + 1).append(". ").append(imageUrls.get(i));
+            }
+        } else {
+            note.append("请告知用户切换到支持视觉的模型（如 gpt-4o、llava、qwen2.5-vl 等）后重试。");
+        }
+        note.append("不要假装自己看到了图片。]");
+
+        String newText = (originalText == null ? "" : originalText) + note;
+        UserMessage replacement = UserMessage.from(newText);
+        List<ChatMessage> result = new java.util.ArrayList<>(messages);
+        result.set(lastUserIdx, replacement);
+        return result;
     }
 
     private void failStreaming(ConversationContext ctx, SseEmitter emitter, String message) {

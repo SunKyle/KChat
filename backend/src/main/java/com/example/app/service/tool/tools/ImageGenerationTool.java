@@ -14,20 +14,18 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 图像生成工具
+ * 图像生成工具（文生图，txt2img）
  *
- * 暴露 {@code generateImage} 工具，供 LLM 在 Agent 模式下按需调用：
- * 
- * <ul>
- * <li>仅传入 prompt：文生图（txt2img）</li>
- * <li>同时传入 referenceImageUrl：图生图（img2img），基于参考图修改/编辑</li>
- * </ul>
+ * <p>暴露 {@code generateImage} 工具，供 LLM 在 Agent 模式下按需调用。
+ * 仅支持根据文本提示生成全新图片，不接收参考图。
  *
- * 复用 {@link OpenAICompatibleClient#generateImageSync}，从
+ * <p>如需基于现有图片修改/编辑，请使用 {@link ImageEditingTool}（img2img）。
+ *
+ * <p>复用 {@link OpenAICompatibleClient#generateImageSync}，从
  * {@link ModelConfigService}
  * 中查找第一个具备 IMAGE_OUT 能力的已启用模型配置。
  *
- * 返回可插入 Markdown 的图片语法（![Generated Image](url)），
+ * <p>返回可插入 Markdown 的图片语法（![Generated Image](url)），
  * 由 {@code ToolInvocationStage.collectImageArtifacts} 自动提取到 ctx.artifacts。
  */
 @Component
@@ -38,13 +36,11 @@ public class ImageGenerationTool implements ToolComponent {
     private final ModelConfigService modelConfigService;
     private final OpenAICompatibleClient openAICompatibleClient;
 
-    @Tool("根据文本提示生成或修改图片。可传入参考图片URL基于原图修改（img2img），也可仅凭文本描述生成新图片（txt2img）。当用户要求生成、画、绘制、修改、编辑图片时调用此工具。")
+    @Tool("根据文本提示生成全新的图片（文生图 / txt2img）。当用户要求生成、画、绘制、创建新图片时调用此工具。如需基于现有图片修改或编辑，请改用 editImage 工具。")
     String generateImage(
             String prompt,
-            @P("可选的参考图片URL，用于基于原图修改或编辑。如用户上传了原图或要求'在这张图上修改'时传入该URL；纯文本生图时不传。") String referenceImageUrl,
             @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。用户指定了特定图像模型时传入；未指定则使用默认配置的首个图像模型。") String requestedModelId) {
-        boolean hasRef = referenceImageUrl != null && !referenceImageUrl.isBlank();
-        log.info("[ImageGenerationTool] prompt='{}', hasReferenceImage={}, requestedModelId={}", prompt, hasRef, requestedModelId);
+        log.info("[ImageGenerationTool] prompt='{}', requestedModelId={}", prompt, requestedModelId);
 
         ModelConfig imageModel;
         if (requestedModelId != null && !requestedModelId.isBlank()) {
@@ -62,21 +58,19 @@ public class ImageGenerationTool implements ToolComponent {
         }
 
         String modelId = imageModel.getName() + ":" + imageModel.getModelId();
-        List<String> imageUrls = hasRef ? List.of(referenceImageUrl) : List.of();
         try {
             String imageUrl = openAICompatibleClient.generateImageSync(
                     imageModel.getModelId(),
                     imageModel.getBaseUrl(),
                     imageModel.getApiKey(),
                     prompt,
-                    imageUrls);
-            log.info("[ImageGenerationTool] generated image for model={}, mode={}, urlLen={}",
-                    modelId, hasRef ? "img2img" : "txt2img",
-                    imageUrl != null ? imageUrl.length() : 0);
+                    List.of());
+            log.info("[ImageGenerationTool] generated image for model={}, mode=txt2img, urlLen={}",
+                    modelId, imageUrl != null ? imageUrl.length() : 0);
             return "![Generated Image](" + imageUrl + ")";
         } catch (Exception e) {
-            log.error("[ImageGenerationTool] failed for model={}, mode={}: {}",
-                    modelId, hasRef ? "img2img" : "txt2img", e.getMessage(), e);
+            log.error("[ImageGenerationTool] failed for model={}, mode=txt2img: {}",
+                    modelId, e.getMessage(), e);
             return "图像生成失败：" + e.getMessage();
         }
     }

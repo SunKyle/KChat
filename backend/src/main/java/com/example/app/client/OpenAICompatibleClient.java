@@ -628,8 +628,15 @@ public class OpenAICompatibleClient {
      * 把 imageUrls 转换为 ImageContent 并附加到最后一条 UserMessage。
      * 复用 fetchImageAsBase64 的本地文件/localhost/远程 URL 处理逻辑，
      * 框架的 OpenAI 集成会把 Image.base64Data 重新拼装为 data:<mime>;base64,<data> URL。
+     *
+     * <p>
+     * 供 Agent 模式（ModelRoutingStage）复用：Agent 路径走 LangChain4j 原生
+     * ChatModel.chat(ChatRequest)，绕过了本类的 chatCompletion/streamChatCompletion，
+     * 需要由调用方在构建 ChatRequest 前显式附加图片。
+     *
+     * @return 新的消息列表（不修改入参），若无可附加的图片则原样返回入参
      */
-    private List<ChatMessage> attachImagesToLastUserMessage(List<ChatMessage> messages, List<String> imageUrls) {
+    public List<ChatMessage> attachImagesToLastUserMessage(List<ChatMessage> messages, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return messages;
         }
