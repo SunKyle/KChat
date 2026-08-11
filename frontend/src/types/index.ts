@@ -95,6 +95,8 @@ export interface ToolInfo {
     }>
     required?: string[]
   }
+  /** 该工具所需的模型能力（如 IMAGE_IN / IMAGE_OUT）。为 null/undefined 表示不依赖特定能力的模型。 */
+  modelCapability?: string | null
 }
 
 export interface StreamingState {

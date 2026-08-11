@@ -161,11 +161,17 @@ public class ModelRoutingStage implements ContextPipelineStage {
         log.info("[ModelRouting][Agent] Calling LLM with {} message(s) and {} tool spec(s), iteration {}",
                 messages.size(), toolSpecs.size(), ctx.getCurrentIteration());
 
-        // 推送 Agent 思考过程：LLM 调用开始
+        // 推送 Agent 思考过程：LLM 调用开始（携带本轮上下文概要，供前端展示）
         Map<String, Object> callData = new LinkedHashMap<>();
         callData.put("model", model);
         callData.put("messageCount", messages.size());
         callData.put("toolSpecCount", toolSpecs.size());
+        callData.put("toolSpecNames", toolSpecs.stream().map(ToolSpecification::name).toList());
+        callData.put("executedToolNames", ctx.getToolResults().stream()
+                .map(ConversationContext.ToolResultRecord::toolName).toList());
+        callData.put("inputPreview", extractInputPreview(messages));
+        callData.put("tokenCount", ctx.getTokenCount());
+        callData.put("truncated", ctx.isTruncated());
         ctx.emitAgentThinking("llm_call", callData);
 
         ChatRequest chatRequest = ChatRequest.builder()
@@ -503,6 +509,33 @@ public class ModelRoutingStage implements ContextPipelineStage {
         log.warn("[ModelRouting] Model {} does NOT support IMAGE_IN, skipping {} image(s)",
                 modelId, imageUrls.size());
         return annotateMissingVisionInUserMessage(messages, imageUrls, false);
+    }
+
+    /**
+     * 提取本轮 LLM 输入的简短预览（最后一条非系统消息的文本，最多 120 字符），
+     * 供 Agent 思考面板展示"LLM 此刻在基于什么内容思考"。
+     *
+     * <p>第一轮通常是用户消息；后续轮次则是上一条工具执行结果消息，
+     * 能直观看到模型拿到工具返回后继续推理。
+     */
+    private String extractInputPreview(List<ChatMessage> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return null;
+        }
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            ChatMessage msg = messages.get(i);
+            String text = null;
+            if (msg instanceof dev.langchain4j.data.message.UserMessage userMsg) {
+                text = userMsg.singleText();
+            } else if (msg instanceof dev.langchain4j.data.message.ToolExecutionResultMessage toolMsg) {
+                text = toolMsg.text();
+            }
+            if (text != null && !text.isBlank()) {
+                text = text.replaceAll("\\s+", " ").trim();
+                return text.length() > 120 ? text.substring(0, 120) + "…" : text;
+            }
+        }
+        return null;
     }
 
     /**

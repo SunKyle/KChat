@@ -60,7 +60,7 @@ public class ToolInvocationStage implements ContextPipelineStage {
 
         // 保留上一轮的 toolResults 历史，仅追加本轮结果
         for (ConversationContext.ToolCallRecord call : ctx.getToolCalls()) {
-            ConversationContext.ToolResultRecord result = toolExecutor.execute(call);
+            ConversationContext.ToolResultRecord result = toolExecutor.execute(call, ctx.getUserId());
             ctx.getToolResults().add(result);
             if (!result.success()) {
                 log.warn("[ToolInvocation] Tool '{}' failed: {}", call.toolName(), result.errorMessage());
@@ -71,12 +71,13 @@ public class ToolInvocationStage implements ContextPipelineStage {
                 collectImageArtifacts(ctx, call.toolName(), String.valueOf(result.result()));
             }
 
-            // 推送 Agent 思考过程：单个工具执行结果
+            // 推送 Agent 思考过程：单个工具执行结果（含实际调用的模型）
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("toolName", call.toolName());
             data.put("toolCallId", call.toolCallId());
             data.put("success", result.success());
             data.put("result", result.result());
+            data.put("model", result.model());
             if (!result.success()) {
                 data.put("errorMessage", result.errorMessage());
             }

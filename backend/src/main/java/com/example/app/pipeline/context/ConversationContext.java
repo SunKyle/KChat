@@ -220,7 +220,7 @@ public class ConversationContext {
     }
 
     public record ToolResultRecord(String toolName, String toolCallId, Object result,
-            boolean success, String errorMessage) {
+            boolean success, String errorMessage, String model) {
     }
 
     public record PipelineError(String stageName, String message, Throwable cause,

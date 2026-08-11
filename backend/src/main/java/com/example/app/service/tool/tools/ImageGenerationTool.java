@@ -4,7 +4,10 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.entity.ModelConfig;
 import com.example.app.service.ModelConfigService;
+import com.example.app.service.UserSettingService;
 import com.example.app.service.tool.ToolComponent;
+import com.example.app.service.tool.ToolModelUtil;
+import com.example.app.service.tool.UserContextHolder;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,12 @@ public class ImageGenerationTool implements ToolComponent {
 
     private final ModelConfigService modelConfigService;
     private final OpenAICompatibleClient openAICompatibleClient;
+    private final UserSettingService userSettingService;
+
+    @Override
+    public String requiredCapability() {
+        return ModelCapability.IMAGE_OUT;
+    }
 
     @Tool("根据文本提示生成全新的图片（文生图 / txt2img）。当用户要求生成、画、绘制、创建新图片时调用此工具。如需基于现有图片修改或编辑，请改用 editImage 工具。")
     String generateImage(
@@ -42,11 +51,19 @@ public class ImageGenerationTool implements ToolComponent {
             @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。用户指定了特定图像模型时传入；未指定则使用默认配置的首个图像模型。") String requestedModelId) {
         log.info("[ImageGenerationTool] prompt='{}', requestedModelId={}", prompt, requestedModelId);
 
+        // LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
+        String requested = requestedModelId;
+        if (requested == null || requested.isBlank()) {
+            requested = userSettingService.getToolModel(UserContextHolder.get(), "generateImage");
+        }
         ModelConfig imageModel;
-        if (requestedModelId != null && !requestedModelId.isBlank()) {
-            imageModel = modelConfigService.getConfigWithCapability(requestedModelId, ModelCapability.IMAGE_OUT);
+        if (requested != null && !requested.isBlank()) {
+            imageModel = modelConfigService.getConfigWithCapability(requested, ModelCapability.IMAGE_OUT);
             if (imageModel == null) {
-                return "指定的模型不可用或不具备图像生成能力：" + requestedModelId;
+                // 指定了无效/不可用的模型：回退到自动选择，避免一次失败中断整个生成任务
+                log.warn("[ImageGenerationTool] requested model '{}' not available / lacks IMAGE_OUT, "
+                        + "falling back to auto-select", requested);
+                imageModel = modelConfigService.findFirstModelWithCapability(ModelCapability.IMAGE_OUT);
             }
         } else {
             imageModel = modelConfigService.findFirstModelWithCapability(ModelCapability.IMAGE_OUT);
@@ -67,7 +84,7 @@ public class ImageGenerationTool implements ToolComponent {
                     List.of());
             log.info("[ImageGenerationTool] generated image for model={}, mode=txt2img, urlLen={}",
                     modelId, imageUrl != null ? imageUrl.length() : 0);
-            return "![Generated Image](" + imageUrl + ")";
+            return ToolModelUtil.wrap("![Generated Image](" + imageUrl + ")", modelId);
         } catch (Exception e) {
             log.error("[ImageGenerationTool] failed for model={}, mode=txt2img: {}",
                     modelId, e.getMessage(), e);

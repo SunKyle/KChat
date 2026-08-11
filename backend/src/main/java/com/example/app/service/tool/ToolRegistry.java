@@ -86,6 +86,15 @@ public class ToolRegistry {
         return Optional.ofNullable(methodByName.get(name));
     }
 
+    /** 查询指定工具执行所需的模型能力（null 表示不依赖特定能力）。 */
+    public String getRequiredCapability(String name) {
+        Object bean = toolByName.get(name);
+        if (bean instanceof ToolComponent tc) {
+            return tc.requiredCapability();
+        }
+        return null;
+    }
+
     /** 是否已注册任何工具。 */
     public boolean isEmpty() {
         return toolByName.isEmpty();

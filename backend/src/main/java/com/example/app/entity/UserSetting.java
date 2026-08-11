@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "user_setting")
@@ -43,6 +45,12 @@ public class UserSetting {
     @Column(name = "auto_title")
     @Builder.Default
     private Boolean autoTitle = true;
+
+    /** 工具默认模型映射：工具名 → 模型ID（name:modelId）。空表示自动选择。 */
+    @Convert(converter = com.example.app.entity.converter.ToolModelsConverter.class)
+    @Column(name = "tool_models", columnDefinition = "TEXT")
+    @Builder.Default
+    private Map<String, String> toolModels = new HashMap<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

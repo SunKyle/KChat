@@ -74,12 +74,17 @@ export const userApi = {
 }
 
 export const settingsApi = {
-  get: async (userId: string = DEFAULT_USER_ID): Promise<{ autoTitle: boolean }> => {
+  get: async (
+    userId: string = DEFAULT_USER_ID
+  ): Promise<{ autoTitle: boolean; toolModels?: Record<string, string> }> => {
     return request(`/settings/${userId}`)
   },
 
   update: async (
-    data: { autoTitle?: boolean },
+    data: {
+      autoTitle?: boolean
+      toolModels?: Record<string, string>
+    },
     userId: string = DEFAULT_USER_ID
   ): Promise<void> => {
     return request(`/settings/${userId}`, {

@@ -4,7 +4,10 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.entity.ModelConfig;
 import com.example.app.service.ModelConfigService;
+import com.example.app.service.UserSettingService;
 import com.example.app.service.tool.ToolComponent;
+import com.example.app.service.tool.ToolModelUtil;
+import com.example.app.service.tool.UserContextHolder;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,12 @@ public class ImageEditingTool implements ToolComponent {
 
     private final ModelConfigService modelConfigService;
     private final OpenAICompatibleClient openAICompatibleClient;
+    private final UserSettingService userSettingService;
+
+    @Override
+    public String requiredCapability() {
+        return ModelCapability.IMAGE_OUT;
+    }
 
     @Tool("基于参考图片进行修改或编辑（图生图 / img2img）。当用户上传了原图并要求修改、编辑、调整、变换图片时调用此工具。如需从零生成新图片，请改用 generateImage 工具。")
     String editImage(
@@ -59,11 +68,19 @@ public class ImageEditingTool implements ToolComponent {
         log.info("[ImageEditingTool] prompt='{}', referenceImageUrl='{}', requestedModelId={}",
                 prompt, referenceImageUrl, requestedModelId);
 
+        // LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
+        String requested = requestedModelId;
+        if (requested == null || requested.isBlank()) {
+            requested = userSettingService.getToolModel(UserContextHolder.get(), "editImage");
+        }
         ModelConfig imageModel;
-        if (requestedModelId != null && !requestedModelId.isBlank()) {
-            imageModel = modelConfigService.getConfigWithCapability(requestedModelId, ModelCapability.IMAGE_OUT);
+        if (requested != null && !requested.isBlank()) {
+            imageModel = modelConfigService.getConfigWithCapability(requested, ModelCapability.IMAGE_OUT);
             if (imageModel == null) {
-                return "指定的模型不可用或不具备图像生成能力：" + requestedModelId;
+                // 指定了无效/不可用的模型：回退到自动选择，避免一次失败中断整个编辑任务
+                log.warn("[ImageEditingTool] requested model '{}' not available / lacks IMAGE_OUT, "
+                        + "falling back to auto-select", requested);
+                imageModel = modelConfigService.findFirstModelWithCapability(ModelCapability.IMAGE_OUT);
             }
         } else {
             imageModel = modelConfigService.findFirstModelWithCapability(ModelCapability.IMAGE_OUT);
@@ -85,7 +102,7 @@ public class ImageEditingTool implements ToolComponent {
                     imageUrls);
             log.info("[ImageEditingTool] edited image for model={}, mode=img2img, urlLen={}",
                     modelId, imageUrl != null ? imageUrl.length() : 0);
-            return "![Edited Image](" + imageUrl + ")";
+            return ToolModelUtil.wrap("![Edited Image](" + imageUrl + ")", modelId);
         } catch (Exception e) {
             log.error("[ImageEditingTool] failed for model={}, mode=img2img: {}",
                     modelId, e.getMessage(), e);

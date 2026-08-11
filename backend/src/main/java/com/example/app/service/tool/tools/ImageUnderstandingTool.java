@@ -4,8 +4,11 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.entity.ModelConfig;
 import com.example.app.service.ModelConfigService;
+import com.example.app.service.UserSettingService;
 import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.service.tool.ToolComponent;
+import com.example.app.service.tool.ToolModelUtil;
+import com.example.app.service.tool.UserContextHolder;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.data.message.ChatMessage;
@@ -55,6 +58,12 @@ public class ImageUnderstandingTool implements ToolComponent {
     private final ModelConfigService modelConfigService;
     private final OpenAICompatibleClient openAICompatibleClient;
     private final AiServiceFactory aiServiceFactory;
+    private final UserSettingService userSettingService;
+
+    @Override
+    public String requiredCapability() {
+        return ModelCapability.IMAGE_IN;
+    }
 
     @Tool("识别和理解图片内容。当用户上传图片并询问图片内容、要求描述图片、识别图中文字/物体/场景/风格时调用此工具。工具会调用支持视觉的模型分析图片并返回详细的文本描述。")
     String analyzeImage(
@@ -69,16 +78,26 @@ public class ImageUnderstandingTool implements ToolComponent {
         log.info("[ImageUnderstandingTool] imageUrl='{}', question='{}', requestedModelId={}",
                 imageUrl, question, requestedModelId);
 
-        // 1. 解析视觉模型：优先用户指定，否则查首个具备 IMAGE_IN 能力的配置
+        // 1. 解析视觉模型：LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
         String visionModelId;
-        if (requestedModelId != null && !requestedModelId.isBlank()) {
+        String requested = requestedModelId;
+        if (requested == null || requested.isBlank()) {
+            requested = userSettingService.getToolModel(UserContextHolder.get(), "analyzeImage");
+        }
+        if (requested != null && !requested.isBlank()) {
             ModelConfig specified = modelConfigService.getConfigWithCapability(
-                    requestedModelId, ModelCapability.IMAGE_IN);
+                    requested, ModelCapability.IMAGE_IN);
             if (specified == null) {
-                return "指定的模型不可用或不具备视觉能力：" + requestedModelId
-                        + "。请在设置中确认该模型已启用且 capabilities 包含 IMAGE_IN。";
+                log.warn("[ImageUnderstandingTool] requested model '{}' not available / lacks IMAGE_IN, "
+                        + "falling back to auto-select", requested);
+                specified = modelConfigService.findFirstModelWithCapability(ModelCapability.IMAGE_IN);
             }
-            visionModelId = requestedModelId;
+            if (specified == null) {
+                log.warn("[ImageUnderstandingTool] No enabled model with IMAGE_IN capability");
+                return "图片识别失败：未配置具备视觉能力的模型。请在设置中添加视觉模型"
+                        + "（如 gpt-4o、llava、qwen2.5-vl 等）并确保其 capabilities 包含 IMAGE_IN。";
+            }
+            visionModelId = specified.getName() + ":" + specified.getModelId();
         } else {
             ModelConfig first = modelConfigService.findFirstModelWithCapability(
                     ModelCapability.IMAGE_IN);
@@ -120,7 +139,7 @@ public class ImageUnderstandingTool implements ToolComponent {
 
             log.info("[ImageUnderstandingTool] vision model={}, question='{}', description length={}",
                     visionModelId, promptText, description.length());
-            return description;
+            return ToolModelUtil.wrap(description, visionModelId);
         } catch (Exception e) {
             log.error("[ImageUnderstandingTool] failed for vision model={}, imageUrl={}: {}",
                     visionModelId, imageUrl, e.getMessage(), e);

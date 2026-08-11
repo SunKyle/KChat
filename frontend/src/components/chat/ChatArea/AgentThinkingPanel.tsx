@@ -53,16 +53,27 @@ function formatStepDetail(step: AgentThinkingStep): string | null {
       const tools = (d.tools as string[]) || []
       return `可用工具 (${d.count ?? tools.length}): ${tools.join(', ')}`
     }
-    case 'llm_call':
-      return `模型: ${d.model ?? '未知'} · 消息 ${d.messageCount ?? 0} 条 · 工具规格 ${d.toolSpecCount ?? 0} 个`
+    case 'llm_call': {
+      const model = d.model ?? '未知'
+      const preview = d.inputPreview ? `输入: ${d.inputPreview}` : null
+      const executed = (d.executedToolNames as string[]) || []
+      const executedLine =
+        executed.length > 0 ? `已执行工具(${executed.length}): ${executed.join(', ')}` : '尚未执行工具'
+      const tokenLine = `消息 ${d.messageCount ?? 0} 条 · Token ${d.tokenCount ?? 0} · ${
+        d.truncated ? '已截断' : '未截断'
+      }`
+      return [`模型: ${model}`, preview, executedLine, tokenLine].filter(Boolean).join('\n')
+    }
     case 'tool_detection': {
       const args = (d.arguments as string) || '{}'
-      return `工具: ${d.toolName ?? '未知'}\n参数: ${args}`
+      const model = d.model ? ` · 模型: ${d.model}` : ''
+      return `工具: ${d.toolName ?? '未知'}${model}\n参数: ${args}`
     }
     case 'tool_execution': {
       const result = d.result == null ? '' : String(d.result)
+      const model = d.model ? ` · 模型: ${d.model}` : ''
       const head = d.success
-        ? `工具: ${d.toolName ?? '未知'} ✓`
+        ? `工具: ${d.toolName ?? '未知'} ✓${model}`
         : `工具: ${d.toolName ?? '未知'} ✗ (${d.errorMessage ?? '执行失败'})`
       return `${head}\n结果: ${result}`
     }

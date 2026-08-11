@@ -57,10 +57,28 @@ public class UserSettingService {
         if (updateSetting.getAutoTitle() != null) {
             setting.setAutoTitle(updateSetting.getAutoTitle());
         }
+        if (updateSetting.getToolModels() != null) {
+            setting.setToolModels(updateSetting.getToolModels());
+        }
         
         repository.save(setting);
         log.info("Updated settings for user: {}", userId);
         return setting;
+    }
+
+    /**
+     * 查询某用户在工具箱为指定工具配置的默认模型（name:modelId）。
+     * 未配置返回 null，工具据此回退到自动选择。
+     */
+    public String getToolModel(String userId, String toolName) {
+        if (userId == null || toolName == null) {
+            return null;
+        }
+        UserSetting setting = repository.findByUserId(userId).orElse(null);
+        if (setting == null || setting.getToolModels() == null) {
+            return null;
+        }
+        return setting.getToolModels().get(toolName);
     }
 
     @Transactional

@@ -27,4 +27,10 @@ public class ToolInfo {
 
     /** 工具参数 schema（JSON Schema 风格，含 properties / required） */
     private Map<String, Object> parameters;
+
+    /**
+     * 该工具执行所需的模型能力（如 IMAGE_IN / IMAGE_OUT）。
+     * 为 null 表示不依赖特定能力的模型。前端据此在工具箱页面对应工具下提供模型选择。
+     */
+    private String modelCapability;
 }

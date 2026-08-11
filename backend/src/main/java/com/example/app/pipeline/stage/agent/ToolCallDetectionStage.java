@@ -2,8 +2,11 @@ package com.example.app.pipeline.stage.agent;
 
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.AiMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -24,8 +27,11 @@ import java.util.Map;
  * order=610（AGENT 阶段，在 modelRoutingStage(500) 之后）
  */
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class ToolCallDetectionStage implements ContextPipelineStage {
+
+    private final ObjectMapper objectMapper;
 
     @Override
     public Phase getPhase() {
@@ -60,16 +66,35 @@ public class ToolCallDetectionStage implements ContextPipelineStage {
                     req.id() != null ? req.id() : req.name());
             ctx.getToolCalls().add(record);
 
-            // 推送 Agent 思考过程：检测到 LLM 发起的一次工具调用
+            // 推送 Agent 思考过程：检测到 LLM 发起的一次工具调用。
+            // 工具尚未执行，模型未定；若 LLM 在参数里显式指定了 requestedModelId，
+            // 则作为"请求模型"展示，否则留空（结果阶段会展示实际使用的模型）。
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("toolName", record.toolName());
             data.put("arguments", record.arguments());
             data.put("toolCallId", record.toolCallId());
+            data.put("model", extractRequestedModel(record.arguments()));
             ctx.emitAgentThinking("tool_detection", data);
         }
         log.info("[ToolCallDetection] Detected {} tool call(s): {}",
                 ctx.getToolCalls().size(),
                 ctx.getToolCalls().stream().map(ConversationContext.ToolCallRecord::toolName).toList());
+    }
+
+    /** 从工具参数 JSON 中解析 requestedModelId（若存在）。 */
+    private String extractRequestedModel(String arguments) {
+        if (arguments == null || arguments.isBlank()) {
+            return null;
+        }
+        try {
+            Map<String, Object> args = objectMapper.readValue(arguments,
+                    new TypeReference<Map<String, Object>>() {
+                    });
+            Object requested = args.get("requestedModelId");
+            return requested == null ? null : String.valueOf(requested);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

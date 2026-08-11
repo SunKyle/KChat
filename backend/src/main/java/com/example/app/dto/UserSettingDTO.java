@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,4 +20,6 @@ public class UserSettingDTO {
     private String defaultModel;
     private Integer contextSize;
     private Boolean autoTitle;
+    /** 工具默认模型映射：工具名 → 模型ID。空表示自动选择。 */
+    private Map<String, String> toolModels;
 }

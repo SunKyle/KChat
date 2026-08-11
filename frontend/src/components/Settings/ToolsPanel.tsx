@@ -1,18 +1,32 @@
-import { useState, useEffect } from 'react'
-import { Wrench, Loader2, RefreshCw, AlertTriangle, FunctionSquare } from 'lucide-react'
-import { tools as toolsApi } from '../../api'
-import type { ToolInfo } from '../../types'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  Wrench,
+  Loader2,
+  RefreshCw,
+  AlertTriangle,
+  FunctionSquare,
+  Check,
+} from 'lucide-react'
+import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
+import type { ToolInfo, ModelConfig } from '../../types'
+
+const DEFAULT_USER_ID = 'default'
 
 /**
  * Agent 工具箱展示面板
  *
  * 从 GET /api/tools 加载 ToolRegistry 中注册的所有工具，
  * 展示工具名、描述、参数 schema，供用户了解 Agent 模式下可调用的能力。
+ *
+ * 对依赖特定模型能力的工具（如图片生成/识别），额外提供模型下拉框，
+ * 用户可为该工具指定默认模型，持久化到 user_setting.tool_models。
  */
 export function ToolsPanel() {
   const [toolList, setToolList] = useState<ToolInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [modelList, setModelList] = useState<ModelConfig[]>([])
+  const [toolModels, setToolModels] = useState<Record<string, string>>({})
 
   const loadTools = async () => {
     setLoading(true)
@@ -30,6 +44,40 @@ export function ToolsPanel() {
 
   useEffect(() => {
     loadTools()
+    ;(async () => {
+      try {
+        const [configs, settings] = await Promise.all([
+          modelConfigs.list(),
+          settingsApi.get(DEFAULT_USER_ID),
+        ])
+        setModelList(configs)
+        if (settings.toolModels) {
+          setToolModels(settings.toolModels)
+        }
+      } catch (err) {
+        console.error('Failed to load models/settings:', err)
+      }
+    })()
+  }, [])
+
+  // 保存某工具配置的默认模型
+  const saveToolModel = useCallback(async (toolName: string, modelId: string) => {
+    setToolModels((prev) => {
+      const next = { ...prev }
+      if (modelId) {
+        next[toolName] = modelId
+      } else {
+        delete next[toolName]
+      }
+      // 后台保存
+      settingsApi
+        .update({ toolModels: next }, DEFAULT_USER_ID)
+        .then(() => {
+          // 成功
+        })
+        .catch((err) => console.error('Failed to save tool model:', err))
+      return next
+    })
   }, [])
 
   return (
@@ -55,7 +103,7 @@ export function ToolsPanel() {
       </div>
 
       <p className='text-sm theme-text-muted'>
-        Agent 模式下 LLM 可调用以下工具。模型会根据用户意图自动决定是否调用以及调用哪个工具。
+        Agent 模式下 LLM 可调用以下工具。依赖模型能力的工具可为它指定默认模型；不指定时自动选择。
       </p>
 
       {loading ? (
@@ -85,7 +133,13 @@ export function ToolsPanel() {
       ) : (
         <div className='space-y-3'>
           {toolList.map((tool) => (
-            <ToolCard key={tool.name} tool={tool} />
+            <ToolCard
+              key={tool.name}
+              tool={tool}
+              modelList={modelList}
+              currentModel={toolModels[tool.name] ?? ''}
+              onModelChange={(modelId) => saveToolModel(tool.name, modelId)}
+            />
           ))}
         </div>
       )}
@@ -95,11 +149,20 @@ export function ToolsPanel() {
 
 interface ToolCardProps {
   tool: ToolInfo
+  modelList: ModelConfig[]
+  currentModel: string
+  onModelChange: (modelId: string) => void
 }
 
-function ToolCard({ tool }: ToolCardProps) {
+function ToolCard({ tool, modelList, currentModel, onModelChange }: ToolCardProps) {
   const paramEntries = Object.entries(tool.parameters?.properties ?? {})
   const requiredSet = new Set(tool.parameters?.required ?? [])
+
+  // 该工具是否需要模型能力，以及具备该能力的可选模型
+  const needCapability = Boolean(tool.modelCapability)
+  const options = needCapability
+    ? modelList.filter((m) => m.enabled && hasCapability(m, tool.modelCapability!))
+    : []
 
   return (
     <div className='card-float-solid rounded-2xl p-4'>
@@ -112,6 +175,11 @@ function ToolCard({ tool }: ToolCardProps) {
             <code className='font-mono font-semibold theme-text-primary break-all'>
               {tool.name}
             </code>
+            {needCapability && (
+              <span className='text-xs px-1.5 py-0.5 rounded bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-medium font-mono'>
+                {tool.modelCapability}
+              </span>
+            )}
           </div>
           {tool.description && (
             <p className='text-sm theme-text-secondary mt-1 leading-relaxed'>
@@ -120,6 +188,27 @@ function ToolCard({ tool }: ToolCardProps) {
           )}
         </div>
       </div>
+
+      {needCapability && (
+        <div className='mt-3 flex items-center gap-2'>
+          <label className='text-xs font-semibold theme-text-muted whitespace-nowrap'>
+            使用的模型
+          </label>
+          <select
+            value={currentModel}
+            onChange={(e) => onModelChange(e.target.value)}
+            className='flex-1 min-w-0 text-sm rounded-lg border theme-border-primary theme-bg-input px-2.5 py-1.5 theme-text-primary focus:outline-none'
+          >
+            <option value=''>自动选择</option>
+            {options.map((m) => (
+              <option key={m.id} value={`${m.name}:${m.modelId}`}>
+                {m.name}:{m.modelId}
+              </option>
+            ))}
+          </select>
+          {currentModel && <Check className='w-4 h-4 text-green-500 flex-shrink-0' />}
+        </div>
+      )}
 
       {paramEntries.length > 0 && (
         <div className='mt-3 pt-3 border-t theme-border-primary space-y-2'>
@@ -156,4 +245,37 @@ function ToolCard({ tool }: ToolCardProps) {
       )}
     </div>
   )
+}
+
+/**
+ * 镜像后端 ModelConfigService.resolveCapabilities 的能力推断逻辑，
+ * 用于前端过滤某工具可选的模型。
+ */
+function hasCapability(model: ModelConfig, capability: string): boolean {
+  const caps = new Set<string>()
+  const raw = model.capabilities
+  if (Array.isArray(raw)) {
+    raw.forEach((c) => caps.add(c))
+  } else if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const arr = JSON.parse(raw)
+      if (Array.isArray(arr)) arr.forEach((c) => caps.add(String(c)))
+    } catch {
+      caps.add(raw)
+    }
+  }
+  switch (model.category) {
+    case 'TEXT':
+      caps.add('TEXT_IN')
+      caps.add('TEXT_OUT')
+      break
+    case 'IMAGE':
+      caps.add('IMAGE_OUT')
+      break
+    case 'VIDEO':
+      caps.add('VIDEO_IN')
+      caps.add('VIDEO_OUT')
+      break
+  }
+  return caps.has(capability)
 }
