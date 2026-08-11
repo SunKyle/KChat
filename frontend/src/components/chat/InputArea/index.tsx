@@ -8,7 +8,7 @@ import {
   Paperclip,
   Loader2,
   Globe,
-  Bot,
+  Cpu,
   Sparkles,
   X,
   Undo2,
@@ -606,7 +606,7 @@ export function InputArea() {
                             transition: { type: 'spring', stiffness: 300, damping: 10 },
                           }}
                         >
-                          <Bot className='h-4 w-4' />
+                          <Cpu className='h-4 w-4' />
                         </motion.div>
                       </div>
                       <AnimatePresence>
