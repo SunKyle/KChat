@@ -113,7 +113,8 @@ memory:
     enabled: true # 是否启用长期记忆召回
     max-recall: 5 # 每次召回最多 5 条相关记忆
     min-importance: 3 # 重要性低于 3 的记忆不召回
-    similarity-threshold: 0.3 # 相似度阈值，低于 0.3 视为不相关
+    similarity-threshold: 0.3 # 全局相似度阈值（用于工具主动召回等场景），低于 0.3 视为不相关
+    recall-min-score: 0.75 # 对话注入阈值：每轮对话注入长期记忆时使用此阈值，高于此值才注入，避免无关记忆污染上下文
     vector-dimension: 384 # 嵌入向量维度（all-MiniLM-L6-v2 = 384）
     embedding-model: locusai/all-minilm-l6-v2 # Ollama 嵌入模型，用于本地嵌入模型加载失败时降级
   # 记忆提取器（从对话中自动提取关键信息）
@@ -125,6 +126,11 @@ memory:
     idle-timeout-minutes: 5 # 对话空闲 5 分钟后触发提取
     auto-extract-enabled: true # 是否启用自动提取
     context-window-size: 20 # 提取时回看最近 20 条消息作为上下文
+    dedup-similarity-threshold: 0.85 # 语义去重阈值：新记忆与已有记忆向量相似度 ≥ 此值则拒绝存储，避免语义重复
+    query-analysis-enabled: true # 是否启用 Query 意图分析（规则 + LLM 混合方案）
+    use-llm: true # 规则置信度不足时是否调用 LLM 深度分析
+    llm-threshold-confidence: 0.8 # 规则匹配置信度低于此值时调 LLM（0.8 = 仅非常不确定时）
+    intent-gating-enabled: true # 是否启用意图门控（CHAT_SMALLTALK/MATH_CALCULATION 等跳过记忆注入）
 
 # ==================== Prompt 工程配置 ====================
 prompt:

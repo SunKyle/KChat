@@ -73,4 +73,48 @@ public class MemoryExtractorConfig {
      * - 建议值：10-30
      */
     private int contextWindowSize = 20;
+
+    /**
+     * 语义去重相似度阈值（0~1）
+     *
+     * 当新提取的记忆与已有记忆的向量余弦相似度 ≥ 此值时，
+     * 判定为语义重复，拒绝存储。
+     *
+     * 设计考虑：
+     * - 0.85：较严格，只有高度相似才拦截（推荐）
+     * - 0.75：中等，可能误伤部分不同表述
+     * - 1.0：等同精确字符串匹配
+     */
+    private double dedupSimilarityThreshold = 0.85;
+
+    /**
+     * 是否启用 Query 分析（意图分类 + 门控）
+     *
+     * 关闭后 LongTermMemoryStage 会跳过意图门控，直接按原有逻辑召回
+     */
+    private boolean queryAnalysisEnabled = true;
+
+    /**
+     * Query 分析是否允许调用 LLM
+     *
+     * 规则匹配置信度低于 llmThresholdConfidence 时，若此值为 true 则调 LLM 做深度分析
+     */
+    private boolean useLlm = true;
+
+    /**
+     * LLM 调用阈值置信度（0~1）
+     *
+     * 规则匹配置信度低于此值时，触发 LLM 深度分析
+     * - 0.5：更频繁调 LLM（精度高，成本高）
+     * - 0.8：仅在非常不确定时调 LLM（推荐）
+     * - 1.0：完全不用 LLM
+     */
+    private double llmThresholdConfidence = 0.8;
+
+    /**
+     * 是否启用意图门控
+     *
+     * 开启后，CHAT_SMALLTALK、MATH_CALCULATION 等意图会跳过记忆注入
+     */
+    private boolean intentGatingEnabled = true;
 }

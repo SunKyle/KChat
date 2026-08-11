@@ -150,6 +150,7 @@ public class MemoryExtractorImpl implements MemoryExtractor {
 
         double confidenceThreshold = config.getMinConfidence() / 100.0;
         int importanceThreshold = config.getMinImportance();
+        double dedupThreshold = config.getDedupSimilarityThreshold();
 
         List<MemoryDTO> toSave = new ArrayList<>();
         for (MemoryExtractionResult result : results) {
@@ -168,6 +169,14 @@ public class MemoryExtractorImpl implements MemoryExtractor {
             String normalizedContent = normalizeContent(result.content());
             if (existingContents.contains(normalizedContent)) {
                 log.info("[记忆提取] 跳过重复记忆: '{}'", normalizedContent);
+                continue;
+            }
+
+            // 语义去重：向量相似度 ≥ 阈值则判定为语义重复，拒绝存储
+            if (dedupThreshold > 0 && longTermMemoryService.hasSimilarMemory(
+                    userId, normalizedContent, dedupThreshold)) {
+                log.info("[记忆提取] 跳过语义相似记忆 (threshold={}): '{}'",
+                        dedupThreshold, normalizedContent);
                 continue;
             }
 

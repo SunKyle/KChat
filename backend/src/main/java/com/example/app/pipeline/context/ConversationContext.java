@@ -3,13 +3,13 @@ package com.example.app.pipeline.context;
 import com.example.app.dto.Artifact;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
 import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.Builder;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.LinkedHashMap;
@@ -55,6 +55,7 @@ public class ConversationContext {
     // ── Memory ─────────────────────────────────────────────────────
     private List<ChatMessage> shortTermMemory;
     private List<MemoryDTO> longTermMemory;
+    private QueryAnalysisResult queryAnalysisResult;
 
     // ── Context enrichment ─────────────────────────────────────────
     private String language;
@@ -122,6 +123,21 @@ public class ConversationContext {
      * read by SystemPromptAssemblyStage(410)
      */
     public static final String KEY_FORMATTED_MEMORY = "formattedLongTermMemory";
+    /**
+     * Key for formatted L1 user profile memory (always injected),
+     * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
+     */
+    public static final String KEY_FORMATTED_MEMORY_L1 = "formattedMemoryL1Profile";
+    /**
+     * Key for formatted L2 query-relevant memory (dynamically injected),
+     * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
+     */
+    public static final String KEY_FORMATTED_MEMORY_L2 = "formattedMemoryL2Relevant";
+    /**
+     * Key for formatted L3 user preference memory (optionally injected),
+     * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
+     */
+    public static final String KEY_FORMATTED_MEMORY_L3 = "formattedMemoryL3Preference";
     /**
      * Key for formatted user profile text, written by UserProfileFormatStage(398),
      * read by SystemPromptAssemblyStage(410)
