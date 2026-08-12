@@ -73,10 +73,12 @@ public class ToolController {
         // null or true means enabled (default)
         boolean isEnabled = enabled == null || enabled;
 
+        String capability = toolRegistry.getRequiredCapability(spec.name());
+
         ToolInfo.ToolInfoBuilder builder = ToolInfo.builder()
                 .name(spec.name())
                 .description(spec.description())
-                .modelCapability(toolRegistry.getRequiredCapability(spec.name()))
+                .modelCapability(capability)
                 .enabled(isEnabled);
 
         Object parameters = spec.parameters();

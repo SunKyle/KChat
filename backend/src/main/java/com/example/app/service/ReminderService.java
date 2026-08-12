@@ -1,5 +1,7 @@
 package com.example.app.service;
 
+import com.example.app.dto.CreateReminderRequest;
+import com.example.app.dto.ReminderDTO;
 import com.example.app.entity.Reminder;
 import com.example.app.repository.ReminderRepository;
 import com.example.app.service.tool.UserContextHolder;
@@ -14,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 提醒服务
@@ -106,6 +109,100 @@ public class ReminderService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 获取用户的所有提醒（DTO，供 REST API 使用）。
+     */
+    public List<ReminderDTO> getAllReminders(String userId) {
+        return listReminders(userId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 通过 REST API 创建提醒。
+     */
+    @Transactional
+    public ReminderDTO createReminderForUser(String userId, CreateReminderRequest request) {
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new IllegalArgumentException("提醒标题不能为空");
+        }
+        if (request.getRemindAt() == null) {
+            throw new IllegalArgumentException("提醒时间不能为空");
+        }
+        if (request.getRemindAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("提醒时间不能早于当前时间");
+        }
+
+        Reminder reminder = Reminder.builder()
+                .id(UUID.randomUUID().toString().replace("-", ""))
+                .userId(userId == null ? "default" : userId)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .remindAt(request.getRemindAt())
+                .status("pending")
+                .build();
+
+        reminderRepository.save(reminder);
+        log.info("[Reminder] Created via API: id={}, user={}, title='{}', at={}",
+                reminder.getId(), userId, reminder.getTitle(), reminder.getRemindAt());
+        return toDTO(reminder);
+    }
+
+    /**
+     * 通过 REST API 取消提醒（仅 pending 可取消）。
+     */
+    @Transactional
+    public boolean cancelReminderForUser(String id, String userId) {
+        return cancelReminder(id, userId);
+    }
+
+    /**
+     * 通过 REST API 更新提醒（仅 pending 可修改）。
+     */
+    @Transactional
+    public ReminderDTO updateReminderForUser(String id, String userId, CreateReminderRequest request) {
+        String ownerId = userId == null ? "default" : userId;
+        Reminder reminder = reminderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("提醒不存在"));
+        if (!ownerId.equals(reminder.getUserId())) {
+            throw new IllegalArgumentException("无权操作该提醒");
+        }
+        if (!"pending".equals(reminder.getStatus())) {
+            throw new IllegalArgumentException("仅待触发的提醒可以修改");
+        }
+
+        if (request.getTitle() != null && !request.getTitle().isBlank()) {
+            reminder.setTitle(request.getTitle());
+        }
+        if (request.getDescription() != null) {
+            reminder.setDescription(request.getDescription());
+        }
+        if (request.getRemindAt() != null) {
+            if (request.getRemindAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("提醒时间不能早于当前时间");
+            }
+            reminder.setRemindAt(request.getRemindAt());
+        }
+
+        reminderRepository.save(reminder);
+        log.info("[Reminder] Updated via API: id={}, user={}", id, userId);
+        return toDTO(reminder);
+    }
+
+    private ReminderDTO toDTO(Reminder reminder) {
+        return ReminderDTO.builder()
+                .id(reminder.getId())
+                .userId(reminder.getUserId())
+                .title(reminder.getTitle())
+                .description(reminder.getDescription())
+                .remindAt(reminder.getRemindAt())
+                .status(reminder.getStatus())
+                .createdAt(reminder.getCreatedAt())
+                .firedAt(reminder.getFiredAt())
+                .build();
     }
 
     /**

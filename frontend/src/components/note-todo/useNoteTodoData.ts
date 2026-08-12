@@ -3,12 +3,14 @@ import { useToast } from '../../hooks/useToast'
 import type {
   Note,
   Todo,
+  Reminder,
   CreateNoteRequest,
   UpdateNoteRequest,
   CreateTodoRequest,
   UpdateTodoRequest,
+  CreateReminderRequest,
 } from '../../types/note-todo'
-import { noteApi, todoApi } from '../../api/note-todo'
+import { noteApi, todoApi, reminderApi } from '../../api/note-todo'
 
 interface RawNote {
   id: string
@@ -75,6 +77,30 @@ export function convertTodo(todo: RawTodo): Todo {
   }
 }
 
+interface RawReminder {
+  id: string
+  userId: string
+  title: string
+  description?: string
+  remindAt: string | number[] | null
+  status?: 'pending' | 'fired' | 'cancelled'
+  createdAt: string | number[] | null
+  firedAt?: string | number[] | null
+}
+
+export function convertReminder(reminder: RawReminder): Reminder {
+  return {
+    id: reminder.id,
+    userId: reminder.userId,
+    title: reminder.title,
+    description: reminder.description || '',
+    remindAt: convertDate(reminder.remindAt ?? null) || new Date().toISOString(),
+    status: reminder.status || 'pending',
+    createdAt: convertDate(reminder.createdAt) || new Date().toISOString(),
+    firedAt: convertDate(reminder.firedAt ?? null),
+  }
+}
+
 export function useNoteTodoData() {
   const { success, info, error } = useToast()
   const errorRef = useRef(error)
@@ -83,14 +109,20 @@ export function useNoteTodoData() {
 
   const [notes, setNotes] = useState<Note[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
+  const [reminders, setReminders] = useState<Reminder[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const [notesData, todosData] = await Promise.all([noteApi.getAll(), todoApi.getAll()])
+      const [notesData, todosData, remindersData] = await Promise.all([
+        noteApi.getAll(),
+        todoApi.getAll(),
+        reminderApi.getAll(),
+      ])
       setNotes(notesData.map(convertNote))
       setTodos(todosData.map(convertTodo))
+      setReminders(remindersData.map(convertReminder))
     } catch (err) {
       console.error('Failed to load data:', err)
       errorRef.current('数据加载失败，请稍后重试')
@@ -271,11 +303,70 @@ export function useNoteTodoData() {
     }
   }, [])
 
+  const createReminder = useCallback(
+    async (formState: { title: string; description: string; remindAt: string }) => {
+      try {
+        const request: CreateReminderRequest = {
+          title: formState.title || '未命名提醒',
+          description: formState.description,
+          remindAt: toLocalIso(formState.remindAt) || toLocalNow(),
+        }
+        const newReminder = await reminderApi.create(request)
+        setReminders((prev) => [...prev, convertReminder(newReminder)].sort(sortByRemindAt))
+        successRef.current('提醒创建成功')
+        return true
+      } catch (err) {
+        console.error('Failed to create reminder:', err)
+        errorRef.current('创建提醒失败')
+        return false
+      }
+    },
+    []
+  )
+
+  const updateReminder = useCallback(
+    async (id: string, formState: { title: string; description: string; remindAt: string }) => {
+      try {
+        const request: CreateReminderRequest = {
+          title: formState.title || '未命名提醒',
+          description: formState.description,
+          remindAt: toLocalIso(formState.remindAt) || toLocalNow(),
+        }
+        const updatedReminder = await reminderApi.update(id, request)
+        setReminders((prev) =>
+          prev.map((r) => (r.id === id ? convertReminder(updatedReminder) : r)).sort(sortByRemindAt)
+        )
+        successRef.current('提醒更新成功')
+        return true
+      } catch (err) {
+        console.error('Failed to update reminder:', err)
+        errorRef.current('更新提醒失败')
+        return false
+      }
+    },
+    []
+  )
+
+  const cancelReminder = useCallback(async (id: string) => {
+    try {
+      await reminderApi.cancel(id)
+      setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'cancelled' } : r)))
+      successRef.current('提醒已取消')
+      return true
+    } catch (err) {
+      console.error('Failed to cancel reminder:', err)
+      errorRef.current('取消提醒失败')
+      return false
+    }
+  }, [])
+
   return {
     notes,
     setNotes,
     todos,
     setTodos,
+    reminders,
+    setReminders,
     isLoading,
     loadData,
     createNote,
@@ -286,5 +377,30 @@ export function useNoteTodoData() {
     updateTodo,
     deleteTodo,
     toggleTodo,
+    createReminder,
+    updateReminder,
+    cancelReminder,
   }
+}
+
+function sortByRemindAt(a: Reminder, b: Reminder) {
+  return new Date(a.remindAt).getTime() - new Date(b.remindAt).getTime()
+}
+
+/**
+ * 将 datetime-local 的本地时间（形如 yyyy-MM-ddTHH:mm）转为后端 LocalDateTime
+ * 兼容格式（yyyy-MM-ddTHH:mm:ss）。保持本地墙钟，不做 UTC 偏移。
+ */
+function toLocalIso(datetimeLocal: string): string {
+  if (!datetimeLocal) return ''
+  return datetimeLocal.length === 16 ? `${datetimeLocal}:00` : datetimeLocal
+}
+
+/**
+ * 取当前本地时间，格式 yyyy-MM-ddTHH:mm:ss。
+ */
+function toLocalNow(): string {
+  const d = new Date()
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
 }

@@ -4,9 +4,12 @@ import {
   Loader2,
   RefreshCw,
   AlertTriangle,
-  FunctionSquare,
   Check,
   Power,
+  Settings,
+  Sliders,
+  ChevronDown,
+  MoreHorizontal,
 } from 'lucide-react'
 import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
 import type { ToolInfo, ModelConfig } from '../../types'
@@ -222,124 +225,178 @@ interface ToolCardProps {
 }
 
 function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, onToggleEnabled }: ToolCardProps) {
+  const [paramsExpanded, setParamsExpanded] = useState(false)
   const paramEntries = Object.entries(tool.parameters?.properties ?? {})
   const requiredSet = new Set(tool.parameters?.required ?? [])
   const isEnabled = tool.enabled !== false
 
-  // 该工具是否需要模型能力，以及具备该能力的可选模型
   const needCapability = Boolean(tool.modelCapability)
   const options = needCapability
     ? modelList.filter((m) => m.enabled && hasCapability(m, tool.modelCapability!))
     : []
 
+  const typeColor: Record<string, string> = {
+    string: 'bg-blue-500/10 text-blue-600',
+    integer: 'bg-purple-500/10 text-purple-600',
+    number: 'bg-cyan-500/10 text-cyan-600',
+    boolean: 'bg-emerald-500/10 text-emerald-600',
+    array: 'bg-amber-500/10 text-amber-600',
+    object: 'bg-slate-500/10 text-slate-600',
+  }
+
   return (
     <div
-      className={`card-float-solid rounded-2xl p-4 transition-opacity ${
+      className={`card-float-solid rounded-2xl transition-opacity overflow-hidden ${
         !isEnabled ? 'opacity-50' : ''
       }`}
     >
-      <div className='flex items-start gap-3 mb-2'>
-        <div className='flex-shrink-0 w-9 h-9 rounded-lg bg-[var(--accent-primary)]/10 flex items-center justify-center'>
-          <FunctionSquare className='w-5 h-5 text-[var(--accent-primary)]' />
-        </div>
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-2 flex-wrap'>
-            <code className='font-mono font-semibold theme-text-primary break-all'>
-              {tool.name}
-            </code>
-            {needCapability && (
-              <span className='text-xs px-1.5 py-0.5 rounded bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-medium font-mono'>
-                {tool.modelCapability}
-              </span>
-            )}
-            {!isEnabled && (
-              <span className='text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 font-medium'>
-                已关闭
-              </span>
-            )}
-          </div>
-          {tool.description && (
-            <p className='text-sm theme-text-secondary mt-1 leading-relaxed'>
-              {tool.description}
-            </p>
-          )}
-        </div>
-        {/* 启用/关闭切换按钮 */}
-        <button
-          onClick={() => onToggleEnabled(!isEnabled)}
-          disabled={isToggling}
-          className={`flex-shrink-0 relative w-11 h-6 rounded-full transition-colors ${
-            isEnabled
-              ? 'bg-green-500 hover:bg-green-600'
-              : 'theme-bg-hover hover:bg-red-500/30'
-          } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
-          title={isEnabled ? '点击关闭（对 LLM 不可见）' : '点击启用'}
-        >
-          <span
-            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
-              isEnabled ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          >
-            {isToggling ? (
-              <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
-            ) : (
-              <Power className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
-            )}
-          </span>
-        </button>
-      </div>
-
-      {needCapability && (
-        <div className='mt-3 flex items-center gap-2'>
-          <label className='text-xs font-semibold theme-text-muted whitespace-nowrap'>
-            使用的模型
-          </label>
-          <select
-            value={currentModel}
-            onChange={(e) => onModelChange(e.target.value)}
-            className='flex-1 min-w-0 text-sm rounded-lg border theme-border-primary theme-bg-input px-2.5 py-1.5 theme-text-primary focus:outline-none'
-          >
-            <option value=''>自动选择</option>
-            {options.map((m) => (
-              <option key={m.id} value={`${m.name}:${m.modelId}`}>
-                {m.name}:{m.modelId}
-              </option>
-            ))}
-          </select>
-          {currentModel && <Check className='w-4 h-4 text-green-500 flex-shrink-0' />}
-        </div>
-      )}
-
-      {paramEntries.length > 0 && (
-        <div className='mt-3 pt-3 border-t theme-border-primary space-y-2'>
-          <div className='text-xs font-semibold theme-text-muted uppercase tracking-wide'>
-            参数
-          </div>
-          {paramEntries.map(([paramName, schema]) => (
-            <div key={paramName} className='flex items-start gap-2 text-sm'>
-              <code className='font-mono theme-text-primary flex-shrink-0'>{paramName}</code>
-              {schema?.type && (
-                <span className='text-xs px-1.5 py-0.5 rounded theme-bg-hover theme-text-muted font-mono'>
-                  {schema.type}
-                </span>
-              )}
-              {requiredSet.has(paramName) && (
-                <span className='text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 font-medium'>
-                  必填
-                </span>
-              )}
-              {schema?.description && (
-                <span className='text-xs theme-text-muted flex-1'>
-                  {schema.description}
+      {/* 头部 */}
+      <div className='p-4'>
+        <div className='flex items-start gap-3'>
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center gap-2 flex-wrap mb-1.5'>
+              <code className='font-mono font-semibold theme-text-primary text-base break-all'>
+                {tool.name}
+              </code>
+              {needCapability && (
+                <span className='text-[10px] px-1.5 py-0.5 rounded theme-bg-accent-primary/10 theme-accent-primary font-semibold font-mono tracking-wide uppercase'>
+                  {tool.modelCapability}
                 </span>
               )}
             </div>
-          ))}
+            {tool.description && (
+              <p className='text-sm theme-text-secondary leading-relaxed'>
+                {tool.description}
+              </p>
+            )}
+          </div>
+          <div className='flex-shrink-0 flex items-center gap-2'>
+            <button
+              onClick={() => onToggleEnabled(!isEnabled)}
+              disabled={isToggling}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                isEnabled
+                  ? 'bg-green-500 hover:bg-green-600'
+                  : 'theme-bg-hover hover:bg-red-500/30'
+              } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={isEnabled ? '点击关闭（对 LLM 不可见）' : '点击启用'}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
+                  isEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              >
+                {isToggling ? (
+                  <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
+                ) : (
+                  <Power className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
+                )}
+              </span>
+            </button>
+            <button className='p-1.5 rounded-lg hover:theme-bg-hover transition-colors theme-text-muted'>
+              <MoreHorizontal className='w-4 h-4' />
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 使用的模型 */}
+      {needCapability && (
+        <div className='px-4 pb-3'>
+          <div className='flex items-center gap-2 p-3 rounded-xl theme-bg-hover/50'>
+            <div className='flex-shrink-0 w-7 h-7 rounded-lg theme-bg-accent-primary/10 flex items-center justify-center'>
+              <Settings className='w-4 h-4 theme-accent-primary' />
+            </div>
+            <label className='text-xs font-semibold theme-text-muted whitespace-nowrap'>
+              使用的模型
+            </label>
+            <select
+              value={currentModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              className='flex-1 min-w-0 text-sm rounded-lg theme-border-primary theme-bg-input px-3 py-1.5 theme-text-primary focus:outline-none'
+            >
+              <option value=''>自动选择</option>
+              {options.map((m) => (
+                <option key={m.id} value={`${m.name}:${m.modelId}`}>
+                  {m.name}:{m.modelId}
+                </option>
+              ))}
+            </select>
+            {currentModel && (
+              <Check className='w-4 h-4 text-green-500 flex-shrink-0' />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 参数 */}
+      {paramEntries.length > 0 && (
+        <div className='border-t theme-border-primary'>
+          <button
+            onClick={() => setParamsExpanded(!paramsExpanded)}
+            className='w-full px-4 py-3 flex items-center gap-2 hover:theme-bg-hover transition-colors'
+          >
+            <div className='flex-shrink-0 w-7 h-7 rounded-lg theme-bg-accent-primary/10 flex items-center justify-center'>
+              <Sliders className='w-4 h-4 theme-accent-primary' />
+            </div>
+            <span className='text-sm font-semibold theme-text-primary'>参数</span>
+            <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-muted font-medium'>
+              {paramEntries.length} 个参数
+            </span>
+            <div className='flex-1' />
+            <ChevronDown
+              className={`w-4 h-4 theme-text-muted transition-transform duration-200 ${
+                paramsExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {paramsExpanded && (
+            <div className='px-4 pb-4 space-y-2.5'>
+              {paramEntries.map(([paramName, schema]) => {
+                const type = (schema?.type as string) || 'string'
+                const colorClass = typeColor[type] || typeColor.object
+                return (
+                  <div
+                    key={paramName}
+                    className='p-3 rounded-xl theme-border-primary border theme-bg-card'
+                  >
+                    <div className='flex items-center gap-2 mb-1.5'>
+                      <code className='font-mono font-semibold theme-text-primary text-sm'>
+                        {paramName}
+                      </code>
+                      {schema?.type && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${colorClass}`}>
+                          {schema.type}
+                        </span>
+                      )}
+                      {requiredSet.has(paramName) && (
+                        <span className='text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 font-semibold'>
+                          必填
+                        </span>
+                      )}
+                    </div>
+                    {schema?.description && (
+                      <p className='text-xs theme-text-muted leading-relaxed mb-1'>
+                        {schema.description}
+                      </p>
+                    )}
+                    {schema?.example && (
+                      <p className='text-xs theme-text-muted/70 font-mono'>
+                        示例: {schema.example}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {paramEntries.length === 0 && (
-        <div className='mt-3 pt-3 border-t theme-border-primary'>
+        <div className='px-4 py-3 border-t theme-border-primary'>
           <span className='text-xs theme-text-muted'>无参数</span>
         </div>
       )}

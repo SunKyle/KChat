@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import {
   FileText,
   ListTodo,
+  Bell,
   Plus,
   Search,
   ChevronDown,
@@ -11,12 +12,14 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useDebounce } from '../../hooks/useDebounce'
-import type { Note, Todo, NoteTodoMode, UpdateNoteRequest } from '../../types/note-todo'
+import type { Note, Todo, Reminder, NoteTodoMode, UpdateNoteRequest } from '../../types/note-todo'
 import { noteApi } from '../../api/note-todo'
 import { NoteList } from './NoteList'
 import { TodoList } from './TodoList'
+import { ReminderList } from './ReminderList'
 import { NoteForm } from './NoteForm'
 import { TodoForm } from './TodoForm'
+import { ReminderForm } from './ReminderForm'
 import { DetailPreview } from './DetailPreview'
 import { FullscreenMarkdownEditor } from './FullscreenMarkdownEditor'
 import { useNoteTodoData, convertNote } from './useNoteTodoData'
@@ -29,7 +32,7 @@ interface NoteTodoPanelProps {
 }
 
 interface DeleteConfirmState {
-  type: 'note' | 'todo'
+  type: 'note' | 'todo' | 'reminder'
   id: string
   title: string
 }
@@ -40,45 +43,44 @@ function NoteTodoHeader({
   mode,
   notesCount,
   pendingTodosCount,
+  pendingRemindersCount,
   onModeChange,
   onClose,
 }: {
   mode: NoteTodoMode
   notesCount: number
   pendingTodosCount: number
+  pendingRemindersCount: number
   onModeChange: (m: NoteTodoMode) => void
   onClose: () => void
 }) {
+  const tabs = [
+    { key: 'note' as const, icon: FileText, label: '笔记', count: notesCount },
+    { key: 'todo' as const, icon: ListTodo, label: '待办', count: pendingTodosCount },
+    { key: 'reminder' as const, icon: Bell, label: '提醒', count: pendingRemindersCount },
+  ]
   return (
     <div className='flex-shrink-0 flex items-center justify-between px-3 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
-      <div className='relative flex items-center bg-[var(--bg-input)] rounded-lg p-0.5'>
-        <div
-          className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] bg-[var(--brand-primary)] rounded-md shadow-sm shadow-[var(--brand-primary)]/20 transition-all duration-300 ease-out ${mode === 'note' ? 'left-0.5' : 'left-1/2'}`}
-        />
-        <button
-          onClick={() => onModeChange('note')}
-          className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${mode === 'note' ? 'text-white' : 'text-[var(--text-muted)]'}`}
-        >
-          <FileText className='w-3.5 h-3.5' />
-          笔记
-          <span
-            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'note' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
-          >
-            {notesCount}
-          </span>
-        </button>
-        <button
-          onClick={() => onModeChange('todo')}
-          className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${mode === 'todo' ? 'text-white' : 'text-[var(--text-muted)]'}`}
-        >
-          <ListTodo className='w-3.5 h-3.5' />
-          待办
-          <span
-            className={`ml-1 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${mode === 'todo' ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
-          >
-            {pendingTodosCount}
-          </span>
-        </button>
+      <div className='relative flex items-center gap-1'>
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          const active = mode === tab.key
+          return (
+            <button
+              key={tab.key}
+              onClick={() => onModeChange(tab.key)}
+              className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${active ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+            >
+              <Icon className='w-3.5 h-3.5' />
+              {tab.label}
+              <span
+                className={`ml-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${active ? 'bg-[var(--brand-primary)]/20 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+              >
+                {tab.count}
+              </span>
+            </button>
+          )
+        })}
       </div>
       <button
         onClick={onClose}
@@ -127,14 +129,22 @@ function NoteTodoSearchBar({
             type='text'
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={mode === 'note' ? '搜索笔记...' : '搜索待办...'}
+            placeholder={
+              mode === 'note'
+                ? '搜索笔记...'
+                : mode === 'todo'
+                  ? '搜索待办...'
+                  : '搜索提醒...'
+            }
             className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
           />
         </div>
         <button
           onClick={onCreateClick}
           className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200'
-          aria-label={mode === 'note' ? '新建笔记' : '新建待办'}
+          aria-label={
+            mode === 'note' ? '新建笔记' : mode === 'todo' ? '新建待办' : '新建提醒'
+          }
         >
           <Plus className='w-4 h-4' />
         </button>
@@ -235,6 +245,22 @@ function formatDateFull(dateString: string) {
   return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
+function formatRemindAt(iso: string) {
+  const date = new Date(iso)
+  const now = new Date()
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const startOfTarget = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.round(
+    (startOfTarget.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  if (diffDays === 0) return `今天 ${time}`
+  if (diffDays === 1) return `明天 ${time}`
+  if (diffDays === 2) return `后天 ${time}`
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${time}`
+}
+
 function getContentPreview(content: string) {
   const stripped = content
     .replace(/#{1,6}\s/g, '')
@@ -258,6 +284,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     notes,
     setNotes,
     todos,
+    reminders,
     isLoading,
     loadData,
     createNote,
@@ -268,17 +295,22 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     updateTodo,
     deleteTodo,
     toggleTodo,
+    createReminder,
+    updateReminder,
+    cancelReminder,
   } = useNoteTodoData()
 
   const {
     isFormOpen,
     editingNote,
     editingTodo,
+    editingReminder,
     formState,
     setFormState,
     openCreateForm,
     editNote,
     editTodo,
+    editReminder,
     cancelForm,
   } = useNoteTodoForm()
 
@@ -345,7 +377,6 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     const ok = await updateNote(editingNote.id, formState)
     if (ok) {
       cancelForm()
-      setEditingNote(null)
     }
   }, [editingNote, updateNote, formState, cancelForm])
 
@@ -393,7 +424,6 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     const ok = await updateTodo(editingTodo.id, formState)
     if (ok) {
       cancelForm()
-      setEditingTodo(null)
     }
   }, [editingTodo, updateTodo, formState, cancelForm])
 
@@ -422,6 +452,49 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
     [editTodo]
   )
 
+  const handleCreateReminder = useCallback(async () => {
+    const ok = await createReminder(formState)
+    if (ok) {
+      cancelForm()
+    }
+  }, [createReminder, formState, cancelForm])
+
+  const handleUpdateReminder = useCallback(async () => {
+    if (!editingReminder) return
+    const ok = await updateReminder(editingReminder.id, formState)
+    if (ok) {
+      cancelForm()
+    }
+  }, [editingReminder, updateReminder, formState, cancelForm])
+
+  const handleDeleteReminder = useCallback(
+    (id: string) => {
+      const reminder = reminders.find((r) => r.id === id)
+      if (reminder) setDeleteConfirm({ type: 'reminder', id, title: reminder.title })
+    },
+    [reminders]
+  )
+
+  const confirmDeleteReminder = useCallback(async () => {
+    if (!deleteConfirm || deleteConfirm.type !== 'reminder') return
+    const ok = await cancelReminder(deleteConfirm.id)
+    if (ok) {
+      setDeleteConfirm(null)
+    }
+  }, [deleteConfirm, cancelReminder])
+
+  const handleEditReminderAction = useCallback(
+    (reminder: Reminder) => {
+      if (reminder.status !== 'pending') return
+      editReminder(reminder)
+    },
+    [editReminder]
+  )
+
+  const filteredReminders = reminders.filter((r) =>
+    r.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+  )
+
   const filteredNotes = notes.filter((n) => {
     const matchesSearch =
       n.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
@@ -438,10 +511,9 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   const categories = ['默认', '工作', '生活', '学习', '其他']
 
-  const isEditing = editingNote || editingTodo
-  const formTitle = isEditing
-    ? `编辑${mode === 'note' ? '笔记' : '待办'}`
-    : `新建${mode === 'note' ? '笔记' : '待办'}`
+  const isEditing = editingNote || editingTodo || editingReminder
+  const modeLabel = mode === 'note' ? '笔记' : mode === 'todo' ? '待办' : '提醒'
+  const formTitle = isEditing ? `编辑${modeLabel}` : `新建${modeLabel}`
 
   return (
     <>
@@ -454,6 +526,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             mode={mode}
             notesCount={notes.length}
             pendingTodosCount={todos.filter((t) => t.status === 'pending').length}
+            pendingRemindersCount={reminders.filter((r) => r.status === 'pending').length}
             onModeChange={handleModeChange}
             onClose={onClose}
           />
@@ -485,7 +558,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                   setSelectedTodo(null)
                   if (isFormOpen) cancelForm()
                 }}
-                onTodoToggle={() => selectedTodo && handleToggleTodo(selectedTodo.id)}
+                onTodoToggle={() => selectedTodo && toggleTodo(selectedTodo.id)}
                 onTodoEdit={() => selectedTodo && handleEditTodoAction(selectedTodo)}
                 onTodoDelete={() => selectedTodo && handleDeleteTodo(selectedTodo.id)}
               />
@@ -514,7 +587,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                     onSubmit={editingNote ? handleUpdateNote : handleCreateNote}
                     onOpenFullscreen={() => setShowFullscreenEditor(true)}
                   />
-                ) : (
+                ) : mode === 'todo' ? (
                   <TodoForm
                     formState={formState}
                     setFormState={setFormState}
@@ -522,6 +595,14 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                     isEditing={!!editingTodo}
                     onCancel={cancelForm}
                     onSubmit={editingTodo ? handleUpdateTodo : handleCreateTodo}
+                  />
+                ) : (
+                  <ReminderForm
+                    formState={formState}
+                    setFormState={setFormState}
+                    isEditing={!!editingReminder}
+                    onCancel={cancelForm}
+                    onSubmit={editingReminder ? handleUpdateReminder : handleCreateReminder}
                   />
                 )}
               </>
@@ -553,7 +634,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       getContentPreview={getContentPreview}
                       onOpenCreate={openCreateForm}
                     />
-                  ) : (
+                  ) : mode === 'todo' ? (
                     <TodoList
                       todos={todos}
                       activeTab={activeTab}
@@ -564,6 +645,15 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                       formatDateFull={formatDateFull}
                       formatDate={formatDate}
                       isOverdue={isOverdue}
+                      onOpenCreate={openCreateForm}
+                    />
+                  ) : (
+                    <ReminderList
+                      reminders={filteredReminders}
+                      onEdit={handleEditReminderAction}
+                      onDelete={handleDeleteReminder}
+                      formatRemindAt={formatRemindAt}
+                      formatDateFull={formatDateFull}
                       onOpenCreate={openCreateForm}
                     />
                   )}
@@ -600,7 +690,13 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                 取消
               </button>
               <button
-                onClick={deleteConfirm.type === 'note' ? confirmDeleteNote : confirmDeleteTodo}
+                onClick={
+                  deleteConfirm.type === 'note'
+                    ? confirmDeleteNote
+                    : deleteConfirm.type === 'todo'
+                      ? confirmDeleteTodo
+                      : confirmDeleteReminder
+                }
                 className='px-4 py-2 bg-[var(--brand-danger)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--brand-danger)]/90 transition-colors'
               >
                 删除

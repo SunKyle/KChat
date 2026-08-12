@@ -24,7 +24,24 @@ export interface Todo {
   completedAt: string | null
 }
 
-export type NoteTodoMode = 'note' | 'todo'
+export interface Reminder {
+  id: string
+  userId: string
+  title: string
+  description: string
+  remindAt: string
+  status: 'pending' | 'fired' | 'cancelled'
+  createdAt: string
+  firedAt: string | null
+}
+
+export type NoteTodoMode = 'note' | 'todo' | 'reminder'
+
+export interface CreateReminderRequest {
+  title: string
+  description?: string
+  remindAt: string
+}
 
 export interface CreateNoteRequest {
   title?: string

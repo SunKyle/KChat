@@ -2,10 +2,12 @@ import { request } from './client'
 import type {
   Note,
   Todo,
+  Reminder,
   CreateNoteRequest,
   UpdateNoteRequest,
   CreateTodoRequest,
   UpdateTodoRequest,
+  CreateReminderRequest,
 } from '../types/note-todo'
 
 const DEFAULT_USER_ID = 'default'
@@ -165,4 +167,49 @@ export const todoApi = {
   },
 }
 
-export default { noteApi, todoApi }
+export const reminderApi = {
+  /**
+   * 获取所有提醒
+   */
+  getAll: async (userId: string = DEFAULT_USER_ID): Promise<Reminder[]> => {
+    return request(`/reminders?userId=${userId}`)
+  },
+
+  /**
+   * 创建提醒
+   */
+  create: async (
+    data: CreateReminderRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Reminder> => {
+    return request(`/reminders?userId=${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  /**
+   * 更新提醒
+   */
+  update: async (
+    reminderId: string,
+    data: CreateReminderRequest,
+    userId: string = DEFAULT_USER_ID
+  ): Promise<Reminder> => {
+    return request(`/reminders/${reminderId}?userId=${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  /**
+   * 取消提醒
+   */
+  cancel: async (reminderId: string, userId: string = DEFAULT_USER_ID): Promise<void> => {
+    return request(`/reminders/${reminderId}?userId=${userId}`, {
+      method: 'DELETE',
+    })
+  },
+}
+
+export default { noteApi, todoApi, reminderApi }

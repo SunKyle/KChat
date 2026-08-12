@@ -92,6 +92,8 @@ export interface ToolInfo {
     properties?: Record<string, {
       type?: string
       description?: string
+      example?: string
+      enum?: string[]
     }>
     required?: string[]
   }
