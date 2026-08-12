@@ -22,6 +22,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light'
+import { MermaidBlock } from '../../components/ui/MermaidBlock'
 
 interface FullscreenMarkdownEditorProps {
   title: string
@@ -241,6 +242,9 @@ export function FullscreenMarkdownEditor({
                 components={{
                   code({ node: _node, inline, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
+                    if (!inline && match && match[1].toLowerCase() === 'mermaid') {
+                      return <MermaidBlock chart={String(children).replace(/\n$/, '')} />
+                    }
                     return !inline && match ? (
                       <SyntaxHighlighter
                         style={oneLight}

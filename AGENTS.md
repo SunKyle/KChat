@@ -19,8 +19,8 @@
  - 通知: React Toastify
 
  **后端**
- - Java 17 + Spring Boot 3.2.0 + Maven
- - LangChain4j 0.35.0（LLM 集成）
+ - Java 21 + Spring Boot 3.2.0 + Maven
+ - LangChain4j 1.4.0（LLM 集成）
  - 数据库: H2（运行时）+ MySQL（可选）
  - 缓存/向量: Redis + LangChain4j Redis
  - 嵌入模型: DJL PyTorch（all-MiniLM-L6-v2，本地进程内推理）

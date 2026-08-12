@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CodeBlock } from './CodeBlock'
+import { MermaidBlock } from '../../ui/MermaidBlock'
 import { memo } from 'react'
 import { Image as UIImage } from '../../ui/Image'
 
@@ -16,6 +17,9 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
         components={{
           code({ node: _node, inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '')
+            if (!inline && match && match[1].toLowerCase() === 'mermaid') {
+              return <MermaidBlock chart={String(children).replace(/\n$/, '')} />
+            }
             return !inline && match ? (
               <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
             ) : (
