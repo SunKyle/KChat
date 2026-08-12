@@ -206,7 +206,6 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
   const hasToolCalls = Boolean(d.hasToolCalls)
   const executedTools = (d.executedToolNames as string[]) || []
   const inputPreview = d.inputPreview as string | undefined
-  const messageCount = d.messageCount as number | undefined
   const tokenCount = d.tokenCount as number | undefined
   const truncated = Boolean(d.truncated)
 
@@ -228,22 +227,26 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
           <SectionLabel icon={<MessageSquare className='w-3 h-3' />} label='输入上下文' />
           <div className='rounded-lg bg-[var(--bg-hover)] border border-[var(--border-primary)]/20 px-2.5 py-2'>
             {inputPreview && (
-              <p className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed m-0 mb-2'>
+              <p className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed m-0'>
                 {inputPreview}
               </p>
             )}
-            <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-[var(--text-muted)]'>
-              <MetaItem label='消息' value={messageCount ?? 0} />
-              <MetaItem label='Token' value={tokenCount ?? 0} />
-              <MetaItem
-                label={truncated ? '已截断' : '未截断'}
-                value=''
-                highlight={truncated ? 'amber' : undefined}
-              />
-              {executedTools.length > 0 && (
-                <MetaItem label='已执行' value={executedTools.join(', ')} />
-              )}
-            </div>
+          </div>
+          <div className='flex flex-wrap gap-1.5 mt-1.5'>
+            <span
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] ${
+                truncated
+                  ? 'bg-[var(--accent-amber)]/10 border-[var(--accent-amber)]/30 text-[var(--accent-amber)]'
+                  : 'bg-[var(--bg-hover)] border-[var(--border-primary)]/20 text-[var(--text-muted)]'
+              }`}
+            >
+              Token {tokenCount ?? 0} · {truncated ? '已截断' : '未截断'}
+            </span>
+            {executedTools.length > 0 && (
+              <span className='inline-flex items-center rounded-md bg-[var(--bg-hover)] border border-[var(--accent-purple)]/20 px-2 py-0.5 text-[10px] text-[var(--accent-purple)]'>
+                已执行 {executedTools.join(', ')}
+              </span>
+            )}
           </div>
         </div>
 
@@ -251,7 +254,7 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
         {thinkingText && (
           <div>
             <SectionLabel icon={<Sparkles className='w-3 h-3' />} label='思考过程' />
-            <div className='rounded-lg bg-[var(--accent-purple)]/5 border border-[var(--accent-purple)]/15 px-2.5 py-2'>
+            <div className='rounded-lg bg-[var(--bg-hover)] border border-[var(--accent-purple)]/20 px-2.5 py-2'>
               <p className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed m-0'>
                 {thinkingText}
               </p>
@@ -267,24 +270,16 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
               label='计划调用'
               count={toolRequests.length}
             />
-            <div className='space-y-1.5'>
+            <div className='flex flex-wrap gap-1.5'>
               {toolRequests.map((req, idx) => (
-                <div
+                <span
                   key={`${req.id}-${idx}`}
-                  className='flex items-start gap-2 rounded-lg bg-[var(--bg-hover)] border border-[var(--border-primary)]/20 px-2.5 py-2'
+                  className='inline-flex items-center gap-1 rounded-md bg-[var(--bg-hover)] border border-[var(--accent-purple)]/20 px-2 py-1'
                 >
-                  <span className='w-5 h-5 flex-shrink-0 rounded bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] text-[10px] font-bold flex items-center justify-center mt-0.5'>
-                    {idx + 1}
+                  <span className='text-[11px] font-medium text-[var(--text-secondary)]'>
+                    {req.name}
                   </span>
-                  <div className='flex-1 min-w-0'>
-                    <div className='text-[11px] font-semibold text-[var(--accent-purple)] mb-0.5'>
-                      {req.name}
-                    </div>
-                    <pre className='text-[11px] text-[var(--text-muted)] whitespace-pre-wrap break-all font-mono m-0 leading-relaxed'>
-                      {req.arguments || '{}'}
-                    </pre>
-                  </div>
-                </div>
+                </span>
               ))}
             </div>
           </div>
@@ -292,7 +287,7 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
 
         {/* Status zone (no tool calls → final) */}
         {!hasToolCalls && (
-          <div className='flex items-center gap-2 rounded-lg bg-[var(--accent-emerald)]/5 border border-[var(--accent-emerald)]/20 px-2.5 py-2'>
+          <div className='flex items-center gap-2 rounded-lg bg-[var(--bg-hover)] border border-[var(--accent-emerald)]/30 px-2.5 py-2'>
             <CheckCircle className='w-3.5 h-3.5 text-[var(--accent-emerald)] flex-shrink-0' />
             <span className='text-xs font-medium text-[var(--accent-emerald)]'>
               无工具调用 · 本轮即为最终回复
@@ -309,10 +304,9 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
 /* ─────────────────────────────────────────────── */
 
 function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> }) {
-  const { detection, execution, assembly } = rs
+  const { detection, execution } = rs
   const detData = detection.data
   const exeData = execution?.data
-  const asmData = assembly?.data
 
   const toolName = (detData.toolName as string) ?? '未知'
   const requestedModel = detData.model as string | undefined
@@ -321,8 +315,6 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
   const success = exeData ? Boolean(exeData.success) : undefined
   const errorMessage = exeData?.errorMessage as string | undefined
   const result = exeData?.result == null ? '' : String(exeData.result)
-  const assembledCount = asmData?.assembledCount as number | undefined
-  const totalMessages = asmData?.totalMessages as number | undefined
 
   const headerIcon =
     success === true ? (
@@ -383,34 +375,14 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
               label={success ? '执行结果' : `执行失败 · ${errorMessage ?? '未知错误'}`}
             />
             <div
-              className={`rounded-lg border px-2.5 py-2 ${
-                success
-                  ? 'bg-[var(--accent-emerald)]/5 border-[var(--accent-emerald)]/20'
-                  : 'bg-[var(--accent-rose)]/5 border-[var(--accent-rose)]/20'
+              className={`rounded-lg bg-[var(--bg-hover)] border px-2.5 py-2 ${
+                success ? 'border-[var(--accent-emerald)]/30' : 'border-[var(--accent-rose)]/30'
               }`}
             >
               <pre className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap break-all font-mono m-0 leading-relaxed'>
                 {result || '—'}
               </pre>
             </div>
-          </div>
-        )}
-
-        {/* Zone: Assembly */}
-        {assembly && (
-          <div className='flex items-center gap-2 rounded-lg bg-[var(--bg-hover)] border border-dashed border-[var(--border-primary)]/30 px-2.5 py-1.5'>
-            <ArrowRight className='w-3 h-3 text-[var(--text-muted)] flex-shrink-0' />
-            <span className='text-[11px] text-[var(--text-muted)]'>
-              已回填{' '}
-              <span className='font-medium text-[var(--text-secondary)]'>
-                {assembledCount ?? '-'}
-              </span>{' '}
-              个结果 · 上下文共{' '}
-              <span className='font-medium text-[var(--text-secondary)]'>
-                {totalMessages ?? '-'}
-              </span>{' '}
-              条消息
-            </span>
           </div>
         )}
       </div>

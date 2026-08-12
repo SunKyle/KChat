@@ -356,6 +356,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
             ChatMessage msg = messages.get(i);
             String role;
             String text = null;
+            String extra = null;
             if (msg instanceof dev.langchain4j.data.message.SystemMessage sysMsg) {
                 role = "SYSTEM";
                 text = sysMsg.text();
@@ -365,13 +366,29 @@ public class ModelRoutingStage implements ContextPipelineStage {
             } else if (msg instanceof dev.langchain4j.data.message.AiMessage aiMsg) {
                 role = "AI";
                 text = aiMsg.text();
+                if (aiMsg.hasToolExecutionRequests()) {
+                    StringBuilder toolInfo = new StringBuilder();
+                    for (dev.langchain4j.agent.tool.ToolExecutionRequest req : aiMsg.toolExecutionRequests()) {
+                        if (toolInfo.length() > 0)
+                            toolInfo.append(", ");
+                        toolInfo.append(req.name());
+                    }
+                    extra = "tools=[" + toolInfo + "]";
+                }
+            } else if (msg instanceof dev.langchain4j.data.message.ToolExecutionResultMessage toolMsg) {
+                role = "TOOL_RESULT";
+                text = toolMsg.text();
+                extra = "tool=" + toolMsg.toolName() + ", callId=" + toolMsg.id();
             } else {
                 role = "UNKNOWN";
             }
             sb.append("║  [").append(i + 1).append("/").append(messages.size())
-                    .append("] ").append(role).append(":\n");
+                    .append("] ").append(role);
+            if (extra != null) {
+                sb.append(" (").append(extra).append(")");
+            }
+            sb.append(":\n");
             if (text == null) {
-                // AiMessage 可能只有 toolExecutionRequests 而 text 为 null
                 sb.append("║  ").append("[(no text content)]").append("\n");
             } else {
                 sb.append("║  ").append(text.replace("\n", "\n║  ")).append("\n");
@@ -539,7 +556,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
      * 提取本轮 LLM 输入的简短预览（最后一条非系统消息的文本，最多 120 字符），
      * 供 Agent 思考面板展示"LLM 此刻在基于什么内容思考"。
      *
-     * <p>第一轮通常是用户消息；后续轮次则是上一条工具执行结果消息，
+     * <p>
+     * 第一轮通常是用户消息；后续轮次则是上一条工具执行结果消息，
      * 能直观看到模型拿到工具返回后继续推理。
      */
     private String extractInputPreview(List<ChatMessage> messages) {
