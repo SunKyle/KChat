@@ -44,14 +44,9 @@ export function Header() {
     <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary'>
       <div className='flex items-center gap-3 min-w-0'>
         {activeConversation ? (
-          <>
-            <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 flex-shrink'>
-              {activeConversation.title}
-            </h1>
-            <div className='flex-shrink-0'>
-              <ConversationSettings />
-            </div>
-          </>
+          <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 flex-shrink'>
+            {activeConversation.title}
+          </h1>
         ) : (
           <h1 className='font-conversation-name theme-text-muted'>选择或创建对话</h1>
         )}
@@ -122,6 +117,7 @@ export function Header() {
             </div>
           )}
           <ThemeToggle />
+          <ConversationSettings />
         </div>
       </div>
     </header>

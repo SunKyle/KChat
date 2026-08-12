@@ -12,6 +12,7 @@ import com.example.app.pipeline.stage.agent.ToolDefinitionStage;
 import com.example.app.service.ModelConfigService;
 import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.util.JsonUtils;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,19 +163,6 @@ public class ModelRoutingStage implements ContextPipelineStage {
         log.info("[ModelRouting][Agent] Calling LLM with {} message(s) and {} tool spec(s), iteration {}",
                 messages.size(), toolSpecs.size(), ctx.getCurrentIteration());
 
-        // 推送 Agent 思考过程：LLM 调用开始（携带本轮上下文概要，供前端展示）
-        Map<String, Object> callData = new LinkedHashMap<>();
-        callData.put("model", model);
-        callData.put("messageCount", messages.size());
-        callData.put("toolSpecCount", toolSpecs.size());
-        callData.put("toolSpecNames", toolSpecs.stream().map(ToolSpecification::name).toList());
-        callData.put("executedToolNames", ctx.getToolResults().stream()
-                .map(ConversationContext.ToolResultRecord::toolName).toList());
-        callData.put("inputPreview", extractInputPreview(messages));
-        callData.put("tokenCount", ctx.getTokenCount());
-        callData.put("truncated", ctx.isTruncated());
-        ctx.emitAgentThinking("llm_call", callData);
-
         ChatRequest chatRequest = ChatRequest.builder()
                 .messages(messages)
                 .toolSpecifications(toolSpecs)
@@ -273,7 +262,8 @@ public class ModelRoutingStage implements ContextPipelineStage {
     }
 
     /**
-     * 存储 AiMessage 到 agentState 并更新 llmResponse
+     * 存储 AiMessage 到 agentState 并更新 llmResponse，
+     * 同时推送 LLM 思考过程（含文本输出和工具调用决策）。
      */
     private void storeAiMessage(ConversationContext ctx, AiMessage aiMessage) {
         // 存入 agentState 供 ToolCallDetectionStage / ToolResultAssemblyStage 读取
@@ -283,13 +273,47 @@ public class ModelRoutingStage implements ContextPipelineStage {
         String text = aiMessage.text();
         ctx.setLlmResponse(text != null ? text : "");
 
+        // 推送 Agent 思考过程：LLM 思考结果
+        Map<String, Object> callData = new LinkedHashMap<>();
+        String model = ctx.getModel();
+        callData.put("model", model);
+
+        List<ChatMessage> messages = ctx.getAssembledMessages();
+        callData.put("messageCount", messages != null ? messages.size() : 0);
+        callData.put("tokenCount", ctx.getTokenCount());
+        callData.put("truncated", ctx.isTruncated());
+        callData.put("inputPreview", extractInputPreview(messages));
+
+        List<String> executedToolNames = ctx.getToolResults().stream()
+                .map(ConversationContext.ToolResultRecord::toolName).toList();
+        callData.put("executedToolNames", executedToolNames);
+
+        // LLM 的思考文本
+        callData.put("text", text != null ? text : "");
+
+        // LLM 决定调用的工具列表
+        List<Map<String, Object>> toolRequests = new ArrayList<>();
+        if (aiMessage.hasToolExecutionRequests()) {
+            for (ToolExecutionRequest req : aiMessage.toolExecutionRequests()) {
+                Map<String, Object> reqMap = new LinkedHashMap<>();
+                reqMap.put("name", req.name());
+                reqMap.put("arguments", req.arguments());
+                reqMap.put("id", req.id());
+                toolRequests.add(reqMap);
+            }
+        }
+        callData.put("toolRequests", toolRequests);
+        callData.put("hasToolCalls", !toolRequests.isEmpty());
+
+        ctx.emitAgentThinking("llm_call", callData);
+
         if (aiMessage.hasToolExecutionRequests()) {
             log.info("[ModelRouting][Agent] LLM requested {} tool call(s)",
                     aiMessage.toolExecutionRequests().size());
         } else {
             log.info("[ModelRouting][Agent] LLM returned final text response (length={})",
                     text != null ? text.length() : 0);
-            // 推送 Agent 思考过程：LLM 返回最终文本回复（无工具调用 → 循环将结束）
+            // 推送 final_response 作为循环终止的明确信号
             Map<String, Object> finalData = new LinkedHashMap<>();
             finalData.put("text", text != null ? text : "");
             finalData.put("length", text != null ? text.length() : 0);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Settings, Sparkles, AlertCircle } from 'lucide-react'
+import { Settings, ScrollText, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Drawer } from '../common/Drawer'
 import { useChat } from '../../context/ChatContext'
 
@@ -34,30 +35,51 @@ export function ConversationSettings() {
     setIsOpen(true)
   }
 
-  const hasRules = activeConversation?.customRules && activeConversation.customRules.trim().length > 0
+  const rulesText = activeConversation?.customRules?.trim() ?? ''
+  const hasRules = rulesText.length > 0
+
+  const tooltip = hasRules ? `会话规则已设定（点击查看/编辑）` : '会话设定'
 
   return (
     <>
       <button
         onClick={handleOpen}
         disabled={!activeConversation}
-        className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border transition-all duration-200 cursor-pointer ${
-          hasRules
-            ? 'bg-[var(--brand-primary)]/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/15'
-            : 'bg-[var(--bg-card)] border-[var(--border-primary)] theme-text-secondary hover:border-[var(--brand-primary)]/40 hover:text-[var(--brand-primary)]'
-        } disabled:opacity-40 disabled:cursor-not-allowed`}
-        title='会话设定'
+        className='relative p-2 rounded-lg theme-bg-hover/30 hover:theme-bg-hover hover:scale-110 micro-fast focus-ring transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100'
+        title={tooltip}
+        aria-label={tooltip}
       >
-        <Settings className='w-3.5 h-3.5 sm:w-4 sm:h-4' />
-        {hasRules && (
-          <span className='w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)]' />
-        )}
+        <AnimatePresence mode='wait' initial={false}>
+          {hasRules ? (
+            <motion.span
+              key='active'
+              initial={{ opacity: 0, rotate: -45, scale: 0.6 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 45, scale: 0.6 }}
+              transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+              className='block'
+            >
+              <ScrollText className='w-[18px] h-[18px] theme-brand-primary' />
+            </motion.span>
+          ) : (
+            <motion.span
+              key='idle'
+              initial={{ opacity: 0, rotate: 45, scale: 0.6 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: -45, scale: 0.6 }}
+              transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+              className='block theme-text-muted hover:theme-text-primary'
+            >
+              <Settings className='w-[18px] h-[18px]' />
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
 
       <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title='会话设定' size='md'>
         <div className='p-6 flex flex-col gap-5 h-full'>
           <div className='flex items-start gap-3 p-3 rounded-lg bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/20'>
-            <Sparkles className='w-4 h-4 text-[var(--brand-primary)] mt-0.5 shrink-0' />
+            <ScrollText className='w-4 h-4 text-[var(--brand-primary)] mt-0.5 shrink-0' />
             <div className='text-xs theme-text-secondary leading-relaxed'>
               自定义指令仅对当前会话生效。模型会优先遵循这些指令，适用于设定输出格式、角色行为、风格偏好等场景。
             </div>
