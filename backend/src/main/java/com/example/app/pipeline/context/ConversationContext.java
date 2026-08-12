@@ -89,6 +89,7 @@ public class ConversationContext {
     private final List<ToolResultRecord> toolResults = new ArrayList<>();
     private final List<String> enabledToolNames = new ArrayList<>();
     private final Map<String, Object> agentState = new HashMap<>();
+    private final List<Map<String, Object>> agentThinkingSteps = new ArrayList<>();
 
     // ── Post-processing outputs ────────────────────────────────────
     private String generatedTitle;
@@ -215,13 +216,14 @@ public class ConversationContext {
      * @param data 该步骤的具体负载（会被 Jackson 序列化为 JSON）
      */
     public void emitAgentThinking(String type, Object data) {
-        if (!streaming || sseEmitter == null)
-            return;
         Map<String, Object> envelope = new LinkedHashMap<>();
         envelope.put("type", type);
         envelope.put("iteration", currentIteration);
         envelope.put("timestamp", System.currentTimeMillis());
         envelope.put("data", data);
+        agentThinkingSteps.add(envelope);
+        if (!streaming || sseEmitter == null)
+            return;
         emitSseEvent("agent_thinking", JsonUtils.toJson(envelope));
     }
 

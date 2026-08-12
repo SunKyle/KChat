@@ -45,6 +45,9 @@ public class Message {
     @Builder.Default
     private Integer tokenCount = 0;
 
+    @Column(name = "agent_thinking", columnDefinition = "TEXT")
+    private String agentThinking;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

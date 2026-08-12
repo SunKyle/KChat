@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -42,28 +43,35 @@ public class MessagePersistenceService {
 
     @Transactional
     public String saveAiMessage(String conversationId, String content) {
-        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, null);
+        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, null, null);
     }
 
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content) {
-        return saveAiMessage(conversationId, messageId, content, null);
+        return saveAiMessage(conversationId, messageId, content, null, null);
     }
 
     @Transactional
     public String saveAiMessage(String conversationId, String content, List<Artifact> artifacts) {
-        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, artifacts);
+        return saveAiMessage(conversationId, UUID.randomUUID().toString(), content, artifacts, null);
     }
 
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content,
             List<Artifact> artifacts) {
+        return saveAiMessage(conversationId, messageId, content, artifacts, null);
+    }
+
+    @Transactional
+    public String saveAiMessage(String conversationId, String messageId, String content,
+            List<Artifact> artifacts, List<Map<String, Object>> agentThinkingSteps) {
         Message aiMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
                 .content(content)
                 .role("assistant")
                 .artifacts(serializeArtifacts(artifacts))
+                .agentThinking(serializeAgentThinking(agentThinkingSteps))
                 .build();
         
         messageRepository.save(aiMsg);
@@ -105,6 +113,18 @@ public class MessagePersistenceService {
             return objectMapper.writeValueAsString(imageUrls);
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize image URLs", e);
+            return null;
+        }
+    }
+
+    private String serializeAgentThinking(List<Map<String, Object>> steps) {
+        if (steps == null || steps.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(steps);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize agentThinking steps", e);
             return null;
         }
     }

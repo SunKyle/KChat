@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -24,16 +26,25 @@ public class MessagePersistenceStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         if (ctx.getLlmResponse() == null) return;
+        // Generate messageId if not already set (e.g., streaming path where
+        // MessagePrePersistenceStage only saved the user message)
+        String messageId = ctx.getAiMessageId();
+        if (messageId == null || messageId.isBlank()) {
+            messageId = UUID.randomUUID().toString();
+        }
         if (ctx.isUserMessagePersisted()) {
             // Streaming: user message already saved pre-LLM, only save AI response
             String aiMessageId = messagePersistenceService.saveAiMessage(
-                    ctx.getConversationId(), ctx.getLlmResponse(), ctx.getArtifacts());
+                    ctx.getConversationId(), messageId,
+                    ctx.getLlmResponse(), ctx.getArtifacts(),
+                    ctx.getAgentThinkingSteps());
             ctx.setAiMessageId(aiMessageId);
         } else {
-            // Sync: save both user + AI together
-            String aiMessageId = messagePersistenceService.saveMessages(
-                    ctx.getConversationId(), ctx.getUserMessage(),
-                    ctx.getLlmResponse(), ctx.getImageUrls(), ctx.getArtifacts());
+            // Sync: save AI response (user message not yet persisted)
+            String aiMessageId = messagePersistenceService.saveAiMessage(
+                    ctx.getConversationId(), messageId,
+                    ctx.getLlmResponse(), ctx.getArtifacts(),
+                    ctx.getAgentThinkingSteps());
             ctx.setAiMessageId(aiMessageId);
         }
     }

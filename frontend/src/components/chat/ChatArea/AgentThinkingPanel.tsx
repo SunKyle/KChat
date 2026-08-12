@@ -29,8 +29,18 @@ type RenderStep =
 
 function buildRenderSteps(steps: AgentThinkingStep[]): RenderStep[] {
   const result: RenderStep[] = []
+  const len = steps.length
+
+  // Pre-index: for each iteration, find the tool_assembly step (shared across all tool calls)
+  const assemblyByIteration = new Map<number, AgentThinkingStep>()
+  for (let k = 0; k < len; k++) {
+    if (steps[k].type === 'tool_assembly') {
+      assemblyByIteration.set(steps[k].iteration, steps[k])
+    }
+  }
+
   let i = 0
-  while (i < steps.length) {
+  while (i < len) {
     const s = steps[i]
     if (s.type === 'tool_definition') {
       i++
@@ -39,26 +49,32 @@ function buildRenderSteps(steps: AgentThinkingStep[]): RenderStep[] {
       i++
     } else if (s.type === 'tool_detection') {
       const detection = s
+      const toolCallId = detection.data.toolCallId
+
+      // Search forward for matching tool_execution by toolCallId + iteration
       let execution: AgentThinkingStep | undefined
-      let assembly: AgentThinkingStep | undefined
-      let j = i + 1
-      if (
-        j < steps.length &&
-        steps[j].type === 'tool_execution' &&
-        steps[j].iteration === detection.iteration &&
-        steps[j].data.toolCallId === detection.data.toolCallId
-      ) {
-        execution = steps[j]
-        j++
+      for (let j = i + 1; j < len; j++) {
+        const candidate = steps[j]
+        if (candidate.type === 'tool_detection' && j > i + 1) {
+          // If we hit another detection (not the immediate next), keep searching
+          // but don't match across iterations
+          if (candidate.iteration !== detection.iteration) break
+          continue
+        }
+        if (
+          candidate.type === 'tool_execution' &&
+          candidate.iteration === detection.iteration &&
+          candidate.data.toolCallId === toolCallId
+        ) {
+          execution = candidate
+          break
+        }
+        // Skip llm_call or other types between detection and execution
       }
-      if (
-        j < steps.length &&
-        steps[j].type === 'tool_assembly' &&
-        steps[j].iteration === detection.iteration
-      ) {
-        assembly = steps[j]
-        j++
-      }
+
+      // Find assembly for this iteration (shared across all tool calls)
+      const assembly = assemblyByIteration.get(detection.iteration)
+
       result.push({
         kind: 'merged',
         iteration: detection.iteration,
@@ -67,7 +83,7 @@ function buildRenderSteps(steps: AgentThinkingStep[]): RenderStep[] {
         execution,
         assembly,
       })
-      i = j
+      i++
     } else {
       i++
     }
@@ -154,7 +170,15 @@ function SectionLabel({
   )
 }
 
-function MetaItem({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: 'amber' }) {
+function MetaItem({
+  label,
+  value,
+  highlight,
+}: {
+  label: string
+  value: React.ReactNode
+  highlight?: 'amber'
+}) {
   return (
     <span className='flex items-center gap-1'>
       <span className='text-[var(--text-muted)]/70'>{label}</span>
@@ -316,7 +340,11 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
   const hasResult = execution !== undefined
 
   return (
-    <CardShell borderColor={headerColor === 'emerald' ? 'emerald' : headerColor === 'rose' ? 'rose' : 'purple'}>
+    <CardShell
+      borderColor={
+        headerColor === 'emerald' ? 'emerald' : headerColor === 'rose' ? 'rose' : 'purple'
+      }
+    >
       <CardHeader
         icon={headerIcon}
         title={`工具调用 · ${toolName}`}
@@ -373,8 +401,15 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
           <div className='flex items-center gap-2 rounded-lg bg-[var(--bg-hover)] border border-dashed border-[var(--border-primary)]/30 px-2.5 py-1.5'>
             <ArrowRight className='w-3 h-3 text-[var(--text-muted)] flex-shrink-0' />
             <span className='text-[11px] text-[var(--text-muted)]'>
-              已回填 <span className='font-medium text-[var(--text-secondary)]'>{assembledCount ?? '-'}</span> 个结果 · 上下文共{' '}
-              <span className='font-medium text-[var(--text-secondary)]'>{totalMessages ?? '-'}</span> 条消息
+              已回填{' '}
+              <span className='font-medium text-[var(--text-secondary)]'>
+                {assembledCount ?? '-'}
+              </span>{' '}
+              个结果 · 上下文共{' '}
+              <span className='font-medium text-[var(--text-secondary)]'>
+                {totalMessages ?? '-'}
+              </span>{' '}
+              条消息
             </span>
           </div>
         )}
