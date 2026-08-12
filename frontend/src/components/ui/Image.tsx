@@ -47,29 +47,29 @@ export function Image({
 
   if (error) {
     return (
-      <div
-        className={`flex items-center justify-center rounded-lg border border-[var(--border-divider)] theme-bg-hover/40 ${maxHeightClass} w-full ${className}`}
+      <span
+        className={`inline-flex items-center justify-center rounded-lg border border-[var(--border-divider)] theme-bg-hover/40 ${maxHeightClass} w-full ${className}`}
       >
-        <div className='flex flex-col items-center gap-2 py-6 text-[var(--text-muted)]'>
+        <span className='flex flex-col items-center gap-2 py-6 text-[var(--text-muted)]'>
           <ImageOff className='w-5 h-5' />
           <span className='text-xs'>图片加载失败</span>
-        </div>
-      </div>
+        </span>
+      </span>
     )
   }
 
   return (
     <>
-      <div
+      <span
         className={`relative group inline-block rounded-lg overflow-hidden border border-[var(--border-divider)] ${className}`}
       >
         {!loaded && (
-          <div
+          <span
             className={`absolute inset-0 flex items-center justify-center theme-bg-hover/30 z-10 ${maxHeightClass}`}
             style={{ minWidth: '12rem', minHeight: '9rem' }}
           >
             <Loader2 className='w-5 h-5 animate-spin text-[var(--brand-primary)]' />
-          </div>
+          </span>
         )}
         <img
           src={src}
@@ -101,7 +101,7 @@ export function Image({
             </button>
           </span>
         )}
-      </div>
+      </span>
 
       {expanded && (
         <div

@@ -33,7 +33,7 @@ export function InputArea() {
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [uploading, setUploading] = useState(false)
-  const [agentModeEnabled, setAgentModeEnabled] = useState(false)
+  const [agentModeEnabled, setAgentModeEnabled] = useState(true)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
