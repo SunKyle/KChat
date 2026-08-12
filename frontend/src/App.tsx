@@ -54,7 +54,16 @@ function AppContent() {
   }
 
   return (
-    <>
+    <div
+      style={
+        isLg
+          ? ({
+              '--sidebar-pad': sidebarCollapsed ? '6rem' : '20rem',
+              '--note-pad': noteTodoDrawerOpen ? '27rem' : '1rem',
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <div className='flex h-dvh theme-bg-primary overflow-hidden theme-text-primary'>
         <a
           href='#main-content'
@@ -102,15 +111,7 @@ function AppContent() {
 
         <div
           id='main-content'
-          className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4 lg:pb-4 lg:pl-[var(--sidebar-pad,20rem)] lg:pr-[var(--note-pad,3.25rem)] transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
-          style={
-            isLg
-              ? ({
-                  '--sidebar-pad': sidebarCollapsed ? '6rem' : '20rem',
-                  '--note-pad': noteTodoDrawerOpen ? '27rem' : '3.25rem',
-                } as React.CSSProperties)
-              : undefined
-          }
+          className='flex-1 flex flex-col overflow-hidden relative pt-20 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4 lg:pb-4 lg:pl-[var(--sidebar-pad,20rem)] lg:pr-[var(--note-pad,4.5rem)] transition-[padding] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] delay-[60ms]'
         >
           <div className='flex flex-col h-full card-float-solid relative overflow-hidden'>
             <div
@@ -157,7 +158,7 @@ function AppContent() {
       />
 
       <ToastContainer />
-    </>
+    </div>
   )
 }
 

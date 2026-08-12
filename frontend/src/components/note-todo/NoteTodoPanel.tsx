@@ -130,11 +130,7 @@ function NoteTodoSearchBar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={
-              mode === 'note'
-                ? '搜索笔记...'
-                : mode === 'todo'
-                  ? '搜索待办...'
-                  : '搜索提醒...'
+              mode === 'note' ? '搜索笔记...' : mode === 'todo' ? '搜索待办...' : '搜索提醒...'
             }
             className='w-full pl-8 pr-8 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm font-secondary text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/25 transition-all'
           />
@@ -142,9 +138,7 @@ function NoteTodoSearchBar({
         <button
           onClick={onCreateClick}
           className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200'
-          aria-label={
-            mode === 'note' ? '新建笔记' : mode === 'todo' ? '新建待办' : '新建提醒'
-          }
+          aria-label={mode === 'note' ? '新建笔记' : mode === 'todo' ? '新建待办' : '新建提醒'}
         >
           <Plus className='w-4 h-4' />
         </button>
@@ -523,11 +517,95 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const modeLabel = mode === 'note' ? '笔记' : mode === 'todo' ? '待办' : '提醒'
   const formTitle = isEditing ? `编辑${modeLabel}` : `新建${modeLabel}`
 
+  const pendingTodosCount = todos.filter((t) => t.status === 'pending').length
+  const pendingRemindersCount = reminders.filter((r) => r.status === 'pending').length
+
+  const handleCapsuleOpen = useCallback(
+    (targetMode: NoteTodoMode) => {
+      setMode(targetMode)
+      setSelectedNote(null)
+      setSelectedTodo(null)
+      setSearchQuery('')
+      setActiveTab('all')
+      setFilterTags([])
+      onOpen()
+    },
+    [onOpen]
+  )
+
   return (
     <>
+      {/* Floating capsule — collapsed state */}
       <div
-        className={`fixed right-4 top-4 bottom-4 w-[340px] lg:w-[400px] z-40 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-20px)] cursor-pointer'}`}
-        onClick={!isOpen ? onOpen : undefined}
+        className={`fixed top-1/2 z-40 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen
+            ? 'opacity-0 scale-75 pointer-events-none translate-x-4 -translate-y-1/2'
+            : 'opacity-100 scale-100 translate-x-0 -translate-y-1/2'
+        }`}
+        style={{ right: 'calc(var(--note-pad, 1rem) + 1rem)' }}
+        aria-hidden={isOpen}
+      >
+        <div
+          className='flex flex-col items-center gap-0.5 py-2 px-1 rounded-full bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_0.5px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow duration-200'
+          style={{ backdropFilter: 'blur(12px)' }}
+        >
+          {[
+            {
+              key: 'note' as const,
+              Icon: FileText,
+              label: '笔记',
+              count: notes.length,
+              color: 'var(--accent-primary)',
+            },
+            {
+              key: 'todo' as const,
+              Icon: ListTodo,
+              label: '待办',
+              count: pendingTodosCount,
+              color: 'var(--accent-emerald)',
+            },
+            {
+              key: 'reminder' as const,
+              Icon: Bell,
+              label: '提醒',
+              count: pendingRemindersCount,
+              color: 'var(--accent-amber)',
+            },
+          ].map((item, idx, arr) => {
+            const { key, Icon, label, count, color } = item
+            return (
+              <div key={key} className='flex flex-col items-center'>
+                <button
+                  onClick={() => handleCapsuleOpen(key)}
+                  className='relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-[var(--bg-hover)] active:scale-90 transition-all duration-200 group'
+                  aria-label={`打开${label}`}
+                  title={label}
+                >
+                  <Icon
+                    className='w-4 h-4 transition-transform duration-200 group-hover:scale-110'
+                    style={{ color }}
+                  />
+                  {count > 0 && (
+                    <span
+                      className='absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full text-white'
+                      style={{ backgroundColor: color }}
+                    >
+                      {count > 99 ? '99+' : count}
+                    </span>
+                  )}
+                </button>
+                {idx < arr.length - 1 && (
+                  <div className='w-5 h-px bg-[var(--border-divider)] my-0.5' />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Panel — expanded state */}
+      <div
+        className={`fixed right-4 top-4 bottom-4 w-[340px] lg:w-[400px] z-40 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%+2rem)] pointer-events-none'}`}
       >
         <div className='h-full card-panel-quiet flex flex-col overflow-hidden'>
           <NoteTodoHeader
