@@ -19,16 +19,20 @@ import java.util.List;
 /**
  * 图像生成工具（文生图，txt2img）
  *
- * <p>暴露 {@code generateImage} 工具，供 LLM 在 Agent 模式下按需调用。
+ * <p>
+ * 暴露 {@code generateImage} 工具，供 LLM 在 Agent 模式下按需调用。
  * 仅支持根据文本提示生成全新图片，不接收参考图。
  *
- * <p>如需基于现有图片修改/编辑，请使用 {@link ImageEditingTool}（img2img）。
+ * <p>
+ * 如需基于现有图片修改/编辑，请使用 {@link ImageEditingTool}（img2img）。
  *
- * <p>复用 {@link OpenAICompatibleClient#generateImageSync}，从
+ * <p>
+ * 复用 {@link OpenAICompatibleClient#generateImageSync}，从
  * {@link ModelConfigService}
  * 中查找第一个具备 IMAGE_OUT 能力的已启用模型配置。
  *
- * <p>返回可插入 Markdown 的图片语法（![Generated Image](url)），
+ * <p>
+ * 返回可插入 Markdown 的图片语法（![Generated Image](url)），
  * 由 {@code ToolInvocationStage.collectImageArtifacts} 自动提取到 ctx.artifacts。
  */
 @Component
@@ -48,12 +52,15 @@ public class ImageGenerationTool implements ToolComponent {
     @Tool("根据文本提示生成全新的图片（文生图 / txt2img）。当用户要求生成、画、绘制、创建新图片时调用此工具。如需基于现有图片修改或编辑，请改用 editImage 工具。")
     String generateImage(
             String prompt,
-            @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。用户指定了特定图像模型时传入；未指定则使用默认配置的首个图像模型。") String requestedModelId) {
+            @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。仅当用户明确指定了特定图像模型时才传入；否则请省略此参数或传入空字符串，系统将自动使用用户配置的默认图像模型。不要传入 'default' 作为字面量值。") String requestedModelId) {
         log.info("[ImageGenerationTool] prompt='{}', requestedModelId={}", prompt, requestedModelId);
 
         // LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
         String requested = requestedModelId;
-        if (requested == null || requested.isBlank()) {
+        if (requested != null && (requested.equalsIgnoreCase("default") || requested.isBlank())) {
+            requested = null;
+        }
+        if (requested == null) {
             requested = userSettingService.getToolModel(UserContextHolder.get(), "generateImage");
         }
         ModelConfig imageModel;

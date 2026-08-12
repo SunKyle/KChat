@@ -69,7 +69,7 @@ public class ImageUnderstandingTool implements ToolComponent {
     String analyzeImage(
             String imageUrl,
             @P("针对图片的具体问题或关注点，如'图中有什么文字'、'描述图片风格'、'图中有几个人'。未指定或为空时返回图片的完整内容描述。") String question,
-            @P("可选的视觉模型ID（格式：服务商:模型名，如 'my-provider:gpt-4o' 或 Ollama 的 'llava'）。用户指定了特定视觉模型时传入；未指定则使用默认配置的首个支持视觉的模型。") String requestedModelId) {
+            @P("可选的视觉模型ID（格式：服务商:模型名，如 'my-provider:gpt-4o' 或 Ollama 的 'llava'）。仅当用户明确指定了特定视觉模型时才传入；否则请省略此参数或传入空字符串，系统将自动使用用户配置的默认视觉模型。不要传入 'default' 作为字面量值。") String requestedModelId) {
 
         if (imageUrl == null || imageUrl.isBlank()) {
             return "图片识别失败：未提供图片URL。";
@@ -81,7 +81,10 @@ public class ImageUnderstandingTool implements ToolComponent {
         // 1. 解析视觉模型：LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
         String visionModelId;
         String requested = requestedModelId;
-        if (requested == null || requested.isBlank()) {
+        if (requested != null && (requested.equalsIgnoreCase("default") || requested.isBlank())) {
+            requested = null;
+        }
+        if (requested == null) {
             requested = userSettingService.getToolModel(UserContextHolder.get(), "analyzeImage");
         }
         if (requested != null && !requested.isBlank()) {

@@ -58,7 +58,7 @@ public class ImageEditingTool implements ToolComponent {
     String editImage(
             String prompt,
             String referenceImageUrl,
-            @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。用户指定了特定图像模型时传入；未指定则使用默认配置的首个图像模型。") String requestedModelId) {
+            @P("可选的模型ID（格式：服务商:模型名，如 'my-provider:dall-e-3'）。仅当用户明确指定了特定图像模型时才传入；否则请省略此参数或传入空字符串，系统将自动使用用户配置的默认图像模型。不要传入 'default' 作为字面量值。") String requestedModelId) {
 
         if (referenceImageUrl == null || referenceImageUrl.isBlank()) {
             return "图像编辑失败：未提供参考图片URL。editImage 工具必须传入 referenceImageUrl 参数。"
@@ -70,7 +70,10 @@ public class ImageEditingTool implements ToolComponent {
 
         // LLM 显式指定 > 工具箱配置的默认模型 > 自动选择
         String requested = requestedModelId;
-        if (requested == null || requested.isBlank()) {
+        if (requested != null && (requested.equalsIgnoreCase("default") || requested.isBlank())) {
+            requested = null;
+        }
+        if (requested == null) {
             requested = userSettingService.getToolModel(UserContextHolder.get(), "editImage");
         }
         ModelConfig imageModel;
