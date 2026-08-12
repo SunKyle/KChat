@@ -46,8 +46,8 @@ public class SensitiveFilter {
             // IPv4 地址
             Pattern.compile("((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)"),
             
-            // URL (http/https)
-            Pattern.compile("https?://[\\w\\-]+(\\.[\\w\\-]+)+[/#?]?.*"),
+            // 注意：URL 不脱敏。用户经常需要分享链接给 LLM（如 fetchUrl、webSearch），
+            // 脱敏后 LLM 无法识别和使用 URL，会导致工具调用失败。
             
             // IPv6 地址 (简化匹配)
             Pattern.compile("([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}"),
