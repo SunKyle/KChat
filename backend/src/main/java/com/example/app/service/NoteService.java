@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
     private final CacheService cacheService;
+    private final NotificationSseManager notificationSseManager;
 
     /**
      * 获取用户所有笔记
@@ -86,6 +88,9 @@ public class NoteService {
         // 失效列表缓存
         cacheService.invalidateNoteCache(userId, note.getId());
 
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "note", "action", "create"));
+
         return toDTO(note);
     }
 
@@ -119,6 +124,9 @@ public class NoteService {
         // 失效相关缓存
         cacheService.invalidateNoteCache(userId, noteId);
 
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "note", "action", "update"));
+
         return toDTO(note);
     }
 
@@ -135,6 +143,9 @@ public class NoteService {
 
         // 失效相关缓存
         cacheService.invalidateNoteCache(userId, noteId);
+
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "note", "action", "delete"));
     }
 
     /**

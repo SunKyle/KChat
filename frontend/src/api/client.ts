@@ -376,6 +376,8 @@ export async function requestSSE(
           } else if (eventType === 'agent_thinking' && parsedData.type) {
             onAgentThinking?.(parsedData as AgentThinkingStep)
           }
+          // 注意：data_updated 事件已迁移到独立的通知 SSE（见 api/notifications.ts），
+          // 聊天 SSE 不再处理数据变更通知，避免重复触发和连接耦合。
         } catch (e) {
           console.warn('Failed to parse SSE data:', e)
         }

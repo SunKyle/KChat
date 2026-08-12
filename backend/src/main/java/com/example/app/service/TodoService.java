@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final CacheService cacheService;
+    private final NotificationSseManager notificationSseManager;
 
     /**
      * 获取用户所有待办
@@ -88,6 +90,9 @@ public class TodoService {
         // 失效列表缓存
         cacheService.invalidateTodoCache(userId, todo.getId());
 
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "todo", "action", "create"));
+
         return toDTO(todo);
     }
 
@@ -129,6 +134,9 @@ public class TodoService {
         // 失效相关缓存
         cacheService.invalidateTodoCache(userId, todoId);
 
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "todo", "action", "update"));
+
         return toDTO(todo);
     }
 
@@ -150,6 +158,9 @@ public class TodoService {
         // 失效相关缓存
         cacheService.invalidateTodoCache(userId, todoId);
 
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "todo", "action", "update"));
+
         return toDTO(todo);
     }
 
@@ -166,6 +177,9 @@ public class TodoService {
 
         // 失效相关缓存
         cacheService.invalidateTodoCache(userId, todoId);
+
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "todo", "action", "delete"));
     }
 
     /**

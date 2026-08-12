@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  *
  * 提供定时提醒的创建、查询、完成和删除能力。
  * 通过 Spring @Scheduled 每分钟检查一次到期提醒，
- * 到期时通过 {@link NotificationService} 推送 SSE 通知给用户。
+ * 到期时通过 {@link NotificationSseManager} 推送 SSE 通知给用户。
  */
 @Service
 @RequiredArgsConstructor
@@ -31,10 +32,9 @@ import java.util.stream.Collectors;
 public class ReminderService {
 
     private final ReminderRepository reminderRepository;
-    private final NotificationService notificationService;
+    private final NotificationSseManager notificationSseManager;
 
-    private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 创建提醒。
@@ -72,6 +72,10 @@ public class ReminderService {
         reminderRepository.save(reminder);
         log.info("[Reminder] Created reminder: id={}, user={}, title='{}', at={}",
                 reminder.getId(), userId, title, remindAt);
+
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "reminder", "action", "create"));
+
         return reminder;
     }
 
@@ -106,6 +110,9 @@ public class ReminderService {
         int updated = reminderRepository.cancelByIdAndUserId(id, userId);
         if (updated > 0) {
             log.info("[Reminder] Cancelled reminder: id={}, user={}", id, userId);
+            // 推送 SSE 通知
+            notificationSseManager.push(userId, "data_updated",
+                    Map.of("type", "reminder", "action", "cancel"));
             return true;
         }
         return false;
@@ -148,6 +155,10 @@ public class ReminderService {
         reminderRepository.save(reminder);
         log.info("[Reminder] Created via API: id={}, user={}, title='{}', at={}",
                 reminder.getId(), userId, reminder.getTitle(), reminder.getRemindAt());
+
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "reminder", "action", "create"));
+
         return toDTO(reminder);
     }
 
@@ -189,6 +200,10 @@ public class ReminderService {
 
         reminderRepository.save(reminder);
         log.info("[Reminder] Updated via API: id={}, user={}", id, userId);
+
+        // 推送 SSE 通知
+        notificationSseManager.push(userId, "data_updated", Map.of("type", "reminder", "action", "update"));
+
         return toDTO(reminder);
     }
 
@@ -232,11 +247,10 @@ public class ReminderService {
         for (Reminder reminder : due) {
             try {
                 markAsFired(reminder.getId());
-                notificationService.pushNotification(
+                notificationSseManager.push(
                         reminder.getUserId(),
                         "reminder",
-                        buildReminderMessage(reminder)
-                );
+                        buildReminderMessage(reminder));
                 log.info("[Reminder] Fired reminder: id={}, title='{}'",
                         reminder.getId(), reminder.getTitle());
             } catch (Exception e) {

@@ -31,7 +31,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
     private final ChatWorkflowService chatWorkflowService;
     private final ContextPipelineExecutor pipelineExecutor;
-    private final NotificationService notificationService;
 
     /**
      * 处理流式聊天请求。
@@ -48,10 +47,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
         });
         emitter.onError(e -> log.error("[STREAM] SSE emitter error: {}", e.getMessage()));
 
-        // 注册 emitter 到通知服务，支持后台提醒推送
-        if (request.getUserId() != null) {
-            notificationService.registerEmitter(request.getUserId(), emitter);
-        }
+        // 聊天 SSE 与通知 SSE 完全隔离：
+        // 通知推送由 NotificationSseManager 独立管理（/api/notifications/stream），
+        // 聊天 emitter 仅负责流式响应，不再注册到通知服务。
 
         String conversationId = chatWorkflowService.getOrCreateConversationId(request);
 

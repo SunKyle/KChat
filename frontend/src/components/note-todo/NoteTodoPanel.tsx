@@ -336,7 +336,15 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
       if (isOpen) loadData()
     }
     window.addEventListener('note-created', handler)
-    return () => window.removeEventListener('note-created', handler)
+    window.addEventListener('todo-data-updated', handler)
+    window.addEventListener('note-data-updated', handler)
+    window.addEventListener('reminder-data-updated', handler)
+    return () => {
+      window.removeEventListener('note-created', handler)
+      window.removeEventListener('todo-data-updated', handler)
+      window.removeEventListener('note-data-updated', handler)
+      window.removeEventListener('reminder-data-updated', handler)
+    }
   }, [isOpen, loadData])
 
   useEffect(() => {

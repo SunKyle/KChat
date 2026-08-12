@@ -9,6 +9,7 @@ import type {
   APIKey,
 } from '../types/user'
 import { userApi } from '../api/user'
+import { connectNotificationSSE, disconnectNotificationSSE } from '../api/notifications'
 
 interface UserContextType {
   profile: UserProfile | null
@@ -72,6 +73,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchProfile()
   }, [fetchProfile])
+
+  // 建立通知 SSE 连接。
+  // userId 统一使用 'default'，与后端工具 UserContextHolder、聊天请求保持一致，
+  // 否则工具创建的数据（reminder/todo/note）推送的通知无法到达前端。
+  useEffect(() => {
+    connectNotificationSSE('default')
+    return () => {
+      disconnectNotificationSSE()
+    }
+  }, [])
 
   const updateProfile = useCallback(async (data: UpdateProfileRequest) => {
     try {
