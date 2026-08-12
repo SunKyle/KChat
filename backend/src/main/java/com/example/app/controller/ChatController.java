@@ -112,14 +112,14 @@ public class ChatController {
      * 更新对话
      * 
      * @param id      对话 ID
-     * @param request 包含新标题的请求
+     * @param request 包含新标题、置顶状态或自定义规则的请求
      * @return 更新后的对话或 404
      */
     @PutMapping("/conversations/{id}")
     public ResponseEntity<ConversationDTO> updateConversation(@PathVariable String id,
             @RequestBody ConversationDTO request) {
         ConversationDTO conversation = conversationService.updateConversation(id, request.getTitle(),
-                request.getPinned());
+                request.getPinned(), request.getCustomRules());
         return conversation != null ? ResponseEntity.ok(conversation) : ResponseEntity.notFound().build();
     }
 

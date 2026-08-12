@@ -3,10 +3,10 @@ package com.example.app.config;
 public final class DefaultSystemPrompt {
 
     public static final String NAME = "default-system-prompt";
-    public static final int VERSION = 3;
-    public static final String DESCRIPTION = "默认系统提示词模板（v3：分层记忆 + context_policy）";
+    public static final int VERSION = 4;
+    public static final String DESCRIPTION = "默认系统提示词模板（v4：会话级自定义规则 + 分层记忆）";
     public static final String CATEGORY = "system";
-    public static final String DEFAULTS = "{\"language_clause\": \"中文（简体）\", \"user_profile\": \"无\", \"memory_l1_profile\": \"无\", \"memory_l2_relevant\": \"无\", \"memory_l3_preference\": \"无\", \"context_policy\": \"\", \"search_context\": \"无\"}";
+    public static final String DEFAULTS = "{\"language_clause\": \"中文（简体）\", \"user_profile\": \"无\", \"memory_l1_profile\": \"无\", \"memory_l2_relevant\": \"无\", \"memory_l3_preference\": \"无\", \"context_policy\": \"\", \"search_context\": \"无\", \"custom_rules\": \"\"}";
 
     public static final String CONTENT = """
             角色与目标：
@@ -19,6 +19,8 @@ public final class DefaultSystemPrompt {
             4. 当背景与历史冲突时，以用户最近一次明确表述为准，并告知用户记录已更新。
             5. 不确定时直接说明"根据现有记录我无法确认"，不要编造，也不要承诺已保存后端未确认保存的信息。
             6. 回答要简洁明确：普通回答不超过200字、不超过3段；用户要求详细时可适当扩展。
+
+            {custom_rules}
 
             {context_policy}
 

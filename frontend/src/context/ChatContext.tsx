@@ -18,6 +18,7 @@ interface ChatContextType {
   createConversation: () => Promise<void>
   deleteConversation: (id: string) => Promise<void>
   updateConversation: (id: string, title: string) => Promise<void>
+  updateConversationRules: (id: string, customRules: string) => Promise<void>
   pinConversation: (id: string, pinned: boolean) => Promise<void>
   sendMessage: (
     content: string,
@@ -249,6 +250,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to pin conversation:', error)
+    }
+  }, [])
+
+  const updateConversationRules = useCallback(async (id: string, customRules: string) => {
+    try {
+      await conversations.update(id, { customRules })
+      dispatch({ type: 'UPDATE_CONVERSATION_RULES', payload: { id, customRules } })
+    } catch (error) {
+      console.error('Failed to update conversation rules:', error)
     }
   }, [])
 
@@ -614,6 +624,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         createConversation,
         deleteConversation,
         updateConversation,
+        updateConversationRules,
         pinConversation,
         sendMessage,
         stopStreaming,

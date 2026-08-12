@@ -100,14 +100,16 @@ public class ConversationService {
     }
 
     /**
-     * 更新对话标题
+     * 更新对话标题、置顶状态或自定义规则
      * 
-     * @param id    对话 ID
-     * @param title 新标题
+     * @param id          对话 ID
+     * @param title       新标题（可选）
+     * @param pinned      置顶状态（可选）
+     * @param customRules 自定义规则（可选，null 表示不更新，空字符串表示清空）
      * @return 更新后的对话；如果不存在返回 null
      */
     @Transactional
-    public ConversationDTO updateConversation(String id, String title, Boolean pinned) {
+    public ConversationDTO updateConversation(String id, String title, Boolean pinned, String customRules) {
         return conversationRepository.findById(id)
                 .map(conversation -> {
                     if (title != null && !title.isBlank()) {
@@ -115,6 +117,9 @@ public class ConversationService {
                     }
                     if (pinned != null) {
                         conversation.setPinned(pinned);
+                    }
+                    if (customRules != null) {
+                        conversation.setCustomRules(customRules.isBlank() ? null : customRules);
                     }
                     Conversation updated = conversationRepository.save(conversation);
                     log.info("Updated conversation: {}", id);

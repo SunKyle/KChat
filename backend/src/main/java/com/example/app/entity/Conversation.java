@@ -45,6 +45,9 @@ public class Conversation {
     @Builder.Default
     private Boolean pinned = false;
 
+    @Column(name = "custom_rules", length = 4000)
+    private String customRules;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

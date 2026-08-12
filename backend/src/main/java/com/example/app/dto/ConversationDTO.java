@@ -20,6 +20,7 @@ public class ConversationDTO {
     private List<MessageDTO> messages;
     private String createdAt;
     private Boolean pinned;
+    private String customRules;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -33,6 +34,7 @@ public class ConversationDTO {
                 .title(conversation.getTitle())
                 .createdAt(createdAtStr)
                 .pinned(conversation.getPinned())
+                .customRules(conversation.getCustomRules())
                 .build();
     }
 
@@ -47,6 +49,7 @@ public class ConversationDTO {
                 .messages(messages)
                 .createdAt(createdAtStr)
                 .pinned(conversation.getPinned())
+                .customRules(conversation.getCustomRules())
                 .build();
     }
 }

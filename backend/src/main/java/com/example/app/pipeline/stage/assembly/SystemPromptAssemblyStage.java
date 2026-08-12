@@ -76,6 +76,12 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         // context_policy：根据意图类型动态生成
         String contextPolicy = buildContextPolicy(ctx.getQueryAnalysisResult());
 
+        // 会话级自定义规则（由 ConversationRulesLoadStage 加载）
+        String customRules = ctx.getCustomRules();
+        String customRulesSection = (customRules != null && !customRules.isBlank())
+                ? "【会话自定义指令】\n" + customRules.trim()
+                : "";
+
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
         params.put("user_profile", userProfileText);
@@ -84,6 +90,7 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         params.put("memory_l3_preference", blankToNone(l3Preference));
         params.put("context_policy", contextPolicy);
         params.put("search_context", searchText);
+        params.put("custom_rules", customRulesSection);
 
         String systemPrompt;
         int templateVersion = -1;
@@ -100,6 +107,7 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
                     .replace("{memory_l1_profile}", blankToNone(l1Profile))
                     .replace("{memory_l2_relevant}", blankToNone(l2Relevant))
                     .replace("{memory_l3_preference}", blankToNone(l3Preference))
+                    .replace("{custom_rules}", customRulesSection)
                     .replace("{context_policy}", contextPolicy)
                     .replace("{search_context}", searchText);
             templateVersion = -1;

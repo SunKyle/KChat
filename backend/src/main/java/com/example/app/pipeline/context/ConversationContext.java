@@ -61,6 +61,7 @@ public class ConversationContext {
     private String language;
     private String searchContext;
     private WebSearchResult rawSearchResult;
+    private String customRules;
 
     // ── Agent / Skill ─────────────────────────────────────────────
     private boolean agentMode;

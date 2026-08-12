@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { X } from 'lucide-react'
@@ -85,8 +86,8 @@ export function Drawer({
 
   const titleId = title ? `drawer-title-${title.replace(/\s+/g, '-')}` : undefined
 
-  return (
-    <div className='fixed inset-0 z-50 flex justify-end' onClick={onClose}>
+  return createPortal(
+    <div className='fixed inset-0 z-[60] flex justify-end' onClick={onClose}>
       <div
         className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
           isAnimating ? 'opacity-0' : 'opacity-100'
@@ -120,6 +121,7 @@ export function Drawer({
 
         <div className={`flex-1 overflow-y-auto ${className}`}>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

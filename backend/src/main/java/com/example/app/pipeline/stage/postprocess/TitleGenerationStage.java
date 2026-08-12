@@ -38,7 +38,7 @@ public class TitleGenerationStage implements ContextPipelineStage {
                     ctx.getUserMessage(), ctx.getLlmResponse(), ctx.getModel());
             if (title == null || title.isBlank()) return;
 
-            conversationService.updateConversation(ctx.getConversationId(), title, null);
+            conversationService.updateConversation(ctx.getConversationId(), title, null, null);
             ctx.setGeneratedTitle(title);
         } catch (Exception e) {
             log.warn("Title generation failed: {}", e.getMessage());

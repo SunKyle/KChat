@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../../context/ChatContext'
 import { useModel } from '../../hooks/useModel'
 import { ThemeToggle } from '../common/ThemeToggle'
+import { ConversationSettings } from './ConversationSettings'
 
 export function Header() {
   const { activeConversation, currentModel, availableModels } = useChat()
@@ -41,11 +42,16 @@ export function Header() {
 
   return (
     <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary'>
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-3 min-w-0'>
         {activeConversation ? (
-          <h1 className='font-conversation-name font-semibold theme-text-primary truncate max-w-lg'>
-            {activeConversation.title}
-          </h1>
+          <>
+            <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 flex-shrink'>
+              {activeConversation.title}
+            </h1>
+            <div className='flex-shrink-0'>
+              <ConversationSettings />
+            </div>
+          </>
         ) : (
           <h1 className='font-conversation-name theme-text-muted'>选择或创建对话</h1>
         )}

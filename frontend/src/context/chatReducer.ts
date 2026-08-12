@@ -46,6 +46,7 @@ export type ChatAction =
       payload: { id: string; title: string }
     }
   | { type: 'PIN_CONVERSATION'; payload: { id: string; pinned: boolean } }
+  | { type: 'UPDATE_CONVERSATION_RULES'; payload: { id: string; customRules: string } }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -395,6 +396,20 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         activeConversation:
           state.activeConversation?.id === action.payload.id
             ? { ...state.activeConversation, pinned: action.payload.pinned }
+            : state.activeConversation,
+      }
+
+    case 'UPDATE_CONVERSATION_RULES':
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) =>
+          conv.id === action.payload.id
+            ? { ...conv, customRules: action.payload.customRules }
+            : conv
+        ),
+        activeConversation:
+          state.activeConversation?.id === action.payload.id
+            ? { ...state.activeConversation, customRules: action.payload.customRules }
             : state.activeConversation,
       }
 
