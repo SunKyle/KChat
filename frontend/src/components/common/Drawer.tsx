@@ -19,6 +19,8 @@ const sizeClasses = {
   xl: 'w-[720px]',
 }
 
+const ANIMATION_DURATION = 300
+
 export function Drawer({
   isOpen,
   onClose,
@@ -27,9 +29,12 @@ export function Drawer({
   size = 'lg',
   className = '',
 }: DrawerProps) {
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [mounted, setMounted] = useState(isOpen)
+  const [isClosing, setIsClosing] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<Element | null>(null)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isOpenRef = useRef(isOpen)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -57,21 +62,39 @@ export function Drawer({
   )
 
   useEffect(() => {
-    if (isOpen) {
-      previousActiveElement.current = document.activeElement
-      setIsAnimating(true)
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
+    isOpenRef.current = isOpen
+  }, [isOpen])
+
+  // 打开：挂载 DOM（off-screen），下一帧触发入场动画
+  useEffect(() => {
+    if (!isOpen) return
+
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    setMounted(true)
+    setIsClosing(true)
+  }, [isOpen])
+
+  // 挂载 + isOpen 为 true 时执行入场动画和副作用
+  useEffect(() => {
+    if (!mounted || !isOpen) return
+
+    previousActiveElement.current = document.activeElement
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        if (!isOpenRef.current) return
+        setIsClosing(false)
         const first = dialogRef.current?.querySelector<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         )
         first?.focus()
       })
-
-      const timer = setTimeout(() => setIsAnimating(false), 300)
-      return () => clearTimeout(timer)
-    }
+    })
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
@@ -80,17 +103,43 @@ export function Drawer({
         previousActiveElement.current.focus()
       }
     }
-  }, [isOpen, handleKeyDown])
+  }, [mounted, isOpen, handleKeyDown])
 
-  if (!isOpen) return null
+  // 用户主动关闭：通知父组件更新 isOpen
+  const handleClose = useCallback(() => {
+    if (closeTimerRef.current) return
+    onClose()
+  }, [onClose])
+
+  // isOpen 变为 false 时播放出场动画并卸载
+  useEffect(() => {
+    if (!isOpen && mounted) {
+      if (closeTimerRef.current) return
+      setIsClosing(true)
+      closeTimerRef.current = setTimeout(() => {
+        setMounted(false)
+        setIsClosing(false)
+        closeTimerRef.current = null
+      }, ANIMATION_DURATION)
+    }
+  }, [isOpen, mounted])
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
+  }, [])
+
+  if (!mounted) return null
 
   const titleId = title ? `drawer-title-${title.replace(/\s+/g, '-')}` : undefined
+  const isEnteringOrOpen = !isClosing
 
   return createPortal(
-    <div className='fixed inset-0 z-[60] flex justify-end' onClick={onClose}>
+    <div className='fixed inset-0 z-[60] flex justify-end' onClick={handleClose}>
       <div
         className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
-          isAnimating ? 'opacity-0' : 'opacity-100'
+          isEnteringOrOpen ? 'opacity-100' : 'opacity-0'
         }`}
       />
 
@@ -99,8 +148,8 @@ export function Drawer({
         role='dialog'
         aria-modal='true'
         aria-labelledby={titleId}
-        className={`relative h-full ${sizeClasses[size]} shadow-2xl flex flex-col overflow-hidden rounded-l-2xl transition-transform duration-300 ease-out bg-[var(--bg-card)] ${
-          isAnimating ? 'translate-x-full' : 'translate-x-0'
+        className={`relative h-full ${sizeClasses[size]} shadow-2xl flex flex-col overflow-hidden rounded-l-2xl transition-all duration-300 ease-out bg-[var(--bg-card)] ${
+          isEnteringOrOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -110,7 +159,7 @@ export function Drawer({
               {title}
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='关闭'
             >
