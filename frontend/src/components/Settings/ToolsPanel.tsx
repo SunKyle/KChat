@@ -4,12 +4,9 @@ import {
   Loader2,
   RefreshCw,
   AlertTriangle,
-  Check,
   Power,
-  Settings,
   Sliders,
   ChevronDown,
-  MoreHorizontal,
 } from 'lucide-react'
 import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
 import type { ToolInfo, ModelConfig } from '../../types'
@@ -72,73 +69,77 @@ export function ToolsPanel() {
   }, [])
 
   // 保存某工具配置的默认模型
-  const saveToolModel = useCallback(async (toolName: string, modelId: string) => {
-    setToolModels((prev) => {
-      const next = { ...prev }
-      if (modelId) {
-        next[toolName] = modelId
-      } else {
-        delete next[toolName]
-      }
-      // 后台保存
-      settingsApi
-        .update({ toolModels: next, enabledTools }, DEFAULT_USER_ID)
-        .then(() => {
-          // 成功
-        })
-        .catch((err) => console.error('Failed to save tool model:', err))
-      return next
-    })
-  }, [enabledTools])
+  const saveToolModel = useCallback(
+    async (toolName: string, modelId: string) => {
+      setToolModels((prev) => {
+        const next = { ...prev }
+        if (modelId) {
+          next[toolName] = modelId
+        } else {
+          delete next[toolName]
+        }
+        // 后台保存
+        settingsApi
+          .update({ toolModels: next, enabledTools }, DEFAULT_USER_ID)
+          .then(() => {
+            // 成功
+          })
+          .catch((err) => console.error('Failed to save tool model:', err))
+        return next
+      })
+    },
+    [enabledTools]
+  )
 
   // 切换工具启用/关闭状态
-  const toggleToolEnabled = useCallback(async (toolName: string, enabled: boolean) => {
-    setTogglingTools((prev) => {
-      const next = new Set(prev)
-      next.add(toolName)
-      return next
-    })
+  const toggleToolEnabled = useCallback(
+    async (toolName: string, enabled: boolean) => {
+      setTogglingTools((prev) => {
+        const next = new Set(prev)
+        next.add(toolName)
+        return next
+      })
 
-    // 立即更新本地状态
-    setEnabledTools((prev) => {
-      const next = { ...prev }
-      if (enabled) {
-        delete next[toolName] // 启用时从 map 中移除（默认启用）
-      } else {
-        next[toolName] = false
-      }
-      // 后台保存
-      settingsApi
-        .update({ enabledTools: next, toolModels }, DEFAULT_USER_ID)
-        .then(() => {
-          // 同步更新 toolList 中的 enabled 状态
-          setToolList((tools) =>
-            tools.map((t) => (t.name === toolName ? { ...t, enabled } : t))
-          )
-        })
-        .catch((err) => {
-          console.error('Failed to save tool enabled state:', err)
-          // 回滚本地状态
-          setEnabledTools((prev) => {
-            const rollback = { ...prev }
-            if (enabled) {
-              rollback[toolName] = false
-            } else {
-              delete rollback[toolName]
-            }
-            return rollback
+      // 立即更新本地状态
+      setEnabledTools((prev) => {
+        const next = { ...prev }
+        if (enabled) {
+          delete next[toolName] // 启用时从 map 中移除（默认启用）
+        } else {
+          next[toolName] = false
+        }
+        // 后台保存
+        settingsApi
+          .update({ enabledTools: next, toolModels }, DEFAULT_USER_ID)
+          .then(() => {
+            // 同步更新 toolList 中的 enabled 状态
+            setToolList((tools) => tools.map((t) => (t.name === toolName ? { ...t, enabled } : t)))
           })
-        })
-        .finally(() => {
-          setTogglingTools((prev) => {
-            const next = new Set(prev)
-            next.delete(toolName)
-            return next
+          .catch((err) => {
+            console.error('Failed to save tool enabled state:', err)
+            // 回滚本地状态
+            setEnabledTools((prev) => {
+              const rollback = { ...prev }
+              if (enabled) {
+                rollback[toolName] = false
+              } else {
+                delete rollback[toolName]
+              }
+              return rollback
+            })
           })
-        })
-      return next
-    })
-  }, [toolModels])
+          .finally(() => {
+            setTogglingTools((prev) => {
+              const next = new Set(prev)
+              next.delete(toolName)
+              return next
+            })
+          })
+        return next
+      })
+    },
+    [toolModels]
+  )
 
   return (
     <div className='space-y-6'>
@@ -224,7 +225,14 @@ interface ToolCardProps {
   onToggleEnabled: (enabled: boolean) => void
 }
 
-function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, onToggleEnabled }: ToolCardProps) {
+function ToolCard({
+  tool,
+  modelList,
+  currentModel,
+  isToggling,
+  onModelChange,
+  onToggleEnabled,
+}: ToolCardProps) {
   const [paramsExpanded, setParamsExpanded] = useState(false)
   const paramEntries = Object.entries(tool.parameters?.properties ?? {})
   const requiredSet = new Set(tool.parameters?.required ?? [])
@@ -259,15 +267,13 @@ function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, on
                 {tool.name}
               </code>
               {needCapability && (
-                <span className='text-[10px] px-1.5 py-0.5 rounded theme-bg-accent-primary/10 theme-accent-primary font-semibold font-mono tracking-wide uppercase'>
+                <span className='inline-flex items-center text-[10px] px-2.5 py-1 rounded-full theme-bg-accent-primary/10 theme-accent-primary font-semibold font-mono tracking-wide uppercase'>
                   {tool.modelCapability}
                 </span>
               )}
             </div>
             {tool.description && (
-              <p className='text-sm theme-text-secondary leading-relaxed'>
-                {tool.description}
-              </p>
+              <p className='text-sm theme-text-secondary leading-relaxed'>{tool.description}</p>
             )}
           </div>
           <div className='flex-shrink-0 flex items-center gap-2'>
@@ -275,9 +281,7 @@ function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, on
               onClick={() => onToggleEnabled(!isEnabled)}
               disabled={isToggling}
               className={`relative w-11 h-6 rounded-full transition-colors ${
-                isEnabled
-                  ? 'bg-green-500 hover:bg-green-600'
-                  : 'theme-bg-hover hover:bg-red-500/30'
+                isEnabled ? 'bg-green-500 hover:bg-green-600' : 'theme-bg-hover hover:bg-red-500/30'
               } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
               title={isEnabled ? '点击关闭（对 LLM 不可见）' : '点击启用'}
             >
@@ -289,25 +293,20 @@ function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, on
                 {isToggling ? (
                   <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
                 ) : (
-                  <Power className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
+                  <Power
+                    className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`}
+                  />
                 )}
               </span>
             </button>
-            <button className='p-1.5 rounded-lg hover:theme-bg-hover transition-colors theme-text-muted'>
-              <MoreHorizontal className='w-4 h-4' />
-            </button>
           </div>
         </div>
-
       </div>
 
       {/* 使用的模型 */}
       {needCapability && (
         <div className='px-4 pb-3'>
-          <div className='flex items-center gap-2 p-3 rounded-xl theme-bg-hover/50'>
-            <div className='flex-shrink-0 w-7 h-7 rounded-lg theme-bg-accent-primary/10 flex items-center justify-center'>
-              <Settings className='w-4 h-4 theme-accent-primary' />
-            </div>
+          <div className='flex items-center gap-2 p-3 rounded-xl theme-bg-hover'>
             <label className='text-xs font-semibold theme-text-muted whitespace-nowrap'>
               使用的模型
             </label>
@@ -323,9 +322,6 @@ function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, on
                 </option>
               ))}
             </select>
-            {currentModel && (
-              <Check className='w-4 h-4 text-green-500 flex-shrink-0' />
-            )}
           </div>
         </div>
       )}
@@ -367,7 +363,9 @@ function ToolCard({ tool, modelList, currentModel, isToggling, onModelChange, on
                         {paramName}
                       </code>
                       {schema?.type && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${colorClass}`}>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${colorClass}`}
+                        >
                           {schema.type}
                         </span>
                       )}
