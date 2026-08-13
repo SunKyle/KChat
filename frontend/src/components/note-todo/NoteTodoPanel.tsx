@@ -546,7 +546,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
         aria-hidden={isOpen}
       >
         <div
-          className='flex flex-col items-center gap-0.5 py-2 px-1 rounded-full bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_0.5px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow duration-200'
+          className='flex flex-col items-center gap-1 py-2.5 px-1.5 rounded-full bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_0.5px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow duration-200'
           style={{ backdropFilter: 'blur(12px)' }}
         >
           {[
@@ -577,17 +577,17 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
               <div key={key} className='flex flex-col items-center'>
                 <button
                   onClick={() => handleCapsuleOpen(key)}
-                  className='relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-[var(--bg-hover)] active:scale-90 transition-all duration-200 group'
+                  className='relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--bg-hover)] active:scale-90 transition-all duration-200 group'
                   aria-label={`打开${label}`}
                   title={label}
                 >
                   <Icon
-                    className='w-4 h-4 transition-transform duration-200 group-hover:scale-110'
+                    className='w-5 h-5 transition-transform duration-200 group-hover:scale-110'
                     style={{ color }}
                   />
                   {count > 0 && (
                     <span
-                      className='absolute top-1 right-1 translate-x-1 -translate-y-1 min-w-[15px] h-3.5 px-1 flex items-center justify-center text-[9px] font-bold rounded-full text-white'
+                      className='absolute top-1 right-1 translate-x-1 -translate-y-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full text-white ring-2 ring-[var(--bg-sidebar)]'
                       style={{ backgroundColor: color }}
                     >
                       {count > 99 ? '99+' : count}
