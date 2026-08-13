@@ -25,3 +25,8 @@ backend/uploads/
 
 # Downloaded model artifacts (regenerated on demand)
 backend/models/
+
+# Secrets / env files (含 API key，禁止入库)
+.env
+.env.*
+!.env.example
