@@ -30,3 +30,7 @@ backend/models/
 .env
 .env.*
 !.env.example
+
+# Cognee 数据目录
+.cognee_data/
+.cognee_system/

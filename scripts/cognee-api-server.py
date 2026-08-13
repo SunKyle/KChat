@@ -9,6 +9,8 @@ Endpoints:
   POST /add      — Add content to cognee's knowledge graph
   POST /search   — Search cognee for relevant memories
   POST /cognify  — Process and index content
+  GET  /graph    — Get knowledge graph nodes and edges for visualization
+  GET  /datasets — List all datasets and their data counts
   GET  /health   — Health check
 
 Usage:
@@ -27,15 +29,14 @@ import atexit
 import socket
 import logging
 
-# ── 从项目 .env 文件加载环境变量 ────────────────────────
+# ── 从项目 .env 文件加载环境变量（唯一配置来源）────────────
 _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
-if os.path.exists(_env_path):
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(_env_path)
-        print(f"[cognee-api] Loaded env from {_env_path}")
-    except ImportError:
-        pass  # python-dotenv not installed, skip
+if not os.path.exists(_env_path):
+    print(f"[cognee-api] WARNING: .env not found at {_env_path}")
+    sys.exit(1)
+from dotenv import load_dotenv
+load_dotenv(_env_path, override=True)
+print(f"[cognee-api] Loaded env from {_env_path}")
 
 # ── 绕过 tiktoken 的网络依赖 ──────────────────────────────
 # cognee 内部调用 tiktoken.encoding_for_model() 来获取 tokenizer，
@@ -65,23 +66,11 @@ if _tiktoken is not None:
             return _DummyTikToken()
     _tiktoken.encoding_for_model = _safe_encoding_for_model
 
-# Ensure cognee's CACHING and access control are off for local dev
+# ── Cognee 系统设置（不属于用户配置，固定值）──────────────
 os.environ.setdefault('COGNEE_CACHING', 'false')
 os.environ.setdefault('ENABLE_BACKEND_ACCESS_CONTROL', 'false')
 os.environ.setdefault('COGNEE_DISABLE_TELEMETRY', 'true')
 os.environ.setdefault('COGNEE_SKIP_CONNECTION_TEST', 'true')
-
-# ── LLM 配置 ──────────────────────────────────────────────
-# 默认使用 Ollama（本地）。设置 DEEPSEEK_API_KEY 可切换为远程 LLM。
-os.environ.setdefault('LLM_API_KEY', 'ollama')
-os.environ.setdefault('LLM_MODEL', 'ollama/llama3')
-os.environ.setdefault('LLM_ENDPOINT', 'http://localhost:11434')
-
-# ── Embedding 配置 ────────────────────────────────────────
-# 使用 Ollama 的 OpenAI 兼容端点（/v1 路径）来生成向量。
-os.environ.setdefault('EMBEDDING_ENDPOINT', 'http://localhost:11434/v1')
-os.environ.setdefault('EMBEDDING_MODEL', 'ollama/nomic-embed-text')
-os.environ.setdefault('EMBEDDING_DIMENSIONS', '768')
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -120,6 +109,37 @@ class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = ""
     engine: str = "cognee"
+
+class GraphNode(BaseModel):
+    id: str
+    label: str = ""
+    type: str = "entity"
+    properties: dict = {}
+    position: dict = {}
+
+class GraphEdge(BaseModel):
+    id: str = ""
+    source: str
+    target: str
+    label: str = ""
+    type: str = "relationship"
+
+class GraphResponse(BaseModel):
+    nodes: list[GraphNode] = []
+    edges: list[GraphEdge] = []
+    status: str = "success"
+    total_nodes: int = 0
+    total_edges: int = 0
+
+class DatasetInfo(BaseModel):
+    id: str
+    name: str = ""
+    data_count: int = 0
+    created_at: str = ""
+
+class DatasetsResponse(BaseModel):
+    datasets: list[DatasetInfo] = []
+    status: str = "success"
 
 # ── FastAPI App ────────────────────────────────────────────────
 
@@ -236,6 +256,93 @@ async def health():
         )
     except Exception as e:
         return HealthResponse(status=f"error: {e}", version="unknown")
+
+@app.get("/graph", response_model=GraphResponse)
+async def get_graph():
+    """Get knowledge graph nodes and edges for frontend visualization.
+
+    Queries the graph engine directly to retrieve entities (nodes) and
+    relationships (edges) extracted by Cognee's cognify pipeline.
+    """
+    try:
+        from cognee.infrastructure.databases.graph import get_graph_engine
+        from cognee.modules.data.methods import get_authorized_existing_datasets
+        from cognee.modules.users.methods import get_default_user
+        from cognee.context_global_variables import set_database_global_context_variables
+
+        user = await get_default_user()
+        dataset = await get_authorized_existing_datasets(["main_dataset"], "read", user)
+
+        async with set_database_global_context_variables(
+            dataset[0].id if dataset else None,
+            dataset[0].owner_id if dataset else None,
+        ):
+            graph_engine = await get_graph_engine()
+            raw_nodes, raw_edges = await graph_engine.get_graph_data()
+
+            nodes = []
+            for n in raw_nodes:
+                nid = str(n[0]) if isinstance(n, (tuple, list)) else str(getattr(n, 'id', ''))
+                props = n[1] if isinstance(n, (tuple, list)) and len(n) > 1 else getattr(n, 'properties', {})
+                if not isinstance(props, dict):
+                    props = dict(props) if props else {}
+                label = str(props.get('name', props.get('label', nid)))[:60]
+                ntype = str(props.get('type', props.get('entity_type', 'entity')))[:30]
+                clean_props = {k: str(v)[:200] for k, v in props.items()
+                               if k in ('description', 'created_at', 'version', 'feedback_weight')}
+                nodes.append(GraphNode(id=nid, label=label, type=ntype, properties=clean_props))
+
+            edges = []
+            for e in raw_edges:
+                src = str(e[0]) if isinstance(e, (tuple, list)) else str(getattr(e, 'source', ''))
+                tgt = str(e[1]) if isinstance(e, (tuple, list)) and len(e) > 1 else str(getattr(e, 'target', ''))
+                rel = str(e[2]) if isinstance(e, (tuple, list)) and len(e) > 2 else str(getattr(e, 'relation', ''))
+                eprops = e[3] if isinstance(e, (tuple, list)) and len(e) > 3 else getattr(e, 'properties', {})
+                if not isinstance(eprops, dict):
+                    eprops = dict(eprops) if eprops else {}
+                eid = f"{src}-{rel}-{tgt}"
+                edges.append(GraphEdge(id=eid, source=src, target=tgt, label=rel[:40], type=rel))
+
+            logger.info(f"Graph retrieved: {len(nodes)} nodes, {len(edges)} edges")
+            return GraphResponse(
+                nodes=nodes,
+                edges=edges,
+                total_nodes=len(nodes),
+                total_edges=len(edges),
+            )
+
+    except Exception as e:
+        logger.error(f"get_graph failed: {e}")
+        return GraphResponse(status=f"error: {e}")
+
+@app.get("/datasets", response_model=DatasetsResponse)
+async def list_datasets():
+    """List all datasets with their data counts."""
+    try:
+        cognee = await get_cognee()
+        datasets = await cognee.datasets.list_datasets()
+
+        result = []
+        for ds in (datasets or []):
+            ds_id = str(getattr(ds, 'id', ''))
+            count = 0
+            try:
+                data_items = await cognee.datasets.list_data(dataset_id=getattr(ds, 'id'))
+                count = len(data_items) if data_items else 0
+            except Exception:
+                pass
+
+            result.append(DatasetInfo(
+                id=ds_id,
+                name=str(getattr(ds, 'name', ds_id)),
+                data_count=count,
+                created_at=str(getattr(ds, 'created_at', '')),
+            ))
+
+        return DatasetsResponse(datasets=result)
+    except Exception as e:
+        logger.error(f"list_datasets failed: {e}")
+        return DatasetsResponse(status=f"error: {e}")
 
 
 # ── Main ───────────────────────────────────────────────────────

@@ -18,10 +18,12 @@ import {
   Target,
   Users,
   Calendar,
+  Network,
 } from 'lucide-react'
 import { memory } from '../../../api/memory'
 import { MEMORY_TYPES } from '../../../types'
 import type { Memory, MemoryType } from '../../../types'
+import { KnowledgeGraph } from './KnowledgeGraph'
 
 const typeIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   KNOWLEDGE: BookOpen,
@@ -75,6 +77,7 @@ export function MemoryPanel() {
   const [showForm, setShowForm] = useState(false)
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null)
   const [selectedMemories, setSelectedMemories] = useState<number[]>([])
+  const [activeView, setActiveView] = useState<'list' | 'graph'>('list')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const userId = 'default'
@@ -180,69 +183,103 @@ export function MemoryPanel() {
 
   return (
     <div className='flex flex-col w-full max-h-[calc(100vh-200px)] min-h-[200px]'>
-      <div className='flex flex-col sm:flex-row md:flex-row lg:flex-row items-start sm:items-center md:items-center lg:items-center justify-between gap-3 mb-4 w-full'>
+      {/* 标题 + 标签页 */}
+      <div className='flex items-center justify-between gap-3 mb-4 w-full'>
         <div className='flex items-center gap-2 flex-shrink-0'>
           <Database className='w-5 h-5 theme-text-muted' />
-          <h3 className='font-semibold theme-text-primary'>记忆列表</h3>
+          <h3 className='font-semibold theme-text-primary'>
+            {activeView === 'list' ? '记忆列表' : '知识图谱'}
+          </h3>
         </div>
 
-        <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-nowrap md:flex-nowrap lg:flex-nowrap'>
-          {/* 搜索框 */}
-          <div className='flex-1 sm:flex-initial md:flex-initial lg:flex-initial relative min-w-[100px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px]'>
-            <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
-            <input
-              type='text'
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder='搜索记忆...'
-              className='w-full sm:w-44 md:w-48 lg:w-56 xl:w-64 pl-9 pr-3 py-2 text-sm bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]/60 focus:ring-1.5 focus:ring-[var(--accent-primary)]/30 transition-all duration-200'
-            />
-          </div>
-
-          {/* 下拉框 */}
-          <div className='relative min-w-[80px] sm:min-w-[90px] flex-shrink-0'>
-            <Filter className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value as MemoryType | 'ALL')}
-              className='w-full pl-9 pr-7 py-2 text-sm appearance-none cursor-pointer bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)]/60 focus:ring-1.5 focus:ring-[var(--accent-primary)]/30 transition-all duration-200'
-            >
-              <option value='ALL'>全部</option>
-              {MEMORY_TYPES.map((t) => (
-                <option key={t.type} value={t.type}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            {/* 下拉箭头 */}
-            <svg
-              className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M19 9l-7 7-7-7'
-              />
-            </svg>
-          </div>
-
-          {/* 添加按钮 */}
+        {/* 标签页切换 */}
+        <div className='flex items-center bg-[var(--bg-input)] rounded-xl p-1'>
           <button
-            onClick={() => {
-              setEditingMemory(null)
-              setShowForm(true)
-            }}
-            className='flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap flex-shrink-0'
+            onClick={() => setActiveView('list')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+              activeView === 'list'
+                ? 'bg-[var(--accent-primary)] text-white shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            }`}
           >
-            <Plus className='w-4 h-4' />
-            <span className='hidden sm:inline'>添加</span>
+            <Database className='w-4 h-4' />
+            <span>记忆</span>
+          </button>
+          <button
+            onClick={() => setActiveView('graph')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+              activeView === 'graph'
+                ? 'bg-[var(--accent-primary)] text-white shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <Network className='w-4 h-4' />
+            <span>图谱</span>
           </button>
         </div>
       </div>
+
+      {/* 记忆列表视图 */}
+      {activeView === 'list' && (
+        <>
+          <div className='flex flex-col sm:flex-row md:flex-row lg:flex-row items-start sm:items-center md:items-center lg:items-center justify-between gap-3 mb-4 w-full'>
+            <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-nowrap md:flex-nowrap lg:flex-nowrap'>
+              {/* 搜索框 */}
+              <div className='flex-1 sm:flex-initial md:flex-initial lg:flex-initial relative min-w-[100px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px]'>
+                <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
+                <input
+                  type='text'
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder='搜索记忆...'
+                  className='w-full sm:w-44 md:w-48 lg:w-56 xl:w-64 pl-9 pr-3 py-2 text-sm bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]/60 focus:ring-1.5 focus:ring-[var(--accent-primary)]/30 transition-all duration-200'
+                />
+              </div>
+
+              {/* 下拉框 */}
+              <div className='relative min-w-[80px] sm:min-w-[90px] flex-shrink-0'>
+                <Filter className='absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none' />
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value as MemoryType | 'ALL')}
+                  className='w-full pl-9 pr-7 py-2 text-sm appearance-none cursor-pointer bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)]/60 focus:ring-1.5 focus:ring-[var(--accent-primary)]/30 transition-all duration-200'
+                >
+                  <option value='ALL'>全部</option>
+                  {MEMORY_TYPES.map((t) => (
+                    <option key={t.type} value={t.type}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                {/* 下拉箭头 */}
+                <svg
+                  className='absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]pointer-events-none'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </div>
+
+              {/* 添加按钮 */}
+              <button
+                onClick={() => {
+                  setEditingMemory(null)
+                  setShowForm(true)
+                }}
+                className='flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap flex-shrink-0'
+              >
+                <Plus className='w-4 h-4' />
+                <span className='hidden sm:inline'>添加</span>
+              </button>
+            </div>
+          </div>
 
       {loading ? (
         <div className='flex items-center justify-center py-12'>
@@ -661,6 +698,13 @@ export function MemoryPanel() {
             </div>
           </div>
         </div>
+      )}
+      </>
+      )}
+
+      {/* 图谱视图 */}
+      {activeView === 'graph' && (
+        <KnowledgeGraph />
       )}
     </div>
   )

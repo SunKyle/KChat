@@ -36,6 +36,42 @@ export interface CogneeAddResponse {
   message?: string
 }
 
+export interface GraphNode {
+  id: string
+  label: string
+  type: string
+  properties: Record<string, unknown>
+  position?: { x: number; y: number }
+}
+
+export interface GraphEdge {
+  id: string
+  source: string
+  target: string
+  label: string
+  type: string
+}
+
+export interface GraphResponse {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  status: string
+  total_nodes: number
+  total_edges: number
+}
+
+export interface DatasetInfo {
+  id: string
+  name: string
+  data_count: number
+  created_at: string
+}
+
+export interface DatasetsResponse {
+  datasets: DatasetInfo[]
+  status: string
+}
+
 /**
  * Cognee memory API client.
  * All methods gracefully handle connection errors — failures return empty results.
@@ -106,6 +142,45 @@ export const cogneeMemory = {
       return response.ok
     } catch {
       return false
+    }
+  },
+
+  /**
+   * Get the knowledge graph structure (nodes + edges) for visualization.
+   */
+  getGraph: async (): Promise<GraphResponse> => {
+    try {
+      const response = await fetch(`${COGNEE_BASE_URL}/graph`, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        console.warn('[Cognee] Get graph returned status:', response.status)
+        return { nodes: [], edges: [], status: `error: HTTP ${response.status}`, total_nodes: 0, total_edges: 0 }
+      }
+      return await response.json()
+    } catch (error) {
+      console.warn('[Cognee] Get graph failed:', error)
+      return { nodes: [], edges: [], status: `error: ${error}`, total_nodes: 0, total_edges: 0 }
+    }
+  },
+
+  /**
+   * List all datasets with their metadata.
+   */
+  listDatasets: async (): Promise<DatasetInfo[]> => {
+    try {
+      const response = await fetch(`${COGNEE_BASE_URL}/datasets`, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        console.warn('[Cognee] List datasets returned status:', response.status)
+        return []
+      }
+      const data: DatasetsResponse = await response.json()
+      return data.datasets ?? []
+    } catch (error) {
+      console.warn('[Cognee] List datasets failed:', error)
+      return []
     }
   },
 }

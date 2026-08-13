@@ -3,18 +3,11 @@
 # Cognee 记忆服务 — 启动脚本
 # ============================================================
 # 启动 Cognee REST API 服务器 (FastAPI :8000)
+# LLM/Embedding 配置从 .env 文件读取
 #
 # 用法:
 #   ./scripts/start-cognee.sh                    # 前台运行
-#   ./scripts/start.sh --with-cognee             # 与其他服务一同启动
-#
-# 端点:
-#   POST /add     — 添加内容到知识图谱
-#   POST /search  — 搜索记忆
-#   GET  /health  — 健康检查
-#
-# 环境变量:
-#   COGNEE_PORT   — 端口 (默认: 8000)
+#   ./scripts/start.sh --cognee-only             # 通过 start.sh 调用
 # ============================================================
 
 set -euo pipefail
@@ -25,30 +18,40 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-PORT="${COGNEE_PORT:-8000}"
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# ── 加载环境变量 ──────────────────────────────────────────
-if [ -f "$PROJECT_DIR/.env" ]; then
-    set -a; source "$PROJECT_DIR/.env"; set +a
+# ── 加载 .env（唯一配置来源）──────────────────────────────
+if [ ! -f "$PROJECT_DIR/.env" ]; then
+    echo -e "${RED}[ERROR]${NC} 找不到 .env 文件: $PROJECT_DIR/.env"
+    exit 1
 fi
+set -a; source "$PROJECT_DIR/.env"; set +a
+
+PORT="${COGNEE_PORT:-8000}"
 API_SERVER="$SCRIPT_DIR/cognee-api-server.py"
-PID_FILE="/tmp/kchat-cognee.pid"
+LOG_DIR="$PROJECT_DIR/logs"
+PID_FILE="$LOG_DIR/cognee.pid"
+mkdir -p "$LOG_DIR"
 
-# ── 检查依赖 ──────────────────────────────────────────────────
-command -v python3 &>/dev/null || { echo -e "${RED}[ERROR]${NC} 需要 Python 3"; exit 1; }
+# ── 查找装有 cognee 的 Python ────────────────────────────────
+COGNEE_PYTHON=""
+for _py in \
+    /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
+    /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 \
+    /usr/local/bin/python3 \
+    "$(command -v python3)"; do
+    if [ -x "$_py" ] && "$_py" -c "import cognee, fastapi" &>/dev/null; then
+        COGNEE_PYTHON="$_py"
+        break
+    fi
+done
+if [ -z "$COGNEE_PYTHON" ]; then
+    echo -e "${RED}[ERROR]${NC} 找不到装有 cognee + fastapi 的 Python"
+    echo "  请安装: pip3 install cognee fastapi uvicorn python-dotenv"
+    exit 1
+fi
 [ -f "$API_SERVER" ] || { echo -e "${RED}[ERROR]${NC} 找不到 $API_SERVER"; exit 1; }
-
-python3 -c "import cognee" 2>/dev/null || {
-    echo -e "${YELLOW}[WARN]${NC} cognee 未安装，尝试安装..."
-    pip3 install cognee 2>&1 | tail -1
-    python3 -c "import cognee" 2>/dev/null || {
-        echo -e "${RED}[ERROR]${NC} 安装失败，请手动执行: pip3 install cognee"
-        exit 1
-    }
-}
 
 # ── 检查端口是否可用 ──────────────────────────────────────────
 EXISTING_PIDS=$(lsof -ti:"$PORT" 2>/dev/null || true)
@@ -70,30 +73,25 @@ if [ -n "$EXISTING_PIDS" ]; then
 fi
 
 # ── 启动服务器 ────────────────────────────────────────────────
-# 使用 nohup 启动为后台进程
 export COGNEE_PORT="$PORT"
-export LLM_API_KEY="${LLM_API_KEY:-ollama}"
-export LLM_MODEL="${LLM_MODEL:-ollama/llama3}"
-export EMBEDDING_ENDPOINT="${EMBEDDING_ENDPOINT:-http://localhost:11434/v1}"
-export EMBEDDING_MODEL="${EMBEDDING_MODEL:-llama3}"
-export EMBEDDING_DIMENSIONS="${EMBEDDING_DIMENSIONS:-4096}"
-nohup python3 "$API_SERVER" > /tmp/kchat-cognee.log 2>&1 &
+nohup "$COGNEE_PYTHON" "$API_SERVER" > "$LOG_DIR/cognee.log" 2>&1 &
 COGNEE_PID=$!
 echo "$COGNEE_PID" > "$PID_FILE"
 
 echo -e "${CYAN}[INFO]${NC}  Cognee 服务启动中 (PID: $COGNEE_PID, :$PORT)"
+echo -e "  ${CYAN}Python:${NC}    $COGNEE_PYTHON"
+echo -e "  ${CYAN}LLM:${NC}       ${LLM_MODEL:-未配置}"
+echo -e "  ${CYAN}Embedding:${NC} ${EMBEDDING_MODEL:-未配置}"
 
 # ── 等待就绪 ──────────────────────────────────────────────────
 for i in $(seq 1 30); do
     if curl -sf "http://localhost:$PORT/health" > /dev/null 2>&1; then
         echo -e "${GREEN}[ OK ]${NC}  Cognee 已就绪"
-        echo -e "  ${CYAN}添加记忆:${NC}  curl -X POST http://localhost:$PORT/add -H 'Content-Type: application/json' -d '{\"content\":\"...\"}'"
-        echo -e "  ${CYAN}搜索记忆:${NC}  curl -X POST http://localhost:$PORT/search -H 'Content-Type: application/json' -d '{\"query\":\"...\"}'"
-        echo -e "  ${CYAN}查看日志:${NC}  tail -f /tmp/kchat-cognee.log"
+        echo -e "  ${CYAN}查看日志:${NC}  tail -f $LOG_DIR/cognee.log"
         exit 0
     fi
     sleep 1
 done
 
-echo -e "${RED}[ERROR]${NC} Cognee 启动超时，请检查日志: tail -f /tmp/kchat-cognee.log"
+echo -e "${RED}[ERROR]${NC} Cognee 启动超时，请检查日志: tail -f $LOG_DIR/cognee.log"
 exit 1

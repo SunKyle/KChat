@@ -60,7 +60,7 @@ start.sh
   └── ⑤ 启动前端 → 等待首页就绪
 ```
 
-启动完成后会显示每个服务的地址和 PID。日志文件位于 `/tmp/kchat-*.log`。
+启动完成后会显示每个服务的地址和 PID。日志文件位于项目 `logs/` 目录下。
 
 ---
 
@@ -136,14 +136,16 @@ DEEPSEEK_API_KEY=sk-xxx ./scripts/cognee-graph.sh ~/my-graph.html
 
 ## 日志文件
 
+日志统一存放在项目 `logs/` 目录下。
+
 | 服务 | 日志路径 |
 |------|---------|
-| 后端 | `/tmp/kchat-backend.log` |
-| 前端 | `/tmp/kchat-frontend.log` |
-| Cognee | `/tmp/kchat-cognee.log` |
+| 后端 | `logs/backend.log` |
+| 前端 | `logs/frontend.log` |
+| Cognee | `logs/cognee.log` |
 
 ```bash
-tail -f /tmp/kchat-backend.log   # 实时查看后端日志
+tail -f logs/backend.log   # 实时查看后端日志
 ```
 
 ## 端口占用

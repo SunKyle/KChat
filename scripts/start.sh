@@ -35,6 +35,8 @@ check() { printf "  %-30s" "$1"; }
 # ── 路径 ──────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOG_DIR="$PROJECT_DIR/logs"
+mkdir -p "$LOG_DIR"
 
 # ── 加载环境变量 ──────────────────────────────────────────
 if [ -f "$PROJECT_DIR/.env" ]; then
@@ -49,22 +51,11 @@ for arg in "$@"; do
     case "$arg" in
         --with-cognee) START_COGNEE=true ;;
         --cognee-only) COGNEE_ONLY=true ;;
-        --deepseek)
-            START_COGNEE=true
-            KEY="${LLM_API_KEY:-${DEEPSEEK_API_KEY:-}}"
-            if [ -z "$KEY" ]; then
-                echo -e "${RED}[ERROR]${NC} --deepseek 需要设置 LLM_API_KEY 或 DEEPSEEK_API_KEY"
-                echo "  例如: DEEPSEEK_API_KEY=sk-xxx $0 --deepseek"
-                exit 1
-            fi
-            export LLM_API_KEY="$KEY"
-            export LLM_MODEL="${LLM_MODEL:-deepseek/deepseek-chat}"
-            ;;
         --help|-h)
-            echo "用法: $0 [--with-cognee] [--cognee-only] [--deepseek]"
+            echo "用法: $0 [--with-cognee] [--cognee-only]"
             echo "  --with-cognee   同时启动 Cognee 记忆服务"
             echo "  --cognee-only   仅启动 Cognee 记忆服务"
-            echo "  --deepseek      使用 DeepSeek 替代 Ollama 作为 Cognee 的 LLM"
+            echo "  LLM/Embedding 配置从 .env 文件读取"
             exit 0
             ;;
     esac
@@ -79,12 +70,25 @@ check "Node.js"   && command -v node &>/dev/null && node --version && ok "node �
 check "npm"       && command -v npm  &>/dev/null && npm --version  && ok "npm 就绪"    || { err "需要 npm"; exit 1; }
 
 if $START_COGNEE || $COGNEE_ONLY; then
-    check "Python 3"  && command -v python3 &>/dev/null && python3 --version 2>&1 && ok "python3 就绪" || { err "需要 Python 3"; exit 1; }
-    check "Cognee"    && python3 -c "import cognee; print(f'v{cognee.__version__}')" 2>&1 && ok "cognee 就绪" || {
-        warn "cognee 未安装，尝试自动安装..."
-        pip3 install cognee 2>&1 | tail -1
-        python3 -c "import cognee; print(f'v{cognee.__version__}')" 2>&1 && ok "cognee 安装完成" || { err "cognee 安装失败，请手动执行: pip3 install cognee"; exit 1; }
-    }
+    # 查找装有 cognee 的 Python（优先 Framework Python，再退回系统 python3）
+    COGNEE_PYTHON=""
+    for _py in \
+        /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 \
+        /usr/local/bin/python3 \
+        "$(command -v python3)"; do
+        if [ -x "$_py" ] && "$_py" -c "import cognee, fastapi" &>/dev/null; then
+            COGNEE_PYTHON="$_py"
+            break
+        fi
+    done
+    if [ -z "$COGNEE_PYTHON" ]; then
+        check "Cognee Python" && err "找不到装有 cognee + fastapi 的 Python"
+        echo "  请安装: pip3 install cognee fastapi uvicorn python-dotenv"
+        exit 1
+    fi
+    check "Cognee Python" && "$COGNEE_PYTHON" --version 2>&1 && ok "$COGNEE_PYTHON"
+    check "Cognee"        && "$COGNEE_PYTHON" -c "import cognee; print(f'v{cognee.__version__}')" 2>&1 && ok "cognee 就绪"
 fi
 
 # ── 停止旧服务 ────────────────────────────────────────────────
@@ -221,9 +225,9 @@ fi
 
 cd "$PROJECT_DIR/backend"
 # 清空旧日志
-> /tmp/kchat-backend.log
+> "$LOG_DIR/backend.log"
 info "启动后端: mvn spring-boot:run (JAVA_HOME=$JAVA_HOME)"
-nohup mvn spring-boot:run >> /tmp/kchat-backend.log 2>&1 &
+nohup mvn spring-boot:run >> "$LOG_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 echo "  PID: $BACKEND_PID"
 
@@ -231,7 +235,7 @@ echo "  PID: $BACKEND_PID"
 sleep 1
 if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
     err "Maven 进程已退出！日志:"
-    tail -30 /tmp/kchat-backend.log
+    tail -30 "$LOG_DIR/backend.log"
     exit 1
 fi
 
@@ -239,9 +243,9 @@ check "等待后端就绪"
 for i in $(seq 1 45); do
     # 早期失败检测: 如果 Maven 进程已退出且日志中有 ERROR
     if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-        if grep -qi "error\|failed\|exception" /tmp/kchat-backend.log 2>/dev/null; then
+        if grep -qi "error\|failed\|exception" "$LOG_DIR/backend.log" 2>/dev/null; then
             err "后端启动失败！日志摘要:"
-            tail -20 /tmp/kchat-backend.log
+            tail -20 "$LOG_DIR/backend.log"
             exit 1
         fi
     fi
@@ -250,7 +254,7 @@ for i in $(seq 1 45); do
         break
     fi
     if [ "$i" -eq 45 ]; then
-        warn "后端启动超时 (90秒)，请检查: tail -f /tmp/kchat-backend.log"
+        warn "后端启动超时 (90秒)，请检查: tail -f $LOG_DIR/backend.log"
     fi
     sleep 2
 done
@@ -265,15 +269,7 @@ if $START_COGNEE; then
     fi
 
     export COGNEE_PORT="${COGNEE_PORT:-8000}"
-    export LLM_API_KEY="${LLM_API_KEY:-ollama}"
-    export LLM_MODEL="${LLM_MODEL:-ollama/llama3}"
-    export EMBEDDING_ENDPOINT="${EMBEDDING_ENDPOINT:-http://localhost:11434/v1}"
-    export EMBEDDING_MODEL="${EMBEDDING_MODEL:-ollama/nomic-embed-text}"
-    export EMBEDDING_DIMENSIONS="${EMBEDDING_DIMENSIONS:-768}"
-    if [ -n "${LLM_API_KEY:-}" ] && [ "$LLM_API_KEY" != "ollama" ]; then
-        export LLM_MODEL="${LLM_MODEL:-deepseek/deepseek-chat}"
-    fi
-    nohup python3 "$COGNEE_SERVER" > /tmp/kchat-cognee.log 2>&1 &
+    nohup "$COGNEE_PYTHON" "$COGNEE_SERVER" > "$LOG_DIR/cognee.log" 2>&1 &
     COGNEE_PID=$!
     echo "  PID: $COGNEE_PID"
 
@@ -284,7 +280,7 @@ if $START_COGNEE; then
             break
         fi
         if [ "$i" -eq 30 ]; then
-            warn "Cognee 启动超时，请检查: tail -f /tmp/kchat-cognee.log"
+            warn "Cognee 启动超时，请检查: tail -f $LOG_DIR/cognee.log"
         fi
         sleep 1
     done
@@ -294,7 +290,7 @@ fi
 step "启动前端服务 (Vite :5173)"
 
 cd "$PROJECT_DIR/frontend"
-nohup npm run dev > /tmp/kchat-frontend.log 2>&1 &
+nohup npm run dev > "$LOG_DIR/frontend.log" 2>&1 &
 FRONTEND_PID=$!
 echo "  PID: $FRONTEND_PID"
 
@@ -305,7 +301,7 @@ for i in $(seq 1 20); do
         break
     fi
     if [ "$i" -eq 20 ]; then
-        warn "前端启动超时，请检查: tail -f /tmp/kchat-frontend.log"
+        warn "前端启动超时，请检查: tail -f $LOG_DIR/frontend.log"
     fi
     sleep 1
 done
@@ -325,10 +321,10 @@ fi
 
 echo ""
 echo -e "  ${YELLOW}日志文件${NC}"
-echo -e "    后端:  tail -f /tmp/kchat-backend.log"
-echo -e "    前端:  tail -f /tmp/kchat-frontend.log"
+echo -e "    后端:  tail -f $LOG_DIR/backend.log"
+echo -e "    前端:  tail -f $LOG_DIR/frontend.log"
 if $START_COGNEE && [ -n "${COGNEE_PID:-}" ]; then
-    echo -e "    Cognee: tail -f /tmp/kchat-cognee.log"
+    echo -e "    Cognee: tail -f $LOG_DIR/cognee.log"
 fi
 echo -e "    停止:  ${BOLD}$SCRIPT_DIR/stop.sh${NC}"
 echo ""
