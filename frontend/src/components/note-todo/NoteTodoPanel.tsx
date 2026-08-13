@@ -327,7 +327,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   useEffect(() => {
     const handler = () => {
-      if (isOpen) loadData()
+      loadData()
     }
     window.addEventListener('note-created', handler)
     window.addEventListener('todo-data-updated', handler)
@@ -339,7 +339,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
       window.removeEventListener('note-data-updated', handler)
       window.removeEventListener('reminder-data-updated', handler)
     }
-  }, [isOpen, loadData])
+  }, [loadData])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -587,7 +587,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                   />
                   {count > 0 && (
                     <span
-                      className='absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full text-white'
+                      className='absolute top-1 right-1 translate-x-1 -translate-y-1 min-w-[15px] h-3.5 px-1 flex items-center justify-center text-[9px] font-bold rounded-full text-white'
                       style={{ backgroundColor: color }}
                     >
                       {count > 99 ? '99+' : count}
