@@ -158,7 +158,9 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredNodeIds, setFilteredNodeIds] = useState<Set<string> | null>(null)
   const [highlightedNodeIds, setHighlightedNodeIds] = useState<Set<string> | null>(null)
-  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(
+    new Set(['EntityType', 'TextDocument', 'DocumentChunk', 'TextSummary'])
+  )
 
   const fetchGraph = useCallback(async () => {
     setLoading(true)
@@ -188,7 +190,8 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
         source: e.source,
         target: e.target,
         label: e.label,
-        type: 'smoothstep',
+        type: 'default',
+        labelPosition: 'center',
         animated: false,
         style: { strokeWidth: 2, stroke: 'var(--accent-primary, #1e9df1)', opacity: 0.6 },
         labelStyle: { fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 },
