@@ -9,6 +9,8 @@ import {
   useReactFlow,
   ReactFlowProvider,
   Panel,
+  Handle,
+  Position,
   type Node,
   type Edge,
   type Connection,
@@ -105,6 +107,7 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
         selected ? 'border-[var(--accent-primary)] shadow-xl scale-105' : 'border-[var(--border-secondary)]'
       } bg-[var(--bg-card)]`}
     >
+      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !min-w-2 !min-h-2 !border-0 !bg-[var(--border-secondary)]" />
       <div className={`w-2 h-2 rounded-full ${color} mb-1.5`} />
       <div className="text-xs font-semibold text-[var(--text-primary)] leading-tight line-clamp-2">
         {d.label}
@@ -112,6 +115,7 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
       <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
         {typeLabel}
       </div>
+      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !min-w-2 !min-h-2 !border-0 !bg-[var(--border-secondary)]" />
     </div>
   )
 }
@@ -243,7 +247,7 @@ function GraphInner() {
   const selectedData = selectedNode?.data as unknown as NodeDataShape | undefined
 
   return (
-    <div className="relative w-full h-[600px] rounded-xl border border-[var(--border-secondary)] overflow-hidden bg-[var(--bg-card)]">
+    <div className="relative w-full h-full rounded-xl border border-[var(--border-secondary)] overflow-hidden bg-[var(--bg-card)]">
       {/* Toolbar */}
       <Panel position="top-left" className="!m-2">
         <div className="flex flex-col gap-2">

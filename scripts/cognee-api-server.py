@@ -282,7 +282,12 @@ async def get_graph():
 
             nodes = []
             for n in raw_nodes:
-                nid = str(n[0]) if isinstance(n, (tuple, list)) else str(getattr(n, 'id', ''))
+                raw_id = n[0] if isinstance(n, (tuple, list)) else getattr(n, 'id', None)
+                if raw_id is None:
+                    continue
+                nid = str(raw_id)
+                if nid == 'null':
+                    continue
                 props = n[1] if isinstance(n, (tuple, list)) and len(n) > 1 else getattr(n, 'properties', {})
                 if not isinstance(props, dict):
                     props = dict(props) if props else {}
@@ -292,16 +297,28 @@ async def get_graph():
                                if k in ('description', 'created_at', 'version', 'feedback_weight')}
                 nodes.append(GraphNode(id=nid, label=label, type=ntype, properties=clean_props))
 
+            valid_node_ids = {n.id for n in nodes}
             edges = []
+            skipped = 0
             for e in raw_edges:
-                src = str(e[0]) if isinstance(e, (tuple, list)) else str(getattr(e, 'source', ''))
-                tgt = str(e[1]) if isinstance(e, (tuple, list)) and len(e) > 1 else str(getattr(e, 'target', ''))
+                raw_src = e[0] if isinstance(e, (tuple, list)) else getattr(e, 'source', None)
+                raw_tgt = e[1] if isinstance(e, (tuple, list)) and len(e) > 1 else getattr(e, 'target', None)
+                if raw_src is None or raw_tgt is None:
+                    skipped += 1
+                    continue
+                src = str(raw_src)
+                tgt = str(raw_tgt)
+                if src == 'null' or tgt == 'null' or src not in valid_node_ids or tgt not in valid_node_ids:
+                    skipped += 1
+                    continue
                 rel = str(e[2]) if isinstance(e, (tuple, list)) and len(e) > 2 else str(getattr(e, 'relation', ''))
                 eprops = e[3] if isinstance(e, (tuple, list)) and len(e) > 3 else getattr(e, 'properties', {})
                 if not isinstance(eprops, dict):
                     eprops = dict(eprops) if eprops else {}
                 eid = f"{src}-{rel}-{tgt}"
                 edges.append(GraphEdge(id=eid, source=src, target=tgt, label=rel[:40], type=rel))
+            if skipped:
+                logger.warning(f"Skipped {skipped} invalid edges (null or missing node refs)")
 
             logger.info(f"Graph retrieved: {len(nodes)} nodes, {len(edges)} edges")
             return GraphResponse(

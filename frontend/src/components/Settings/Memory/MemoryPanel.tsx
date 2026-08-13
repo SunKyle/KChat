@@ -18,12 +18,10 @@ import {
   Target,
   Users,
   Calendar,
-  Network,
 } from 'lucide-react'
 import { memory } from '../../../api/memory'
 import { MEMORY_TYPES } from '../../../types'
 import type { Memory, MemoryType } from '../../../types'
-import { KnowledgeGraph } from './KnowledgeGraph'
 
 const typeIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   KNOWLEDGE: BookOpen,
@@ -77,7 +75,6 @@ export function MemoryPanel() {
   const [showForm, setShowForm] = useState(false)
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null)
   const [selectedMemories, setSelectedMemories] = useState<number[]>([])
-  const [activeView, setActiveView] = useState<'list' | 'graph'>('list')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const userId = 'default'
@@ -183,46 +180,15 @@ export function MemoryPanel() {
 
   return (
     <div className='flex flex-col w-full max-h-[calc(100vh-200px)] min-h-[200px]'>
-      {/* 标题 + 标签页 */}
+      {/* 标题 */}
       <div className='flex items-center justify-between gap-3 mb-4 w-full'>
         <div className='flex items-center gap-2 flex-shrink-0'>
           <Database className='w-5 h-5 theme-text-muted' />
-          <h3 className='font-semibold theme-text-primary'>
-            {activeView === 'list' ? '记忆列表' : '知识图谱'}
-          </h3>
-        </div>
-
-        {/* 标签页切换 */}
-        <div className='flex items-center bg-[var(--bg-input)] rounded-xl p-1'>
-          <button
-            onClick={() => setActiveView('list')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-              activeView === 'list'
-                ? 'bg-[var(--accent-primary)] text-white shadow-sm'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <Database className='w-4 h-4' />
-            <span>记忆</span>
-          </button>
-          <button
-            onClick={() => setActiveView('graph')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-              activeView === 'graph'
-                ? 'bg-[var(--accent-primary)] text-white shadow-sm'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <Network className='w-4 h-4' />
-            <span>图谱</span>
-          </button>
+          <h3 className='font-semibold theme-text-primary'>记忆列表</h3>
         </div>
       </div>
 
-      {/* 记忆列表视图 */}
-      {activeView === 'list' && (
-        <>
-          <div className='flex flex-col sm:flex-row md:flex-row lg:flex-row items-start sm:items-center md:items-center lg:items-center justify-between gap-3 mb-4 w-full'>
+      <div className='flex flex-col sm:flex-row md:flex-row lg:flex-row items-start sm:items-center md:items-center lg:items-center justify-between gap-3 mb-4 w-full'>
             <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-nowrap md:flex-nowrap lg:flex-nowrap'>
               {/* 搜索框 */}
               <div className='flex-1 sm:flex-initial md:flex-initial lg:flex-initial relative min-w-[100px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px]'>
@@ -698,13 +664,6 @@ export function MemoryPanel() {
             </div>
           </div>
         </div>
-      )}
-      </>
-      )}
-
-      {/* 图谱视图 */}
-      {activeView === 'graph' && (
-        <KnowledgeGraph />
       )}
     </div>
   )

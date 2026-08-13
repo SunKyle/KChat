@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Loader2,
+  Network,
 } from 'lucide-react'
 import { useDebounce } from '../../hooks/useDebounce'
 import type { Note, Todo, Reminder, NoteTodoMode, UpdateNoteRequest } from '../../types/note-todo'
@@ -22,6 +23,7 @@ import { TodoForm } from './TodoForm'
 import { ReminderForm } from './ReminderForm'
 import { DetailPreview } from './DetailPreview'
 import { FullscreenMarkdownEditor } from './FullscreenMarkdownEditor'
+import { KnowledgeGraph } from '../settings/Memory/KnowledgeGraph'
 import { useNoteTodoData, convertNote } from './useNoteTodoData'
 import { useNoteTodoForm } from './useNoteTodoForm'
 
@@ -318,6 +320,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const [filterExpanded, setFilterExpanded] = useState(true)
   const [fullscreenNote, setFullscreenNote] = useState<Note | null>(null)
   const [showFullscreenEditor, setShowFullscreenEditor] = useState(false)
+  const [showGraph, setShowGraph] = useState(false)
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
@@ -571,12 +574,19 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
               count: pendingRemindersCount,
               color: 'var(--accent-amber)',
             },
+            {
+              key: 'graph' as const,
+              Icon: Network,
+              label: '图谱',
+              count: 0,
+              color: 'var(--accent-purple, #8b5cf6)',
+            },
           ].map((item, idx, arr) => {
             const { key, Icon, label, count, color } = item
             return (
               <div key={key} className='flex flex-col items-center'>
                 <button
-                  onClick={() => handleCapsuleOpen(key)}
+                  onClick={() => key === 'graph' ? setShowGraph(true) : handleCapsuleOpen(key)}
                   className='relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--bg-hover)] active:scale-90 transition-all duration-200 group'
                   aria-label={`打开${label}`}
                   title={label}
@@ -825,6 +835,30 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             setFullscreenNote(null)
           }}
         />
+      )}
+
+      {/* Full-screen knowledge graph overlay */}
+      {showGraph && (
+        <div className='fixed inset-0 z-[60] flex flex-col bg-[var(--bg-primary)]'>
+          <div className='flex items-center justify-between px-4 py-3 border-b border-[var(--border-secondary)] bg-[var(--bg-card)]'>
+            <div className='flex items-center gap-2'>
+              <Network className='w-5 h-5' style={{ color: 'var(--accent-purple, #8b5cf6)' }} />
+              <span className='text-sm font-semibold theme-text-primary'>知识图谱</span>
+            </div>
+            <button
+              onClick={() => setShowGraph(false)}
+              className='p-2 rounded-lg hover:bg-[var(--bg-hover)] theme-text-muted hover:theme-text-primary transition-colors'
+              aria-label='关闭'
+            >
+              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+              </svg>
+            </button>
+          </div>
+          <div className='flex-1 p-4 overflow-hidden'>
+            <KnowledgeGraph />
+          </div>
+        </div>
       )}
     </>
   )
