@@ -321,6 +321,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
   const [fullscreenNote, setFullscreenNote] = useState<Note | null>(null)
   const [showFullscreenEditor, setShowFullscreenEditor] = useState(false)
   const [showGraph, setShowGraph] = useState(false)
+  const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0 })
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
@@ -841,9 +842,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
       {showGraph && (
         <div className='fixed inset-0 z-[60] flex flex-col bg-[var(--bg-primary)]'>
           <div className='flex items-center justify-between px-4 py-3 border-b border-[var(--border-secondary)] bg-[var(--bg-card)]'>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-3'>
               <Network className='w-5 h-5' style={{ color: 'var(--accent-purple, #8b5cf6)' }} />
               <span className='text-sm font-semibold theme-text-primary'>知识图谱</span>
+              <span className='text-xs text-[var(--text-muted)]'>
+                {graphStats.nodes} 节点 · {graphStats.edges} 关系
+              </span>
             </div>
             <button
               onClick={() => setShowGraph(false)}
@@ -856,7 +860,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
             </button>
           </div>
           <div className='flex-1 p-4 overflow-hidden'>
-            <KnowledgeGraph />
+            <KnowledgeGraph onStatsChange={setGraphStats} />
           </div>
         </div>
       )}

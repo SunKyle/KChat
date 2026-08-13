@@ -143,7 +143,11 @@ const nodeTypes: NodeTypes = {
   cogneeNode: GraphNodeComponent,
 }
 
-function GraphInner() {
+interface GraphInnerProps {
+  onStatsChange?: (stats: { nodes: number; edges: number }) => void
+}
+
+function GraphInner({ onStatsChange }: GraphInnerProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -201,6 +205,7 @@ function GraphInner() {
       const layouted = getLayoutedNodes(rfNodes, rfEdges)
       setNodes(layouted)
       setEdges(rfEdges)
+      onStatsChange?.({ nodes: layouted.length, edges: rfEdges.length })
 
       setTimeout(() => {
         fitView({ padding: 0.2, duration: 500 })
@@ -209,10 +214,11 @@ function GraphInner() {
       setError(String(err))
       setNodes([])
       setEdges([])
+      onStatsChange?.({ nodes: 0, edges: 0 })
     } finally {
       setLoading(false)
     }
-  }, [fitView, setNodes, setEdges])
+  }, [fitView, setNodes, setEdges, onStatsChange])
 
   useEffect(() => {
     fetchGraph()
@@ -252,11 +258,16 @@ function GraphInner() {
         const type = d.type.toLowerCase()
         if (label.includes(lower) || type.includes(lower)) {
           matched.add(n.id)
+          // 加入关联节点
+          edges.forEach((e) => {
+            if (e.source === n.id) matched.add(e.target)
+            if (e.target === n.id) matched.add(e.source)
+          })
         }
       })
       setFilteredNodeIds(matched)
     },
-    [nodes]
+    [nodes, edges]
   )
 
   const filteredNodes = useMemo(() => {
@@ -357,15 +368,7 @@ function GraphInner() {
     <div className='relative w-full h-full rounded-xl border border-[var(--border-secondary)] overflow-hidden bg-[var(--bg-card)]'>
       {/* Toolbar */}
       <Panel position='top-left' className='!m-2'>
-        <div className='flex flex-col gap-2'>
-          <div className='flex items-center gap-2 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg'>
-            <Database className='w-4 h-4 text-[var(--accent-primary)]' />
-            <span className='text-sm font-semibold text-[var(--text-primary)]'>知识图谱</span>
-            <span className='text-xs text-[var(--text-muted)]'>
-              {nodes.length} 节点 · {edges.length} 关系
-            </span>
-          </div>
-
+        <div className='flex items-center gap-2'>
           <div className='flex items-center gap-2 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg'>
             <Search className='w-3.5 h-3.5 text-[var(--text-muted)]' />
             <input
@@ -398,19 +401,19 @@ function GraphInner() {
 
       {/* Legend + Type Filter */}
       <Panel position='bottom-left' className='!m-2'>
-        <div className='bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg'>
-          <div className='flex items-center justify-between mb-1.5'>
-            <span className='text-xs font-semibold text-[var(--text-secondary)]'>类型过滤</span>
+        <div className='bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-4 py-3 shadow-lg'>
+          <div className='flex items-center justify-between mb-2'>
+            <span className='text-sm font-semibold text-[var(--text-secondary)]'>类型过滤</span>
             {hiddenTypes.size > 0 && (
               <button
                 onClick={() => setHiddenTypes(new Set())}
-                className='text-[10px] text-[var(--accent-primary)] hover:underline'
+                className='text-xs text-[var(--accent-primary)] hover:underline'
               >
                 全部显示
               </button>
             )}
           </div>
-          <div className='flex flex-col gap-1'>
+          <div className='flex flex-col gap-1.5'>
             {Object.entries(typeCounts)
               .sort((a, b) => b[1] - a[1])
               .map(([type, count]) => {
@@ -426,11 +429,11 @@ function GraphInner() {
                         return next
                       })
                     }}
-                    className={`flex items-center gap-1.5 text-[10px] transition-opacity ${
+                    className={`flex items-center gap-2 text-xs transition-opacity ${
                       isHidden ? 'opacity-30 line-through' : 'hover:opacity-80'
                     } text-[var(--text-muted)] cursor-pointer`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${getNodeColor(type)}`} />
+                    <span className={`w-2.5 h-2.5 rounded-full ${getNodeColor(type)}`} />
                     <span>{getNodeTypeLabel(type)}</span>
                     <span>({count})</span>
                   </button>
@@ -581,10 +584,14 @@ function GraphInner() {
   )
 }
 
-export function KnowledgeGraph() {
+export function KnowledgeGraph({
+  onStatsChange,
+}: {
+  onStatsChange?: (stats: { nodes: number; edges: number }) => void
+}) {
   return (
     <ReactFlowProvider>
-      <GraphInner />
+      <GraphInner onStatsChange={onStatsChange} />
     </ReactFlowProvider>
   )
 }
