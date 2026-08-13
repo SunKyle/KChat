@@ -1,11 +1,14 @@
 package com.example.app.pipeline.stage.postprocess;
 
+import com.example.app.dto.MemoryDTO;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.AutoMemoryExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -23,10 +26,11 @@ public class MemoryExtractionStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        int extracted = autoMemoryExtractor.tryExtract(
+        List<MemoryDTO> extracted = autoMemoryExtractor.tryExtractDtos(
                 ctx.getConversationId(), ctx.getUserId(), ctx.getModel());
+        ctx.setNewlyExtractedMemories(extracted);
         log.debug("Memory extraction: {} new memories for conversation {}",
-                extracted, ctx.getConversationId());
+                extracted.size(), ctx.getConversationId());
     }
 
     @Override

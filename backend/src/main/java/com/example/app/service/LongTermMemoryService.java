@@ -43,6 +43,13 @@ public class LongTermMemoryService {
     private final com.example.app.config.VectorStoreConfig vectorStoreConfig;
 
     /**
+     * Cognee 同步服务——删除记忆后异步重建 Cognee 图谱，避免"幽灵记忆"
+     * （JPA 已删但 Cognee 里还留着节点/边/向量）。
+     * Optional 包装是为了在 cognee=false 时不强制依赖该 Bean。
+     */
+    private final java.util.Optional<CogneeSyncService> cogneeSyncService;
+
+    /**
      * 保存单个记忆
      *
      * 事务一致性：
@@ -328,9 +335,12 @@ public class LongTermMemoryService {
         Optional<LongTermMemory> memory = repository.findById(id);
         if (memory.isPresent()) {
             LongTermMemory entity = memory.get();
-            vectorStoreWrapper.remove(entity.getUserId(), id);
+            String userId = entity.getUserId();
+            vectorStoreWrapper.remove(userId, id);
             repository.deleteById(id);
-            log.info("Deleted long-term memory: id={}, userId={}", id, entity.getUserId());
+            log.info("Deleted long-term memory: id={}, userId={}", id, userId);
+            // Asynchronously rebuild the cognee graph so no orphan nodes/edges remain.
+            cogneeSyncService.ifPresent(svc -> svc.resyncUserMemories(userId));
         }
     }
 
@@ -355,6 +365,7 @@ public class LongTermMemoryService {
         vectorStoreWrapper.removeByUserId(userId);
         repository.deleteByUserId(userId);
         log.info("Deleted all long-term memories for user {}", userId);
+        cogneeSyncService.ifPresent(svc -> svc.resyncUserMemories(userId));
     }
 
     /**

@@ -93,6 +93,8 @@ public class ConversationContext {
 
     // ── Post-processing outputs ────────────────────────────────────
     private String generatedTitle;
+    /** Memories newly extracted by MemoryExtractionStage (this run), for downstream stages like Cognee indexing */
+    private List<MemoryDTO> newlyExtractedMemories;
 
     // ── Telemetry ──────────────────────────────────────────────────
     private long pipelineStartTime;

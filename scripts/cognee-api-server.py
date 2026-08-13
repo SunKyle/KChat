@@ -2,16 +2,17 @@
 """
 Cognee REST API Server — KChat Integration
 ===========================================
-Provides a lightweight FastAPI server wrapping cognee's Python API.
+Provides a lightweight FastAPI server wrapping cognee's v1.0 Python API.
 KChat's Java backend calls these endpoints for long-term memory.
 
-Endpoints:
-  POST /add      — Add content to cognee's knowledge graph
-  POST /search   — Search cognee for relevant memories
-  POST /cognify  — Process and index content
-  GET  /graph    — Get knowledge graph nodes and edges for visualization
-  GET  /datasets — List all datasets and their data counts
-  GET  /health   — Health check
+Endpoints (v1.0 only):
+  POST /remember — Store data into permanent graph or session cache
+  POST /recall    — Auto-routed retrieval with session awareness
+  POST /forget    — Unified delete (dataset / data item / everything)
+  POST /improve   — Self-derive cross-document relationships
+  GET  /graph     — Get knowledge graph nodes and edges for visualization
+  GET  /datasets  — List all datasets and their data counts
+  GET  /health    — Health check
 
 Usage:
   python3 scripts/cognee-api-server.py
@@ -79,31 +80,76 @@ import uvicorn
 
 # ── Pydantic Models ────────────────────────────────────────────
 
-class AddRequest(BaseModel):
-    content: str
-    metadata: dict = {}
+class ForgetRequest(BaseModel):
+    """Unified deletion request mirroring cognee.forget() parameters.
 
-class SearchRequest(BaseModel):
+    Supported combinations:
+      - dataset=NAME                        → delete entire dataset
+      - dataset=NAME + data_id=UUID         → delete single data item
+      - dataset=NAME + memory_only=True     → clear graph/vector only, preserve raw data
+      - everything=True                     → delete ALL user data (use carefully)
+    """
+    dataset: str | None = None
+    data_id: str | None = None
+    everything: bool = False
+    memory_only: bool = False
+
+class ImproveRequest(BaseModel):
+    """Trigger cognee.improve() to self-derive cross-document relationships.
+
+    If dataset is not specified, improves the default main_dataset.
+    """
+    dataset: str | None = "main_dataset"
+
+class ForgetResponse(BaseModel):
+    success: bool = True
+    message: str = ""
+    summary: dict = {}
+
+class ImproveResponse(BaseModel):
+    success: bool = True
+    message: str = ""
+    summary: dict = {}
+
+# ── v1.0 API request/response models ───────────────────────────
+
+class RememberRequest(BaseModel):
+    """v1.0 remember() — store data into permanent graph or session cache.
+
+    Without session_id: writes to permanent graph (equivalent to add + cognify + improve).
+    With session_id: writes to session cache (fast, no entity extraction).
+    """
+    content: str
+    dataset_name: str = "main_dataset"
+    session_id: str | None = None
+    self_improvement: bool = True
+    run_in_background: bool = False
+
+class RecallRequest(BaseModel):
+    """v1.0 recall() — auto-routed retrieval with session awareness.
+
+    only_context=True returns retrieved context only (no LLM answer generation),
+    matching the behavior of legacy search() for pipeline integration.
+    """
     query: str
     top_k: int = Field(default=5, ge=1, le=50)
+    session_id: str | None = None
+    datasets: list[str] | None = None
+    only_context: bool = True
 
-class CognifyRequest(BaseModel):
-    content: str
-
-class SearchResult(BaseModel):
-    id: str = ""
+class RecallResultItem(BaseModel):
     text: str = ""
     score: float = 0.0
-    metadata: dict = {}
+    source: str = "graph"
+
+class RecallResponse(BaseModel):
+    results: list[RecallResultItem] = []
+    status: str = "success"
 
 class AddResponse(BaseModel):
     id: str = ""
     success: bool = True
     message: str = ""
-
-class SearchResponse(BaseModel):
-    results: list[SearchResult] = []
-    status: str = "success"
 
 class HealthResponse(BaseModel):
     status: str = "ok"
@@ -177,73 +223,6 @@ async def get_cognee():
     return cognee
 
 # ── Routes ─────────────────────────────────────────────────────
-
-@app.post("/add", response_model=AddResponse)
-async def add_content(request: AddRequest):
-    """Add content to cognee's knowledge graph for indexing.
-
-    The content is first ingested via cognee.add(),
-    then automatically processed via cognee.cognify()
-    to build the knowledge graph and generate embeddings,
-    making the data immediately searchable.
-    """
-    try:
-        cognee = await get_cognee()
-        add_result = await cognee.add(request.content)
-        logger.info(f"add completed, running cognify...")
-        await cognee.cognify()
-        logger.info(f"cognify completed successfully")
-        return AddResponse(
-            id=str(add_result) if add_result else "",
-            success=True,
-            message="Content added and cognified successfully",
-        )
-    except Exception as e:
-        logger.error(f"add failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/cognify", response_model=AddResponse)
-async def cognify_content(request: CognifyRequest = None):
-    """Manually trigger cognify to process and index all pending data.
-
-    Use this if you added data with auto_cognify=False or need to re-index.
-    If no request body is provided, cognifies all pending data.
-    """
-    try:
-        cognee = await get_cognee()
-        if request and request.content:
-            await cognee.add(request.content)
-        await cognee.cognify()
-        return AddResponse(
-            success=True,
-            message="Cognify completed successfully",
-        )
-    except Exception as e:
-        logger.error(f"cognify failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/search", response_model=SearchResponse)
-async def search_memories(request: SearchRequest):
-    """Search cognee for relevant memories matching the query."""
-    try:
-        cognee = await get_cognee()
-        # Use GRAPH_COMPLETION for knowledge-graph-aware search
-        results = await cognee.search(request.query)
-        
-        items = []
-        if results:
-            for r in results[:request.top_k]:
-                text = str(r)
-                items.append(SearchResult(
-                    id=getattr(r, 'id', str(hash(text))),
-                    text=text,
-                    score=getattr(r, 'score', 1.0),
-                ))
-        
-        return SearchResponse(results=items, status="success")
-    except Exception as e:
-        logger.error(f"search failed: {e}")
-        return SearchResponse(results=[], status=f"error: {e}")
 
 @app.get("/health", response_model=HealthResponse)
 async def health():
@@ -360,6 +339,218 @@ async def list_datasets():
     except Exception as e:
         logger.error(f"list_datasets failed: {e}")
         return DatasetsResponse(status=f"error: {e}")
+
+@app.post("/forget", response_model=ForgetResponse)
+async def forget_content(request: ForgetRequest):
+    """Unified delete endpoint mirroring cognee.forget().
+
+    Delete a dataset, a single data item, or everything.
+    """
+    try:
+        cognee = await get_cognee()
+        forget_kwargs = {}
+        if request.everything:
+            forget_kwargs["everything"] = True
+        else:
+            if request.dataset:
+                forget_kwargs["dataset"] = request.dataset
+            if request.data_id:
+                # Convert string to UUID if possible; cognee expects UUID
+                try:
+                    from uuid import UUID
+                    forget_kwargs["data_id"] = UUID(request.data_id)
+                except Exception:
+                    forget_kwargs["data_id"] = request.data_id
+            if request.memory_only:
+                forget_kwargs["memory_only"] = True
+
+        if not forget_kwargs:
+            raise HTTPException(status_code=400,
+                detail="Must provide at least one of: dataset, data_id(+dataset), everything")
+
+        summary = await cognee.forget(**forget_kwargs)
+        logger.info(f"forget completed with: {forget_kwargs} → {summary}")
+
+        msg_parts = []
+        if "datasets_removed" in summary:
+            msg_parts.append(f"{summary['datasets_removed']} dataset(s) removed")
+        if "data_id" in summary:
+            msg_parts.append(f"data item {summary['data_id']} removed")
+        message = "; ".join(msg_parts) if msg_parts else "forget completed"
+
+        # Serialize summary values to strings where needed
+        safe_summary = {}
+        if isinstance(summary, dict):
+            for k, v in summary.items():
+                try:
+                    safe_summary[k] = str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v
+                except Exception:
+                    safe_summary[k] = str(v)
+
+        return ForgetResponse(success=True, message=message, summary=safe_summary)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"forget failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/improve", response_model=ImproveResponse)
+async def improve_graph(request: ImproveRequest):
+    """Trigger cognee.improve() to self-derive cross-document relationships.
+
+    This bridges session memory into permanent memory and enriches the
+    graph by deriving new edges across existing entities.
+    """
+    try:
+        cognee = await get_cognee()
+        kwargs = {}
+        if request.dataset:
+            kwargs["dataset"] = request.dataset
+
+        try:
+            result = await cognee.improve(**kwargs)
+        except TypeError:
+            # Older cognee may not accept dataset kwarg; retry with no args
+            logger.warning("improve(dataset=...) not supported, retrying with no args")
+            result = await cognee.improve()
+
+        logger.info(f"improve completed for dataset={request.dataset}")
+
+        safe_summary = {}
+        if isinstance(result, dict):
+            for k, v in result.items():
+                try:
+                    safe_summary[k] = str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v
+                except Exception:
+                    safe_summary[k] = str(v)
+        elif result is not None:
+            safe_summary["result"] = str(result)
+
+        return ImproveResponse(
+            success=True,
+            message=f"Graph improved successfully for dataset={request.dataset or 'default'}",
+            summary=safe_summary,
+        )
+    except Exception as e:
+        logger.error(f"improve failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ── v1.0 API: /remember and /recall ────────────────────────────
+
+@app.post("/remember", response_model=AddResponse)
+async def remember_content(request: RememberRequest):
+    """v1.0 remember() — store data into permanent graph or session cache.
+
+    Without session_id: full pipeline (add + cognify + improve).
+    With session_id: fast session cache write (no entity extraction).
+    self_improvement=True (default) triggers background improve() automatically.
+    """
+    try:
+        cognee = await get_cognee()
+        logger.info(f"remember: content_len={len(request.content)}, "
+                    f"dataset={request.dataset_name}, session={request.session_id}, "
+                    f"self_improvement={request.self_improvement}")
+
+        result = await cognee.remember(
+            request.content,
+            dataset_name=request.dataset_name,
+            session_id=request.session_id,
+            self_improvement=request.self_improvement,
+            run_in_background=request.run_in_background,
+        )
+
+        # Extract a usable id from the result if available
+        result_id = ""
+        if result is not None:
+            if isinstance(result, str):
+                result_id = result
+            elif hasattr(result, 'id'):
+                result_id = str(result.id)
+            elif isinstance(result, dict):
+                result_id = str(result.get('id', ''))
+
+        return AddResponse(
+            id=result_id,
+            success=True,
+            message=f"Remembered successfully (session={'yes' if request.session_id else 'no'}, "
+                    f"self_improvement={request.self_improvement})",
+        )
+    except Exception as e:
+        logger.error(f"remember failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/recall", response_model=RecallResponse)
+async def recall_memories(request: RecallRequest):
+    """v1.0 recall() — auto-routed retrieval with session awareness.
+
+    Uses cognee's intelligent query router to pick the best retrieval strategy
+    (graph completion, RAG, chunks, summaries, etc.) based on the query.
+
+    only_context=True returns retrieved context only (no LLM answer generation),
+    making it suitable for pipeline integration where the caller has its own LLM.
+    """
+    try:
+        cognee = await get_cognee()
+        logger.info(f"recall: query='{request.query[:80]}', top_k={request.top_k}, "
+                    f"session={request.session_id}, only_context={request.only_context}")
+
+        kwargs = {
+            "top_k": request.top_k,
+            "only_context": request.only_context,
+            "auto_route": True,
+        }
+        if request.session_id:
+            kwargs["session_id"] = request.session_id
+        if request.datasets:
+            kwargs["datasets"] = request.datasets
+
+        results = await cognee.recall(request.query, **kwargs)
+
+        items = []
+        if results:
+            for r in results[:request.top_k]:
+                # recall() returns typed objects with varying fields depending on source.
+                # Normalize to {text, score, source} for the Java client.
+                text = ""
+                score = 0.0
+                source = "graph"
+
+                # Try common field names for text content
+                for attr in ('text', 'content', 'answer', 'response', 'summary'):
+                    val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
+                    if val and str(val).strip():
+                        text = str(val)
+                        break
+
+                # If no text field found, stringify the object
+                if not text:
+                    text = str(r)
+
+                # Try common field names for score
+                for attr in ('score', 'similarity', 'relevance', 'confidence'):
+                    val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
+                    if val is not None and isinstance(val, (int, float)):
+                        score = float(val)
+                        break
+
+                # Extract source tag
+                src_val = getattr(r, 'source', None) if not isinstance(r, dict) else r.get('source')
+                if src_val:
+                    source = str(src_val)
+
+                items.append(RecallResultItem(
+                    text=text[:2000],  # Cap at 2000 chars to keep payload reasonable
+                    score=score if score > 0 else 0.5,  # Default neutral score if not provided
+                    source=source,
+                ))
+
+        logger.info(f"recall returned {len(items)} results (sources: "
+                    f"{[i.source for i in items]})")
+        return RecallResponse(results=items, status="success")
+
+    except Exception as e:
+        logger.error(f"recall failed: {e}")
+        return RecallResponse(results=[], status=f"error: {e}")
 
 
 # ── Main ───────────────────────────────────────────────────────

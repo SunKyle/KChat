@@ -120,11 +120,23 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      */
     @Override
     public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId) {
-        return extractAndSave(conversationId, messages, userId, null);
+        return extractAndSaveDtos(conversationId, messages, userId, null).size();
     }
 
     @Override
     public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId, String model) {
+        return extractAndSaveDtos(conversationId, messages, userId, model).size();
+    }
+
+    @Override
+    public List<MemoryDTO> extractAndSaveDtos(
+            String conversationId, List<ChatMessage> messages, String userId) {
+        return extractAndSaveDtos(conversationId, messages, userId, null);
+    }
+
+    @Override
+    public List<MemoryDTO> extractAndSaveDtos(
+            String conversationId, List<ChatMessage> messages, String userId, String model) {
         log.info("[记忆提取] 开始提取 - 会话: {}, 用户: {}, 消息数: {}", conversationId, userId, messages.size());
 
         List<MemoryExtractionResult> results = extract(messages, model);
@@ -139,12 +151,13 @@ public class MemoryExtractorImpl implements MemoryExtractor {
 
         if (results.isEmpty()) {
             log.info("[记忆提取] 未提取到任何记忆");
-            return 0;
+            return List.of();
         }
 
         List<MemoryDTO> existingMemories = longTermMemoryService.findByUserId(userId);
         Set<String> existingContents = existingMemories.stream()
                 .map(MemoryDTO::getContent)
+                .map(this::normalizeContent)
                 .collect(Collectors.toSet());
         log.info("[记忆提取] 发现 {} 条已有记忆用于去重", existingContents.size());
 
@@ -194,12 +207,11 @@ public class MemoryExtractorImpl implements MemoryExtractor {
 
         if (!toSave.isEmpty()) {
             log.info("[记忆提取] 保存 {} 条新记忆", toSave.size());
-            longTermMemoryService.saveAll(toSave);
+            return longTermMemoryService.saveAll(toSave);
         } else {
             log.info("[记忆提取] 没有新记忆需要保存");
+            return List.of();
         }
-
-        return toSave.size();
     }
 
     /**
