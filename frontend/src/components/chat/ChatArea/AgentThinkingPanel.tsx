@@ -11,6 +11,7 @@ import {
   MessageSquare,
 } from 'lucide-react'
 import type { AgentThinkingStep } from '../../../types'
+import { TruncatableText } from '../../ui/TruncatableText'
 
 interface AgentThinkingPanelProps {
   steps: AgentThinkingStep[]
@@ -226,11 +227,7 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
         <div>
           <SectionLabel icon={<MessageSquare className='w-3 h-3' />} label='输入上下文' />
           <div className='rounded-lg bg-[var(--bg-hover)] border border-[var(--border-primary)]/20 px-2.5 py-2'>
-            {inputPreview && (
-              <p className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed m-0'>
-                {inputPreview}
-              </p>
-            )}
+            {inputPreview && <TruncatableText text={inputPreview} maxChars={200} />}
           </div>
           <div className='flex flex-wrap gap-1.5 mt-1.5'>
             <span
@@ -255,9 +252,7 @@ function LlmCallCard({ step }: { step: AgentThinkingStep }) {
           <div>
             <SectionLabel icon={<Sparkles className='w-3 h-3' />} label='思考过程' />
             <div className='rounded-lg bg-[var(--bg-hover)] border border-[var(--accent-purple)]/20 px-2.5 py-2'>
-              <p className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed m-0'>
-                {thinkingText}
-              </p>
+              <TruncatableText text={thinkingText} maxChars={300} />
             </div>
           </div>
         )}
@@ -355,9 +350,7 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
         <div>
           <SectionLabel icon={<Settings className='w-3 h-3' />} label='调用参数' />
           <div className='rounded-lg bg-[var(--bg-hover)] border border-[var(--border-primary)]/20 px-2.5 py-2'>
-            <pre className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap break-all font-mono m-0 leading-relaxed'>
-              {args}
-            </pre>
+            <TruncatableText text={args} maxChars={200} variant='code' />
           </div>
         </div>
 
@@ -379,9 +372,7 @@ function MergedToolCard({ rs }: { rs: Extract<RenderStep, { kind: 'merged' }> })
                 success ? 'border-[var(--accent-emerald)]/30' : 'border-[var(--accent-rose)]/30'
               }`}
             >
-              <pre className='text-xs text-[var(--text-secondary)] whitespace-pre-wrap break-all font-mono m-0 leading-relaxed'>
-                {result || '—'}
-              </pre>
+              <TruncatableText text={result || '—'} maxChars={300} variant='code' />
             </div>
           </div>
         )}
