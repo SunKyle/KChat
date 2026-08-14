@@ -11,7 +11,7 @@ import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
 import { KnowledgeGraph } from './components/settings/Memory/KnowledgeGraph'
 import { useState, useEffect, useCallback } from 'react'
-import { Menu, X, ArrowLeft, BarChart3, RefreshCw, Wrench, Search, ArrowLeftRight } from 'lucide-react'
+import { Menu, X, BarChart3, RefreshCw, Wrench, Search, ArrowLeftRight } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 import { useConversation } from './hooks/useConversation'
@@ -31,12 +31,18 @@ function AppContent() {
   const { remove } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
   const [noteTodoDrawerOpen, setNoteTodoDrawerOpen] = useState(false)
-  const [graphViewDataset, setGraphViewDataset] = useState<{ name: string; displayName: string } | null>(null)
-  const [graphStats, setGraphStats] = useState<{ nodes: number; edges: number }>({ nodes: 0, edges: 0 })
+  const [graphViewDataset, setGraphViewDataset] = useState<{
+    name: string
+    displayName: string
+  } | null>(null)
+  const [graphStats, setGraphStats] = useState<{ nodes: number; edges: number }>({
+    nodes: 0,
+    edges: 0,
+  })
   const [graphRefreshKey, setGraphRefreshKey] = useState(0)
   const [isImproving, setIsImproving] = useState(false)
   const [graphSearchQuery, setGraphSearchQuery] = useState('')
-  const [graphRankdir, setGraphRankdir] = useState<'LR' | 'TB' | 'RL' | 'BT'>('LR')
+  const [graphRankdir, setGraphRankdir] = useState<'LR' | 'TB'>('LR')
   const [isLg, setIsLg] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -73,17 +79,12 @@ function AppContent() {
     }
   }, [graphViewDataset, isImproving, handleRefreshGraph])
 
-  const handleGraphStatsChange = useCallback(
-    (stats: { nodes: number; edges: number }) => {
-      setGraphStats(stats)
-    },
-    []
-  )
+  const handleGraphStatsChange = useCallback((stats: { nodes: number; edges: number }) => {
+    setGraphStats(stats)
+  }, [])
 
   const handleToggleGraphRankdir = useCallback(() => {
-    setGraphRankdir((prev) =>
-      prev === 'LR' ? 'TB' : prev === 'TB' ? 'RL' : prev === 'RL' ? 'BT' : 'LR'
-    )
+    setGraphRankdir((prev) => (prev === 'LR' ? 'TB' : 'LR'))
   }, [])
 
   return (
@@ -171,15 +172,7 @@ function AppContent() {
             {graphViewDataset && !showSettings && (
               <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
                 <div className='flex items-center gap-3 min-w-0 flex-shrink-0'>
-                  <button
-                    onClick={() => setGraphViewDataset(null)}
-                    className='flex items-center gap-1 text-sm theme-text-muted hover:theme-text-primary transition-colors'
-                  >
-                    <ArrowLeft className='w-4 h-4' />
-                    返回
-                  </button>
-                  <span className='theme-text-muted text-sm'>/</span>
-                  <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[160px]'>
+                  <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[200px]'>
                     {graphViewDataset.displayName}
                   </h1>
                   <span className='text-xs theme-text-muted flex-shrink-0'>知识图谱</span>
@@ -222,19 +215,11 @@ function AppContent() {
                   <button
                     onClick={handleToggleGraphRankdir}
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer'
-                    title={`布局方向：${
-                      { LR: '从左到右', TB: '从上到下', RL: '从右到左', BT: '从下到上' }[graphRankdir]
-                    }`}
+                    title={`布局方向：${graphRankdir === 'LR' ? '从左到右' : '从上到下'}`}
                   >
                     <ArrowLeftRight className='w-3.5 h-3.5 theme-brand-primary' />
                     <span className='text-xs theme-text-primary hidden sm:inline'>
-                      {graphRankdir === 'LR'
-                        ? '左→右'
-                        : graphRankdir === 'TB'
-                          ? '上→下'
-                          : graphRankdir === 'RL'
-                            ? '右→左'
-                            : '下→上'}
+                      {graphRankdir === 'LR' ? '左→右' : '上→下'}
                     </span>
                   </button>
 
@@ -245,7 +230,9 @@ function AppContent() {
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
                     title='优化图谱：推导跨实体连接、重加权边'
                   >
-                    <Wrench className={`w-3.5 h-3.5 theme-brand-primary ${isImproving ? 'animate-spin' : ''}`} />
+                    <Wrench
+                      className={`w-3.5 h-3.5 theme-brand-primary ${isImproving ? 'animate-spin' : ''}`}
+                    />
                     <span className='text-xs theme-text-primary hidden sm:inline'>
                       {isImproving ? '优化中...' : '优化图谱'}
                     </span>

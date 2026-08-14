@@ -575,19 +575,12 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
               count: pendingRemindersCount,
               color: 'var(--accent-amber)',
             },
-            {
-              key: 'graph' as const,
-              Icon: Network,
-              label: '图谱',
-              count: 0,
-              color: 'var(--accent-purple, #8b5cf6)',
-            },
           ].map((item, idx, arr) => {
             const { key, Icon, label, count, color } = item
             return (
               <div key={key} className='flex flex-col items-center'>
                 <button
-                  onClick={() => key === 'graph' ? setShowGraph(true) : handleCapsuleOpen(key)}
+                  onClick={() => handleCapsuleOpen(key)}
                   className='relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--bg-hover)] active:scale-90 transition-all duration-200 group'
                   aria-label={`打开${label}`}
                   title={label}
