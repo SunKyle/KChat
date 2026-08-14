@@ -279,6 +279,48 @@ public class CogneeClient {
     }
 
     /**
+     * Remember with a specific dataset name — used by KnowledgeBaseService
+     * to write documents into a per-knowledge-base Cognee dataset (kb_{id}).
+     *
+     * @param content     Text to store
+     * @param datasetName Target Cognee dataset (e.g., "kb_{uuid}")
+     * @return true if the operation succeeded
+     */
+    public boolean remember(String content, String datasetName) {
+        if (!properties.isEnabled()) {
+            log.debug("[Cognee] Integration disabled, skipping remember");
+            return false;
+        }
+        try {
+            String url = properties.getBaseUrl() + "/remember";
+            RememberRequest req = new RememberRequest();
+            req.setContent(content);
+            req.setDatasetName(datasetName);
+            req.setSelfImprovement(true);
+            req.setRunInBackground(true);
+
+            log.debug("[Cognee] remember: {} chars, dataset={}", content.length(), datasetName);
+
+            ResponseEntity<AddResponse> response = restTemplate.postForEntity(
+                    url, new HttpEntity<>(req), AddResponse.class);
+
+            boolean success = response.getBody() != null && response.getBody().isSuccess();
+            if (success) {
+                log.info("[Cognee] remember() succeeded for dataset={} (id={})",
+                        datasetName, response.getBody().getId());
+            } else {
+                log.warn("[Cognee] remember() returned failure for dataset={}: {}",
+                        datasetName, response.getBody() != null ? response.getBody().getMessage() : "null body");
+            }
+            return success;
+        } catch (Exception e) {
+            log.warn("[Cognee] remember() failed for dataset={} ({} chars): {}",
+                    datasetName, content.length(), e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * v1.0 recall() — auto-routed retrieval with session awareness.
      *
      * <p>
@@ -350,6 +392,55 @@ public class CogneeClient {
     /** Convenience: recall without session (permanent graph only). */
     public List<RecallResult> recall(String userId, String query, int topK) {
         return recall(userId, query, topK, null);
+    }
+
+    /**
+     * Recall from specific datasets (knowledge bases).
+     * Pass a list of Cognee dataset names (e.g., ["kb_uuid1", "kb_uuid2"])
+     * to restrict the search to those knowledge bases only.
+     *
+     * @param query    Natural language query
+     * @param topK     Maximum results
+     * @param datasets List of dataset names to search
+     * @return List of scored results
+     */
+    public List<RecallResult> recallFromDatasets(String query, int topK, List<String> datasets) {
+        if (!properties.isEnabled()) {
+            return List.of();
+        }
+        try {
+            String url = properties.getBaseUrl() + "/recall";
+            RecallRequest req = new RecallRequest();
+            req.setQuery(query);
+            req.setTopK(Math.min(topK, properties.getSearch().getTopK()));
+            req.setOnlyContext(true);
+            if (datasets != null && !datasets.isEmpty()) {
+                req.setDatasets(datasets);
+            }
+
+            log.debug("[Cognee] recallFromDatasets: query='{}', topK={}, datasets={}",
+                    query, req.getTopK(), datasets);
+
+            ResponseEntity<RecallResponseDto> response = searchRestTemplate.postForEntity(
+                    url, new HttpEntity<>(req), RecallResponseDto.class);
+
+            if (response.getBody() == null) {
+                return List.of();
+            }
+
+            double threshold = properties.getSearch().getThreshold();
+            return response.getBody().getResults().stream()
+                    .filter(item -> !item.getText().isBlank())
+                    .filter(item -> item.getScore() >= threshold || item.getScore() == 0.0)
+                    .map(item -> new RecallResult(
+                            item.getText(),
+                            item.getScore() >= 0.01 ? item.getScore() : threshold,
+                            item.getSource() != null ? item.getSource() : "graph"))
+                    .toList();
+        } catch (Exception e) {
+            log.warn("[Cognee] recallFromDatasets() failed: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     /**
@@ -535,6 +626,26 @@ public class CogneeClient {
             return response.getBody();
         } catch (Exception e) {
             log.debug("[Cognee] getGraph() failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Fetch the knowledge graph for a specific dataset (knowledge base).
+     *
+     * @param datasetName Cognee dataset name (e.g., "kb_{uuid}")
+     * @return Graph response, or null on failure
+     */
+    public GraphResponse getGraph(String datasetName) {
+        if (!properties.isEnabled()) {
+            return null;
+        }
+        try {
+            String url = properties.getBaseUrl() + "/graph?dataset=" + datasetName;
+            ResponseEntity<GraphResponse> response = searchRestTemplate.getForEntity(url, GraphResponse.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.debug("[Cognee] getGraph(dataset={}) failed: {}", datasetName, e.getMessage());
             return null;
         }
     }

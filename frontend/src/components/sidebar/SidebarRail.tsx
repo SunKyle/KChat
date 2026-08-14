@@ -33,22 +33,20 @@ export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailP
     <div
       role='navigation'
       aria-label='主导航'
-      className={`flex flex-col h-full w-16 flex-shrink-0 items-center py-3 gap-2 ${
-        collapsed ? '' : 'border-r theme-border-secondary'
+      className={`flex flex-col h-full w-16 flex-shrink-0 items-center ${
+        collapsed ? '' : 'border-r border-[var(--border-divider)]'
       }`}
     >
-      {/* Logo */}
-      <div className='w-full flex items-center justify-center mb-1'>
+      {/* Logo 区域：h-14 对齐主对话区 Header，底部 border-b 与 Header 分割线一致 */}
+      <div className='h-14 w-full flex items-center justify-center flex-shrink-0 border-b theme-border-primary'>
         <div className='relative flex-shrink-0'>
           <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--brand-primary)]/40 to-[var(--accent-purple)]/40 blur-md opacity-25' />
           <img src='/kchat-icon.svg' alt='KChat' className='relative w-6 h-6 object-contain' />
         </div>
       </div>
 
-      <div className='mx-3 w-[calc(100%-1.5rem)] divider' />
-
       {/* 一级菜单 */}
-      <nav className='flex flex-col gap-1 w-full px-2 flex-1' aria-label='一级菜单'>
+      <nav className='flex flex-col gap-1 w-full px-2 py-2 flex-1' aria-label='一级菜单'>
         {menus.map((menu) => {
           const Icon = menu.icon
           const isActive = activeMenu === menu.id
@@ -60,16 +58,20 @@ export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailP
               aria-current={isActive ? 'page' : undefined}
               title={menu.label}
               className={`group relative w-full flex items-center justify-center h-10 rounded-lg transition-all duration-200 focus-ring ${
-                isActive
-                  ? 'bg-brand-selected theme-brand-primary'
-                  : 'theme-text-muted hover:theme-bg-hover hover:theme-text-primary'
+                isActive ? 'theme-brand-primary' : 'theme-text-muted hover:theme-text-primary'
               }`}
             >
-              <Icon className='w-5 h-5' aria-hidden='true' />
+              <span
+                className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
+                  isActive ? 'bg-brand-selected' : 'group-hover:theme-bg-hover'
+                }`}
+              >
+                <Icon className='w-5 h-5' aria-hidden='true' />
+              </span>
               {isActive && (
                 <motion.div
                   layoutId='rail-active-indicator'
-                  className='absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[var(--brand-primary)]'
+                  className='absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--brand-primary)]'
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
@@ -79,7 +81,7 @@ export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailP
       </nav>
 
       {/* 用户头像：点击跳转设置 */}
-      <div className='w-full px-2'>
+      <div className='w-full px-2 pb-3'>
         <button
           onClick={handleAvatarClick}
           aria-label='打开设置'

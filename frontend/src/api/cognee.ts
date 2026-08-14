@@ -147,10 +147,14 @@ export const cogneeMemory = {
 
   /**
    * Get the knowledge graph structure (nodes + edges) for visualization.
+   * @param dataset Optional Cognee dataset name (e.g., "kb_{uuid}"). Defaults to "main_dataset".
    */
-  getGraph: async (): Promise<GraphResponse> => {
+  getGraph: async (dataset?: string): Promise<GraphResponse> => {
     try {
-      const response = await fetch(`${COGNEE_BASE_URL}/graph`, {
+      const url = dataset
+        ? `${COGNEE_BASE_URL}/graph?dataset=${encodeURIComponent(dataset)}`
+        : `${COGNEE_BASE_URL}/graph`
+      const response = await fetch(url, {
         method: 'GET',
       })
       if (!response.ok) {

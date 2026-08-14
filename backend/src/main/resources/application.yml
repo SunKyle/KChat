@@ -226,6 +226,11 @@ app:
     upload-dir: uploads/images # 本地图片上传目录
     base-url: http://localhost:8080/api/images/ # 访问上传图片的 URL 前缀
 
+# ==================== 知识库配置 ====================
+kchat:
+  knowledge-base:
+    upload-dir: uploads/knowledge # 知识库文档存储目录（相对 backend/）
+
 # ==================== Cognee 记忆图谱配置 ====================
 cognee:
   enabled: true # 是否启用 Cognee 知识图谱记忆

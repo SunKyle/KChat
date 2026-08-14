@@ -183,9 +183,10 @@ const nodeTypes: NodeTypes = {
 
 interface GraphInnerProps {
   onStatsChange?: (stats: { nodes: number; edges: number }) => void
+  dataset?: string
 }
 
-function GraphInner({ onStatsChange }: GraphInnerProps) {
+function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -272,7 +273,7 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
     setLoading(true)
     setError(null)
     try {
-      const data = await cogneeMemory.getGraph()
+      const data = await cogneeMemory.getGraph(dataset)
       if (data.status && data.status.startsWith('error')) {
         setError(data.status)
         setNodes([])
@@ -350,7 +351,7 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
     } finally {
       setLoading(false)
     }
-  }, [fitView, setNodes, setEdges, onStatsChange])
+  }, [fitView, setNodes, setEdges, onStatsChange, dataset])
 
   useEffect(() => {
     fetchGraph()
@@ -907,12 +908,14 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
 
 export function KnowledgeGraph({
   onStatsChange,
+  dataset,
 }: {
   onStatsChange?: (stats: { nodes: number; edges: number }) => void
+  dataset?: string
 }) {
   return (
     <ReactFlowProvider>
-      <GraphInner onStatsChange={onStatsChange} />
+      <GraphInner onStatsChange={onStatsChange} dataset={dataset} />
     </ReactFlowProvider>
   )
 }

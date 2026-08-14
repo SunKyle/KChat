@@ -237,75 +237,91 @@ async def health():
         return HealthResponse(status=f"error: {e}", version="unknown")
 
 @app.get("/graph", response_model=GraphResponse)
-async def get_graph():
-    """Get knowledge graph nodes and edges for frontend visualization.
+async def get_graph(dataset: str = "main_dataset"):
+    """Get knowledge graph nodes and edges for a specific dataset.
 
-    Queries the graph engine directly to retrieve entities (nodes) and
-    relationships (edges) extracted by Cognee's cognify pipeline.
+    Queries the Cognee SQL database (nodes/edges tables) filtered by dataset_id,
+    ensuring each knowledge base only shows its own entities and relationships.
+
+    Args:
+        dataset: Cognee dataset name (default: main_dataset). Pass kb_{uuid} for knowledge base graphs.
     """
     try:
-        from cognee.infrastructure.databases.graph import get_graph_engine
-        from cognee.modules.data.methods import get_authorized_existing_datasets
-        from cognee.modules.users.methods import get_default_user
-        from cognee.context_global_variables import set_database_global_context_variables
+        import aiosqlite
 
-        user = await get_default_user()
-        dataset = await get_authorized_existing_datasets(["main_dataset"], "read", user)
+        PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        db_path = os.path.join(PROJECT_ROOT, ".cognee_system", "databases", "cognee_db")
 
-        async with set_database_global_context_variables(
-            dataset[0].id if dataset else None,
-            dataset[0].owner_id if dataset else None,
-        ):
-            graph_engine = await get_graph_engine()
-            raw_nodes, raw_edges = await graph_engine.get_graph_data()
+        if not os.path.exists(db_path):
+            logger.error(f"Cognee DB not found at {db_path}")
+            return GraphResponse(status=f"error: DB not found")
 
-            nodes = []
-            for n in raw_nodes:
-                raw_id = n[0] if isinstance(n, (tuple, list)) else getattr(n, 'id', None)
-                if raw_id is None:
-                    continue
-                nid = str(raw_id)
-                if nid == 'null':
-                    continue
-                props = n[1] if isinstance(n, (tuple, list)) and len(n) > 1 else getattr(n, 'properties', {})
-                if not isinstance(props, dict):
-                    props = dict(props) if props else {}
-                label = str(props.get('name', props.get('label', nid)))[:60]
-                ntype = str(props.get('type', props.get('entity_type', 'entity')))[:30]
-                clean_props = {k: str(v)[:200] for k, v in props.items()
-                               if k in ('description', 'created_at', 'version', 'feedback_weight')}
-                nodes.append(GraphNode(id=nid, label=label, type=ntype, properties=clean_props))
-
-            valid_node_ids = {n.id for n in nodes}
-            edges = []
-            skipped = 0
-            for e in raw_edges:
-                raw_src = e[0] if isinstance(e, (tuple, list)) else getattr(e, 'source', None)
-                raw_tgt = e[1] if isinstance(e, (tuple, list)) and len(e) > 1 else getattr(e, 'target', None)
-                if raw_src is None or raw_tgt is None:
-                    skipped += 1
-                    continue
-                src = str(raw_src)
-                tgt = str(raw_tgt)
-                if src == 'null' or tgt == 'null' or src not in valid_node_ids or tgt not in valid_node_ids:
-                    skipped += 1
-                    continue
-                rel = str(e[2]) if isinstance(e, (tuple, list)) and len(e) > 2 else str(getattr(e, 'relation', ''))
-                eprops = e[3] if isinstance(e, (tuple, list)) and len(e) > 3 else getattr(e, 'properties', {})
-                if not isinstance(eprops, dict):
-                    eprops = dict(eprops) if eprops else {}
-                eid = f"{src}-{rel}-{tgt}"
-                edges.append(GraphEdge(id=eid, source=src, target=tgt, label=rel[:40], type=rel))
-            if skipped:
-                logger.warning(f"Skipped {skipped} invalid edges (null or missing node refs)")
-
-            logger.info(f"Graph retrieved: {len(nodes)} nodes, {len(edges)} edges")
-            return GraphResponse(
-                nodes=nodes,
-                edges=edges,
-                total_nodes=len(nodes),
-                total_edges=len(edges),
+        async with aiosqlite.connect(db_path) as db:
+            # Get dataset ID by name
+            cursor = await db.execute(
+                "SELECT id FROM datasets WHERE name = ?", (dataset,)
             )
+            ds_row = await cursor.fetchone()
+            await cursor.close()
+
+            if not ds_row:
+                logger.warning(f"Dataset '{dataset}' not found in Cognee DB")
+                return GraphResponse(nodes=[], edges=[], total_nodes=0, total_edges=0)
+
+            dataset_id = ds_row[0]
+
+            # Query nodes for this dataset
+            cursor = await db.execute(
+                "SELECT slug, label, type, attributes FROM nodes WHERE dataset_id = ?",
+                (dataset_id,)
+            )
+            node_rows = await cursor.fetchall()
+            await cursor.close()
+
+            # Query edges for this dataset
+            cursor = await db.execute(
+                "SELECT source_node_id, destination_node_id, relationship_name FROM edges WHERE dataset_id = ?",
+                (dataset_id,)
+            )
+            edge_rows = await cursor.fetchall()
+            await cursor.close()
+
+        # Build nodes
+        nodes = []
+        valid_node_ids = set()
+        for row in node_rows:
+            slug = str(row[0])
+            label = str(row[1] or slug)[:60]
+            ntype = str(row[2] or 'entity')[:30]
+            attrs = {}
+            if row[3]:
+                try:
+                    attrs = json.loads(row[3])
+                except Exception:
+                    attrs = {}
+            clean_props = {k: str(v)[:200] for k, v in attrs.items()
+                           if k in ('description', 'created_at', 'version', 'feedback_weight')}
+            nodes.append(GraphNode(id=slug, label=label, type=ntype, properties=clean_props))
+            valid_node_ids.add(slug)
+
+        # Build edges (only keep edges where both endpoints exist in this dataset's nodes)
+        edges = []
+        for row in edge_rows:
+            src = str(row[0])
+            tgt = str(row[1])
+            rel = str(row[2] or 'connected')
+            if src not in valid_node_ids or tgt not in valid_node_ids:
+                continue
+            eid = f"{src}-{rel}-{tgt}"
+            edges.append(GraphEdge(id=eid, source=src, target=tgt, label=rel[:40], type=rel))
+
+        logger.info(f"Graph retrieved for dataset '{dataset}': {len(nodes)} nodes, {len(edges)} edges")
+        return GraphResponse(
+            nodes=nodes,
+            edges=edges,
+            total_nodes=len(nodes),
+            total_edges=len(edges),
+        )
 
     except Exception as e:
         logger.error(f"get_graph failed: {e}")

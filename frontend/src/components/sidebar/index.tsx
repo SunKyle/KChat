@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, ChevronRight } from 'lucide-react'
 import { SidebarRail, type MenuId } from './SidebarRail'
 import { ChatPanel } from './ChatPanel'
 import { GraphPanel } from './GraphPanel'
+import { KnowledgePanel } from './KnowledgePanel'
 
 interface SidebarProps {
   collapsed?: boolean
   onToggle?: () => void
   onDeleteClick?: (id: string, title: string) => void
   onConversationClick?: () => void
+  onSelectDataset?: (datasetName: string, displayName: string) => void
 }
 
 const ACTIVE_MENU_STORAGE_KEY = 'sidebarActiveMenu'
@@ -23,6 +24,7 @@ export function Sidebar({
   onToggle,
   onDeleteClick,
   onConversationClick,
+  onSelectDataset,
 }: SidebarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
     const saved = localStorage.getItem(ACTIVE_MENU_STORAGE_KEY)
@@ -57,9 +59,19 @@ export function Sidebar({
           />
         )
       case 'knowledge':
-        return <KnowledgePanelPlaceholder onToggle={() => onToggle?.()} />
+        return (
+          <KnowledgePanel
+            onToggle={() => onToggle?.()}
+            onSelectDataset={(name, displayName) => onSelectDataset?.(name, displayName)}
+          />
+        )
       case 'graph':
-        return <GraphPanel onToggle={() => onToggle?.()} />
+        return (
+          <GraphPanel
+            onToggle={() => onToggle?.()}
+            onSelectDataset={(name, displayName) => onSelectDataset?.(name, displayName)}
+          />
+        )
       default:
         return null
     }
@@ -67,11 +79,7 @@ export function Sidebar({
 
   return (
     <div className='flex h-full'>
-      <SidebarRail
-        activeMenu={activeMenu}
-        onMenuClick={handleMenuClick}
-        collapsed={collapsed}
-      />
+      <SidebarRail activeMenu={activeMenu} onMenuClick={handleMenuClick} collapsed={collapsed} />
 
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -98,34 +106,6 @@ export function Sidebar({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-/** 知识库占位面板（功能开发中） */
-function KnowledgePanelPlaceholder({ onToggle }: { onToggle: () => void }) {
-  return (
-    <div className='flex flex-col h-full'>
-      <div className='px-4 h-14 flex items-center justify-between flex-shrink-0'>
-        <h2 className='font-group-title theme-text-primary'>知识库</h2>
-        <button
-          onClick={onToggle}
-          aria-label='收起侧边栏'
-          className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200 focus-ring flex-shrink-0'
-        >
-          <ChevronRight className='w-4 h-4 rotate-180' aria-hidden='true' />
-        </button>
-      </div>
-
-      <div className='flex-1 flex items-center justify-center px-6'>
-        <div className='text-center'>
-          <div className='w-14 h-14 mx-auto mb-4 rounded-2xl theme-bg-hover/50 flex items-center justify-center'>
-            <Database className='w-7 h-7 theme-text-muted' aria-hidden='true' />
-          </div>
-          <p className='theme-text-secondary text-sm mb-1 font-semibold'>知识库功能开发中</p>
-          <p className='text-xs theme-text-muted'>即将支持文档上传、检索与引用</p>
-        </div>
-      </div>
     </div>
   )
 }

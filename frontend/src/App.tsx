@@ -9,11 +9,13 @@ import { Modal } from './components/common/Modal'
 import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
-import { useState, useEffect } from 'react'
-import { Menu, X } from 'lucide-react'
+import { KnowledgeGraph } from './components/settings/Memory/KnowledgeGraph'
+import { useState, useEffect, useCallback } from 'react'
+import { Menu, X, ArrowLeft, BarChart3, RefreshCw, Wrench } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 import { useConversation } from './hooks/useConversation'
+import { cogneeMemory } from './api/cognee'
 
 function AppContent() {
   const {
@@ -29,6 +31,10 @@ function AppContent() {
   const { remove } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
   const [noteTodoDrawerOpen, setNoteTodoDrawerOpen] = useState(false)
+  const [graphViewDataset, setGraphViewDataset] = useState<{ name: string; displayName: string } | null>(null)
+  const [graphStats, setGraphStats] = useState<{ nodes: number; edges: number }>({ nodes: 0, edges: 0 })
+  const [graphRefreshKey, setGraphRefreshKey] = useState(0)
+  const [isImproving, setIsImproving] = useState(false)
   const [isLg, setIsLg] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -48,12 +54,36 @@ function AppContent() {
     }
   }
 
+  const handleRefreshGraph = useCallback(() => {
+    setGraphRefreshKey((k) => k + 1)
+  }, [])
+
+  const handleImproveGraph = useCallback(async () => {
+    if (!graphViewDataset || isImproving) return
+    setIsImproving(true)
+    try {
+      const result = await cogneeMemory.improve(graphViewDataset.name)
+      if (result.success) {
+        handleRefreshGraph()
+      }
+    } finally {
+      setIsImproving(false)
+    }
+  }, [graphViewDataset, isImproving, handleRefreshGraph])
+
+  const handleGraphStatsChange = useCallback(
+    (stats: { nodes: number; edges: number }) => {
+      setGraphStats(stats)
+    },
+    []
+  )
+
   return (
     <div
       style={
         isLg
           ? ({
-              '--sidebar-pad': sidebarCollapsed ? '6rem' : '20rem',
+              '--sidebar-pad': sidebarCollapsed ? '6rem' : '22rem',
               '--note-pad': noteTodoDrawerOpen ? '27rem' : '1rem',
             } as React.CSSProperties)
           : undefined
@@ -87,7 +117,14 @@ function AppContent() {
               collapsed={sidebarCollapsed}
               onToggle={toggleCollapsed}
               onDeleteClick={handleDeleteClick}
-              onConversationClick={() => closeSettings()}
+              onConversationClick={() => {
+                closeSettings()
+                setGraphViewDataset(null)
+              }}
+              onSelectDataset={(name, displayName) => {
+                setGraphViewDataset({ name, displayName })
+                closeSettings()
+              }}
             />
           </div>
         </aside>
@@ -118,13 +155,81 @@ function AppContent() {
               `,
               }}
             />
-            <Header />
-            <div
-              className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}
-            >
-              <ChatArea />
-              {activeConversation && <InputArea />}
-            </div>
+            {/* 对话视图的 Header */}
+            {!graphViewDataset && <Header />}
+            {/* 图谱视图的 Header */}
+            {graphViewDataset && !showSettings && (
+              <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary'>
+                <div className='flex items-center gap-3 min-w-0'>
+                  <button
+                    onClick={() => setGraphViewDataset(null)}
+                    className='flex items-center gap-1 text-sm theme-text-muted hover:theme-text-primary transition-colors flex-shrink-0'
+                  >
+                    <ArrowLeft className='w-4 h-4' />
+                    返回
+                  </button>
+                  <span className='theme-text-muted text-sm flex-shrink-0'>/</span>
+                  <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 flex-shrink'>
+                    {graphViewDataset.displayName}
+                  </h1>
+                  <span className='text-xs theme-text-muted flex-shrink-0'>知识图谱</span>
+                </div>
+
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg theme-bg-card border theme-border-primary'>
+                    <BarChart3 className='w-3.5 h-3.5 theme-brand-primary' />
+                    <span className='text-xs theme-text-primary font-medium'>
+                      {graphStats.nodes} 节点
+                    </span>
+                    <span className='text-xs theme-text-muted'>·</span>
+                    <span className='text-xs theme-text-primary font-medium'>
+                      {graphStats.edges} 关系
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handleImproveGraph}
+                    disabled={isImproving}
+                    className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                    title='优化图谱：推导跨实体连接、重加权边'
+                  >
+                    <Wrench className={`w-3.5 h-3.5 theme-brand-primary ${isImproving ? 'animate-spin' : ''}`} />
+                    <span className='text-xs sm:text-sm theme-text-primary'>
+                      {isImproving ? '优化中...' : '优化图谱'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={handleRefreshGraph}
+                    className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer'
+                    title='刷新图谱'
+                  >
+                    <RefreshCw className='w-3.5 h-3.5 theme-brand-primary' />
+                    <span className='text-xs sm:text-sm theme-text-primary hidden sm:inline'>刷新</span>
+                  </button>
+                </div>
+              </header>
+            )}
+
+            {/* 数据集图谱视图 */}
+            {graphViewDataset && !showSettings && (
+              <div className='relative flex-1 min-h-0'>
+                <KnowledgeGraph
+                  key={graphRefreshKey}
+                  dataset={graphViewDataset.name}
+                  onStatsChange={handleGraphStatsChange}
+                />
+              </div>
+            )}
+            {/* 对话视图 */}
+            {!graphViewDataset && (
+              <div
+                className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}
+              >
+                <ChatArea />
+                {activeConversation && <InputArea />}
+              </div>
+            )}
             {showSettings && (
               <div className='relative flex-1 overflow-y-auto p-6'>
                 <UserSettings onClose={closeSettings} defaultTab={settingsTab} />

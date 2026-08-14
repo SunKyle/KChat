@@ -14,6 +14,6 @@ export function useSidebar() {
     setSidebarCollapsed,
     toggleSidebar,
     toggleCollapsed,
-    sidebarWidth: sidebarCollapsed ? 'w-16' : 'w-72',
+    sidebarWidth: sidebarCollapsed ? 'w-16' : 'w-80',
   }
 }

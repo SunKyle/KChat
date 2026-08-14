@@ -74,4 +74,20 @@ public class CogneeController {
                 "status", healthy ? "ok" : "unreachable"
         ));
     }
+
+    /**
+     * 获取指定知识库的知识图谱。
+     *
+     * @param dataset Cognee dataset 名称（如 kb_{uuid}）
+     * @return 图谱节点和边
+     */
+    @GetMapping("/graph")
+    public ResponseEntity<CogneeClient.GraphResponse> getGraph(
+            @RequestParam(required = false, defaultValue = "main_dataset") String dataset) {
+        CogneeClient.GraphResponse graph = cogneeClient.getGraph(dataset);
+        if (graph == null) {
+            return ResponseEntity.ok(new CogneeClient.GraphResponse());
+        }
+        return ResponseEntity.ok(graph);
+    }
 }
