@@ -55,7 +55,7 @@ public class QueryAnalyzerStage implements ContextPipelineStage {
             ctx.setQueryAnalysisResult(result);
 
             if (result.isRequiresMemory()) {
-                log.info("[QueryAnalyzer] query='{}' intent={} source={} requiresMemory=true " +
+                log.info("[QueryAnalyzer] query='{}' intent={} source={} " +
                                 "types={} excluded={} confidence={}",
                         truncate(ctx.getUserMessage(), 50),
                         result.getIntentType(),
@@ -64,15 +64,13 @@ public class QueryAnalyzerStage implements ContextPipelineStage {
                         result.getExcludedTypes().size(),
                         result.getConfidence());
             } else {
-                log.info("[QueryAnalyzer] query='{}' intent={} source={} requiresMemory=false " +
-                        "(memory injection skipped)",
+                log.info("[QueryAnalyzer] query='{}' intent={} source={} (memory skip hint: pure math)",
                         truncate(ctx.getUserMessage(), 50),
                         result.getIntentType(),
                         result.getSource());
             }
         } catch (Exception e) {
             log.warn("[QueryAnalyzer] Failed to analyze query: {}", e.getMessage());
-            // 降级：不设置 queryAnalysisResult，LongTermMemoryStage 会使用默认行为
         }
     }
 

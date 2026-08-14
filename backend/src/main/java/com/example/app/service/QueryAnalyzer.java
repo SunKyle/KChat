@@ -17,18 +17,24 @@ import java.util.regex.Pattern;
 /**
  * Query 分析服务
  *
- * <p>采用规则 + LLM 混合方案：
+ * <p>
+ * 采用规则 + LLM 混合方案：
  * <ol>
- *   <li>规则优先（零成本）：匹配代词、问候、技术关键词等模式</li>
- *   <li>规则不确定时调 LLM：产出结构化的意图分类 + query 改写</li>
+ * <li>规则优先（零成本）：匹配代词、问候、技术关键词等模式</li>
+ * <li>规则不确定时调 LLM：产出结构化的意图分类 + query 改写</li>
  * </ol>
  *
- * <p>分析结果供 {@code LongTermMemoryStage} 使用，决定：
+ * <p>
+ * 分析结果供 {@code LongTermMemoryStage} 使用，提供：
  * <ul>
- *   <li>是否需要注入记忆（门控）</li>
- *   <li>召回哪些类型的记忆（选择）</li>
- *   <li>用什么 query 做向量检索（改写）</li>
+ * <li>意图分类（用于决定优先召回哪些类型的记忆）</li>
+ * <li>召回 query 改写（用于向量检索）</li>
+ * <li>类型过滤建议（requiredTypes / excludedTypes）</li>
  * </ul>
+ *
+ * <p>
+ * 设计原则：意图分类仅用于排序/过滤，不用于门控。
+ * LongTermMemoryStage 默认始终召回记忆，只有纯数学计算才跳过。
  */
 @Service
 @RequiredArgsConstructor
@@ -53,7 +59,9 @@ public class QueryAnalyzer {
     /** 技术/知识询问 → KNOWLEDGE_QUERY */
     private static final Pattern KNOWLEDGE_PATTERN = Pattern.compile(
             "(技术栈|用什么框架|怎么实现|如何做|代码|开发|编程|是什么|是什么意思|介绍一下|解释一下" +
-                    "|framework|technology|how to|how does|what is|explain|describe|implement)",
+                    "|知道|了解|认识|熟悉|听过|了解过|有没有|会不会|能否|能不能" +
+                    "|framework|technology|how to|how does|what is|explain|describe|implement" +
+                    "|know|learn|understand|familiar|heard)",
             Pattern.CASE_INSENSITIVE);
 
     /** 任务执行 → TASK_EXECUTION */
@@ -260,11 +268,8 @@ public class QueryAnalyzer {
     private QueryAnalysisResult buildResultFromRule(String originalQuery, RuleMatch match) {
         IntentType intentType = match.intentType;
 
-        // 跳过记忆的意图
-        boolean skipMemory = (intentType == IntentType.CHAT_SMALLTALK
-                || intentType == IntentType.MATH_CALCULATION);
-
-        if (skipMemory) {
+        // 只有 MATH_CALCULATION 设为不需要记忆（LongTermMemoryStage 也会做二次校验）
+        if (intentType == IntentType.MATH_CALCULATION) {
             return QueryAnalysisResult.skipMemory(intentType);
         }
 
@@ -343,12 +348,9 @@ public class QueryAnalyzer {
             intentType = IntentType.GENERAL;
         }
 
-        // 跳过记忆的意图
-        boolean skipMemory = (intentType == IntentType.CHAT_SMALLTALK
-                || intentType == IntentType.MATH_CALCULATION);
-
-        if (skipMemory || !dto.requiresMemory()) {
-            return QueryAnalysisResult.skipMemory(intentType);
+        // 只有 MATH_CALCULATION 是硬跳过，其他意图始终召回记忆
+        if (intentType == IntentType.MATH_CALCULATION) {
+            return QueryAnalysisResult.skipMemory(intentType, AnalysisSource.LLM);
         }
 
         Map<String, Double> keywords = dto.keywords() != null ? dto.keywords() : new LinkedHashMap<>();

@@ -337,20 +337,19 @@ public class ModelRoutingStage implements ContextPipelineStage {
 
         Object templateVersion = ctx.getAgentState().get(ConversationContext.KEY_PROMPT_TEMPLATE_VERSION);
         StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        sb.append("╔═══════════════════════════════════════════════════════════╗\n");
-        sb.append("║  Final Prompt → Model: ").append(model)
-                .append("  |  Temp: ").append(ctx.isStreaming()
-                        ? String.valueOf(openAIClientProperties.getStreamTemperature())
-                        : String.valueOf(openAIClientProperties.getSyncTemperature()))
-                .append("  |  MaxTokens: ").append(openAIClientProperties.getDefaultMaxTokens())
-                .append("  |  Template: ")
-                .append(templateVersion instanceof Integer ? "v" + templateVersion : "fallback")
-                .append("\n");
-        sb.append("║  Messages: ").append(messages.size())
+
+        sb.append("\n╔══════════════════════════════════════════════════════════════╗\n");
+        sb.append("║  PROMPT → ").append(model).append("\n");
+        sb.append("║  对话: ").append(truncate(ctx.getConversationId(), 8))
+                .append("...")
+                .append("  |  消息: ").append(messages.size())
                 .append("  |  Tokens: ").append(ctx.getTokenCount())
-                .append("  |  Truncated: ").append(ctx.isTruncated()).append("\n");
-        sb.append("╠═══════════════════════════════════════════════════════════╣\n");
+                .append("\n");
+        sb.append("║  Template: ")
+                .append(templateVersion instanceof Integer ? "v" + templateVersion : "fallback")
+                .append("  |  Truncated: ").append(ctx.isTruncated())
+                .append("\n");
+        sb.append("╠══════════════════════════════════════════════════════════════╣\n");
 
         for (int i = 0; i < messages.size(); i++) {
             ChatMessage msg = messages.get(i);
@@ -376,27 +375,135 @@ public class ModelRoutingStage implements ContextPipelineStage {
                     extra = "tools=[" + toolInfo + "]";
                 }
             } else if (msg instanceof dev.langchain4j.data.message.ToolExecutionResultMessage toolMsg) {
-                role = "TOOL_RESULT";
+                role = "TOOL";
                 text = toolMsg.text();
-                extra = "tool=" + toolMsg.toolName() + ", callId=" + toolMsg.id();
+                extra = "tool=" + toolMsg.toolName();
             } else {
                 role = "UNKNOWN";
             }
+
+            if ("SYSTEM".equals(role) && text != null) {
+                sb.append("║  [").append(i + 1).append("/").append(messages.size())
+                        .append("] SYSTEM PROMPT  (")
+                        .append(text.split("\n").length).append(" lines / ")
+                        .append(text.length()).append(" chars)\n");
+                appendSystemPromptBreakdown(sb, text, ctx);
+                sb.append("║\n");
+                continue;
+            }
+
             sb.append("║  [").append(i + 1).append("/").append(messages.size())
                     .append("] ").append(role);
             if (extra != null) {
                 sb.append(" (").append(extra).append(")");
             }
-            sb.append(":\n");
+            sb.append(": ");
             if (text == null) {
-                sb.append("║  ").append("[(no text content)]").append("\n");
+                sb.append("[no content]");
             } else {
-                sb.append("║  ").append(text.replace("\n", "\n║  ")).append("\n");
+                String escaped = text.replace("\n", "\\n");
+                sb.append(truncate(escaped, 500));
+                if (escaped.length() > 500) {
+                    sb.append("... (").append(escaped.length() - 500).append(" more chars)");
+                }
             }
+            sb.append("\n");
         }
-        sb.append("╚═══════════════════════════════════════════════════════════╝");
+
+        sb.append("╚══════════════════════════════════════════════════════════════╝");
 
         promptLog.info(sb.toString());
+    }
+
+    /**
+     * 从 agentState 读取各格式化块，结构化展示 System Prompt 组成。
+     * 不再解析渲染后的文本，避免关键词误匹配内容行。
+     */
+    private void appendSystemPromptBreakdown(StringBuilder sb, String systemPrompt, ConversationContext ctx) {
+        Map<String, Object> state = ctx.getAgentState();
+
+        // 固定模板部分（不在 agentState 中，从 systemPrompt 提取）
+        String[] lines = systemPrompt.split("\n");
+
+        // 提取固定段：角色与目标 + 行为准则（模板前两部分）
+        // 策略：找到"行为准则"后的连续空行（空行后跟着的是动态注入内容）
+        int behaviorEnd = 0;
+        for (int i = 0; i < lines.length; i++) {
+            if (lines[i].trim().isEmpty() && i > 5) {
+                // 检查空行后面是否有"无"或动态内容（说明行为准则已结束）
+                if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    if (next.isEmpty() || next.equals("无") || next.startsWith("【")
+                            || next.startsWith("用户档案") || next.startsWith("## ")) {
+                        behaviorEnd = i;
+                        break;
+                    }
+                }
+            }
+        }
+        if (behaviorEnd == 0)
+            behaviorEnd = Math.min(12, lines.length);
+
+        sb.append("║  ┌─────────────────────────────────────────────────────────┐\n");
+
+        // 1. 固定模板部分
+        sb.append("║  │ ▸ 角色与目标 + 行为准则  (").append(behaviorEnd).append(" lines)\n");
+        for (int i = 0; i < behaviorEnd; i++) {
+            sb.append("║  │   ").append(lines[i]).append("\n");
+        }
+        sb.append("║  │\n");
+
+        // 2. 从 agentState 读取各动态块
+        printBlock(sb, "▸ 自定义规则", (String) state.get("customRules"));
+        printBlock(sb, "▸ 上下文策略", (String) state.get("contextPolicy"));
+
+        // 用户档案
+        String userProfile = (String) state.get(ConversationContext.KEY_FORMATTED_USER_PROFILE);
+        printBlock(sb, "▸ 用户档案", userProfile);
+
+        // 记忆各块
+        printBlock(sb, "▸ 记忆-L1 档案", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_L1));
+        printBlock(sb, "▸ 记忆-知识图谱 (Cognee)", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE));
+        printBlock(sb, "▸ 记忆-L3 偏好", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_L3));
+        printBlock(sb, "▸ 记忆-L2 精确", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_PRECISE));
+        printBlock(sb, "▸ 搜索上下文", (String) state.get(ConversationContext.KEY_FORMATTED_SEARCH));
+
+        // 3. 输出规范（模板末尾固定部分）
+        int outputStart = -1;
+        for (int i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].contains("输出规范")) {
+                outputStart = i;
+                break;
+            }
+        }
+        if (outputStart >= 0) {
+            int outputLines = lines.length - outputStart;
+            sb.append("║  │ ▸ 输出规范  (").append(outputLines).append(" lines)\n");
+            for (int i = outputStart; i < lines.length; i++) {
+                sb.append("║  │   ").append(lines[i]).append("\n");
+            }
+        }
+
+        sb.append("║  └─────────────────────────────────────────────────────────┘\n");
+    }
+
+    private void printBlock(StringBuilder sb, String title, String content) {
+        if (content == null || content.trim().isEmpty() || content.trim().equals("无")) {
+            sb.append("║  │ ").append(title).append("  [空]\n");
+        } else {
+            String[] contentLines = content.split("\n");
+            sb.append("║  │ ").append(title).append("  (").append(contentLines.length).append(" lines)\n");
+            for (String cl : contentLines) {
+                sb.append("║  │   ").append(cl).append("\n");
+            }
+        }
+        sb.append("║  │\n");
+    }
+
+    private String truncate(String s, int maxLen) {
+        if (s == null)
+            return "";
+        return s.length() <= maxLen ? s : s.substring(0, maxLen) + "...";
     }
 
     private void executeCustomModel(ConversationContext ctx, ModelConfig config, String modelId) {

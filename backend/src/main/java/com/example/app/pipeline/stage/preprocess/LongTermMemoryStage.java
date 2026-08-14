@@ -1,8 +1,6 @@
 package com.example.app.pipeline.stage.preprocess;
 
 import com.example.app.config.CogneeProperties;
-import com.example.app.config.MemoryExtractorConfig;
-import com.example.app.config.VectorStoreConfig;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.entity.LongTermMemory.MemoryType;
@@ -17,7 +15,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
+/**
+ * 长期记忆检索阶段（阶段 310）
+ *
+ * <p>架构：双源独立召回，结果分别存入 Context，在格式化阶段分块注入。
+ * <ul>
+ *   <li>Path A: JPA 结构化召回 — 关键词检索 + JPA 精排，按类型分层 (L1/L2/L3)</li>
+ *   <li>Path B: Cognee 语义召回 — recallWithContext() 返回片段 + 实体 + 关系</li>
+ * </ul>
+ *
+ * <p>设计原则：默认始终召回，只跳过明确的纯数学计算场景。
+ * 意图分类仅用于排序/过滤（决定优先召回哪些类型），不用于门控。
+ * 意图识别可能不准确，但漏召的代价远高于多召一条无关记忆。
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -26,10 +38,12 @@ public class LongTermMemoryStage implements ContextPipelineStage {
     private final LongTermMemoryService longTermMemoryService;
     private final CogneeClient cogneeClient;
     private final CogneeProperties cogneeProperties;
-    private final VectorStoreConfig vectorStoreConfig;
-    private final MemoryExtractorConfig memoryExtractorConfig;
     private final KeywordRetriever keywordRetriever;
     private final MemoryReranker memoryReranker;
+
+    /** 纯数学计算 — 唯一可靠的非记忆场景，可直接跳过 */
+    private static final Pattern PURE_MATH_PATTERN = Pattern.compile(
+            "^\\s*\\d+(\\.\\d+)?\\s*[\\+\\-\\*\\/×÷]\\s*\\d+(\\.\\d+)?\\s*=?\\s*\\??\\s*$");
 
     @Override
     public Phase getPhase() {
@@ -43,238 +57,203 @@ public class LongTermMemoryStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         try {
-            double minScore = vectorStoreConfig.getRecallMinScore();
-            QueryAnalysisResult analysis = ctx.getQueryAnalysisResult();
+            String userMessage = ctx.getUserMessage();
 
-            // ── Stage 5: Memory Gating ──────────────────────────
-            if (analysis != null && !analysis.isRequiresMemory()
-                    && memoryExtractorConfig.isIntentGatingEnabled()) {
-                log.info("[LongTermMemory] Gating: skip memory injection for intent={} query='{}'",
-                        analysis.getIntentType(), truncate(ctx.getUserMessage(), 50));
+            // ── 唯一可靠的跳过场景：纯数学计算 ─────────────────
+            if (userMessage != null && PURE_MATH_PATTERN.matcher(userMessage.trim()).matches()) {
+                log.info("[LongTermMemory] Skip memory for pure math: '{}'", truncate(userMessage, 50));
+                ctx.setJpaMemories(Map.of("l1", List.of(), "l2", List.of(), "l3", List.of()));
+                ctx.setCogneeContext(new ConversationContext.CogneeContext(
+                        List.of(), List.of(), List.of()));
                 ctx.setLongTermMemory(new ArrayList<>());
                 return;
             }
 
-            // ── Stage 1+2: Query Understanding + Memory Selection ─
+            // ── Query Understanding ────────────────────────────
+            QueryAnalysisResult analysis = ctx.getQueryAnalysisResult();
             String recallQuery;
             Set<MemoryType> requiredTypes = Collections.emptySet();
             Set<MemoryType> excludedTypes = Collections.emptySet();
 
             if (analysis != null) {
-                recallQuery = analysis.getEffectiveQuery(ctx.getUserMessage());
+                recallQuery = analysis.getEffectiveQuery(userMessage);
                 requiredTypes = analysis.getRequiredTypes() != null
                         ? analysis.getRequiredTypes() : Collections.emptySet();
                 excludedTypes = analysis.getExcludedTypes() != null
                         ? analysis.getExcludedTypes() : Collections.emptySet();
             } else {
-                recallQuery = ctx.getUserMessage();
+                recallQuery = userMessage;
             }
 
-            // ── Stage 3: Multi-Strategy Retrieval ──────────────
+            // ── Path A: JPA 结构化召回 ─────────────────────────
+            Map<String, List<MemoryDTO>> jpaMemories = retrieveJpaMemories(
+                    ctx, recallQuery, requiredTypes, excludedTypes);
+            ctx.setJpaMemories(jpaMemories);
 
-            // Path 1: Dense Retrieval (本地向量检索)
-            int denseTopK = 20; // 扩大候选集，后续精排筛选
-            List<MemoryDTO> denseResults = longTermMemoryService.recall(
-                    ctx.getUserId(), recallQuery, denseTopK, minScore);
+            // ── Path B: Cognee 语义召回 ────────────────────────
+            ConversationContext.CogneeContext cogneeCtx = retrieveCogneeContext(
+                    ctx, recallQuery);
+            ctx.setCogneeContext(cogneeCtx);
 
-            // Path 2: Sparse Retrieval (关键词检索)
-            List<KeywordRetriever.KeywordMatch> keywordMatches = keywordRetriever.search(
-                    ctx.getUserId(), recallQuery, denseTopK);
+            // ── Legacy longTermMemory (backward compat) ────────
+            List<MemoryDTO> legacyFlat = new ArrayList<>();
+            legacyFlat.addAll(jpaMemories.getOrDefault("l1", List.of()));
+            legacyFlat.addAll(jpaMemories.getOrDefault("l2", List.of()));
+            legacyFlat.addAll(jpaMemories.getOrDefault("l3", List.of()));
+            ctx.setLongTermMemory(legacyFlat);
 
-            Set<Long> keywordHitIds = keywordMatches.stream()
-                    .map(KeywordRetriever.KeywordMatch::memoryId)
-                    .collect(java.util.stream.Collectors.toSet());
+            // ── Logging ────────────────────────────────────────
+            int l1size = jpaMemories.getOrDefault("l1", List.of()).size();
+            int l2size = jpaMemories.getOrDefault("l2", List.of()).size();
+            int l3size = jpaMemories.getOrDefault("l3", List.of()).size();
+            int cogneeFragments = cogneeCtx.fragments() != null ? cogneeCtx.fragments().size() : 0;
+            int cogneeEntities = cogneeCtx.entities() != null ? cogneeCtx.entities().size() : 0;
+            int cogneeRelations = cogneeCtx.relations() != null ? cogneeCtx.relations().size() : 0;
 
-            List<MemoryDTO> sparseResults = new ArrayList<>();
-            if (!keywordHitIds.isEmpty()) {
-                Set<Long> denseIds = denseResults.stream()
-                        .map(MemoryDTO::getId)
-                        .filter(Objects::nonNull)
-                        .collect(java.util.stream.Collectors.toSet());
-
-                List<Long> missingIds = keywordHitIds.stream()
-                        .filter(id -> !denseIds.contains(id))
-                        .toList();
-
-                if (!missingIds.isEmpty()) {
-                    sparseResults = longTermMemoryService.findByIds(missingIds);
-                    Map<Long, Double> keywordScoreMap = keywordMatches.stream()
-                            .collect(java.util.stream.Collectors.toMap(
-                                    KeywordRetriever.KeywordMatch::memoryId,
-                                    KeywordRetriever.KeywordMatch::score,
-                                    (a, b) -> a));
-                    for (MemoryDTO dto : sparseResults) {
-                        Double kwScore = keywordScoreMap.get(dto.getId());
-                        if (kwScore != null) {
-                            dto.setScore(kwScore);
-                        }
-                    }
-                }
-            }
-
-            // Path 3: Cognee Graph Retrieval (图谱增强检索)
-            // Pass conversationId as session_id so recall searches session cache first
-            // (source="session"), then falls back to permanent graph (source="graph").
-            List<MemoryDTO> cogneeResults = Collections.emptyList();
-            if (cogneeProperties.isEnabled()) {
-                cogneeResults = fetchCogneeAsMemoryDtos(
-                        ctx.getUserId(), ctx.getUserMessage(),
-                        cogneeProperties.getSearch().getTopK(),
-                        ctx.getConversationId());
-            }
-
-            // ── Stage 3.5: Merge all recall paths ─────────────
-            // mergeAndDeduplicate unifies by memory id (dense + sparse use real JPA ids,
-            // cognee uses negative sentinel ids so they survive the merge step).
-            List<MemoryDTO> merged = memoryReranker.mergeAndDeduplicate(
-                    denseResults, sparseResults, cogneeResults);
-
-            // ── Stage 4: Relevance Ranking (统一规则精排) ──────
-            int finalTopK = 5;
-            List<MemoryDTO> reranked;
-
-            if (!keywordMatches.isEmpty() && !merged.isEmpty()) {
-                reranked = memoryReranker.rerank(merged, keywordMatches, finalTopK + 5);
-            } else {
-                reranked = memoryReranker.rerankDenseOnly(merged, finalTopK + 5);
-            }
-
-            // Cross-source content-level dedup: remove cognee entries whose text is
-            // substring-equal (ignoring whitespace/case) to any local JPA result.
-            // This guarantees we don't double-inject the same fact just because it
-            // was indexed in both stores.
-            List<MemoryDTO> deduped = deduplicateAcrossSources(reranked);
-
-            // Cap to final top-K after cross-source dedup.
-            if (deduped.size() > finalTopK) {
-                deduped = deduped.subList(0, finalTopK);
-            }
-
-            // ── 应用类型过滤 ──────────────────────────────────
-            List<MemoryDTO> finalResults = applyTypeFilter(deduped, requiredTypes, excludedTypes);
-
-            // ── 日志 ──────────────────────────────────────────
-            long localCount = finalResults.stream()
-                    .filter(m -> m.getId() == null || m.getId() >= 0).count();
-            long cogneeCount = finalResults.size() - localCount;
-            if (!finalResults.isEmpty()) {
-                double topScore = finalResults.stream()
-                        .mapToDouble(m -> m.getScore() != null ? m.getScore() : 0.0)
-                        .max().orElse(0.0);
-                List<String> types = finalResults.stream()
-                        .map(MemoryDTO::getType)
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .toList();
-                log.info("[LongTermMemory] query='{}' denseHits={} keywordHits={} " +
-                                "cogneeHits={} merged={} reranked={} " +
-                                "finalHits={} (local={}, cognee={}) topScore={} types={} " +
-                                "filteredByIntent={}",
-                        truncate(recallQuery, 50),
-                        denseResults.size(), keywordMatches.size(), cogneeResults.size(),
-                        merged.size(), reranked.size(),
-                        finalResults.size(), localCount, cogneeCount, topScore, types,
-                        analysis != null);
-            } else {
-                log.info("[LongTermMemory] query='{}' denseHits={} keywordHits={} " +
-                                "cogneeHits={} finalHits=0 minScore={} filteredByIntent={}",
-                        truncate(recallQuery, 50),
-                        denseResults.size(), keywordMatches.size(), cogneeResults.size(),
-                        minScore, analysis != null);
-            }
-            ctx.setLongTermMemory(finalResults);
+            log.info("[LongTermMemory] query='{}' jpa(l1={},l2={},l3={}) cognee(f={},e={},r={})",
+                    truncate(recallQuery, 50),
+                    l1size, l2size, l3size,
+                    cogneeFragments, cogneeEntities, cogneeRelations);
 
         } catch (Exception e) {
             log.warn("Long-term memory recall failed: {}", e.getMessage(), e);
+            ctx.setJpaMemories(Map.of("l1", List.of(), "l2", List.of(), "l3", List.of()));
+            ctx.setCogneeContext(new ConversationContext.CogneeContext(
+                    List.of(), List.of(), List.of()));
             ctx.setLongTermMemory(new ArrayList<>());
         }
     }
 
     /**
-     * Fetch relevant memories from Cognee and adapt them into MemoryDTOs so they can
-     * participate in the unified merge + rerank pipeline.
+     * Path A: JPA 结构化召回
      *
-     * <p>Cognee results don't have a JPA memory id, so we assign deterministic negative
-     * sentinel ids that stay stable per content hash. This prevents mergeAndDeduplicate
-     * (which groups by id) from dropping them, while also avoiding collisions with real
-     * JPA primary keys (which are always positive).
+     * <p>关键词检索 → JPA 加载 → JPA 内部精排 → 按类型分层 (L1/L2/L3)
      */
-    private List<MemoryDTO> fetchCogneeAsMemoryDtos(String userId, String query, int topK, String sessionId) {
-        // v1.0 recall() — auto-routed retrieval with source tags.
-        // When sessionId is provided, recall searches session cache first (source="session"),
-        // then falls back to permanent graph (source="graph").
-        List<CogneeClient.RecallResult> recalled = cogneeClient.recall(userId, query, topK, sessionId);
-        if (recalled.isEmpty()) return List.of();
+    private Map<String, List<MemoryDTO>> retrieveJpaMemories(
+            ConversationContext ctx, String recallQuery,
+            Set<MemoryType> requiredTypes, Set<MemoryType> excludedTypes) {
 
-        List<MemoryDTO> out = new ArrayList<>(recalled.size());
-        int seq = 0;
-        for (CogneeClient.RecallResult item : recalled) {
-            String text = item.text();
-            if (text == null || text.isBlank()) continue;
+        int topK = 20;
 
-            // Derive a stable pseudo-id (negative, never collides with real JPA ids).
-            long pseudoId = -(10_000L + Math.abs(text.hashCode()) % 9_000L) - seq;
-            out.add(MemoryDTO.builder()
-                    .id(pseudoId)
-                    .userId(userId)
-                    .content(text)
-                    .score(item.score())
-                    .type("KNOWLEDGE")
-                    .importance(6)
-                    // Tag the source (graph/session/trace) so logs and downstream
-                    // stages can distinguish where each result came from.
-                    .source("cognee:" + item.source())
-                    .build());
-            seq++;
+        // Step 1: 关键词检索
+        List<KeywordRetriever.KeywordMatch> keywordMatches = keywordRetriever.search(
+                ctx.getUserId(), recallQuery, topK);
+
+        if (keywordMatches.isEmpty()) {
+            return Map.of("l1", List.of(), "l2", List.of(), "l3", List.of());
         }
-        return out;
+
+        // Step 2: 加载 JPA 实体
+        Set<Long> keywordHitIds = keywordMatches.stream()
+                .map(KeywordRetriever.KeywordMatch::memoryId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<MemoryDTO> jpaResults = longTermMemoryService.findByIds(new ArrayList<>(keywordHitIds));
+
+        // Apply keyword scores
+        Map<Long, Double> keywordScoreMap = keywordMatches.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        KeywordRetriever.KeywordMatch::memoryId,
+                        KeywordRetriever.KeywordMatch::score,
+                        (a, b) -> a));
+        for (MemoryDTO dto : jpaResults) {
+            Double kwScore = keywordScoreMap.get(dto.getId());
+            if (kwScore != null) {
+                dto.setScore(kwScore);
+            }
+        }
+
+        // Step 3: JPA 内部精排
+        List<MemoryDTO> reranked;
+        if (!keywordMatches.isEmpty()) {
+            reranked = memoryReranker.rerank(jpaResults, keywordMatches, 15);
+        } else {
+            reranked = memoryReranker.rerankDenseOnly(jpaResults, 15);
+        }
+
+        // Step 4: 按类型分层
+        Map<String, List<MemoryDTO>> result = new HashMap<>();
+        List<MemoryDTO> l1 = new ArrayList<>();  // PROFILE
+        List<MemoryDTO> l2 = new ArrayList<>();  // FACT, KNOWLEDGE, etc.
+        List<MemoryDTO> l3 = new ArrayList<>();  // PREFERENCE, SKILL, RULE
+
+        for (MemoryDTO dto : reranked) {
+            MemoryType type = dto.getMemoryType();
+            if (type == null) {
+                l2.add(dto);
+                continue;
+            }
+            switch (type) {
+                case PROFILE -> l1.add(dto);
+                case PREFERENCE, SKILL, RULE -> l3.add(dto);
+                default -> l2.add(dto);
+            }
+        }
+
+        // Step 5: 类型过滤（如果指定了 requiredTypes/excludedTypes）
+        if (!requiredTypes.isEmpty() || !excludedTypes.isEmpty()) {
+            l1 = filterByType(l1, requiredTypes, excludedTypes);
+            l2 = filterByType(l2, requiredTypes, excludedTypes);
+            l3 = filterByType(l3, requiredTypes, excludedTypes);
+        }
+
+        // Step 6: 各层截断
+        result.put("l1", l1.stream().limit(5).toList());
+        result.put("l2", l2.stream().limit(5).toList());
+        result.put("l3", l3.stream().limit(3).toList());
+
+        return result;
     }
 
     /**
-     * Content-level deduplication across recall sources.
-     *
-     * <p>mergeAndDeduplicate only deduplicates by memory id, which works for JPA memories.
-     * Cognee entries have their own pseudo-ids, so if the same fact lives in both stores
-     * (a JPA KNOWLEDGE entry that was also cognified), two copies would survive id-based
-     * merging. This pass removes the cognee copy whose normalized content is already
-     * present in a non-cognee entry (id >= 0 or null).
-     *
-     * <p>Input is assumed to be already sorted by score descending; we keep the earlier
-     * (higher-scored) copy for ties.
+     * Path B: Cognee 语义召回（片段 + 实体 + 关系）
      */
-    private List<MemoryDTO> deduplicateAcrossSources(List<MemoryDTO> reranked) {
-        if (reranked == null || reranked.isEmpty()) return reranked;
+    private ConversationContext.CogneeContext retrieveCogneeContext(
+            ConversationContext ctx, String recallQuery) {
 
-        Set<String> seenLocal = new java.util.HashSet<>();
-        List<MemoryDTO> out = new ArrayList<>(reranked.size());
-
-        for (MemoryDTO dto : reranked) {
-            String key = normalizeForContentDedup(dto.getContent());
-            if (key.isEmpty()) {
-                out.add(dto);
-                continue;
-            }
-            boolean isCogneeEntry = (dto.getId() != null && dto.getId() < 0)
-                    || (dto.getSource() != null && dto.getSource().startsWith("cognee"));
-            if (isCogneeEntry && seenLocal.contains(key)) {
-                // Same content as an earlier local memory — drop the cognee duplicate.
-                log.debug("[LongTermMemory] Dedup: dropping cognee entry '{}' " +
-                        "(already present in local results)", dto.getContent());
-                continue;
-            }
-            if (!isCogneeEntry) {
-                seenLocal.add(key);
-            }
-            out.add(dto);
+        if (!cogneeProperties.isEnabled()) {
+            return new ConversationContext.CogneeContext(List.of(), List.of(), List.of());
         }
-        return out;
+
+        try {
+            int topK = cogneeProperties.getSearch().getTopK();
+            CogneeClient.RecallWithContextResult result = cogneeClient.recallWithContext(
+                    ctx.getUserId(), recallQuery, topK, ctx.getConversationId());
+
+            List<CogneeClient.RecallResult> fragments = result.fragments() != null
+                    ? result.fragments() : List.of();
+            List<String> entities = result.entities() != null
+                    ? result.entities() : List.of();
+            List<CogneeClient.CogneeRelationRecord> relations = result.relations() != null
+                    ? result.relations() : List.of();
+
+            // Convert to ConversationContext inner types
+            List<ConversationContext.CogneeRelation> convRelations = relations.stream()
+                    .map(r -> new ConversationContext.CogneeRelation(
+                            r.source(), r.relation(), r.target()))
+                    .toList();
+
+            return new ConversationContext.CogneeContext(fragments, entities, convRelations);
+
+        } catch (Exception e) {
+            log.warn("[LongTermMemory] Cognee recall failed: {}", e.getMessage());
+            return new ConversationContext.CogneeContext(List.of(), List.of(), List.of());
+        }
     }
 
-    private static String normalizeForContentDedup(String content) {
-        if (content == null) return "";
-        return content.toLowerCase(Locale.ROOT)
-                .replaceAll("\\s+", " ")
-                .trim();
+    private List<MemoryDTO> filterByType(List<MemoryDTO> memories,
+                                          Set<MemoryType> requiredTypes,
+                                          Set<MemoryType> excludedTypes) {
+        return memories.stream()
+                .filter(dto -> {
+                    MemoryType type = dto.getMemoryType();
+                    if (type == null) return true;
+                    if (excludedTypes != null && excludedTypes.contains(type)) return false;
+                    if (requiredTypes != null && !requiredTypes.isEmpty()) {
+                        return requiredTypes.contains(type);
+                    }
+                    return true;
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -285,34 +264,6 @@ public class LongTermMemoryStage implements ContextPipelineStage {
     @Override
     public boolean isCritical() {
         return false;
-    }
-
-    /**
-     * 应用类型过滤：白名单 + 黑名单
-     */
-    private List<MemoryDTO> applyTypeFilter(List<MemoryDTO> memories,
-                                             Set<MemoryType> requiredTypes,
-                                             Set<MemoryType> excludedTypes) {
-        if ((requiredTypes == null || requiredTypes.isEmpty())
-                && (excludedTypes == null || excludedTypes.isEmpty())) {
-            return memories;
-        }
-
-        return memories.stream()
-                .filter(dto -> {
-                    MemoryType type = dto.getMemoryType();
-                    if (type == null) {
-                        return true;
-                    }
-                    if (excludedTypes != null && excludedTypes.contains(type)) {
-                        return false;
-                    }
-                    if (requiredTypes != null && !requiredTypes.isEmpty()) {
-                        return requiredTypes.contains(type);
-                    }
-                    return true;
-                })
-                .collect(java.util.stream.Collectors.toList());
     }
 
     private String truncate(String s, int maxLen) {

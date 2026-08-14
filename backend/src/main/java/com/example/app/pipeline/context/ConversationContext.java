@@ -6,6 +6,7 @@ import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
+import com.example.app.service.CogneeClient;
 import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.Builder;
@@ -57,6 +58,20 @@ public class ConversationContext {
     private List<MemoryDTO> longTermMemory;
     private QueryAnalysisResult queryAnalysisResult;
 
+    /**
+     * JPA 结构化记忆，按层级分组：
+     * "l1" = 用户档案 (PROFILE), "l2" = 相关记忆 (FACT/KNOWLEDGE), "l3" = 用户偏好
+     * (PREFERENCE/SKILL)
+     * 由 LongTermMemoryStage(310) 写入，MemoryFormatStage(400) 读取。
+     */
+    private Map<String, List<MemoryDTO>> jpaMemories;
+
+    /**
+     * Cognee 知识图谱上下文（片段 + 实体 + 关系）。
+     * 由 LongTermMemoryStage(310) 写入，MemoryFormatStage(400) 读取。
+     */
+    private Object cogneeContext;
+
     // ── Context enrichment ─────────────────────────────────────────
     private String language;
     private String searchContext;
@@ -93,12 +108,16 @@ public class ConversationContext {
 
     // ── Post-processing outputs ────────────────────────────────────
     private String generatedTitle;
-    /** Memories newly extracted by MemoryExtractionStage (this run), for downstream stages like Cognee indexing */
+    /**
+     * Memories newly extracted by MemoryExtractionStage (this run), for downstream
+     * stages like Cognee indexing
+     */
     private List<MemoryDTO> newlyExtractedMemories;
 
     // ── Telemetry ──────────────────────────────────────────────────
     private long pipelineStartTime;
     private final Map<String, Long> stageTimings = new LinkedHashMap<>();
+    private final PipelineTrace trace = new PipelineTrace();
 
     // ── Error handling ─────────────────────────────────────────────
     private final List<PipelineError> errors = new ArrayList<>();
@@ -106,7 +125,7 @@ public class ConversationContext {
     // ── Factory ────────────────────────────────────────────────────
 
     public static ConversationContext fromRequest(ChatRequest request) {
-        return ConversationContext.builder()
+        ConversationContext ctx = ConversationContext.builder()
                 .conversationId(request.getConversationId())
                 .userId(request.getUserId() != null ? request.getUserId() : "default")
                 .userMessage(request.getMessage())
@@ -118,6 +137,8 @@ public class ConversationContext {
                 .currentIteration(0)
                 .pipelineStartTime(System.currentTimeMillis())
                 .build();
+        ctx.getTrace().setStartTime(ctx.getPipelineStartTime());
+        return ctx;
     }
 
     // ── Well-known agentState keys (shared between assembly stages) ─
@@ -142,6 +163,17 @@ public class ConversationContext {
      * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
      */
     public static final String KEY_FORMATTED_MEMORY_L3 = "formattedMemoryL3Preference";
+    /**
+     * Key for formatted Cognee knowledge graph context (entities + relations +
+     * fragments),
+     * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
+     */
+    public static final String KEY_FORMATTED_MEMORY_COGNEE = "formattedMemoryCogneeGraph";
+    /**
+     * Key for formatted precise JPA memory (FACT/KNOWLEDGE type, exact matches),
+     * written by MemoryFormatStage(400), read by SystemPromptAssemblyStage(410)
+     */
+    public static final String KEY_FORMATTED_MEMORY_PRECISE = "formattedMemoryPrecise";
     /**
      * Key for formatted user profile text, written by UserProfileFormatStage(398),
      * read by SystemPromptAssemblyStage(410)
@@ -169,6 +201,42 @@ public class ConversationContext {
     public static final String KEY_LAST_AI_MESSAGE = "lastAiMessage";
 
     // ── Convenience ────────────────────────────────────────────────
+
+    /** JPA 记忆快捷获取：l1=用户档案, l2=相关记忆, l3=用户偏好 */
+    public List<MemoryDTO> getJpaMemoriesByLayer(String layer) {
+        if (jpaMemories == null)
+            return List.of();
+        return jpaMemories.getOrDefault(layer, List.of());
+    }
+
+    public void setJpaMemories(Map<String, List<MemoryDTO>> memories) {
+        this.jpaMemories = memories;
+    }
+
+    /** Cognee 上下文快捷获取（需要转型为 CogneeContext） */
+    public record CogneeContext(
+            List<CogneeClient.RecallResult> fragments,
+            List<String> entities,
+            List<CogneeRelation> relations) {
+        public boolean isEmpty() {
+            return (fragments == null || fragments.isEmpty())
+                    && (entities == null || entities.isEmpty())
+                    && (relations == null || relations.isEmpty());
+        }
+    }
+
+    public record CogneeRelation(String source, String relation, String target) {
+    }
+
+    public CogneeContext getCogneeContextTyped() {
+        if (cogneeContext instanceof CogneeContext ctx)
+            return ctx;
+        return null;
+    }
+
+    public void setCogneeContext(CogneeContext ctx) {
+        this.cogneeContext = ctx;
+    }
 
     public void recordStage(String name, long durationMs) {
         executedStageNames.add(name);

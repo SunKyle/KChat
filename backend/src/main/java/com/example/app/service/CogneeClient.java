@@ -12,42 +12,51 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Java HTTP client for the Cognee AI Memory Platform v1.0 REST API.
  *
- * <p>Cognee is an open-source memory platform that builds self-hosted knowledge graphs
+ * <p>
+ * Cognee is an open-source memory platform that builds self-hosted knowledge
+ * graphs
  * from ingested data, providing persistent long-term memory for AI agents via
  * combined vector + graph search.
  *
  * <h3>v1.0 API Methods</h3>
  * <ul>
- *   <li><b>remember()</b> — Store data into permanent graph or session cache.
- *       Equivalent to legacy add() + cognify() + improve() in a single call.
- *       With selfImprovement=true (default), a background improve() bridges
- *       session memories into the permanent graph automatically.</li>
- *   <li><b>recall()</b> — Auto-routed retrieval with session awareness.
- *       Uses cognee's intelligent query router to pick the best retrieval strategy
- *       (graph completion, RAG, chunks, summaries, etc.) based on the query.</li>
- *   <li><b>forgetDataset / forgetEverything</b> — Unified deletion API.</li>
- *   <li><b>improve()</b> — Self-derive cross-document relationships.
- *       Usually triggered automatically by remember(selfImprovement=true),
- *       but exposed for manual invocation after bulk imports.</li>
- *   <li><b>isHealthy()</b> — Health check.</li>
+ * <li><b>remember()</b> — Store data into permanent graph or session cache.
+ * Equivalent to legacy add() + cognify() + improve() in a single call.
+ * With selfImprovement=true (default), a background improve() bridges
+ * session memories into the permanent graph automatically.</li>
+ * <li><b>recall()</b> — Auto-routed retrieval with session awareness.
+ * Uses cognee's intelligent query router to pick the best retrieval strategy
+ * (graph completion, RAG, chunks, summaries, etc.) based on the query.</li>
+ * <li><b>forgetDataset / forgetEverything</b> — Unified deletion API.</li>
+ * <li><b>improve()</b> — Self-derive cross-document relationships.
+ * Usually triggered automatically by remember(selfImprovement=true),
+ * but exposed for manual invocation after bulk imports.</li>
+ * <li><b>isHealthy()</b> — Health check.</li>
  * </ul>
  *
  * <h3>Integration Points</h3>
  * <ul>
- *   <li><b>LongTermMemoryStage</b> — Calls {@link #recall(String, String, int)} as Path 3
- *       to retrieve graph-enhanced memories and merges them into the conversation context
- *       alongside the existing JPA-based memory results.</li>
- *   <li><b>CogneeMemoryIndexStage</b> — Calls {@link #remember(String)} after the LLM
- *       responds to index structured memories into cognee's knowledge graph.</li>
- *   <li><b>CogneeSyncService</b> — Calls {@link #remember(String)} when rebuilding the
- *       graph from JPA truth after memory deletions.</li>
+ * <li><b>LongTermMemoryStage</b> — Calls {@link #recall(String, String, int)}
+ * as Path 3
+ * to retrieve graph-enhanced memories and merges them into the conversation
+ * context
+ * alongside the existing JPA-based memory results.</li>
+ * <li><b>CogneeMemoryIndexStage</b> — Calls {@link #remember(String)} after the
+ * LLM
+ * responds to index structured memories into cognee's knowledge graph.</li>
+ * <li><b>CogneeSyncService</b> — Calls {@link #remember(String)} when
+ * rebuilding the
+ * graph from JPA truth after memory deletions.</li>
  * </ul>
  *
- * <p>All requests are non-critical — failures are logged and silently swallowed
+ * <p>
+ * All requests are non-critical — failures are logged and silently swallowed
  * so they never break the chat pipeline.
  */
 @Service
@@ -55,7 +64,10 @@ import java.util.*;
 public class CogneeClient {
 
     private final CogneeProperties properties;
-    /** RestTemplate for long-lived operations (remember, forget, improve) — 120s timeout */
+    /**
+     * RestTemplate for long-lived operations (remember, forget, improve) — 120s
+     * timeout
+     */
     private final RestTemplate restTemplate;
     /** RestTemplate for recall — shorter timeout so user doesn't wait */
     private final RestTemplate searchRestTemplate;
@@ -81,8 +93,48 @@ public class CogneeClient {
         private String message;
     }
 
-    /** A recall result carrying text, score, and the source type (graph/session/trace). */
-    public record RecallResult(String text, double score, String source) {}
+    /**
+     * A recall result carrying text, score, and the source type
+     * (graph/session/trace).
+     */
+    public record RecallResult(String text, double score, String source) {
+    }
+
+    /** A graph node (entity) from cognee's knowledge graph. */
+    public record GraphNode(String id, String name, String type) {
+    }
+
+    /** A graph edge (relation) from cognee's knowledge graph. */
+    public record GraphEdge(String id, String source, String target, String label) {
+    }
+
+    /** Full graph response from /graph endpoint. */
+    @Data
+    public static class GraphResponse {
+        private List<GraphNode> nodes;
+        private List<GraphEdge> edges;
+        private int totalNodes;
+        private int totalEdges;
+    }
+
+    /**
+     * Structured recall context combining text fragments with graph entities and
+     * relations.
+     * Returned by {@link #recallWithContext(String, String, int, String)}.
+     */
+    public record RecallWithContextResult(
+            List<RecallResult> fragments,
+            List<String> entities,
+            List<CogneeRelationRecord> relations) {
+        public boolean isEmpty() {
+            return (fragments == null || fragments.isEmpty())
+                    && (entities == null || entities.isEmpty())
+                    && (relations == null || relations.isEmpty());
+        }
+    }
+
+    public record CogneeRelationRecord(String source, String relation, String target) {
+    }
 
     @Data
     public static class RememberRequest {
@@ -162,17 +214,24 @@ public class CogneeClient {
     // ── remember / recall ─────────────────────────────────────────
 
     /**
-     * v1.0 remember() — store content into cognee's permanent graph or session cache.
+     * v1.0 remember() — store content into cognee's permanent graph or session
+     * cache.
      *
-     * <p>When no sessionId is passed, this is equivalent to add() + cognify() + improve()
+     * <p>
+     * When no sessionId is passed, this is equivalent to add() + cognify() +
+     * improve()
      * in a single call. The graph is built and self-improved automatically.
      *
-     * <p>When sessionId is passed, content goes to the session cache (fast, no entity extraction).
-     * With selfImprovement=true (default), a background improve() bridges it into the permanent graph.
+     * <p>
+     * When sessionId is passed, content goes to the session cache (fast, no entity
+     * extraction).
+     * With selfImprovement=true (default), a background improve() bridges it into
+     * the permanent graph.
      *
-     * @param content           Text to store
-     * @param sessionId         Optional session ID for session-scoped memory (null = permanent)
-     * @param selfImprovement   Whether to trigger background improve() (default true)
+     * @param content         Text to store
+     * @param sessionId       Optional session ID for session-scoped memory (null =
+     *                        permanent)
+     * @param selfImprovement Whether to trigger background improve() (default true)
      * @return true if the operation succeeded, false otherwise
      */
     public boolean remember(String content, String sessionId, boolean selfImprovement) {
@@ -222,17 +281,23 @@ public class CogneeClient {
     /**
      * v1.0 recall() — auto-routed retrieval with session awareness.
      *
-     * <p>Uses cognee's intelligent query router to pick the best retrieval strategy
+     * <p>
+     * Uses cognee's intelligent query router to pick the best retrieval strategy
      * (graph completion, RAG, chunks, summaries, etc.) based on the query.
      *
-     * <p>When sessionId is provided, recall searches the session cache first (returning
-     * source="session" results), then falls back to the permanent graph (source="graph").
+     * <p>
+     * When sessionId is provided, recall searches the session cache first
+     * (returning
+     * source="session" results), then falls back to the permanent graph
+     * (source="graph").
      * When sessionId is null, only the permanent graph is searched.
      *
-     * @param userId    User identifier (currently not passed to cognee, reserved for multi-tenant)
+     * @param userId    User identifier (currently not passed to cognee, reserved
+     *                  for multi-tenant)
      * @param query     Natural language query
      * @param topK      Maximum number of results
-     * @param sessionId Optional conversation ID for session-scoped recall (null = permanent only)
+     * @param sessionId Optional conversation ID for session-scoped recall (null =
+     *                  permanent only)
      * @return List of scored results with source tags, or empty list on failure
      */
     public List<RecallResult> recall(String userId, String query, int topK, String sessionId) {
@@ -287,6 +352,235 @@ public class CogneeClient {
         return recall(userId, query, topK, null);
     }
 
+    /**
+     * v1.0 recall with structured graph context — returns text fragments plus
+     * related entities and relations from the knowledge graph.
+     *
+     * <p>
+     * This enriches the raw recall() text results with graph structure so the LLM
+     * can reason about relationships (e.g. "kyle uses Java" → can infer "kyle
+     * develops KChat which uses Java" without explicit mention).
+     *
+     * <p>
+     * Entity/relation extraction strategy (priority order):
+     * <ol>
+     * <li><b>Parse from recall text</b> — Cognee recall already returns nodes and
+     * connections in the text. We parse "Node: X" and "A --[R]--> B" patterns.</li>
+     * <li><b>Fetch from /graph endpoint</b> — Fallback when recall text doesn't
+     * contain structured node/connection data (e.g., early session memories
+     * that haven't been cognified yet).</li>
+     * </ol>
+     *
+     * @param userId    User identifier
+     * @param query     Natural language query
+     * @param topK      Maximum number of text results
+     * @param sessionId Optional conversation ID for session-scoped recall
+     * @return Structured context with fragments, entities, and relations
+     */
+    public RecallWithContextResult recallWithContext(String userId, String query, int topK, String sessionId) {
+        if (!properties.isEnabled()) {
+            return new RecallWithContextResult(List.of(), List.of(), List.of());
+        }
+
+        // Step 1: Get text fragments via recall
+        List<RecallResult> fragments = recall(userId, query, topK, sessionId);
+        if (fragments.isEmpty()) {
+            return new RecallWithContextResult(List.of(), List.of(), List.of());
+        }
+
+        // Step 2: Parse entities and relations from recall text
+        // Cognee recall text contains "Node: X" and "A --[R]--> B" patterns
+        var parsed = parseEntitiesAndRelations(fragments);
+        List<String> entities = parsed.entities();
+        List<CogneeRelationRecord> relations = parsed.relations();
+
+        // Step 3: If text parsing didn't find enough, try graph endpoint as fallback
+        if (entities.isEmpty() || relations.isEmpty()) {
+            try {
+                GraphResponse graph = getGraph();
+                if (graph != null && graph.getNodes() != null && !graph.getNodes().isEmpty()) {
+                    // Merge graph entities/relations with parsed ones
+                    Set<String> entitySet = new LinkedHashSet<>(entities);
+                    Set<CogneeRelationRecord> relationSet = new LinkedHashSet<>(relations);
+
+                    // Match graph nodes against mentioned entities
+                    Set<String> mentionedKeywords = extractMentionedKeywords(fragments);
+                    Map<String, String> nodeNameToId = new HashMap<>();
+                    for (GraphNode node : graph.getNodes()) {
+                        if (node.name() != null && mentionedKeywords.contains(node.name().toLowerCase())) {
+                            entitySet.add(node.name());
+                            nodeNameToId.put(node.id(), node.name());
+                        }
+                    }
+
+                    // Extract relations
+                    if (graph.getEdges() != null) {
+                        for (GraphEdge edge : graph.getEdges()) {
+                            String sourceName = nodeNameToId.getOrDefault(edge.source(), edge.source());
+                            String targetName = nodeNameToId.getOrDefault(edge.target(), edge.target());
+                            boolean sourceMentioned = entitySet.contains(sourceName);
+                            boolean targetMentioned = entitySet.contains(targetName);
+                            if (sourceMentioned || targetMentioned) {
+                                String label = edge.label() != null ? edge.label() : "related_to";
+                                relationSet.add(new CogneeRelationRecord(sourceName, label, targetName));
+                                if (!entitySet.contains(targetName) && !targetName.equals(sourceName)) {
+                                    entitySet.add(targetName);
+                                }
+                            }
+                        }
+                    }
+
+                    entities = new ArrayList<>(entitySet);
+                    relations = new ArrayList<>(relationSet);
+                }
+            } catch (Exception e) {
+                log.debug("[Cognee] Graph fallback failed: {}", e.getMessage());
+            }
+        }
+
+        log.info("[Cognee] recallWithContext: fragments={}, entities={}, relations={}",
+                fragments.size(), entities.size(), relations.size());
+
+        return new RecallWithContextResult(fragments, entities, relations);
+    }
+
+    /**
+     * Parse entity names and relations directly from Cognee recall text.
+     *
+     * <p>
+     * Cognee's recall returns formatted text with:
+     * <ul>
+     * <li>"Node: entityName" — entity definitions</li>
+     * <li>"source --[relation]--> target" — relation triples</li>
+     * </ul>
+     *
+     * <p>
+     * This is more reliable than getGraph() because it works with session-level
+     * memories that haven't been cognified into the permanent graph yet.
+     */
+    private record ParsedContext(List<String> entities, List<CogneeRelationRecord> relations) {
+    }
+
+    private ParsedContext parseEntitiesAndRelations(List<RecallResult> fragments) {
+        Set<String> entities = new LinkedHashSet<>();
+        Set<CogneeRelationRecord> relations = new LinkedHashSet<>();
+
+        for (RecallResult fragment : fragments) {
+            String text = fragment.text();
+            if (text == null || text.isBlank())
+                continue;
+
+            // Extract entity names from "Node: X" patterns
+            // Cognee format: "Node: kchat智能助手" or "Node: product"
+            Pattern nodePattern = Pattern.compile("Node:\\s*([^\\n]+?)(?:\\s*$|\\n)");
+            Matcher nodeMatcher = nodePattern.matcher(text);
+            while (nodeMatcher.find()) {
+                String name = nodeMatcher.group(1).trim();
+                if (!name.isEmpty()) {
+                    entities.add(name);
+                }
+            }
+
+            // Extract relations from "source --[relation]--> target" patterns
+            // Cognee format: "kchat --[is_a]--> product (optional description)"
+            Pattern relPattern = Pattern.compile(
+                    "([^\\s\\-]+(?:\\s[^\\s\\-]+)*?)\\s*--\\[([^\\]]+)\\]-->\\s*([^\\s(\\n]+(?:\\s[^\\s(\\n]+)*?)(?:\\s*\\(|\\s*$|\\n)");
+            Matcher relMatcher = relPattern.matcher(text);
+            while (relMatcher.find()) {
+                String source = relMatcher.group(1).trim();
+                String relation = relMatcher.group(2).trim();
+                String target = relMatcher.group(3).trim();
+                if (!source.isEmpty() && !target.isEmpty()) {
+                    relations.add(new CogneeRelationRecord(source, relation, target));
+                    entities.add(source);
+                    entities.add(target);
+                }
+            }
+
+            // Also try simpler relation pattern: "X --[R]--> Y"
+            // This catches edge cases where the first pattern doesn't match
+            Pattern simpleRelPattern = Pattern.compile(
+                    "([^\\s]+)\\s*--\\[([^\\]]+)\\]-->\\s*([^\\s]+)");
+            Matcher simpleMatcher = simpleRelPattern.matcher(text);
+            while (simpleMatcher.find()) {
+                String source = simpleMatcher.group(1).trim();
+                String relation = simpleMatcher.group(2).trim();
+                String target = simpleMatcher.group(3).trim();
+                if (!source.isEmpty() && !target.isEmpty() && !source.equals(target)) {
+                    var rel = new CogneeRelationRecord(source, relation, target);
+                    if (!relations.contains(rel)) {
+                        relations.add(rel);
+                        entities.add(source);
+                        entities.add(target);
+                    }
+                }
+            }
+        }
+
+        return new ParsedContext(new ArrayList<>(entities), new ArrayList<>(relations));
+    }
+
+    /**
+     * Fetch the full knowledge graph (nodes + edges) from cognee.
+     *
+     * @return Graph response, or null on failure
+     */
+    public GraphResponse getGraph() {
+        if (!properties.isEnabled()) {
+            return null;
+        }
+        try {
+            String url = properties.getBaseUrl() + "/graph";
+            ResponseEntity<GraphResponse> response = searchRestTemplate.getForEntity(url, GraphResponse.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.debug("[Cognee] getGraph() failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Extract keywords from recall fragments for graph node matching.
+     * Uses a simple heuristic: filter stop words from tokenized text.
+     *
+     * <p>
+     * Note: This is a fallback for the graph endpoint. Primary entity/relation
+     * extraction is done by {@link #parseEntitiesAndRelations(List)} which parses
+     * the recall text directly.
+     */
+    private Set<String> extractMentionedKeywords(List<RecallResult> fragments) {
+        Set<String> entities = new HashSet<>();
+        for (RecallResult fragment : fragments) {
+            String text = fragment.text().toLowerCase();
+            // Split by common delimiters and look for meaningful words
+            String[] words = text.split("[\\s,.;:!?\\-\\(\\)\\[\\]\\{\\}\"'`/\\\\]+");
+            for (String word : words) {
+                if (word.length() >= 2 && !isStopWord(word)) {
+                    entities.add(word);
+                }
+            }
+        }
+        return entities;
+    }
+
+    private static final Set<String> STOP_WORDS = Set.of(
+            "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+            "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+            "should", "may", "might", "can", "could", "to", "of", "in", "for",
+            "on", "with", "at", "by", "from", "as", "into", "through", "during",
+            "before", "after", "above", "below", "between", "out", "off", "over",
+            "under", "again", "further", "then", "once", "here", "there", "when",
+            "where", "why", "how", "all", "both", "each", "few", "more", "most",
+            "other", "some", "such", "no", "nor", "not", "only", "own", "same",
+            "so", "than", "too", "very", "just", "because", "but", "and", "or",
+            "if", "while", "about", "up", "down", "kchat", "chat", "app",
+            "知道", "什么", "怎么", "如何", "可以", "一下", "这个", "那个",
+            "我们", "你们", "他们", "自己", "没有", "就是", "这样", "那样");
+
+    private boolean isStopWord(String word) {
+        return STOP_WORDS.contains(word.toLowerCase());
+    }
+
     // ── health ────────────────────────────────────────────────────
 
     /**
@@ -295,7 +589,8 @@ public class CogneeClient {
      * @return true if cognee is reachable and responsive
      */
     public boolean isHealthy() {
-        if (!properties.isEnabled()) return false;
+        if (!properties.isEnabled())
+            return false;
         try {
             String url = properties.getBaseUrl() + "/health";
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -322,8 +617,10 @@ public class CogneeClient {
     }
 
     /**
-     * Delete graph nodes, edges, and vector embeddings for a dataset while preserving the
-     * underlying dataset records. This allows re-cognifying the raw content afterwards.
+     * Delete graph nodes, edges, and vector embeddings for a dataset while
+     * preserving the
+     * underlying dataset records. This allows re-cognifying the raw content
+     * afterwards.
      *
      * @param dataset Dataset name, e.g. "main_dataset"
      * @return true on success
@@ -338,7 +635,8 @@ public class CogneeClient {
     /**
      * Delete ALL data the user owns in cognee.
      *
-     * <p><b>DANGER:</b> Equivalent to wiping every dataset / graph / vector entry.
+     * <p>
+     * <b>DANGER:</b> Equivalent to wiping every dataset / graph / vector entry.
      * This is only exposed for testing / factory-reset scenarios.
      *
      * @return true on success
@@ -350,10 +648,14 @@ public class CogneeClient {
     }
 
     /**
-     * Trigger cognee.improve() to self-derive cross-document relationships in the graph.
+     * Trigger cognee.improve() to self-derive cross-document relationships in the
+     * graph.
      *
-     * <p>Usually triggered automatically by remember(selfImprovement=true), but exposed
-     * for manual invocation after bulk imports or when selfImprovement was disabled.
+     * <p>
+     * Usually triggered automatically by remember(selfImprovement=true), but
+     * exposed
+     * for manual invocation after bulk imports or when selfImprovement was
+     * disabled.
      *
      * @param dataset Dataset name (pass null for default dataset)
      * @return true on success

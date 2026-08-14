@@ -14,29 +14,44 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Pipeline stage that indexes newly extracted structured memories into the Cognee knowledge graph.
+ * Pipeline stage that indexes newly extracted structured memories into the
+ * Cognee knowledge graph.
  *
- * <p>This stage runs at order 725 in POSTPROCESS, immediately after MemoryExtractionStage (720).
- * It prefers the clean, structured MemoryDTOs produced by MemoryExtractionStage over raw
- * conversation text because:
+ * <p>
+ * This stage runs at order 725 in POSTPROCESS, immediately after
+ * MemoryExtractionStage (720).
+ * It takes the clean, structured MemoryDTOs produced by MemoryExtractionStage
+ * and writes them
+ * directly to Cognee's <b>permanent graph</b> (no session_id).
+ *
+ * <h3>Why not write raw conversation text?</h3>
  * <ul>
- *   <li>Structured memories have already been deduplicated, threshold-filtered, and typed (PROFILE,
- *       PREFERENCE, PROJECT, etc.) — far higher quality than noisy conversation transcripts.</li>
- *   <li>Cognee's cognify doesn't need to re-extract entities from chatter, saving an extra LLM call
- *       and producing a cleaner graph with fewer spurious nodes.</li>
- *   <li>As a fallback, if this run extracted zero memories (threshold not hit, LLM found nothing,
- *       etc.), the original conversation pair is still indexed so no knowledge is lost.</li>
+ * <li>Raw conversation (User + Assistant messages) is noisy and redundant — the
+ * LLM already
+ * sees it in the conversation history. Writing it to Cognee pollutes the graph
+ * with
+ * DocumentChunk / TextSummary nodes that contain verbatim dialogue.</li>
+ * <li>Structured memories have already been deduplicated, threshold-filtered,
+ * and typed
+ * (PROFILE, PREFERENCE, KNOWLEDGE, etc.) — far higher quality than conversation
+ * transcripts.</li>
+ * <li>Cognee's cognify extracts cleaner entities from structured text than from
+ * raw dialogue.</li>
  * </ul>
  *
- * <p>If cognee is disabled or unreachable, this stage degrades gracefully
- * (non-critical stage) without affecting the chat pipeline.
- *
- * <h3>Data Flow</h3>
+ * <h3>Strategy</h3>
+ * 
  * <pre>
- * ctx.newlyExtractedMemories (structured) → format as typed bulleted list → cognee.add()
- * ── OR (fallback) ──
- * User Message + AI Response (raw)        → cognee.add()
+ * MemoryExtractionStage (720) → newlyExtractedMemories (List<MemoryDTO>)
+ *   ↓
+ * CogneeMemoryIndexStage (725)
+ *   ├── has structured memories? → write to permanent graph (no session_id)
+ *   └── no new memories?        → skip (don't write raw conversation)
  * </pre>
+ *
+ * <p>
+ * If cognee is disabled or unreachable, this stage degrades gracefully
+ * (non-critical stage) without affecting the chat pipeline.
  */
 @Component
 @RequiredArgsConstructor
@@ -54,8 +69,7 @@ public class CogneeMemoryIndexStage implements ContextPipelineStage {
             Map.entry("PROJECT", "项目"),
             Map.entry("TASK", "任务"),
             Map.entry("RELATION", "关系"),
-            Map.entry("EVENT", "事件")
-    );
+            Map.entry("EVENT", "事件"));
 
     private final CogneeClient cogneeClient;
     private final CogneeProperties cogneeProperties;
@@ -82,54 +96,33 @@ public class CogneeMemoryIndexStage implements ContextPipelineStage {
 
     @Override
     public boolean isApplicable(ConversationContext ctx) {
-        if (!cogneeProperties.isEnabled() || !cogneeProperties.getIndex().isEnabled()) {
-            return false;
-        }
-        // Applicable if we have structured memories to index, OR at minimum a conversation pair
-        boolean hasNewMemories = ctx.getNewlyExtractedMemories() != null
-                && !ctx.getNewlyExtractedMemories().isEmpty();
-        boolean hasConversation = ctx.getUserMessage() != null && !ctx.getUserMessage().isBlank()
-                && ctx.getLlmResponse() != null && !ctx.getLlmResponse().isBlank();
-        return hasNewMemories || hasConversation;
+        // NOTE: isApplicable is called BEFORE any stage executes (see ContextPipelineExecutor.resolveStages),
+        // so we cannot check newlyExtractedMemories here — it's set by MemoryExtractionStage (720)
+        // which runs just before this stage (725). The check is done inside execute() instead.
+        return cogneeProperties.isEnabled() && cogneeProperties.getIndex().isEnabled();
     }
 
     @Override
     public void execute(ConversationContext ctx) {
         List<MemoryDTO> newMemories = ctx.getNewlyExtractedMemories();
-
-        final String content;
-        final String source;
-        if (newMemories != null && !newMemories.isEmpty()) {
-            content = formatStructuredMemories(newMemories);
-            source = "structured-memory";
-            log.info("[CogneeMemoryIndex] Using {} structured memories from extraction pipeline",
-                    newMemories.size());
-        } else {
-            content = String.format(
-                    "User: %s\n\nAssistant: %s",
-                    ctx.getUserMessage(),
-                    ctx.getLlmResponse() != null ? ctx.getLlmResponse() : ""
-            );
-            source = "conversation";
-            log.debug("[CogneeMemoryIndex] No new structured memories this run; " +
-                    "falling back to raw conversation text ({} chars)", content.length());
+        if (newMemories == null || newMemories.isEmpty()) {
+            log.debug("[CogneeMemoryIndex] No new structured memories to index, skipping");
+            return;
         }
 
-        final String finalContent = content;
-        final String conversationId = ctx.getConversationId();
+        final String content = formatStructuredMemories(newMemories);
+
         CompletableFuture.runAsync(() -> {
             try {
-                // v1.0 session-level remember:
-                // - session_id = conversationId → writes to session cache (fast, no entity extraction)
-                // - selfImprovement=true → background improve() bridges valuable relations
-                //   to the permanent graph automatically (LLM decides what's worth keeping)
-                boolean indexed = cogneeClient.remember(finalContent, conversationId, true);
+                // Write to permanent graph (no session_id):
+                // - Runs full cognify pipeline (chunk → entity extraction → graph build)
+                // - selfImprovement=true triggers background improve() for relation bridging
+                boolean indexed = cogneeClient.remember(content);
                 if (indexed) {
-                    log.info("[CogneeMemoryIndex] Indexed conversation {} via remember({}) ({} chars, session={})",
-                            conversationId, source, finalContent.length(), conversationId != null);
+                    log.info("[CogneeMemoryIndex] Indexed {} structured memories to permanent graph ({} chars)",
+                            newMemories.size(), content.length());
                 } else {
-                    log.warn("[CogneeMemoryIndex] Failed to index conversation {}",
-                            conversationId);
+                    log.warn("[CogneeMemoryIndex] Failed to index structured memories");
                 }
             } catch (Exception e) {
                 log.warn("[CogneeMemoryIndex] Async indexing failed: {}", e.getMessage());
@@ -139,8 +132,10 @@ public class CogneeMemoryIndexStage implements ContextPipelineStage {
 
     /**
      * Format a list of MemoryDTOs into a typed, sectioned document that helps Cognee's entity
-     * extractor produce a cleaner graph. We keep the type headers so cognify sees structure
+     * extractor produce a cleaner graph. Type headers are kept so cognify see
+     *  structure
      * instead of unlabelled bullet points.
+     * 
      */
     private String formatStructuredMemories(List<MemoryDTO> memories) {
         StringBuilder sb = new StringBuilder();

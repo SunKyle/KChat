@@ -60,14 +60,31 @@ public class ToolInvocationStage implements ContextPipelineStage {
 
         // 保留上一轮的 toolResults 历史，仅追加本轮结果
         for (ConversationContext.ToolCallRecord call : ctx.getToolCalls()) {
+            long toolT0 = System.currentTimeMillis();
             ConversationContext.ToolResultRecord result = toolExecutor.execute(call, ctx.getUserId());
+            long toolDuration = System.currentTimeMillis() - toolT0;
             ctx.getToolResults().add(result);
+
+            // 记录工具调用 trace
+            String resultSummary = result.success()
+                    ? truncate(String.valueOf(result.result()), 200)
+                    : result.errorMessage();
+            ctx.getTrace().addToolCall(
+                    ctx.getCurrentIteration(),
+                    call.toolName(),
+                    truncate(call.arguments(), 300),
+                    result.success(),
+                    resultSummary,
+                    toolDuration,
+                    result.success() ? null : result.errorMessage());
+
             if (!result.success()) {
-                log.warn("[ToolInvocation] Tool '{}' failed: {}", call.toolName(), result.errorMessage());
+                log.warn("[ToolInvocation] Tool '{}' failed ({}ms): {}",
+                        call.toolName(), toolDuration, result.errorMessage());
             } else {
+                log.info("[ToolInvocation] Tool '{}' succeeded ({}ms): {}",
+                        call.toolName(), toolDuration, resultSummary);
                 // 扫描 Tool 返回结果中的图片 Markdown，自动提取 URL 加入 ctx.artifacts。
-                // 这样前端通过 SSE done.artifacts → message.images 渲染图片，
-                // 不依赖 LLM 是否在最终回复中原样输出 Markdown。
                 collectImageArtifacts(ctx, call.toolName(), String.valueOf(result.result()));
             }
 
@@ -78,6 +95,7 @@ public class ToolInvocationStage implements ContextPipelineStage {
             data.put("success", result.success());
             data.put("result", result.result());
             data.put("model", result.model());
+            data.put("durationMs", toolDuration);
             if (!result.success()) {
                 data.put("errorMessage", result.errorMessage());
             }
@@ -87,6 +105,11 @@ public class ToolInvocationStage implements ContextPipelineStage {
                 ctx.getToolCalls().size(),
                 ctx.getToolResults().stream().filter(ConversationContext.ToolResultRecord::success).count(),
                 ctx.getToolResults().stream().filter(r -> !r.success()).count());
+    }
+
+    private static String truncate(String s, int maxLen) {
+        if (s == null) return null;
+        return s.length() <= maxLen ? s : s.substring(0, maxLen) + "...";
     }
 
     /**

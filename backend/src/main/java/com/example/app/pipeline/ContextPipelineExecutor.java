@@ -71,6 +71,7 @@ public class ContextPipelineExecutor {
             ctx.setCurrentIteration(next);
             log.info("[AgentLoop] Iteration {}: {} tool call(s), continuing",
                     next, ctx.getToolCalls().size());
+            ctx.getTrace().addAgentIteration(next, 0, null, "CONTINUE", ctx.getToolCalls().size());
             // 清空上一轮 toolCalls，让 ToolCallDetectionStage 重新检测
             ctx.getToolCalls().clear();
             runStages(resolveStagesBetween(ctx,
@@ -81,6 +82,11 @@ public class ContextPipelineExecutor {
         if (!ctx.getToolCalls().isEmpty()) {
             log.warn("[AgentLoop] Reached max iterations ({}) with {} pending tool calls",
                     ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
+            ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
+                    "max iterations reached", "TERMINATE", ctx.getToolCalls().size());
+        } else {
+            ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
+                    "no tool calls", "TERMINATE", 0);
         }
     }
 
@@ -115,11 +121,20 @@ public class ContextPipelineExecutor {
             long t0 = System.currentTimeMillis();
             try {
                 stage.execute(ctx);
-                ctx.recordStage(stage.getName(), System.currentTimeMillis() - t0);
+                long duration = System.currentTimeMillis() - t0;
+                ctx.recordStage(stage.getName(), duration);
+                ctx.getTrace().addStage(
+                        stage.getName(), stage.getOrder(),
+                        stage.getPhase().name(), duration,
+                        "SUCCESS", null);
             } catch (Throwable e) {
                 long duration = System.currentTimeMillis() - t0;
                 ctx.addError(stage.getName(), e.getMessage(), e, !stage.isCritical());
                 ctx.recordStage(stage.getName(), duration);
+                ctx.getTrace().addStage(
+                        stage.getName(), stage.getOrder(),
+                        stage.getPhase().name(), duration,
+                        "FAILED", e.getMessage());
 
                 if (stage.isCritical()) {
                     log.error("[Pipeline] Critical stage '{}' failed ({}ms), halting: {}",

@@ -93,14 +93,21 @@ public class QueryAnalysisResult {
     }
 
     /**
-     * 创建一个不需要记忆的结果（门控跳过）
+     * 创建一个不需要记忆的结果（仅用于纯数学计算等明确场景）
      */
     public static QueryAnalysisResult skipMemory(IntentType intentType) {
+        return skipMemory(intentType, AnalysisSource.RULE);
+    }
+
+    /**
+     * 创建一个不需要记忆的结果，保留分析来源
+     */
+    public static QueryAnalysisResult skipMemory(IntentType intentType, AnalysisSource source) {
         return QueryAnalysisResult.builder()
                 .intentType(intentType)
                 .requiresMemory(false)
                 .confidence(1.0)
-                .source(AnalysisSource.RULE)
+                .source(source != null ? source : AnalysisSource.RULE)
                 .keywords(new LinkedHashMap<>())
                 .requiredTypes(EnumSet.noneOf(MemoryType.class))
                 .excludedTypes(EnumSet.noneOf(MemoryType.class))
