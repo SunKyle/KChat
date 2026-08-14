@@ -9,7 +9,7 @@ import { Modal } from './components/common/Modal'
 import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
@@ -21,7 +21,6 @@ function AppContent() {
     sidebarCollapsed,
     sidebarWidth,
     setSidebarOpen,
-    setSidebarCollapsed,
     toggleSidebar,
     toggleCollapsed,
   } = useSidebar()
@@ -37,10 +36,6 @@ function AppContent() {
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
-
-  const handleSidebarEnter = useCallback(() => {
-    setSidebarCollapsed(false)
-  }, [setSidebarCollapsed])
 
   const handleDeleteClick = (id: string, title: string) => {
     setDeleteConfirm({ id, title })
@@ -84,7 +79,6 @@ function AppContent() {
           lg:left-4 lg:top-4 lg:bottom-4
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
-          onMouseEnter={handleSidebarEnter}
         >
           <div
             className={`h-full card-panel-quiet ${sidebarWidth} transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width]`}

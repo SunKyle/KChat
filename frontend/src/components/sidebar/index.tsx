@@ -67,7 +67,11 @@ export function Sidebar({
 
   return (
     <div className='flex h-full'>
-      <SidebarRail activeMenu={activeMenu} onMenuClick={handleMenuClick} />
+      <SidebarRail
+        activeMenu={activeMenu}
+        onMenuClick={handleMenuClick}
+        collapsed={collapsed}
+      />
 
       <AnimatePresence initial={false}>
         {!collapsed && (

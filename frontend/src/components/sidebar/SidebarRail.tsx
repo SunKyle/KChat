@@ -1,7 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import { MessageSquare, Database, Share2, User, Settings } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import ProfileCard from '../common/ProfileCard'
+import { MessageSquare, Database, Share2, User } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useUser } from '../../context/UserContext'
 
 export type MenuId = 'chat' | 'knowledge' | 'graph'
@@ -21,41 +19,23 @@ const menus: MenuConfig[] = [
 interface SidebarRailProps {
   activeMenu: MenuId
   onMenuClick: (menu: MenuId) => void
+  collapsed: boolean
 }
 
-export function SidebarRail({ activeMenu, onMenuClick }: SidebarRailProps) {
+export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailProps) {
   const { profile } = useUser()
-  const [showProfileCard, setShowProfileCard] = useState(false)
-  const [profileCardPos, setProfileCardPos] = useState({ top: 0, left: 0 })
-  const userAreaRef = useRef<HTMLDivElement>(null)
 
-  const handleUserAreaClick = () => {
-    if (userAreaRef.current) {
-      const rect = userAreaRef.current.getBoundingClientRect()
-      setProfileCardPos({ top: rect.top, left: rect.right })
-    }
-    setShowProfileCard((prev) => !prev)
-  }
-
-  const handleEditProfile = () => {
-    setShowProfileCard(false)
+  const handleAvatarClick = () => {
     window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
   }
-
-  useEffect(() => {
-    if (!showProfileCard) return
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowProfileCard(false)
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showProfileCard])
 
   return (
     <div
       role='navigation'
       aria-label='主导航'
-      className='flex flex-col h-full w-16 flex-shrink-0 items-center py-3 gap-2 border-r theme-border-secondary'
+      className={`flex flex-col h-full w-16 flex-shrink-0 items-center py-3 gap-2 ${
+        collapsed ? '' : 'border-r theme-border-secondary'
+      }`}
     >
       {/* Logo */}
       <div className='w-full flex items-center justify-center mb-1'>
@@ -98,11 +78,13 @@ export function SidebarRail({ activeMenu, onMenuClick }: SidebarRailProps) {
         })}
       </nav>
 
-      {/* 用户区 */}
-      <div ref={userAreaRef} className='w-full px-2'>
-        <div
-          onClick={handleUserAreaClick}
-          className='w-full flex items-center justify-center rounded-[var(--radius-xl)] bg-[var(--bg-card)]/60 p-1.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer'
+      {/* 用户头像：点击跳转设置 */}
+      <div className='w-full px-2'>
+        <button
+          onClick={handleAvatarClick}
+          aria-label='打开设置'
+          title='设置'
+          className='w-full flex items-center justify-center rounded-[var(--radius-xl)] bg-[var(--bg-card)]/60 p-1.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer focus-ring'
         >
           <div className='rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] w-10 h-10'>
             {profile?.avatar ? (
@@ -111,51 +93,8 @@ export function SidebarRail({ activeMenu, onMenuClick }: SidebarRailProps) {
               <User className='w-4 h-4 text-[var(--text-muted)]' />
             )}
           </div>
-        </div>
+        </button>
       </div>
-
-      {/* 设置按钮 */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
-        }}
-        className='flex-shrink-0 p-2 rounded-md hover:bg-[var(--bg-hover)] transition-colors theme-text-muted hover:theme-text-secondary'
-        aria-label='设置'
-        title='设置'
-      >
-        <Settings className='w-4 h-4' />
-      </button>
-
-      <AnimatePresence>
-        {showProfileCard && (
-          <>
-            <div className='fixed inset-0 z-[999]' onClick={() => setShowProfileCard(false)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, x: -12 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.92, x: -12 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-              className='fixed z-[1000] profile-card-popup'
-              style={{
-                bottom: window.innerHeight - profileCardPos.top + 12,
-                left: profileCardPos.left + 12,
-              }}
-            >
-              <ProfileCard
-                avatarUrl={profile?.avatar}
-                name={profile?.nickname || '用户'}
-                title={profile?.bio || 'KChat 用户'}
-                handle={profile?.email?.split('@')[0] || 'user'}
-                status={profile?.privacy?.onlineStatus ? '在线' : '离线'}
-                contactText='编辑资料'
-                onContactClick={handleEditProfile}
-                enableTilt
-              />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
