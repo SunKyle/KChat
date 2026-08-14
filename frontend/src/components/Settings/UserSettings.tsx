@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Monitor, Lock, Key, Loader2, X, Brain, Database, Bot } from 'lucide-react'
+import { User, Monitor, Lock, Key, Loader2, X, Brain, Database, Wrench } from 'lucide-react'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
@@ -29,7 +29,7 @@ const tabs: TabConfig[] = [
   { id: 'api', label: 'API 密钥', icon: Key },
   { id: 'models', label: '模型管理', icon: Brain },
   { id: 'memory', label: '记忆管理', icon: Database },
-  { id: 'agent', label: 'Agent 模式', icon: Bot },
+  { id: 'agent', label: '工具管理', icon: Wrench },
 ]
 
 export function UserSettings({ onClose, defaultTab = 'profile' }: UserSettingsProps) {

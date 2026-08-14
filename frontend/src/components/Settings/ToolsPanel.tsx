@@ -169,7 +169,7 @@ export function ToolsPanel() {
       </div>
 
       <p className='text-sm theme-text-muted'>
-        Agent 模式下 LLM 可调用以下工具。关闭的工具对大模型不可见。
+        LLM 可调用以下工具。关闭的工具对大模型不可见。
         依赖模型能力的工具可为它指定默认模型；不指定时自动选择。
       </p>
 
