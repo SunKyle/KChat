@@ -19,8 +19,9 @@ import {
   type NodeTypes,
 } from '@xyflow/react'
 import dagre from 'dagre'
-import { Database, Search, RefreshCw, X } from 'lucide-react'
+import { Database, Search, RefreshCw, X, Sparkles, ArrowLeftRight } from 'lucide-react'
 import { cogneeMemory, type GraphNode, type GraphEdge } from '../../../../api/cognee'
+import { useToast } from '../../../../hooks/useToast'
 
 import '@xyflow/react/dist/style.css'
 
@@ -28,6 +29,10 @@ interface NodeDataShape {
   label: string
   type: string
   properties: Record<string, unknown>
+  /** 布局内部字段：target Handle 朝向，由 dagre 布局按方向设置 */
+  _handleTarget?: Position
+  /** 布局内部字段：source Handle 朝向，由 dagre 布局按方向设置 */
+  _handleSource?: Position
 }
 
 const nodeTypeColors: Record<string, string> = {
@@ -74,35 +79,65 @@ function getNodeTypeLabel(type: string): string {
   return nodeTypeLabels[type] || type
 }
 
-const dagreGraph = new dagre.graphlib.Graph()
-dagreGraph.setDefaultEdgeLabel(() => ({}))
-
 const nodeWidth = 180
 const nodeHeight = 60
 
-function getLayoutedNodes(nodes: Node[], edges: Edge[]): Node[] {
-  dagreGraph.setGraph({ rankdir: 'LR', nodesep: 80, ranksep: 120 })
+type RankDir = 'LR' | 'TB' | 'RL' | 'BT'
+
+function getLayoutedNodes(
+  nodes: Node[],
+  edges: Edge[],
+  options?: { nodesep?: number; ranksep?: number; rankdir?: RankDir }
+): Node[] {
+  const { nodesep = 80, ranksep = 120, rankdir = 'LR' } = options ?? {}
+  // 根据方向决定节点连接点位置，让连线从节点边缘进出而不是从中心
+  const targetPos =
+    rankdir === 'LR'
+      ? Position.Left
+      : rankdir === 'RL'
+        ? Position.Right
+        : rankdir === 'TB'
+          ? Position.Top
+          : Position.Bottom
+  const sourcePos =
+    rankdir === 'LR'
+      ? Position.Right
+      : rankdir === 'RL'
+        ? Position.Left
+        : rankdir === 'TB'
+          ? Position.Bottom
+          : Position.Top
+  // 每次创建全新的 Graph 实例，避免全局单例残留旧节点/边导致子图布局失效
+  const g = new dagre.graphlib.Graph()
+  g.setGraph({ rankdir, nodesep, ranksep })
+  g.setDefaultEdgeLabel(() => ({}))
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight })
+    g.setNode(node.id, { width: nodeWidth, height: nodeHeight })
   })
 
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target)
+    g.setEdge(edge.source, edge.target)
   })
 
-  dagre.layout(dagreGraph)
+  dagre.layout(g)
 
   return nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id)
+    const nodeWithPosition = g.node(node.id)
     return {
       ...node,
-      targetPosition: 'left' as const,
-      sourcePosition: 'right' as const,
+      targetPosition: targetPos,
+      sourcePosition: sourcePos,
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
         y: nodeWithPosition.y - nodeHeight / 2,
       },
+      // 把 Handle 朝向写入 data，供自定义节点组件 GraphNodeComponent 读取
+      data: {
+        ...(node.data as object),
+        _handleTarget: targetPos,
+        _handleSource: sourcePos,
+      } as unknown as Node['data'],
     } as Node
   })
 }
@@ -111,6 +146,9 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
   const d = data as unknown as NodeDataShape
   const color = getNodeColor(d.type)
   const typeLabel = getNodeTypeLabel(d.type)
+  // Handle 朝向由 dagre 布局按方向设置，默认左右（兼容未布局的初始状态）
+  const targetPos = d._handleTarget ?? Position.Left
+  const sourcePos = d._handleSource ?? Position.Right
 
   return (
     <div
@@ -122,7 +160,7 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
     >
       <Handle
         type='target'
-        position={Position.Left}
+        position={targetPos}
         className='!w-2 !h-2 !min-w-2 !min-h-2 !border-0 !bg-[var(--border-secondary)]'
       />
       <div className={`w-2 h-2 rounded-full ${color} mb-1.5`} />
@@ -132,7 +170,7 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
       <div className='text-[10px] text-[var(--text-muted)] mt-0.5'>{typeLabel}</div>
       <Handle
         type='source'
-        position={Position.Right}
+        position={sourcePos}
         className='!w-2 !h-2 !min-w-2 !min-h-2 !border-0 !bg-[var(--border-secondary)]'
       />
     </div>
@@ -161,6 +199,74 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(
     new Set(['EntityType', 'TextDocument', 'DocumentChunk', 'TextSummary'])
   )
+  const [improving, setImproving] = useState(false)
+  const [rankdir, setRankdir] = useState<RankDir>('LR')
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 用 ref 保存最新过滤状态，供 fetchGraph 闭包访问（避免扩大依赖集导致循环）
+  const hiddenTypesRef = useRef<Set<string>>(hiddenTypes)
+  const filteredNodeIdsRef = useRef<Set<string> | null>(filteredNodeIds)
+  const rankdirRef = useRef<RankDir>(rankdir)
+  const relayoutSubgraphRef = useRef<typeof relayoutSubgraph | null>(null)
+  const toast = useToast()
+
+  // 保持 ref 与最新 state 同步
+  useEffect(() => {
+    hiddenTypesRef.current = hiddenTypes
+  }, [hiddenTypes])
+  useEffect(() => {
+    filteredNodeIdsRef.current = filteredNodeIds
+  }, [filteredNodeIds])
+  useEffect(() => {
+    rankdirRef.current = rankdir
+  }, [rankdir])
+
+  // 布局方向切换：LR → TB → RL → BT → LR
+  const handleToggleRankDir = useCallback(() => {
+    setRankdir((prev) => {
+      const next: RankDir =
+        prev === 'LR' ? 'TB' : prev === 'TB' ? 'RL' : prev === 'RL' ? 'BT' : 'LR'
+      const name: Record<RankDir, string> = {
+        LR: '从左到右',
+        TB: '从上到下',
+        RL: '从右到左',
+        BT: '从下到上',
+      }
+      toast.info(`布局方向：${name[next]}`, { autoClose: 1800 })
+      return next
+    })
+  }, [toast])
+
+  // 仅在 rankdir 变化时触发重新布局（不依赖 nodes/edges，避免 setNodes → effect → setNodes 无限循环）
+  const prevRankdirRef = useRef<RankDir>(rankdir)
+  useEffect(() => {
+    if (prevRankdirRef.current === rankdir) return
+    prevRankdirRef.current = rankdir
+    if (nodes.length === 0) return
+    // 根据当前过滤状态决定全图 or 子图布局
+    const curHidden = hiddenTypesRef.current
+    const curFiltered = filteredNodeIdsRef.current
+    const hasFilter = curHidden.size > 0 || curFiltered !== null
+    if (hasFilter) {
+      let visible: Set<string> | null = new Set()
+      nodes.forEach((n) => {
+        const type = (n.data?.type as string) ?? ''
+        if (curHidden.has(type)) return
+        if (curFiltered !== null && !curFiltered.has(n.id)) return
+        visible!.add(n.id)
+      })
+      if (visible.size === 0) visible = null
+      relayoutSubgraphRef.current?.(visible)
+    } else {
+      // 全图重新布局（用当前 rankdir）
+      const layouted = getLayoutedNodes(nodes, edges, { rankdir: rankdirRef.current })
+      setNodes(layouted)
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 500 })
+      }, 50)
+    }
+    // 故意只依赖 rankdir，nodes/edges 通过 ref/闭包读取，避免循环
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankdir])
 
   const fetchGraph = useCallback(async () => {
     setLoading(true)
@@ -205,13 +311,36 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
         },
       }))
 
-      const layouted = getLayoutedNodes(rfNodes, rfEdges)
+      const layouted = getLayoutedNodes(rfNodes, rfEdges, { rankdir: rankdirRef.current })
       setNodes(layouted)
       setEdges(rfEdges)
       onStatsChange?.({ nodes: layouted.length, edges: rfEdges.length })
 
+      // 首屏/刷新后先以全图为基准 fitView；若当前有搜索或类型过滤，再对子图重新自适应布局
       setTimeout(() => {
         fitView({ padding: 0.2, duration: 500 })
+        const curHidden = hiddenTypesRef.current
+        const curFiltered = filteredNodeIdsRef.current
+        const hasFilter = curHidden.size > 0 || curFiltered !== null
+        if (hasFilter) {
+          // 再延迟一轮，等 fitView 和节点渲染稳定后对子图重布局
+          setTimeout(() => {
+            // 动态计算可见节点：隐藏类型过滤 + 搜索过滤取交集
+            let visible: Set<string> | null = null
+            if (curHidden.size === 0 && curFiltered === null) {
+              visible = null
+            } else {
+              visible = new Set<string>()
+              const allNodes = data.nodes
+              allNodes.forEach((n: GraphNode) => {
+                if (curHidden.has(n.type)) return
+                if (curFiltered !== null && !curFiltered.has(n.id)) return
+                visible!.add(n.id)
+              })
+            }
+            relayoutSubgraphRef.current?.(visible)
+          }, 380)
+        }
       }, 100)
     } catch (err) {
       setError(String(err))
@@ -226,6 +355,37 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
   useEffect(() => {
     fetchGraph()
   }, [fetchGraph])
+
+  // 组件卸载时清除残留的 transition 清理 timer
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current)
+        transitionTimerRef.current = null
+      }
+    }
+  }, [])
+
+  // 手动触发 Cognee 图谱自我优化，完成后自动刷新图谱
+  const handleImprove = useCallback(async () => {
+    if (improving) return
+    setImproving(true)
+    toast.info('正在执行图谱自我优化，请稍候...', { autoClose: 2500 })
+    try {
+      const result = await cogneeMemory.improve()
+      if (result.success) {
+        toast.success(result.message || '图谱优化完成，正在刷新...')
+        // 优化完成后刷新图谱，展示 improve 新增的连接和节点
+        await fetchGraph()
+      } else {
+        toast.error(result.message || '图谱优化失败')
+      }
+    } catch (err) {
+      toast.error(`图谱优化异常：${String(err)}`)
+    } finally {
+      setImproving(false)
+    }
+  }, [improving, toast, fetchGraph])
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds)),
@@ -246,11 +406,140 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
     [edges]
   )
 
+  // 自适应布局：对可见子图重新执行 dagre 布局，平滑过渡到新位置
+  const relayoutSubgraph = useCallback(
+    (visibleNodeIds: Set<string> | null) => {
+      // 清除上一次的 transition 清理 timer，避免竞态
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current)
+        transitionTimerRef.current = null
+      }
+
+      // 确定参与布局的节点与边
+      let nodesToLayout: Node[]
+      let edgesToLayout: Edge[]
+      if (visibleNodeIds !== null) {
+        if (visibleNodeIds.size === 0) return // 无匹配节点，不布局
+        nodesToLayout = nodes.filter((n) => visibleNodeIds.has(n.id))
+        edgesToLayout = edges.filter(
+          (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
+        )
+      } else {
+        nodesToLayout = nodes
+        edgesToLayout = edges
+      }
+
+      if (nodesToLayout.length === 0) return
+
+      // 根据可见节点数量自适应调整间距：节点少时更舒展，避免重叠
+      const visibleCount = nodesToLayout.length
+      const nodesep = visibleCount <= 5 ? 120 : visibleCount <= 10 ? 100 : 80
+      const ranksep = visibleCount <= 5 ? 160 : visibleCount <= 10 ? 140 : 120
+
+      const layouted = getLayoutedNodes(nodesToLayout, edgesToLayout, {
+        nodesep,
+        ranksep,
+        rankdir: rankdirRef.current,
+      })
+      // 同时记录 position / targetPosition / sourcePosition / data 中的 Handle 朝向
+      const layoutedMap = new Map(
+        layouted.map((n) => [
+          n.id,
+          {
+            position: n.position,
+            targetPosition: n.targetPosition,
+            sourcePosition: n.sourcePosition,
+            handleTarget: (n.data as unknown as NodeDataShape)?._handleTarget,
+            handleSource: (n.data as unknown as NodeDataShape)?._handleSource,
+          },
+        ])
+      )
+
+      // 更新节点位置 + Handle 朝向（含 data 内字段），并添加 transition 实现平滑过渡
+      setNodes((prev) =>
+        prev.map((n) => {
+          const info = layoutedMap.get(n.id)
+          if (!info) return n
+          return {
+            ...n,
+            position: info.position,
+            targetPosition: info.targetPosition,
+            sourcePosition: info.sourcePosition,
+            data: {
+              ...(n.data as object),
+              _handleTarget: info.handleTarget,
+              _handleSource: info.handleSource,
+            } as unknown as Node['data'],
+            style: { ...n.style, transition: 'transform 450ms ease' },
+          }
+        })
+      )
+
+      // 动画结束后移除 transition，避免拖拽时粘滞
+      transitionTimerRef.current = setTimeout(() => {
+        setNodes((prev) =>
+          prev.map((n) => ({
+            ...n,
+            style: { ...n.style, transition: undefined },
+          }))
+        )
+        transitionTimerRef.current = null
+      }, 470)
+
+      // 延迟 fitView，让 setNodes 先完成渲染更新后基于新位置适配视口
+      setTimeout(() => {
+        fitView({ padding: 0.3, duration: 500 })
+      }, 50)
+    },
+    [nodes, edges, setNodes, fitView]
+  )
+
+  // 将最新的 relayoutSubgraph 写入 ref，供 fetchGraph 闭包回调访问
+  useEffect(() => {
+    relayoutSubgraphRef.current = relayoutSubgraph
+  }, [relayoutSubgraph])
+
+  // 根据类型过滤 + 搜索过滤计算当前可见节点集合（null 表示全图可见）
+  const computeVisibleNodeIds = useCallback(
+    (hidden: Set<string>, filtered: Set<string> | null): Set<string> | null => {
+      if (hidden.size === 0 && filtered === null) return null
+      const visible = new Set<string>()
+      nodes.forEach((n) => {
+        const d = n.data as unknown as NodeDataShape
+        if (hidden.has(d.type)) return
+        if (filtered !== null && !filtered.has(n.id)) return
+        visible.add(n.id)
+      })
+      return visible
+    },
+    [nodes]
+  )
+
+  // 切换类型显示/隐藏后对可见节点重新自适应布局
+  const handleTypeToggle = useCallback(
+    (type: string) => {
+      const next = new Set(hiddenTypes)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      setHiddenTypes(next)
+      relayoutSubgraph(computeVisibleNodeIds(next, filteredNodeIds))
+    },
+    [hiddenTypes, filteredNodeIds, setHiddenTypes, relayoutSubgraph, computeVisibleNodeIds]
+  )
+
+  // 全部显示后恢复全图布局（若搜索仍激活则只布局搜索结果）
+  const handleShowAllTypes = useCallback(() => {
+    setHiddenTypes(new Set())
+    relayoutSubgraph(computeVisibleNodeIds(new Set(), filteredNodeIds))
+  }, [setHiddenTypes, relayoutSubgraph, computeVisibleNodeIds, filteredNodeIds])
+
   const handleSearch = useCallback(
     (value: string) => {
       setSearchQuery(value)
       if (!value.trim()) {
         setFilteredNodeIds(null)
+        // 清空搜索时恢复布局（考虑当前类型过滤）
+        relayoutSubgraph(computeVisibleNodeIds(hiddenTypes, null))
         return
       }
       const lower = value.toLowerCase()
@@ -269,8 +558,10 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
         }
       })
       setFilteredNodeIds(matched)
+      // 搜索完成后对可见子图自适应布局（排除被类型过滤隐藏的节点）
+      relayoutSubgraph(computeVisibleNodeIds(hiddenTypes, matched))
     },
-    [nodes, edges]
+    [nodes, edges, hiddenTypes, relayoutSubgraph, computeVisibleNodeIds]
   )
 
   const filteredNodes = useMemo(() => {
@@ -399,6 +690,40 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             {loading ? '加载中...' : '刷新图谱'}
           </button>
+
+          <button
+            onClick={handleToggleRankDir}
+            disabled={loading || improving}
+            title={(() => {
+              const name: Record<RankDir, string> = {
+                LR: '从左到右（当前）',
+                TB: '从上到下（当前）',
+                RL: '从右到左（当前）',
+                BT: '从下到上（当前）',
+              }
+              return `切换布局方向：${name[rankdir]}，点击循环切换 (左→右→下→上→右)`
+            })()}
+            className='flex items-center justify-center gap-1.5 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg hover:bg-[var(--bg-hover)] text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50'
+          >
+            <ArrowLeftRight className='w-3.5 h-3.5' />
+            {rankdir === 'LR'
+              ? '方向：左→右'
+              : rankdir === 'TB'
+                ? '方向：上→下'
+                : rankdir === 'RL'
+                  ? '方向：右→左'
+                  : '方向：下→上'}
+          </button>
+
+          <button
+            onClick={handleImprove}
+            disabled={improving || loading}
+            title='执行知识图谱自我优化：推导跨实体连接、重加权记忆、剪枝陈旧节点'
+            className='flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#1e9df1] to-[#1476c0] backdrop-blur rounded-xl border border-[#1e9df1]/30 px-3.5 py-2 shadow-lg hover:brightness-110 text-xs font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-blue-500/15'
+          >
+            <Sparkles className={`w-3.5 h-3.5 flex-shrink-0 ${improving ? 'animate-spin' : ''}`} />
+            {improving ? '自我优化中...' : '知识图谱自我优化'}
+          </button>
         </div>
       </Panel>
 
@@ -409,7 +734,7 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
             <span className='text-sm font-semibold text-[var(--text-secondary)]'>类型过滤</span>
             {hiddenTypes.size > 0 && (
               <button
-                onClick={() => setHiddenTypes(new Set())}
+                onClick={handleShowAllTypes}
                 className='text-xs text-[var(--accent-primary)] hover:underline'
               >
                 全部显示
@@ -424,14 +749,7 @@ function GraphInner({ onStatsChange }: GraphInnerProps) {
                 return (
                   <button
                     key={type}
-                    onClick={() => {
-                      setHiddenTypes((prev) => {
-                        const next = new Set(prev)
-                        if (next.has(type)) next.delete(type)
-                        else next.add(type)
-                        return next
-                      })
-                    }}
+                    onClick={() => handleTypeToggle(type)}
                     className={`flex items-center gap-2 text-xs transition-opacity ${
                       isHidden ? 'opacity-30 line-through' : 'hover:opacity-80'
                     } text-[var(--text-muted)] cursor-pointer`}

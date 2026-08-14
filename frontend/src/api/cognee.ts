@@ -183,6 +183,27 @@ export const cogneeMemory = {
       return []
     }
   },
+
+  /**
+   * 手动触发 Cognee 图谱自我优化（improve）。
+   * 推导跨实体连接、重加权边、剪枝陈旧节点，使 recall 更准确。
+   * 通过 Spring 后端代理：/api/cognee/improve → cognee Python /improve
+   */
+  improve: async (dataset = 'main_dataset'): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`/api/cognee/improve?dataset=${encodeURIComponent(dataset)}`, {
+        method: 'POST',
+      })
+      const data = (await response.json()) as { success?: boolean; message?: string }
+      return {
+        success: data.success ?? response.ok,
+        message: data.message ?? (response.ok ? '优化完成' : '优化失败'),
+      }
+    } catch (error) {
+      console.warn('[Cognee] Improve failed:', error)
+      return { success: false, message: `优化失败：${String(error)}` }
+    }
+  },
 }
 
 export default cogneeMemory

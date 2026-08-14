@@ -530,3 +530,13 @@ Button System ============================================ */ .btn-primary {
   background-color: var(--border-divider);
   border: none;
 }
+
+/* ============================================
+   React Flow — 拖拽节点时禁用 transition
+   知识图谱自适应布局会给节点添加 transform transition，
+   拖拽时通过 !important 覆盖，避免节点跟随延迟粘滞
+   ============================================ */
+
+.react-flow__node.dragging {
+  transition: none !important;
+}
