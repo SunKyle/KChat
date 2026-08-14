@@ -6,6 +6,7 @@ interface ConversationItemProps {
   conversation: Conversation
   isActive: boolean
   isStreaming: boolean
+  isSummarizing?: boolean
   hasNewReply: boolean
   onClick: () => void
   onDelete: () => void
