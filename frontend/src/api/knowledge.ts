@@ -22,6 +22,8 @@ export interface KnowledgeDocument {
   errorMessage: string | null
   cogneeDataId: string | null
   storedFilePath: string | null
+  /** Tika 提取的文本内容 */
+  content: string
   downloadUrl: string
   createdAt: string
   updatedAt: string

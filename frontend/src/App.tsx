@@ -10,12 +10,23 @@ import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
 import { KnowledgeGraph } from './components/settings/Memory/KnowledgeGraph'
+import { KnowledgeContentView } from './components/knowledge/KnowledgeContentView'
 import { useState, useEffect, useCallback } from 'react'
-import { Menu, X, BarChart3, RefreshCw, Wrench, Search, ArrowLeftRight } from 'lucide-react'
+import {
+  Menu,
+  X,
+  BarChart3,
+  RefreshCw,
+  Wrench,
+  Search,
+  ArrowLeftRight,
+  FileText,
+} from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 import { useConversation } from './hooks/useConversation'
 import { cogneeMemory } from './api/cognee'
+import type { KnowledgeBase } from './api/knowledge'
 
 function AppContent() {
   const {
@@ -35,6 +46,8 @@ function AppContent() {
     name: string
     displayName: string
   } | null>(null)
+  const [knowledgeViewKb, setKnowledgeViewKb] = useState<KnowledgeBase | null>(null)
+  const [knowledgeDocCount, setKnowledgeDocCount] = useState(0)
   const [graphStats, setGraphStats] = useState<{ nodes: number; edges: number }>({
     nodes: 0,
     edges: 0,
@@ -83,6 +96,20 @@ function AppContent() {
     setGraphStats(stats)
   }, [])
 
+  const handleKnowledgeStatsChange = useCallback((count: number) => {
+    setKnowledgeDocCount(count)
+  }, [])
+
+  const handleSelectKnowledgeBase = useCallback(
+    (kb: KnowledgeBase) => {
+      setKnowledgeViewKb(kb)
+      setKnowledgeDocCount(0)
+      setGraphViewDataset(null)
+      closeSettings()
+    },
+    [closeSettings]
+  )
+
   const handleToggleGraphRankdir = useCallback(() => {
     setGraphRankdir((prev) => (prev === 'LR' ? 'TB' : 'LR'))
   }, [])
@@ -129,11 +156,14 @@ function AppContent() {
               onConversationClick={() => {
                 closeSettings()
                 setGraphViewDataset(null)
+                setKnowledgeViewKb(null)
               }}
+              onSelectKnowledgeBase={handleSelectKnowledgeBase}
               onSelectDataset={(name, displayName) => {
                 setGraphViewDataset({ name, displayName })
                 setGraphSearchQuery('')
                 setGraphRankdir('LR')
+                setKnowledgeViewKb(null)
                 closeSettings()
               }}
             />
@@ -167,15 +197,20 @@ function AppContent() {
               }}
             />
             {/* 对话视图的 Header */}
-            {!graphViewDataset && <Header />}
+            {!graphViewDataset && !knowledgeViewKb && <Header />}
             {/* 图谱视图的 Header */}
             {graphViewDataset && !showSettings && (
               <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
-                <div className='flex items-center gap-3 min-w-0 flex-shrink-0'>
+                <div className='flex items-center gap-2.5 min-w-0 flex-shrink-0'>
                   <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[200px]'>
                     {graphViewDataset.displayName}
                   </h1>
-                  <span className='text-xs theme-text-muted flex-shrink-0'>知识图谱</span>
+                  <div className='flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-card border theme-border-primary text-xs flex-shrink-0'>
+                    <BarChart3 className='w-3 h-3 theme-brand-primary' />
+                    <span className='theme-text-primary font-medium whitespace-nowrap'>
+                      {graphStats.nodes} 节点 · {graphStats.edges} 关系
+                    </span>
+                  </div>
                 </div>
 
                 <div className='flex items-center gap-2 flex-1 justify-end'>
@@ -197,18 +232,6 @@ function AppContent() {
                         <X className='w-3 h-3' />
                       </button>
                     )}
-                  </div>
-
-                  {/* 统计 */}
-                  <div className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg theme-bg-card border theme-border-primary shadow-sm'>
-                    <BarChart3 className='w-3.5 h-3.5 theme-brand-primary' />
-                    <span className='text-xs theme-text-primary font-medium'>
-                      {graphStats.nodes} 节点
-                    </span>
-                    <span className='text-xs theme-text-muted'>·</span>
-                    <span className='text-xs theme-text-primary font-medium'>
-                      {graphStats.edges} 关系
-                    </span>
                   </div>
 
                   {/* 方向切换 */}
@@ -251,6 +274,28 @@ function AppContent() {
               </header>
             )}
 
+            {/* 知识库视图的 Header */}
+            {knowledgeViewKb && !showSettings && (
+              <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
+                <div className='flex items-center gap-2.5 min-w-0 flex-shrink-0'>
+                  <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[240px]'>
+                    {knowledgeViewKb.name}
+                  </h1>
+                  <div className='flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-card border theme-border-primary text-xs flex-shrink-0'>
+                    <FileText className='w-3 h-3 theme-brand-primary' />
+                    <span className='theme-text-primary font-medium whitespace-nowrap'>
+                      {knowledgeDocCount} 篇文档
+                    </span>
+                  </div>
+                </div>
+                {knowledgeViewKb.description && (
+                  <p className='text-xs theme-text-muted truncate flex-1 min-w-0 hidden sm:block'>
+                    {knowledgeViewKb.description}
+                  </p>
+                )}
+              </header>
+            )}
+
             {/* 数据集图谱视图 */}
             {graphViewDataset && !showSettings && (
               <div className='relative flex-1 min-h-0'>
@@ -263,8 +308,18 @@ function AppContent() {
                 />
               </div>
             )}
+            {/* 知识库提取信息视图 */}
+            {knowledgeViewKb && !showSettings && (
+              <div className='relative flex-1 min-h-0'>
+                <KnowledgeContentView
+                  key={knowledgeViewKb.id}
+                  kbId={knowledgeViewKb.id}
+                  onStatsChange={handleKnowledgeStatsChange}
+                />
+              </div>
+            )}
             {/* 对话视图 */}
-            {!graphViewDataset && (
+            {!graphViewDataset && !knowledgeViewKb && (
               <div
                 className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}
               >

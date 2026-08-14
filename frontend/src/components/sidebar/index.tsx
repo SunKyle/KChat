@@ -4,12 +4,16 @@ import { SidebarRail, type MenuId } from './SidebarRail'
 import { ChatPanel } from './ChatPanel'
 import { GraphPanel } from './GraphPanel'
 import { KnowledgePanel } from './KnowledgePanel'
+import type { KnowledgeBase } from '../../api/knowledge'
 
 interface SidebarProps {
   collapsed?: boolean
   onToggle?: () => void
   onDeleteClick?: (id: string, title: string) => void
   onConversationClick?: () => void
+  /** 知识库菜单点击：在主区域展示提取信息 */
+  onSelectKnowledgeBase?: (kb: KnowledgeBase) => void
+  /** 知识图谱菜单点击：在主区域展示图谱 */
   onSelectDataset?: (datasetName: string, displayName: string) => void
 }
 
@@ -24,6 +28,7 @@ export function Sidebar({
   onToggle,
   onDeleteClick,
   onConversationClick,
+  onSelectKnowledgeBase,
   onSelectDataset,
 }: SidebarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
@@ -62,7 +67,7 @@ export function Sidebar({
         return (
           <KnowledgePanel
             onToggle={() => onToggle?.()}
-            onSelectDataset={(name, displayName) => onSelectDataset?.(name, displayName)}
+            onSelectKnowledgeBase={(kb) => onSelectKnowledgeBase?.(kb)}
           />
         )
       case 'graph':

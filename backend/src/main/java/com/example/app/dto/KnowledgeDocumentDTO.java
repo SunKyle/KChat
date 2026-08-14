@@ -24,6 +24,8 @@ public class KnowledgeDocumentDTO {
     private String cogneeDataId;
     private String storedFilePath;
     private String downloadUrl;
+    /** Tika 提取的文本内容（供前端展示提取信息） */
+    private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -32,8 +34,9 @@ public class KnowledgeDocumentDTO {
     }
 
     /**
-     * @param doc           文档实体
-     * @param downloadBaseUrl 下载链接前缀，如 /api/knowledge-bases/{kbId}/documents/{docId}/download
+     * @param doc             文档实体
+     * @param downloadBaseUrl 下载链接前缀，如
+     *                        /api/knowledge-bases/{kbId}/documents/{docId}/download
      */
     public static KnowledgeDocumentDTO from(KnowledgeDocument doc, String downloadBaseUrl) {
         KnowledgeDocumentDTOBuilder builder = KnowledgeDocumentDTO.builder()
@@ -47,6 +50,7 @@ public class KnowledgeDocumentDTO {
                 .errorMessage(doc.getErrorMessage())
                 .cogneeDataId(doc.getCogneeDataId())
                 .storedFilePath(doc.getStoredFilePath())
+                .content(doc.getContent())
                 .createdAt(doc.getCreatedAt())
                 .updatedAt(doc.getUpdatedAt());
         if (downloadBaseUrl != null) {

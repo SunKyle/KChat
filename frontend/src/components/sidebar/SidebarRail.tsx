@@ -1,4 +1,4 @@
-import { MessageSquare, Database, Share2, User } from 'lucide-react'
+import { MessageSquare, Database, Network, User } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useUser } from '../../context/UserContext'
 
@@ -13,7 +13,7 @@ interface MenuConfig {
 const menus: MenuConfig[] = [
   { id: 'chat', label: '对话', icon: MessageSquare },
   { id: 'knowledge', label: '知识库', icon: Database },
-  { id: 'graph', label: '知识图谱', icon: Share2 },
+  { id: 'graph', label: '知识图谱', icon: Network },
 ]
 
 interface SidebarRailProps {
