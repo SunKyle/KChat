@@ -10,18 +10,9 @@
         </encoder>
     </appender>
 
-    <appender name="PROMPT_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOG_PATH}/prompt.log</file>
-        <append>true</append>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- 过滤策略：只允许 PROMPT_LOG 输出到控制台 -->
+    <!-- 过滤策略：PROMPT_LOG 只输出到控制台 -->
     <logger name="PROMPT_LOG" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="PROMPT_FILE"/>
     </logger>
 
     <!-- 项目代码其他日志：只输出 ERROR 级别，屏蔽 DEBUG/INFO -->
