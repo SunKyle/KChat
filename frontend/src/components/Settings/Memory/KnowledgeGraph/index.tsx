@@ -19,9 +19,8 @@ import {
   type NodeTypes,
 } from '@xyflow/react'
 import dagre from 'dagre'
-import { Database, Search, RefreshCw, X, Sparkles, ArrowLeftRight } from 'lucide-react'
+import { Database, X } from 'lucide-react'
 import { cogneeMemory, type GraphNode, type GraphEdge } from '../../../../api/cognee'
-import { useToast } from '../../../../hooks/useToast'
 
 import '@xyflow/react/dist/style.css'
 
@@ -184,9 +183,18 @@ const nodeTypes: NodeTypes = {
 interface GraphInnerProps {
   onStatsChange?: (stats: { nodes: number; edges: number }) => void
   dataset?: string
+  /** 外部受控搜索关键词 */
+  externalSearchQuery?: string
+  /** 外部受控布局方向 */
+  externalRankdir?: RankDir
 }
 
-function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
+function GraphInner({
+  onStatsChange,
+  dataset,
+  externalSearchQuery = '',
+  externalRankdir = 'LR',
+}: GraphInnerProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -194,21 +202,17 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
   const [filteredNodeIds, setFilteredNodeIds] = useState<Set<string> | null>(null)
   const [highlightedNodeIds, setHighlightedNodeIds] = useState<Set<string> | null>(null)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(
     new Set(['EntityType', 'TextDocument', 'DocumentChunk', 'TextSummary'])
   )
-  const [improving, setImproving] = useState(false)
-  const [rankdir, setRankdir] = useState<RankDir>('LR')
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // 用 ref 保存最新过滤状态，供 fetchGraph 闭包访问（避免扩大依赖集导致循环）
   const hiddenTypesRef = useRef<Set<string>>(hiddenTypes)
   const filteredNodeIdsRef = useRef<Set<string> | null>(filteredNodeIds)
-  const rankdirRef = useRef<RankDir>(rankdir)
+  const rankdirRef = useRef<RankDir>(externalRankdir)
   const relayoutSubgraphRef = useRef<typeof relayoutSubgraph | null>(null)
-  const toast = useToast()
 
   // 保持 ref 与最新 state 同步
   useEffect(() => {
@@ -218,30 +222,14 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
     filteredNodeIdsRef.current = filteredNodeIds
   }, [filteredNodeIds])
   useEffect(() => {
-    rankdirRef.current = rankdir
-  }, [rankdir])
+    rankdirRef.current = externalRankdir
+  }, [externalRankdir])
 
-  // 布局方向切换：LR → TB → RL → BT → LR
-  const handleToggleRankDir = useCallback(() => {
-    setRankdir((prev) => {
-      const next: RankDir =
-        prev === 'LR' ? 'TB' : prev === 'TB' ? 'RL' : prev === 'RL' ? 'BT' : 'LR'
-      const name: Record<RankDir, string> = {
-        LR: '从左到右',
-        TB: '从上到下',
-        RL: '从右到左',
-        BT: '从下到上',
-      }
-      toast.info(`布局方向：${name[next]}`, { autoClose: 1800 })
-      return next
-    })
-  }, [toast])
-
-  // 仅在 rankdir 变化时触发重新布局（不依赖 nodes/edges，避免 setNodes → effect → setNodes 无限循环）
-  const prevRankdirRef = useRef<RankDir>(rankdir)
+  // rankdir 变化时触发重新布局
+  const prevRankdirRef = useRef<RankDir>(externalRankdir)
   useEffect(() => {
-    if (prevRankdirRef.current === rankdir) return
-    prevRankdirRef.current = rankdir
+    if (prevRankdirRef.current === externalRankdir) return
+    prevRankdirRef.current = externalRankdir
     if (nodes.length === 0) return
     // 根据当前过滤状态决定全图 or 子图布局
     const curHidden = hiddenTypesRef.current
@@ -258,16 +246,14 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
       if (visible.size === 0) visible = null
       relayoutSubgraphRef.current?.(visible)
     } else {
-      // 全图重新布局（用当前 rankdir）
-      const layouted = getLayoutedNodes(nodes, edges, { rankdir: rankdirRef.current })
+      const layouted = getLayoutedNodes(nodes, edges, { rankdir: externalRankdir })
       setNodes(layouted)
       setTimeout(() => {
         fitView({ padding: 0.2, duration: 500 })
       }, 50)
     }
-    // 故意只依赖 rankdir，nodes/edges 通过 ref/闭包读取，避免循环
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rankdir])
+  }, [externalRankdir])
 
   const fetchGraph = useCallback(async () => {
     setLoading(true)
@@ -367,26 +353,32 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
     }
   }, [])
 
-  // 手动触发 Cognee 图谱自我优化，完成后自动刷新图谱
-  const handleImprove = useCallback(async () => {
-    if (improving) return
-    setImproving(true)
-    toast.info('正在执行图谱自我优化，请稍候...', { autoClose: 2500 })
-    try {
-      const result = await cogneeMemory.improve()
-      if (result.success) {
-        toast.success(result.message || '图谱优化完成，正在刷新...')
-        // 优化完成后刷新图谱，展示 improve 新增的连接和节点
-        await fetchGraph()
-      } else {
-        toast.error(result.message || '图谱优化失败')
-      }
-    } catch (err) {
-      toast.error(`图谱优化异常：${String(err)}`)
-    } finally {
-      setImproving(false)
+  // externalSearchQuery 变化时执行搜索逻辑
+  useEffect(() => {
+    const value = externalSearchQuery
+    if (!value.trim()) {
+      setFilteredNodeIds(null)
+      relayoutSubgraph(computeVisibleNodeIds(hiddenTypesRef.current, null))
+      return
     }
-  }, [improving, toast, fetchGraph])
+    const lower = value.toLowerCase()
+    const matched = new Set<string>()
+    nodes.forEach((n) => {
+      const d = n.data as unknown as NodeDataShape
+      const label = d.label.toLowerCase()
+      const type = d.type.toLowerCase()
+      if (label.includes(lower) || type.includes(lower)) {
+        matched.add(n.id)
+        edges.forEach((e) => {
+          if (e.source === n.id) matched.add(e.target)
+          if (e.target === n.id) matched.add(e.source)
+        })
+      }
+    })
+    setFilteredNodeIds(matched)
+    relayoutSubgraph(computeVisibleNodeIds(hiddenTypesRef.current, matched))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalSearchQuery])
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds)),
@@ -534,37 +526,6 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
     relayoutSubgraph(computeVisibleNodeIds(new Set(), filteredNodeIds))
   }, [setHiddenTypes, relayoutSubgraph, computeVisibleNodeIds, filteredNodeIds])
 
-  const handleSearch = useCallback(
-    (value: string) => {
-      setSearchQuery(value)
-      if (!value.trim()) {
-        setFilteredNodeIds(null)
-        // 清空搜索时恢复布局（考虑当前类型过滤）
-        relayoutSubgraph(computeVisibleNodeIds(hiddenTypes, null))
-        return
-      }
-      const lower = value.toLowerCase()
-      const matched = new Set<string>()
-      nodes.forEach((n) => {
-        const d = n.data as unknown as NodeDataShape
-        const label = d.label.toLowerCase()
-        const type = d.type.toLowerCase()
-        if (label.includes(lower) || type.includes(lower)) {
-          matched.add(n.id)
-          // 加入关联节点
-          edges.forEach((e) => {
-            if (e.source === n.id) matched.add(e.target)
-            if (e.target === n.id) matched.add(e.source)
-          })
-        }
-      })
-      setFilteredNodeIds(matched)
-      // 搜索完成后对可见子图自适应布局（排除被类型过滤隐藏的节点）
-      relayoutSubgraph(computeVisibleNodeIds(hiddenTypes, matched))
-    },
-    [nodes, edges, hiddenTypes, relayoutSubgraph, computeVisibleNodeIds]
-  )
-
   const filteredNodes = useMemo(() => {
     let result = nodes
     // 类型过滤
@@ -661,73 +622,6 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
 
   return (
     <div className='relative w-full h-full rounded-xl border border-[var(--border-secondary)] overflow-hidden bg-[var(--bg-card)]'>
-      {/* Toolbar */}
-      <Panel position='top-left' className='!m-2'>
-        <div className='flex items-center gap-2'>
-          <div className='flex items-center gap-2 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg'>
-            <Search className='w-3.5 h-3.5 text-[var(--text-muted)]' />
-            <input
-              type='text'
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder='搜索节点...'
-              className='w-32 bg-transparent text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none'
-            />
-            {searchQuery && (
-              <button
-                onClick={() => handleSearch('')}
-                className='text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              >
-                <X className='w-3 h-3' />
-              </button>
-            )}
-          </div>
-
-          <button
-            onClick={fetchGraph}
-            disabled={loading}
-            className='flex items-center justify-center gap-1.5 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg hover:bg-[var(--bg-hover)] text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50'
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? '加载中...' : '刷新图谱'}
-          </button>
-
-          <button
-            onClick={handleToggleRankDir}
-            disabled={loading || improving}
-            title={(() => {
-              const name: Record<RankDir, string> = {
-                LR: '从左到右（当前）',
-                TB: '从上到下（当前）',
-                RL: '从右到左（当前）',
-                BT: '从下到上（当前）',
-              }
-              return `切换布局方向：${name[rankdir]}，点击循环切换 (左→右→下→上→右)`
-            })()}
-            className='flex items-center justify-center gap-1.5 bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-3 py-2 shadow-lg hover:bg-[var(--bg-hover)] text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50'
-          >
-            <ArrowLeftRight className='w-3.5 h-3.5' />
-            {rankdir === 'LR'
-              ? '方向：左→右'
-              : rankdir === 'TB'
-                ? '方向：上→下'
-                : rankdir === 'RL'
-                  ? '方向：右→左'
-                  : '方向：下→上'}
-          </button>
-
-          <button
-            onClick={handleImprove}
-            disabled={improving || loading}
-            title='执行知识图谱自我优化：推导跨实体连接、重加权记忆、剪枝陈旧节点'
-            className='flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#1e9df1] to-[#1476c0] backdrop-blur rounded-xl border border-[#1e9df1]/30 px-3.5 py-2 shadow-lg hover:brightness-110 text-xs font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-blue-500/15'
-          >
-            <Sparkles className={`w-3.5 h-3.5 flex-shrink-0 ${improving ? 'animate-spin' : ''}`} />
-            {improving ? '自我优化中...' : '知识图谱自我优化'}
-          </button>
-        </div>
-      </Panel>
-
       {/* Legend + Type Filter */}
       <Panel position='bottom-left' className='!m-2'>
         <div className='bg-[var(--bg-card)]/95 backdrop-blur rounded-xl border border-[var(--border-secondary)] px-4 py-3 shadow-lg'>
@@ -909,13 +803,22 @@ function GraphInner({ onStatsChange, dataset }: GraphInnerProps) {
 export function KnowledgeGraph({
   onStatsChange,
   dataset,
+  externalSearchQuery,
+  externalRankdir,
 }: {
   onStatsChange?: (stats: { nodes: number; edges: number }) => void
   dataset?: string
+  externalSearchQuery?: string
+  externalRankdir?: RankDir
 }) {
   return (
     <ReactFlowProvider>
-      <GraphInner onStatsChange={onStatsChange} dataset={dataset} />
+      <GraphInner
+        onStatsChange={onStatsChange}
+        dataset={dataset}
+        externalSearchQuery={externalSearchQuery}
+        externalRankdir={externalRankdir}
+      />
     </ReactFlowProvider>
   )
 }
