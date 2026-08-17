@@ -47,7 +47,14 @@ public class ToolDefinitionStage implements ContextPipelineStage {
     public void execute(ConversationContext ctx) {
         List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications(ctx.getUserId());
 
-        // recallMemory 工具已从代码中移除，不再需要过滤
+        // 当用户显式引用知识库（@唤起）时，过滤掉 recallMemory 工具，
+        // 避免 Agent 从 main_dataset 中兜底检索，只使用指定知识库的片段
+        boolean hasExplicitKbRefs = ctx.getKnowledgeBaseIds() != null && !ctx.getKnowledgeBaseIds().isEmpty();
+        if (hasExplicitKbRefs) {
+            specs = specs.stream()
+                    .filter(spec -> !"recallMemory".equals(spec.name()))
+                    .toList();
+        }
 
         ctx.getEnabledToolNames().clear();
         for (ToolSpecification spec : specs) {

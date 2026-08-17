@@ -80,8 +80,6 @@ export function InputArea() {
   const maxChars = 2000
   const maxImages = 5
 
-  const isImg2ImgMode = isImageModel(currentModel) && uploadingImages.length > 0
-
   // 状态条滑出/收起动画
   useEffect(() => {
     if (streamingState.isStreaming) {
@@ -362,13 +360,6 @@ export function InputArea() {
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
           <div className='mb-4 mx-4 lg:mx-6'>
-            {isImg2ImgMode && (
-              <div className='flex items-center gap-1.5 px-2.5 py-1.5 mb-2 rounded-lg bg-[var(--brand-primary)]/8 border border-[var(--brand-primary)]/15 text-xs font-semibold text-[var(--brand-primary)]'>
-                <Image className='w-3.5 h-3.5' />
-                图生图模式
-                <span className='font-normal opacity-60'>· 仅第一张图作为参考</span>
-              </div>
-            )}
             <div className='flex flex-wrap gap-2'>
               {uploadingImages.map((imageUrl, index) => (
                 <div
@@ -513,9 +504,7 @@ export function InputArea() {
                         ? '正在优化...'
                         : isOutputting
                           ? '正在输出...'
-                          : isThinking && isImageModel(currentModel)
-                            ? '正在生成图片...'
-                            : '正在思考...'}
+                          : '正在思考...'}
                     </span>
                   </div>
                   <span
@@ -582,11 +571,7 @@ export function InputArea() {
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
                   placeholder={
-                    streamingState.isStreaming
-                      ? '添加到队列'
-                      : isImg2ImgMode
-                        ? '描述要对图片进行的修改...'
-                        : '输入消息...'
+                    streamingState.isStreaming ? '添加到队列' : '输入消息...'
                   }
                   aria-label='输入消息'
                   className={`w-full resize-none bg-transparent px-0 py-1 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[32px] max-h-[200px] overflow-y-auto font-input-text transition-opacity duration-200 ${
@@ -627,33 +612,6 @@ export function InputArea() {
                       )}
                     </button>
                     <span className='tooltip-content'>上传文件</span>
-                  </div>
-
-                  {/* 生成图片按钮 */}
-                  <div className='relative'>
-                    <button
-                      onClick={() => {
-                        if (isImg2ImgMode) {
-                          textareaRef.current?.focus()
-                        } else {
-                          setInput('生成图片：')
-                        }
-                      }}
-                      disabled={streamingState.isStreaming}
-                      className={`peer flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
-                        streamingState.isStreaming
-                          ? 'opacity-40 cursor-not-allowed'
-                          : isImg2ImgMode
-                            ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/20 cursor-pointer'
-                            : 'hover:bg-[var(--bg-toolbar-hover)] text-[var(--text-toolbar)] cursor-pointer'
-                      }`}
-                      aria-label={isImg2ImgMode ? '图生图模式' : '生成图片'}
-                    >
-                      <Image className='w-4 h-4' />
-                    </button>
-                    <span className='tooltip-content'>
-                      {isImg2ImgMode ? '图生图模式' : '生成图片'}
-                    </span>
                   </div>
 
                   {/* 内容优化按钮 */}
