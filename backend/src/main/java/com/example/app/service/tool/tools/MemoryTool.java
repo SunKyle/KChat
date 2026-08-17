@@ -28,6 +28,9 @@ import java.util.List;
 @Slf4j
 public class MemoryTool implements ToolComponent {
 
+    /** 语义召回工具名——显式引用知识库时会被 ToolDefinitionStage 从工具列表过滤（禁用兜底） */
+    public static final String RECALL_MEMORY_TOOL = "recallMemory";
+
     private final LongTermMemoryService longTermMemoryService;
 
     @Tool("从用户长期记忆中按语义召回相关内容。当需要回忆用户偏好、历史事件、事实等记忆时调用。")

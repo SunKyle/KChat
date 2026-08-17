@@ -13,7 +13,13 @@ export type ChatAction =
   | { type: 'ADD_MESSAGE'; payload: Message }
   | {
       type: 'UPDATE_MESSAGE'
-      payload: { id: string; content: string; conversationId: string; images?: string[] }
+      payload: {
+        id: string
+        content: string
+        conversationId: string
+        images?: string[]
+        kbReferences?: string[]
+      }
     }
   | { type: 'UPDATE_MESSAGE_ID'; payload: { oldId: string; newId: string; conversationId: string } }
   | { type: 'START_STREAMING'; payload: { conversationId: string } }
@@ -181,6 +187,10 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
                 ...msg,
                 content: action.payload.content,
                 images: action.payload.images !== undefined ? action.payload.images : msg.images,
+                kbReferences:
+                  action.payload.kbReferences !== undefined
+                    ? action.payload.kbReferences
+                    : msg.kbReferences,
               }
             : msg
         )

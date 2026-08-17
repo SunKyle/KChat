@@ -399,4 +399,16 @@ public class KnowledgeBaseService {
                 .map(KnowledgeBase::getDatasetName)
                 .toList();
     }
+
+    /**
+     * 根据知识库 ID 列表获取知识库名称列表（用于展示"引用来源"标签）。
+     */
+    public List<String> getKnowledgeBaseNames(List<String> kbIds) {
+        if (kbIds == null || kbIds.isEmpty()) {
+            return List.of();
+        }
+        return kbRepository.findAllById(kbIds).stream()
+                .map(KnowledgeBase::getName)
+                .toList();
+    }
 }

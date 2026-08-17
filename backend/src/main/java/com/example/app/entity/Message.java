@@ -48,6 +48,10 @@ public class Message {
     @Column(name = "agent_thinking", columnDefinition = "TEXT")
     private String agentThinking;
 
+    /** 该消息引用的知识库名称列表（JSON 数组），供前端展示"引用来源"标签 */
+    @Column(name = "kb_references", columnDefinition = "TEXT")
+    private String kbReferences;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

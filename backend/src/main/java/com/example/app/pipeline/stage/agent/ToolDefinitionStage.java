@@ -3,6 +3,7 @@ package com.example.app.pipeline.stage.agent;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.tool.ToolSpecificationProvider;
+import com.example.app.service.tool.tools.MemoryTool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,18 @@ public class ToolDefinitionStage implements ContextPipelineStage {
     @Override
     public void execute(ConversationContext ctx) {
         List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications(ctx.getUserId());
+
+        // 显式引用知识库时，禁用 Agent 记忆兜底检索（recallMemory 查 main_dataset）
+        boolean explicitKbRef = ctx.getKnowledgeBaseIds() != null
+                && !ctx.getKnowledgeBaseIds().isEmpty();
+        if (explicitKbRef) {
+            specs = specs.stream()
+                    .filter(spec -> !MemoryTool.RECALL_MEMORY_TOOL.equals(spec.name()))
+                    .collect(java.util.stream.Collectors.toList());
+            log.info("[ToolDefinition] Explicit KB reference, disabled memory fallback tool '{}'",
+                    MemoryTool.RECALL_MEMORY_TOOL);
+        }
+
         ctx.getEnabledToolNames().clear();
         for (ToolSpecification spec : specs) {
             ctx.getEnabledToolNames().add(spec.name());

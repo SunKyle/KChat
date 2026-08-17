@@ -129,6 +129,13 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             systemPrompt = "你是一个智能助手。请根据上下文回答问题。";
         }
 
+        // 追加用户显式引用的知识库上下文段（KnowledgeBaseRetrievalStage 408 写入）
+        String kbReferences = (String) ctx.getAgentState()
+                .getOrDefault(KnowledgeBaseRetrievalStage.KEY_FORMATTED_KB_REFERENCES, "");
+        if (kbReferences != null && !kbReferences.isBlank()) {
+            systemPrompt = systemPrompt.trim() + "\n\n" + kbReferences.trim();
+        }
+
         ctx.getAgentState().put(ConversationContext.KEY_PROMPT_TEMPLATE_VERSION, templateVersion);
         ctx.getAgentState().put(ConversationContext.KEY_SYSTEM_MESSAGE, SystemMessage.from(systemPrompt));
         ctx.getAgentState().put("contextPolicy", contextPolicy);

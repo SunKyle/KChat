@@ -17,6 +17,8 @@ export interface Message {
   images?: string[]
   /** Agent 模式下的思考过程步骤（工具调用、LLM 调用等），仅流式推送累积 */
   agentThinking?: AgentThinkingStep[]
+  /** 该回复引用的知识库名称（来自后端 done 事件的 kbReferences），用于展示"引用来源"标签 */
+  kbReferences?: string[]
 }
 
 /**
@@ -57,6 +59,7 @@ export interface ChatRequest {
   userId?: string
   webSearch?: boolean
   agentMode?: boolean
+  knowledgeBaseIds?: string[]
 }
 
 export interface ChatResponse {

@@ -25,6 +25,7 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newKbName, setNewKbName] = useState('')
   const [newKbDesc, setNewKbDesc] = useState('')
+  const [creating, setCreating] = useState(false)
 
   const loadAll = useCallback(async () => {
     try {
@@ -45,10 +46,12 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
   }, [loadAll])
 
   const handleCreate = async () => {
-    if (!newKbName.trim()) return
+    const name = newKbName.trim()
+    if (!name || creating) return
+    setCreating(true)
     try {
       await knowledgeBaseApi.create(DEFAULT_USER_ID, {
-        name: newKbName.trim(),
+        name,
         description: newKbDesc.trim() || undefined,
       })
       setNewKbName('')
@@ -57,6 +60,8 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
       loadAll()
     } catch (e) {
       console.error('Failed to create KB:', e)
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -103,9 +108,6 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
 
       {/* 列表内容 */}
       <div className='flex-1 min-h-0 overflow-y-auto px-3 pb-3'>
-        {!loading && knowledgeBases.length > 0 && (
-          <p className='text-xs theme-text-muted px-1 pb-2'>点击知识库查看提取内容</p>
-        )}
         {loading ? (
           <div className='flex items-center justify-center h-full'>
             <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
@@ -117,7 +119,7 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
             <p className='text-xs theme-text-muted mb-4'>创建知识库并上传文档</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs theme-bg-primary text-white hover:opacity-90 transition-opacity'
+              className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[var(--brand-primary)] text-white hover:opacity-90 transition-opacity'
             >
               <Plus className='w-3.5 h-3.5' />
               新建知识库
@@ -144,45 +146,58 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className='absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'
-            onClick={() => setShowCreateModal(false)}
+            className='fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md p-4'
+            onClick={() => !creating && setShowCreateModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.94, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className='w-[280px] rounded-2xl theme-bg-elevated p-4 shadow-xl'
+              exit={{ scale: 0.94, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className='relative w-[320px] max-w-full rounded-2xl theme-bg-elevated shadow-2xl border theme-border-primary p-5'
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className='text-sm font-semibold theme-text-primary mb-3'>新建知识库</h3>
+              <h3 className='text-sm font-semibold theme-text-primary mb-3.5'>新建知识库</h3>
               <input
                 type='text'
-                placeholder='知识库名称'
+                placeholder='名称'
                 value={newKbName}
                 onChange={(e) => setNewKbName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreate()
+                }}
                 autoFocus
-                className='w-full px-3 py-2 rounded-lg theme-bg-input theme-text-primary text-sm border theme-border focus:outline-none mb-2'
+                maxLength={50}
+                className='w-full px-3 py-2 rounded-lg theme-bg-input theme-text-primary text-sm border theme-border-primary focus:outline-none focus:border-[var(--brand-primary)]/50 placeholder:theme-text-muted transition-all mb-2'
               />
               <textarea
                 placeholder='描述（可选）'
                 value={newKbDesc}
-                onChange={(e) => setNewKbDesc(e.target.value)}
+                onChange={(e) => setNewKbDesc(e.target.value.slice(0, 200))}
                 rows={2}
-                className='w-full px-3 py-2 rounded-lg theme-bg-input theme-text-primary text-sm border theme-border focus:outline-none mb-3 resize-none'
+                className='w-full px-3 py-2 rounded-lg theme-bg-input theme-text-primary text-sm border theme-border-primary focus:outline-none focus:border-[var(--brand-primary)]/50 placeholder:theme-text-muted resize-none transition-all mb-4'
               />
               <div className='flex gap-2'>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className='flex-1 py-2 rounded-lg text-sm theme-bg-hover theme-text-secondary hover:opacity-80 transition-opacity'
+                  disabled={creating}
+                  className='flex-1 py-2 rounded-lg text-sm theme-bg-hover theme-text-secondary hover:opacity-80 transition-opacity disabled:opacity-50'
                 >
                   取消
                 </button>
                 <button
                   onClick={handleCreate}
-                  disabled={!newKbName.trim()}
-                  className='flex-1 py-2 rounded-lg text-sm theme-bg-primary text-white hover:opacity-90 transition-opacity disabled:opacity-50'
+                  disabled={!newKbName.trim() || creating}
+                  className='flex-1 py-2 rounded-lg text-sm font-medium text-white bg-[var(--brand-primary)] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center'
                 >
-                  创建
+                  {creating ? (
+                    <>
+                      <Loader2 className='w-3.5 h-3.5 animate-spin mr-1.5' />
+                      创建中
+                    </>
+                  ) : (
+                    '创建'
+                  )}
                 </button>
               </div>
             </motion.div>

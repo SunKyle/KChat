@@ -26,6 +26,9 @@ public class StreamingDoneStage implements ContextPipelineStage {
         String artifactsJson = ctx.getArtifacts() != null
                 ? JsonUtils.toJson(ctx.getArtifacts())
                 : "[]";
+        String kbRefsJson = ctx.getKbReferenceNames() != null
+                ? JsonUtils.toJson(ctx.getKbReferenceNames())
+                : "[]";
         StringBuilder doneData = new StringBuilder(
                 "{\"messageId\": \"" + ctx.getAiMessageId() + "\"");
         if (ctx.getGeneratedTitle() != null) {
@@ -33,7 +36,8 @@ public class StreamingDoneStage implements ContextPipelineStage {
                     .append(JsonUtils.escapeJson(ctx.getGeneratedTitle()))
                     .append("\"");
         }
-        doneData.append(", \"artifacts\": ").append(artifactsJson).append("}");
+        doneData.append(", \"artifacts\": ").append(artifactsJson)
+                .append(", \"kbReferences\": ").append(kbRefsJson).append("}");
         ctx.emitSseEvent("done", doneData.toString());
 
         try {

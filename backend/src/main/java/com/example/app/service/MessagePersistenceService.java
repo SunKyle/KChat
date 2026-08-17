@@ -65,6 +65,13 @@ public class MessagePersistenceService {
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content,
             List<Artifact> artifacts, List<Map<String, Object>> agentThinkingSteps) {
+        return saveAiMessage(conversationId, messageId, content, artifacts, agentThinkingSteps, null);
+    }
+
+    @Transactional
+    public String saveAiMessage(String conversationId, String messageId, String content,
+            List<Artifact> artifacts, List<Map<String, Object>> agentThinkingSteps,
+            List<String> kbReferenceNames) {
         Message aiMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
@@ -72,6 +79,7 @@ public class MessagePersistenceService {
                 .role("assistant")
                 .artifacts(serializeArtifacts(artifacts))
                 .agentThinking(serializeAgentThinking(agentThinkingSteps))
+                .kbReferences(serializeKbReferences(kbReferenceNames))
                 .build();
         
         messageRepository.save(aiMsg);
@@ -125,6 +133,18 @@ public class MessagePersistenceService {
             return objectMapper.writeValueAsString(steps);
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize agentThinking steps", e);
+            return null;
+        }
+    }
+
+    private String serializeKbReferences(List<String> kbReferenceNames) {
+        if (kbReferenceNames == null || kbReferenceNames.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(kbReferenceNames);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize kbReferences", e);
             return null;
         }
     }

@@ -28,6 +28,7 @@ public class MessageDTO {
     private List<String> images;
     private List<Artifact> artifacts;
     private List<Map<String, Object>> agentThinking;
+    private List<String> kbReferences;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -36,6 +37,7 @@ public class MessageDTO {
         List<String> images = new ArrayList<>();
         List<Artifact> artifacts = new ArrayList<>();
         List<Map<String, Object>> agentThinking = new ArrayList<>();
+        List<String> kbReferences = new ArrayList<>();
         if (message.getImages() != null && !message.getImages().isEmpty()) {
             try {
                 images = OBJECT_MAPPER.readValue(message.getImages(), new TypeReference<List<String>>() {});
@@ -60,6 +62,15 @@ public class MessageDTO {
                 agentThinking = new ArrayList<>();
             }
         }
+        if (message.getKbReferences() != null && !message.getKbReferences().isEmpty()) {
+            try {
+                kbReferences = OBJECT_MAPPER.readValue(
+                        message.getKbReferences(),
+                        new TypeReference<List<String>>() {});
+            } catch (JsonProcessingException e) {
+                kbReferences = new ArrayList<>();
+            }
+        }
         if (images.isEmpty() && !artifacts.isEmpty()) {
             images = artifacts.stream()
                     .filter(a -> "image".equals(a.type()))
@@ -75,6 +86,7 @@ public class MessageDTO {
                 .images(images)
                 .artifacts(artifacts)
                 .agentThinking(agentThinking)
+                .kbReferences(kbReferences)
                 .build();
     }
 }

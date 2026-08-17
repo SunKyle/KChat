@@ -24,7 +24,8 @@ interface ChatContextType {
     content: string,
     imageUrls?: string[],
     webSearch?: boolean,
-    agentMode?: boolean
+    agentMode?: boolean,
+    knowledgeBaseIds?: string[]
   ) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
@@ -288,7 +289,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string, imageUrls: string[] = [], webSearch = false, agentMode = false) => {
+    async (
+      content: string,
+      imageUrls: string[] = [],
+      webSearch = false,
+      agentMode = false,
+      knowledgeBaseIds?: string[]
+    ) => {
       if (!content.trim() && imageUrls.length === 0) return
 
       // Optimistic conversation creation: create inline if no active conversation
@@ -339,6 +346,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         userId: 'default',
         webSearch,
         agentMode,
+        knowledgeBaseIds:
+          knowledgeBaseIds && knowledgeBaseIds.length > 0 ? knowledgeBaseIds : undefined,
       }
 
       const tempMessageId = crypto.randomUUID()
@@ -383,7 +392,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             streamingContent += chunk
             chunkBuffer += chunk
           },
-          (backendMessageId, title, artifacts) => {
+          (backendMessageId, title, artifacts, kbReferences) => {
             // Flush remaining buffered chunks before completing
             clearInterval(chunkFlushInterval)
             if (chunkBuffer) {
@@ -411,6 +420,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                       .filter((artifact) => artifact.type === 'image')
                       .map((artifact) => artifact.url)
                   : undefined,
+                kbReferences,
               },
             })
             // 更新消息ID为后端实际的消息ID

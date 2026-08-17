@@ -45,7 +45,18 @@ public class ConversationContext {
     private String userMessage;
     private String model;
     private List<String> imageUrls;
-    private boolean webSearchEnabled;
+    /**
+     * 用户显式引用的知识库 ID 列表，由 ChatRequest.knowledgeBaseIds 透传。
+     * 非空时用于指定库片段召回 + 禁用 Agent 记忆兜底检索；
+     * 为空时触发 Agent 自动兜底（main_dataset）。
+     */
+    private List<String> knowledgeBaseIds;
+
+    /**
+     * 引用的知识库名称列表（KnowledgeBaseRetrievalStage 填充），
+     * 持久化为 Message.kbReferences，供前端展示"引用来源"标签。
+     */
+    private List<String> kbReferenceNames;
 
     // ── Pipeline orchestration ─────────────────────────────────────
     private PipelineType pipelineType;
@@ -77,6 +88,10 @@ public class ConversationContext {
     private String searchContext;
     private WebSearchResult rawSearchResult;
     private String customRules;
+
+    // ── Web search ─────────────────────────────────────────────────
+    /** 是否启用 Web 搜索（来自请求参数 webSearch），供 WebSearchStage 判断是否执行 */
+    private boolean webSearchEnabled;
 
     // ── Agent / Skill ─────────────────────────────────────────────
     private boolean agentMode;
@@ -132,6 +147,8 @@ public class ConversationContext {
                 .model(request.getModel())
                 .imageUrls(request.getImageUrls() != null ? request.getImageUrls() : List.of())
                 .webSearchEnabled(request.isWebSearch())
+                .knowledgeBaseIds(request.getKnowledgeBaseIds() != null
+                        ? request.getKnowledgeBaseIds() : List.of())
                 .pipelineType(PipelineType.SIMPLE_CHAT)
                 .maxAgentIterations(5)
                 .currentIteration(0)

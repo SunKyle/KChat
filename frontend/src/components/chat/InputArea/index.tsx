@@ -27,11 +27,22 @@ import {
 import { useWebSearch } from '../../../hooks/useWebSearch'
 import { useToast } from '../../../hooks/useToast'
 import { toAccessibleImageUrl } from '../../../utils/imageUrl'
+import { KnowledgeBasePicker } from './KnowledgeBasePicker'
+import type { KnowledgeBase } from '../../../api/knowledge'
+
+// 已选中的知识库引用
+interface KnowledgeBaseReference {
+  id: string
+  name: string
+}
 
 export function InputArea() {
   const [input, setInput] = useState('')
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [kbReferences, setKbReferences] = useState<KnowledgeBaseReference[]>([])
+  const [showKbPicker, setShowKbPicker] = useState(false)
+  const [kbQuery, setKbQuery] = useState('')
   const [uploading, setUploading] = useState(false)
   const [agentModeEnabled, setAgentModeEnabled] = useState(true)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -115,6 +126,12 @@ export function InputArea() {
     // 同时检查 nativeEvent.isComposing 以兼容不同浏览器/输入法。
     if (e.nativeEvent.isComposing || isComposingRef.current) return
 
+    // 输入 @ 唤起知识库引用选择器
+    if (e.key === '@') {
+      setShowKbPicker(true)
+      setKbQuery('')
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (streamingState.isStreaming) {
@@ -170,6 +187,24 @@ export function InputArea() {
     setUploadedFiles(newFiles)
   }
 
+  // 选中知识库 → 追加 @引用标记并加入引用列表
+  const handleSelectKb = (kb: KnowledgeBase) => {
+    setKbReferences((prev) =>
+      prev.some((r) => r.id === kb.id) ? prev : [...prev, { id: kb.id, name: kb.name }]
+    )
+    setInput((prev) => {
+      const match = /@[^@]*$/.exec(prev)
+      if (match) return `${prev.slice(0, match.index)}@${kb.name}`
+      return `${prev}@${kb.name}`
+    })
+    setKbQuery('')
+    setShowKbPicker(false)
+  }
+
+  const handleRemoveKb = (id: string) => {
+    setKbReferences((prev) => prev.filter((r) => r.id !== id))
+  }
+
   const handleSend = async () => {
     if (
       (!input.trim() && uploadingImages.length === 0 && uploadedFiles.length === 0) ||
@@ -181,6 +216,7 @@ export function InputArea() {
     let currentInput = input
     const currentImages = uploadingImages
     const currentFiles = [...uploadedFiles]
+    const currentKbRefs = [...kbReferences]
 
     // 有文档附件时，在消息内容前注入文件标记，供 agent 识别并调用 parseFile
     if (currentFiles.length > 0) {
@@ -193,8 +229,17 @@ export function InputArea() {
     setInput('')
     setUploadingImages([])
     setUploadedFiles([])
+    setKbReferences([])
+    setShowKbPicker(false)
+    setKbQuery('')
 
-    sendMessage(currentInput, currentImages, webSearchEnabled, agentModeEnabled)
+    sendMessage(
+      currentInput,
+      currentImages,
+      webSearchEnabled,
+      agentModeEnabled,
+      currentKbRefs.map((r) => r.id)
+    )
   }
 
   // 内容优化处理
@@ -360,6 +405,45 @@ export function InputArea() {
           </div>
         )}
 
+        {/* 已选中的知识库引用 */}
+        {kbReferences.length > 0 && (
+          <div className='mb-4 mx-4 lg:mx-6'>
+            <div className='flex flex-wrap gap-2'>
+              {kbReferences.map((ref) => (
+                <div
+                  key={ref.id}
+                  className='relative flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10 transition-colors duration-200'
+                >
+                  <FileText className='w-4 h-4 text-[var(--brand-primary)] shrink-0' />
+                  <span className='text-sm theme-text-primary max-w-[160px] truncate'>
+                    @{ref.name}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveKb(ref.id)}
+                    className='w-5 h-5 hover:bg-red-500 rounded-full flex items-center justify-center transition-all duration-200 text-[var(--text-muted)] hover:text-white'
+                    aria-label='移除知识库引用'
+                  >
+                    <X className='w-3 h-3' />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 知识库引用选择器（@ 唤起） */}
+        <AnimatePresence>
+          {showKbPicker && (
+            <KnowledgeBasePicker
+              open={showKbPicker}
+              query={kbQuery}
+              onQueryChange={setKbQuery}
+              onSelect={handleSelectKb}
+              onClose={() => setShowKbPicker(false)}
+            />
+          )}
+        </AnimatePresence>
+
         {/* 状态条 — 在输入框背后，从顶部滑出 */}
         <div className='relative mx-4 lg:mx-6 mb-0'>
           {(showStatusBar || isOptimizing) &&
@@ -451,9 +535,20 @@ export function InputArea() {
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => {
-                    setInput(e.target.value)
+                    const value = e.target.value
+                    setInput(value)
                     // 当用户手动输入时，重置撤回状态
                     setCanUndoOptimize(false)
+                    // 弹层打开时，随输入实时更新引用关键词（匹配尾部 @后的文字）
+                    if (showKbPicker) {
+                      const match = /@([^@]*)$/.exec(value)
+                      if (match) {
+                        setKbQuery(match[1])
+                      } else {
+                        setKbQuery('')
+                        setShowKbPicker(false)
+                      }
+                    }
                   }}
                   onCompositionStart={() => {
                     isComposingRef.current = true

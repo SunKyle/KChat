@@ -288,7 +288,8 @@ export async function requestSSE(
   onComplete: (
     messageId: string,
     title?: string,
-    artifacts?: Array<{ type: string; url: string; text?: string }>
+    artifacts?: Array<{ type: string; url: string; text?: string }>,
+    kbReferences?: string[]
   ) => void,
   onError: (error: ApiError) => void,
   controller?: AbortController,
@@ -368,7 +369,12 @@ export async function requestSSE(
           if (eventType === 'message' && parsedData.content) {
             onMessage(parsedData.content)
           } else if (eventType === 'done' && parsedData.messageId) {
-            onComplete(parsedData.messageId, parsedData.title, parsedData.artifacts)
+            onComplete(
+              parsedData.messageId,
+              parsedData.title,
+              parsedData.artifacts,
+              parsedData.kbReferences
+            )
           } else if (eventType === 'search_results') {
             onSearchResults?.(parsedData)
           } else if (eventType === 'image_done' && parsedData.url) {

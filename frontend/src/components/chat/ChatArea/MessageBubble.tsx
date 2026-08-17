@@ -1,4 +1,15 @@
-import { User, Bot, Copy, RotateCcw, Check, PenLine, Loader2, Volume2, Square } from 'lucide-react'
+import {
+  User,
+  Bot,
+  Copy,
+  RotateCcw,
+  Check,
+  PenLine,
+  Loader2,
+  Volume2,
+  Square,
+  Database,
+} from 'lucide-react'
 import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ShiningText } from '../../ui/shining-text'
@@ -180,6 +191,23 @@ export const MessageBubble = memo(function MessageBubble({
                   </div>
                 )}
                 <MarkdownRenderer content={renderContent} />
+
+                {/* 引用来源标签：展示该回复引用的知识库名称 */}
+                {!isUser && message.kbReferences && message.kbReferences.length > 0 && (
+                  <div className='flex flex-wrap items-center gap-1.5 mt-3'>
+                    <Database className='w-3.5 h-3.5 text-[var(--text-muted)]' />
+                    <span className='text-xs text-[var(--text-muted)] mr-0.5'>引用来源</span>
+                    {message.kbReferences.map((name) => (
+                      <span
+                        key={name}
+                        className='text-xs px-2 py-0.5 rounded-md theme-bg-card theme-text-secondary border border-[var(--border)]
+                          hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/50 transition-colors'
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
