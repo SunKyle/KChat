@@ -4,7 +4,9 @@ import { SidebarRail, type MenuId } from './SidebarRail'
 import { ChatPanel } from './ChatPanel'
 import { GraphPanel } from './GraphPanel'
 import { KnowledgePanel } from './KnowledgePanel'
+import { SettingsPanel } from './SettingsPanel'
 import type { KnowledgeBase } from '../../api/knowledge'
+import type { SettingsTab } from '../../hooks/useSettings'
 
 interface SidebarProps {
   collapsed?: boolean
@@ -15,6 +17,16 @@ interface SidebarProps {
   onSelectKnowledgeBase?: (kb: KnowledgeBase) => void
   /** 知识图谱菜单点击：在主区域展示图谱 */
   onSelectDataset?: (datasetName: string, displayName: string) => void
+  /** 设置模式是否打开 */
+  showSettings?: boolean
+  /** 当前选中的设置项 */
+  settingsTab?: SettingsTab
+  /** 切换设置项 */
+  onSettingsTabChange?: (tab: SettingsTab) => void
+  /** 关闭设置模式（切回对话等场景） */
+  onCloseSettings?: () => void
+  /** 头像点击：打开或关闭设置 */
+  onAvatarClick?: () => void
 }
 
 const ACTIVE_MENU_STORAGE_KEY = 'sidebarActiveMenu'
@@ -30,6 +42,11 @@ export function Sidebar({
   onConversationClick,
   onSelectKnowledgeBase,
   onSelectDataset,
+  showSettings = false,
+  settingsTab = 'profile',
+  onSettingsTabChange,
+  onCloseSettings,
+  onAvatarClick,
 }: SidebarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
     const saved = localStorage.getItem(ACTIVE_MENU_STORAGE_KEY)
@@ -41,6 +58,15 @@ export function Sidebar({
   }, [activeMenu])
 
   const handleMenuClick = (menu: MenuId) => {
+    // 设置模式打开时，点击任意主菜单：关闭设置并切换到该菜单
+    if (showSettings) {
+      onCloseSettings?.()
+      setActiveMenu(menu)
+      if (collapsed) {
+        onToggle?.()
+      }
+      return
+    }
     if (menu === activeMenu) {
       // 当前菜单已激活 → 切换收起/展开
       onToggle?.()
@@ -54,6 +80,16 @@ export function Sidebar({
   }
 
   const renderPanel = () => {
+    // 设置模式优先渲染设置面板
+    if (showSettings) {
+      return (
+        <SettingsPanel
+          activeTab={settingsTab}
+          onTabChange={(tab) => onSettingsTabChange?.(tab)}
+          onToggle={() => onToggle?.()}
+        />
+      )
+    }
     switch (activeMenu) {
       case 'chat':
         return (
@@ -84,7 +120,13 @@ export function Sidebar({
 
   return (
     <div className='flex h-full'>
-      <SidebarRail activeMenu={activeMenu} onMenuClick={handleMenuClick} collapsed={collapsed} />
+      <SidebarRail
+        activeMenu={activeMenu}
+        onMenuClick={handleMenuClick}
+        collapsed={collapsed}
+        showSettings={showSettings}
+        onAvatarClick={() => onAvatarClick?.()}
+      />
 
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -98,7 +140,7 @@ export function Sidebar({
           >
             <AnimatePresence mode='wait'>
               <motion.div
-                key={activeMenu}
+                key={showSettings ? 'settings' : activeMenu}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}

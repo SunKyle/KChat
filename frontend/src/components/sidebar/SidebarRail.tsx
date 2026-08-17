@@ -20,14 +20,18 @@ interface SidebarRailProps {
   activeMenu: MenuId
   onMenuClick: (menu: MenuId) => void
   collapsed: boolean
+  showSettings: boolean
+  onAvatarClick: () => void
 }
 
-export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailProps) {
+export function SidebarRail({
+  activeMenu,
+  onMenuClick,
+  collapsed,
+  showSettings,
+  onAvatarClick,
+}: SidebarRailProps) {
   const { profile } = useUser()
-
-  const handleAvatarClick = () => {
-    window.dispatchEvent(new CustomEvent('open-settings', { detail: { tab: 'profile' } }))
-  }
 
   return (
     <div
@@ -49,7 +53,8 @@ export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailP
       <nav className='flex flex-col gap-1 w-full px-2 py-2 flex-1' aria-label='一级菜单'>
         {menus.map((menu) => {
           const Icon = menu.icon
-          const isActive = activeMenu === menu.id
+          // 设置模式打开时，主菜单不高亮
+          const isActive = !showSettings && activeMenu === menu.id
           return (
             <button
               key={menu.id}
@@ -80,13 +85,17 @@ export function SidebarRail({ activeMenu, onMenuClick, collapsed }: SidebarRailP
         })}
       </nav>
 
-      {/* 用户头像：点击跳转设置 */}
+      {/* 用户头像：点击打开/关闭设置 */}
       <div className='w-full px-2 pb-3'>
         <button
-          onClick={handleAvatarClick}
-          aria-label='打开设置'
+          onClick={onAvatarClick}
+          aria-label={showSettings ? '关闭设置' : '打开设置'}
           title='设置'
-          className='w-full flex items-center justify-center rounded-[var(--radius-xl)] bg-[var(--bg-card)]/60 p-1.5 transition-all duration-200 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm cursor-pointer focus-ring'
+          className={`w-full flex items-center justify-center rounded-[var(--radius-xl)] p-1.5 transition-all duration-200 cursor-pointer focus-ring ${
+            showSettings
+              ? 'border border-[var(--brand-primary)]/40 bg-[var(--bg-card)] shadow-sm'
+              : 'bg-[var(--bg-card)]/60 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm'
+          }`}
         >
           <div className='rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] w-10 h-10'>
             {profile?.avatar ? (

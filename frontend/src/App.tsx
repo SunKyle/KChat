@@ -37,7 +37,7 @@ function AppContent() {
     toggleSidebar,
     toggleCollapsed,
   } = useSidebar()
-  const { showSettings, settingsTab, closeSettings } = useSettings()
+  const { showSettings, settingsTab, setSettingsTab, openSettings, closeSettings } = useSettings()
   const { activeConversation } = useChat()
   const { remove } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
@@ -114,6 +114,18 @@ function AppContent() {
     setGraphRankdir((prev) => (prev === 'LR' ? 'TB' : 'LR'))
   }, [])
 
+  // 头像点击：打开或关闭设置（打开时若侧边栏收起则展开）
+  const handleAvatarClick = useCallback(() => {
+    if (showSettings) {
+      closeSettings()
+    } else {
+      openSettings('profile')
+      if (sidebarCollapsed) {
+        toggleCollapsed()
+      }
+    }
+  }, [showSettings, closeSettings, openSettings, sidebarCollapsed, toggleCollapsed])
+
   return (
     <div
       style={
@@ -166,6 +178,11 @@ function AppContent() {
                 setKnowledgeViewKb(null)
                 closeSettings()
               }}
+              showSettings={showSettings}
+              settingsTab={settingsTab}
+              onSettingsTabChange={setSettingsTab}
+              onCloseSettings={closeSettings}
+              onAvatarClick={handleAvatarClick}
             />
           </div>
         </aside>
@@ -197,7 +214,7 @@ function AppContent() {
               }}
             />
             {/* 对话视图的 Header */}
-            {!graphViewDataset && !knowledgeViewKb && <Header />}
+            {!graphViewDataset && !knowledgeViewKb && !showSettings && <Header />}
             {/* 图谱视图的 Header */}
             {graphViewDataset && !showSettings && (
               <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
@@ -329,7 +346,7 @@ function AppContent() {
             )}
             {showSettings && (
               <div className='relative flex-1 overflow-y-auto p-6'>
-                <UserSettings onClose={closeSettings} defaultTab={settingsTab} />
+                <UserSettings activeTab={settingsTab} />
               </div>
             )}
           </div>
