@@ -20,7 +20,7 @@ import {
 } from '@xyflow/react'
 import dagre from 'dagre'
 import { Database, X } from 'lucide-react'
-import { cogneeMemory, type GraphNode, type GraphEdge } from '../../../../api/cognee'
+import { cogneeMemory, type GraphNode, type GraphEdge } from '../../../api/cognee'
 
 import '@xyflow/react/dist/style.css'
 

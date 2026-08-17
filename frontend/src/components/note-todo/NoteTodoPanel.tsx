@@ -23,7 +23,7 @@ import { TodoForm } from './TodoForm'
 import { ReminderForm } from './ReminderForm'
 import { DetailPreview } from './DetailPreview'
 import { FullscreenMarkdownEditor } from './FullscreenMarkdownEditor'
-import { KnowledgeGraph } from '../settings/Memory/KnowledgeGraph'
+import { KnowledgeGraph } from '../settings/knowledge-graph'
 import { useNoteTodoData, convertNote } from './useNoteTodoData'
 import { useNoteTodoForm } from './useNoteTodoForm'
 

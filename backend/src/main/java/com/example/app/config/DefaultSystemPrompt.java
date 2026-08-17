@@ -3,10 +3,10 @@ package com.example.app.config;
 public final class DefaultSystemPrompt {
 
     public static final String NAME = "default-system-prompt";
-    public static final int VERSION = 6;
-    public static final String DESCRIPTION = "默认系统提示词模板（v6：语言并入用户档案、移除档案双源与图谱推理、精简行为准则）";
+    public static final int VERSION = 7;
+    public static final String DESCRIPTION = "默认系统提示词模板（v7：JPA long_term_memory 完全迁移至 Cognee，移除 L3/Precise 占位符）";
     public static final String CATEGORY = "system";
-    public static final String DEFAULTS = "{\"user_profile\": \"无\", \"memory_cognee_graph\": \"无\", \"memory_l3_preference\": \"无\", \"memory_precise\": \"无\", \"context_policy\": \"\", \"search_context\": \"无\", \"custom_rules\": \"\"}";
+    public static final String DEFAULTS = "{\"user_profile\": \"无\", \"memory_cognee_graph\": \"无\", \"context_policy\": \"\", \"search_context\": \"无\", \"custom_rules\": \"\"}";
 
     public static final String CONTENT = """
             角色与目标：
@@ -27,10 +27,6 @@ public final class DefaultSystemPrompt {
             {search_context}
 
             {memory_cognee_graph}
-
-            {memory_l3_preference}
-
-            {memory_precise}
 
             输出规范：
             - 除非用户要求，不使用 Markdown 标题；技术内容可使用列表或代码块。

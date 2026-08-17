@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS user_profile (
     avatar VARCHAR(500),
     email VARCHAR(255) NOT NULL,
     bio TEXT,
-    theme VARCHAR(20) DEFAULT 'light',
     language VARCHAR(10) DEFAULT 'zh-CN',
     notification_message BOOLEAN DEFAULT TRUE,
     notification_email BOOLEAN DEFAULT FALSE,

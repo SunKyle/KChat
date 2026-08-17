@@ -4,7 +4,6 @@ import com.example.app.config.MemoryExtractorConfig;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.dto.QueryAnalysisResult.AnalysisSource;
 import com.example.app.dto.QueryAnalysisResult.IntentType;
-import com.example.app.entity.LongTermMemory.MemoryType;
 import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.service.ai.QueryAnalysisAI;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +26,13 @@ import java.util.regex.Pattern;
  * <p>
  * 分析结果供 {@code LongTermMemoryStage} 使用，提供：
  * <ul>
- * <li>意图分类（用于决定优先召回哪些类型的记忆）</li>
- * <li>召回 query 改写（用于向量检索）</li>
- * <li>类型过滤建议（requiredTypes / excludedTypes）</li>
+ * <li>意图分类（用于决定是否跳过记忆召回）</li>
+ * <li>召回 query 改写（用于 Cognee 向量检索）</li>
  * </ul>
  *
  * <p>
- * 设计原则：意图分类仅用于排序/过滤，不用于门控。
- * LongTermMemoryStage 默认始终召回记忆，只有纯数学计算才跳过。
+ * 设计原则：意图分类仅用于跳过明确的非记忆场景（如数学计算）。
+ * 记忆类型过滤已不再使用（JPA long_term_memory 已废弃）。
  */
 @Service
 @RequiredArgsConstructor
@@ -88,44 +86,6 @@ public class QueryAnalyzer {
     private static final Pattern FILE_PATTERN = Pattern.compile(
             "(文件|文档|图片|照片|PDF|docx|excel|word|file|document|image|photo|pdf)",
             Pattern.CASE_INSENSITIVE);
-
-    // ── 意图→记忆类型映射 ──────────────────────────────────────
-
-    private static final Map<IntentType, Set<MemoryType>> INTENT_TO_REQUIRED_TYPES = new EnumMap<>(IntentType.class);
-    private static final Map<IntentType, Set<MemoryType>> INTENT_TO_EXCLUDED_TYPES = new EnumMap<>(IntentType.class);
-    private static final Set<MemoryType> ALL_TYPES = EnumSet.allOf(MemoryType.class);
-
-    static {
-        // KNOWLEDGE_QUERY: 技术/知识相关
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.KNOWLEDGE_QUERY,
-                EnumSet.of(MemoryType.SKILL, MemoryType.KNOWLEDGE, MemoryType.PROJECT));
-        INTENT_TO_EXCLUDED_TYPES.put(IntentType.KNOWLEDGE_QUERY,
-                EnumSet.of(MemoryType.PREFERENCE, MemoryType.RELATION, MemoryType.EVENT));
-
-        // PROFILE_QUERY: 用户档案
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.PROFILE_QUERY,
-                EnumSet.of(MemoryType.PROFILE, MemoryType.PREFERENCE));
-        INTENT_TO_EXCLUDED_TYPES.put(IntentType.PROFILE_QUERY,
-                EnumSet.complementOf(EnumSet.of(MemoryType.PROFILE, MemoryType.PREFERENCE)));
-
-        // TASK_EXECUTION: 任务/项目
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.TASK_EXECUTION,
-                EnumSet.of(MemoryType.TASK, MemoryType.PROJECT, MemoryType.EVENT));
-        INTENT_TO_EXCLUDED_TYPES.put(IntentType.TASK_EXECUTION,
-                EnumSet.of(MemoryType.PROFILE, MemoryType.PREFERENCE, MemoryType.KNOWLEDGE));
-
-        // CHAT_SMALLTALK: 仅昵称
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.CHAT_SMALLTALK,
-                EnumSet.of(MemoryType.PROFILE));
-        INTENT_TO_EXCLUDED_TYPES.put(IntentType.CHAT_SMALLTALK,
-                EnumSet.complementOf(EnumSet.of(MemoryType.PROFILE)));
-
-        // CONTEXT_DEPENDENT: 全部类型
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.CONTEXT_DEPENDENT, ALL_TYPES);
-
-        // GENERAL: 全部类型
-        INTENT_TO_REQUIRED_TYPES.put(IntentType.GENERAL, ALL_TYPES);
-    }
 
     // ── 主入口 ──────────────────────────────────────────────────
 
@@ -276,12 +236,6 @@ public class QueryAnalyzer {
         // 构建改写 query
         String rewrittenQuery = buildRewrittenQuery(originalQuery, match);
 
-        // 获取类型映射
-        Set<MemoryType> requiredTypes = INTENT_TO_REQUIRED_TYPES.getOrDefault(
-                intentType, ALL_TYPES);
-        Set<MemoryType> excludedTypes = INTENT_TO_EXCLUDED_TYPES.getOrDefault(
-                intentType, EnumSet.noneOf(MemoryType.class));
-
         return QueryAnalysisResult.builder()
                 .intentType(intentType)
                 .keywords(match.keywords)
@@ -289,8 +243,6 @@ public class QueryAnalyzer {
                 .requiresMemory(true)
                 .confidence(match.confidence)
                 .source(AnalysisSource.RULE)
-                .requiredTypes(EnumSet.copyOf(requiredTypes))
-                .excludedTypes(EnumSet.copyOf(excludedTypes))
                 .build();
     }
 
@@ -356,11 +308,6 @@ public class QueryAnalyzer {
         Map<String, Double> keywords = dto.keywords() != null ? dto.keywords() : new LinkedHashMap<>();
         String rewrittenQuery = dto.rewrittenQuery() != null ? dto.rewrittenQuery() : query;
 
-        Set<MemoryType> requiredTypes = INTENT_TO_REQUIRED_TYPES.getOrDefault(
-                intentType, ALL_TYPES);
-        Set<MemoryType> excludedTypes = INTENT_TO_EXCLUDED_TYPES.getOrDefault(
-                intentType, EnumSet.noneOf(MemoryType.class));
-
         return QueryAnalysisResult.builder()
                 .intentType(intentType)
                 .keywords(keywords)
@@ -368,8 +315,6 @@ public class QueryAnalyzer {
                 .requiresMemory(true)
                 .confidence(0.9)
                 .source(AnalysisSource.LLM)
-                .requiredTypes(EnumSet.copyOf(requiredTypes))
-                .excludedTypes(EnumSet.copyOf(excludedTypes))
                 .build();
     }
 

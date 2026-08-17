@@ -208,49 +208,4 @@ export const PROVIDERS: ProviderInfo[] = [
   { type: 'CUSTOM', displayName: '自定义', icon: '🔧', color: 'bg-gray-600' },
 ]
 
-export type MemoryType =
-  | 'KNOWLEDGE'
-  | 'RULE'
-  | 'FACT'
-  | 'PREFERENCE'
-  | 'EXPERIENCE'
-  | 'PROFILE'
-  | 'SKILL'
-  | 'PROJECT'
-  | 'TASK'
-  | 'RELATION'
-  | 'EVENT'
-
-export interface Memory {
-  id: number
-  userId: string
-  content: string
-  type: MemoryType
-  importance: number
-  createdAt: string
-  score?: number
-  isRule?: boolean
-}
-
 export type IconName = import('../components/common/Icon').IconName
-
-export interface MemoryTypeInfo {
-  type: MemoryType
-  label: string
-  color: string
-  icon: IconName
-}
-
-export const MEMORY_TYPES: MemoryTypeInfo[] = [
-  { type: 'KNOWLEDGE', label: '知识', color: 'bg-blue-500', icon: 'BookOpen' },
-  { type: 'PROFILE', label: '身份', color: 'bg-cyan-500', icon: 'User' },
-  { type: 'SKILL', label: '技能', color: 'bg-emerald-500', icon: 'Wrench' },
-  { type: 'PROJECT', label: '项目', color: 'bg-violet-500', icon: 'Briefcase' },
-  { type: 'PREFERENCE', label: '偏好', color: 'bg-pink-500', icon: 'Heart' },
-  { type: 'TASK', label: '任务', color: 'bg-amber-500', icon: 'Target' },
-  { type: 'RELATION', label: '关系', color: 'bg-indigo-500', icon: 'Users' },
-  { type: 'EVENT', label: '事件', color: 'bg-orange-500', icon: 'Calendar' },
-  { type: 'FACT', label: '事实', color: 'bg-green-500', icon: 'CheckCircle' },
-  { type: 'RULE', label: '规则', color: 'bg-red-500', icon: 'FileText' },
-  { type: 'EXPERIENCE', label: '经验', color: 'bg-teal-500', icon: 'Lightbulb' },
-]

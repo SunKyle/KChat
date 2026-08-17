@@ -1,6 +1,5 @@
 package com.example.app.dto;
 
-import com.example.app.entity.LongTermMemory.MemoryType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +10,9 @@ import java.util.*;
 /**
  * Query 分析结果 DTO
  *
- * <p>由 {@code QueryAnalyzer} 产出，描述用户 query 的意图分类、关键词、
- * 需要的记忆类型等信息，供 {@code LongTermMemoryStage} 做多策略召回和门控决策。
+ * <p>由 {@code QueryAnalyzer} 产出，描述用户 query 的意图分类、关键词等信息。
+ * 记忆类型过滤已不再使用（JPA long_term_memory 已废弃），
+ * requiredTypes / excludedTypes 保留为 String 集合以便未来扩展。
  */
 @Data
 @Builder
@@ -37,16 +37,16 @@ public class QueryAnalysisResult {
     private String rewrittenQuery;
 
     /**
-     * 需要召回的记忆类型白名单（空表示不限制）
+     * 需要召回的实体类型白名单（String 类型，不再依赖 LongTermMemory.MemoryType）
      */
     @Builder.Default
-    private Set<MemoryType> requiredTypes = EnumSet.noneOf(MemoryType.class);
+    private Set<String> requiredTypes = new HashSet<>();
 
     /**
-     * 排除的记忆类型黑名单
+     * 排除的实体类型黑名单
      */
     @Builder.Default
-    private Set<MemoryType> excludedTypes = EnumSet.noneOf(MemoryType.class);
+    private Set<String> excludedTypes = new HashSet<>();
 
     /**
      * 是否需要注入记忆（门控决策）
@@ -109,8 +109,8 @@ public class QueryAnalysisResult {
                 .confidence(1.0)
                 .source(source != null ? source : AnalysisSource.RULE)
                 .keywords(new LinkedHashMap<>())
-                .requiredTypes(EnumSet.noneOf(MemoryType.class))
-                .excludedTypes(EnumSet.noneOf(MemoryType.class))
+                .requiredTypes(new HashSet<>())
+                .excludedTypes(new HashSet<>())
                 .build();
     }
 
@@ -119,7 +119,7 @@ public class QueryAnalysisResult {
      */
     public static QueryAnalysisResult withMemory(IntentType intentType, String rewrittenQuery,
                                                   Map<String, Double> keywords,
-                                                  Set<MemoryType> requiredTypes) {
+                                                  Set<String> requiredTypes) {
         return QueryAnalysisResult.builder()
                 .intentType(intentType)
                 .rewrittenQuery(rewrittenQuery)
@@ -127,8 +127,8 @@ public class QueryAnalysisResult {
                 .confidence(1.0)
                 .source(AnalysisSource.RULE)
                 .keywords(keywords != null ? keywords : new LinkedHashMap<>())
-                .requiredTypes(requiredTypes != null ? requiredTypes : EnumSet.noneOf(MemoryType.class))
-                .excludedTypes(EnumSet.noneOf(MemoryType.class))
+                .requiredTypes(requiredTypes != null ? requiredTypes : new HashSet<>())
+                .excludedTypes(new HashSet<>())
                 .build();
     }
 

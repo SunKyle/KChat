@@ -1,7 +1,6 @@
 package com.example.app.service;
 
 import com.example.app.dto.ChatRequest;
-import com.example.app.dto.MemoryDTO;
 import com.example.app.util.PromptAssembler;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +13,10 @@ import java.util.List;
  * 聊天流程编排服务，负责协调聊天过程中的各个环节
  * 
  * <功能说明>
- * - 核心职责：对话生命周期管理、记忆检索与更新、消息组装
+ * - 核心职责：对话生命周期管理、短期记忆管理、消息组装
  * - 设计模式：门面模式（Facade Pattern），为复杂的聊天流程提供统一接口
- * - 依赖关系：依赖 ConversationService、ShortTermMemoryService、LongTermMemoryService、PromptAssembler
+ * - 依赖关系：依赖 ConversationService、ShortTermMemoryService、PromptAssembler
+ * - JPA long_term_memory 已废弃，记忆检索统一由 Cognee 通过 Pipeline 承担
  * 
  * <使用场景>
  * - 同步聊天：ChatService 调用
@@ -38,12 +38,7 @@ public class ChatWorkflowService {
     private final ShortTermMemoryService shortTermMemoryService;
 
     /**
-     * 长期记忆服务，提供语义检索能力
-     */
-    private final LongTermMemoryService longTermMemoryService;
-
-    /**
-     * 提示词组装器，将记忆和消息组装为 LLM 提示词
+     * 提示词组装器，将消息组装为 LLM 提示词（已废弃，仅用于旧同步路径）
      */
     private final PromptAssembler promptAssembler;
 
@@ -77,58 +72,41 @@ public class ChatWorkflowService {
     }
 
     /**
-     * 基于语义相似度召回长期记忆
-     * 
-     * @param userId 用户 ID
-     * @param query 查询文本，用于语义匹配
-     * @param topK 返回数量上限
-     * @return 匹配的记忆列表，按相似度排序
-     */
-    public List<MemoryDTO> recallLongTermMemory(String userId, String query, int topK) {
-        return longTermMemoryService.recall(userId, query, topK);
-    }
-
-    /**
      * 组装消息为 LLM 可理解的格式
      * 
-     * 将短期记忆、长期记忆和当前用户消息组合成完整的提示词。
+     * 将短期记忆和当前用户消息组合成完整的提示词。
      * 
      * @param shortTermMemory 短期记忆（对话历史）
-     * @param longTermMemory 长期记忆（语义召回结果）
      * @param userMessage 当前用户消息
      * @return 组装后的消息列表
      */
     public List<ChatMessage> assembleMessages(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage) {
-        return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage);
+        return promptAssembler.assemble(shortTermMemory, userMessage, null);
     }
 
     /**
      * 组装消息为 LLM 可理解的格式（带语言偏好）
      * 
      * @param shortTermMemory 短期记忆（对话历史）
-     * @param longTermMemory 长期记忆（语义召回结果）
      * @param userMessage 当前用户消息
      * @param language 用户语言偏好
      * @return 组装后的消息列表
      */
     public List<ChatMessage> assembleMessages(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language) {
-        return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage, language);
+        return promptAssembler.assemble(shortTermMemory, userMessage, language);
     }
 
     public List<ChatMessage> assembleMessages(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
             String searchContext) {
-        return promptAssembler.assemble(shortTermMemory, longTermMemory, userMessage, language, null, searchContext);
+        return promptAssembler.assemble(shortTermMemory, userMessage, language, searchContext);
     }
 
     /**

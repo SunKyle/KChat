@@ -6,7 +6,6 @@ export type SettingsTab =
   | 'privacy'
   | 'api'
   | 'models'
-  | 'memory'
   | 'agent'
 
 export function useSettings() {

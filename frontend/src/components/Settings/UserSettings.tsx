@@ -4,7 +4,6 @@ import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
 import { ModelSettings } from './ModelSettings'
-import { MemoryPanel } from './Memory/MemoryPanel'
 import { ToolsPanel } from './ToolsPanel'
 import { useUser } from '../../context/UserContext'
 import type { SettingsTab } from '../../hooks/useSettings'
@@ -44,8 +43,6 @@ export function UserSettings({ activeTab }: UserSettingsProps) {
         return <APIKeys />
       case 'models':
         return <ModelSettings />
-      case 'memory':
-        return <MemoryPanel />
       case 'agent':
         return <ToolsPanel />
       default:

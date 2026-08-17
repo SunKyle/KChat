@@ -2,7 +2,6 @@ package com.example.app.service.impl;
 
 import com.example.app.config.MemoryExtractorConfig;
 import com.example.app.dto.MemoryDTO;
-import com.example.app.service.LongTermMemoryService;
 import com.example.app.service.MemoryExtractor;
 import com.example.app.service.ai.AiServiceFactory;
 import com.example.app.service.ai.MemoryExtractionAI;
@@ -18,12 +17,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 记忆提取服务实现类，用于从对话中提取重要信息并保存为长期记忆
+ * 记忆提取服务实现类，用于从对话中提取重要信息
  *
  * LLM 调用与结构化输出由 LangChain4j {@link AiServiceFactory} +
- * {@link MemoryExtractionAI} 统一处理，框架自动注入 JSON Schema 并反序列化为
- * {@link MemoryExtractionAI.MemoryExtractionResult}，替代原先手写的 JSON 解析。
- * 业务流程（上下文窗口、去重、阈值过滤、降级规则提取）保持自实现。
+ * {@link MemoryExtractionAI} 统一处理。
+ * 提取结果直接返回给调用方（CogneeMemoryIndexStage），不再保存到 JPA long_term_memory。
  */
 @Service
 @RequiredArgsConstructor
@@ -34,10 +32,6 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      * AiServices 工厂，按 modelId 动态构建 LLM 代理
      */
     private final AiServiceFactory aiServiceFactory;
-    /**
-     * 长期记忆服务，用于保存和管理记忆
-     */
-    private final LongTermMemoryService longTermMemoryService;
     /**
      * 记忆提取配置，包含提取规则和阈值设置
      */
@@ -119,53 +113,27 @@ public class MemoryExtractorImpl implements MemoryExtractor {
      * @return 保存的记忆数量
      */
     @Override
-    public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId) {
-        return extractAndSaveDtos(conversationId, messages, userId, null).size();
-    }
-
-    @Override
-    public int extractAndSave(String conversationId, List<ChatMessage> messages, String userId, String model) {
-        return extractAndSaveDtos(conversationId, messages, userId, model).size();
-    }
-
-    @Override
-    public List<MemoryDTO> extractAndSaveDtos(
-            String conversationId, List<ChatMessage> messages, String userId) {
-        return extractAndSaveDtos(conversationId, messages, userId, null);
-    }
-
-    @Override
-    public List<MemoryDTO> extractAndSaveDtos(
+    public List<MemoryDTO> extractDtos(
             String conversationId, List<ChatMessage> messages, String userId, String model) {
         log.info("[记忆提取] 开始提取 - 会话: {}, 用户: {}, 消息数: {}", conversationId, userId, messages.size());
 
         List<MemoryExtractionResult> results = extract(messages, model);
         log.info("[记忆提取] 提取到 {} 条潜在记忆", results.size());
 
-        if (!results.isEmpty()) {
-            for (MemoryExtractionResult r : results) {
-                log.info("[记忆提取] - 内容: '{}', 类型: {}, 重要性: {}, 置信度: {}",
-                        r.content(), r.type(), r.importance(), r.confidence());
-            }
-        }
-
         if (results.isEmpty()) {
             log.info("[记忆提取] 未提取到任何记忆");
             return List.of();
         }
 
-        List<MemoryDTO> existingMemories = longTermMemoryService.findByUserId(userId);
-        Set<String> existingContents = existingMemories.stream()
-                .map(MemoryDTO::getContent)
-                .map(this::normalizeContent)
-                .collect(Collectors.toSet());
-        log.info("[记忆提取] 发现 {} 条已有记忆用于去重", existingContents.size());
+        for (MemoryExtractionResult r : results) {
+            log.info("[记忆提取] - 内容: '{}', 类型: {}, 重要性: {}, 置信度: {}",
+                    r.content(), r.type(), r.importance(), r.confidence());
+        }
 
         double confidenceThreshold = config.getMinConfidence() / 100.0;
         int importanceThreshold = config.getMinImportance();
-        double dedupThreshold = config.getDedupSimilarityThreshold();
 
-        List<MemoryDTO> toSave = new ArrayList<>();
+        List<MemoryDTO> toReturn = new ArrayList<>();
         for (MemoryExtractionResult result : results) {
             if (result.confidence() < confidenceThreshold) {
                 log.info("[记忆提取] 跳过低置信度记忆 ({} < {}): '{}'",
@@ -179,39 +147,19 @@ public class MemoryExtractorImpl implements MemoryExtractor {
                 continue;
             }
 
-            String normalizedContent = normalizeContent(result.content());
-            if (existingContents.contains(normalizedContent)) {
-                log.info("[记忆提取] 跳过重复记忆: '{}'", normalizedContent);
-                continue;
-            }
-
-            // 语义去重：向量相似度 ≥ 阈值则判定为语义重复，拒绝存储
-            if (dedupThreshold > 0 && longTermMemoryService.hasSimilarMemory(
-                    userId, normalizedContent, dedupThreshold)) {
-                log.info("[记忆提取] 跳过语义相似记忆 (threshold={}): '{}'",
-                        dedupThreshold, normalizedContent);
-                continue;
-            }
-
             MemoryDTO dto = MemoryDTO.builder()
                     .userId(userId)
-                    .content(normalizedContent)
+                    .content(result.content())
                     .type(result.type())
                     .importance(result.importance())
                     .confidence(result.confidence())
                     .source("对话记忆提取")
                     .build();
-            toSave.add(dto);
-            existingContents.add(normalizedContent);
+            toReturn.add(dto);
         }
 
-        if (!toSave.isEmpty()) {
-            log.info("[记忆提取] 保存 {} 条新记忆", toSave.size());
-            return longTermMemoryService.saveAll(toSave);
-        } else {
-            log.info("[记忆提取] 没有新记忆需要保存");
-            return List.of();
-        }
+        log.info("[记忆提取] 提取完成 - 返回 {} 条记忆", toReturn.size());
+        return toReturn;
     }
 
     /**
@@ -274,20 +222,20 @@ public class MemoryExtractorImpl implements MemoryExtractor {
             }
         }
 
-        // 识别身份信息（我是/我叫）
-        if (text.contains("我是") || text.contains("我叫")) {
-            String profile = text.substring(0, Math.min(text.length(), 30));
-            results.add(new MemoryExtractionResult(profile, "PROFILE", 9, 0.9));
-        }
+        // 识别身份信息（我是/我叫）—— PROFILE 已废弃，由 user_profile 设置表承担，不再提取到 long_term_memory
+        // if (text.contains("我是") || text.contains("我叫")) {
+        //     String profile = text.substring(0, Math.min(text.length(), 30));
+        //     results.add(new MemoryExtractionResult(profile, "PROFILE", 9, 0.9));
+        // }
 
-        // 识别职业信息（职业是/工作是）
-        if (text.contains("职业是") || text.contains("工作是")) {
-            int idx = text.contains("职业是") ? text.indexOf("职业是") + 3 : text.indexOf("工作是") + 3;
-            String career = text.substring(idx).trim();
-            if (!career.isEmpty()) {
-                results.add(new MemoryExtractionResult("用户职业：" + career, "PROFILE", 8, 0.85));
-            }
-        }
+        // 识别职业信息（职业是/工作是）—— PROFILE 已废弃，由 user_profile 设置表承担，不再提取到 long_term_memory
+        // if (text.contains("职业是") || text.contains("工作是")) {
+        //     int idx = text.contains("职业是") ? text.indexOf("职业是") + 3 : text.indexOf("工作是") + 3;
+        //     String career = text.substring(idx).trim();
+        //     if (!career.isEmpty()) {
+        //         results.add(new MemoryExtractionResult("用户职业：" + career, "PROFILE", 8, 0.85));
+        //     }
+        // }
 
         // 识别项目信息（项目/开发/做）
         if (text.contains("项目") || text.contains("开发") || text.contains("做")) {

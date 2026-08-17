@@ -26,6 +26,7 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
     private final APIKeyRepository apiKeyRepository;
     private final UserDeviceRepository userDeviceRepository;
+    private final UserSettingService userSettingService;
 
     public UserProfileDTO getProfile(String userId) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
@@ -62,7 +63,6 @@ public class UserProfileService {
                 .userId(userId)
                 .nickname("用户")
                 .email(userId + "@example.com")
-                .theme("light")
                 .language("zh-CN")
                 .notificationMessage(true)
                 .notificationEmail(false)
@@ -114,12 +114,10 @@ public class UserProfileService {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseGet(() -> createDefaultProfile(userId));
 
-        if (request.getTheme() != null) {
-            profile.setTheme(request.getTheme());
-        }
         if (request.getLanguage() != null) {
             profile.setLanguage(request.getLanguage());
         }
+        // theme 由 UserSetting 管理，此处不处理
         if (request.getNotifications() != null) {
             NotificationSettings notifications = request.getNotifications();
             if (notifications.getMessage() != null) {
@@ -241,7 +239,7 @@ public class UserProfileService {
                 .build();
 
         UserPreferences preferences = UserPreferences.builder()
-                .theme(profile.getTheme())
+                .theme(userSettingService.getOrCreate(profile.getId()).getTheme())
                 .language(profile.getLanguage())
                 .notifications(notifications)
                 .build();

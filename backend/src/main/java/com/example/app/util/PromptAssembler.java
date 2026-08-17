@@ -1,11 +1,8 @@
 package com.example.app.util;
 
 import com.example.app.config.DefaultSystemPrompt;
-import com.example.app.dto.MemoryDTO;
-import com.example.app.entity.PromptMetrics;
 import com.example.app.security.InputValidator;
 import com.example.app.security.SensitiveFilter;
-import com.example.app.service.PromptMetricsService;
 import com.example.app.service.PromptTemplateService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -19,8 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Prompt 组装工具
@@ -84,17 +79,12 @@ public class PromptAssembler {
     private final PromptTemplateService templateService;
 
     /**
-     * 指标服务（记录监控指标）
-     */
-    private final PromptMetricsService metricsService;
-
-    /**
      * 核心 System Prompt 模板（默认硬编码，可被数据库模板覆盖）
      *
      * 占位符说明：
      * - {language_clause}: 语言偏好指令（如 "请使用中文（简体）回复。"），无偏好时为空字符串
      * - {user_profile}: 用户档案（可信事实，含 "用户档案（可信，由系统维护）：..." 标签），无档案时为空字符串
-     * - {long_term_memory}: 用户长期记忆（含 "长期记忆（可能过时，仅作参考）：..." 标签与时间/置信度/来源），无记忆时为空字符串
+     * - {long_term_memory}: 已废弃，不再使用
      * - {search_context}: 网络搜索上下文（含时间戳和搜索结果），无搜索时为空字符串
      */
     /**
@@ -116,20 +106,18 @@ public class PromptAssembler {
     public PromptAssembler(TokenEstimator tokenEstimator,
             InputValidator inputValidator,
             SensitiveFilter sensitiveFilter,
-            PromptTemplateService templateService,
-            PromptMetricsService metricsService) {
+            PromptTemplateService templateService) {
         this.tokenEstimator = tokenEstimator;
         this.inputValidator = inputValidator;
         this.sensitiveFilter = sensitiveFilter;
         this.templateService = templateService;
-        this.metricsService = metricsService;
     }
 
     /**
      * 组装最终发送给 LLM 的消息序列
      *
      * 拼接顺序（优先级从高到低）：
-     * 1. SystemMessage (包含语言指令和长期记忆)：设定全局认知基调
+     * 1. SystemMessage (包含语言指令)：设定全局认知基调
      * 2. ShortTermMemory (对话历史)：维持会话连贯性
      * 3. UserMessage (当前输入)：触发执行任务
      *
@@ -139,33 +127,29 @@ public class PromptAssembler {
      * - 指标记录：记录 Token 数量、构建耗时等
      *
      * @param shortTermMemory 短期记忆（对话历史）
-     * @param longTermMemory  长期记忆（召回的知识片段）
      * @param userMessage     当前用户输入
      * @param language        用户语言偏好（如 "zh-CN", "en"），为 null 时不注入语言指令
      * @return 组装好的消息列表
      */
     public List<ChatMessage> assemble(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language) {
-        return assemble(shortTermMemory, longTermMemory, userMessage, language, null, null);
+        return assemble(shortTermMemory, userMessage, language, null, null);
     }
 
     public List<ChatMessage> assemble(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
             String searchContext) {
-        return assemble(shortTermMemory, longTermMemory, userMessage, language, null, searchContext);
+        return assemble(shortTermMemory, userMessage, language, null, searchContext);
     }
 
     /**
      * 组装最终发送给 LLM 的消息序列（带会话ID用于指标记录）
      *
      * @param shortTermMemory 短期记忆（对话历史）
-     * @param longTermMemory  长期记忆（召回的知识片段）
      * @param userMessage     当前用户输入
      * @param language        用户语言偏好
      * @param conversationId  会话ID（用于指标记录，可为null）
@@ -173,7 +157,6 @@ public class PromptAssembler {
      */
     public List<ChatMessage> assemble(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
             String conversationId,
@@ -186,8 +169,7 @@ public class PromptAssembler {
 
             String sanitizedUserMessage = sanitizeInput(userMessage);
             String languageClause = buildLanguageClause(language);
-            String longTermMemoryText = formatLongTermMemory(longTermMemory);
-            String systemPrompt = buildSystemPrompt(languageClause, longTermMemoryText, searchContext);
+            String systemPrompt = buildSystemPrompt(languageClause, "", searchContext);
             messages.add(SystemMessage.from(systemPrompt));
 
             if (shortTermMemory != null) {
@@ -197,7 +179,7 @@ public class PromptAssembler {
             messages.add(UserMessage.from(sanitizedUserMessage));
 
             if (enableMetrics) {
-                recordMetrics(messages, longTermMemory, startTime, conversationId, false);
+                log.debug("[Prompt] Assembled {} messages for conversation {}", messages.size(), conversationId);
             }
 
             return messages;
@@ -226,13 +208,12 @@ public class PromptAssembler {
     /**
      * 构建系统提示词（动态加载或使用默认模板）
      *
-     * 模板占位符：{language_clause}、{long_term_memory}、{search_context}
+     * 模板占位符：{language_clause}、{search_context}
      * 搜索上下文通过 {search_context} 占位符注入模板中，而非硬拼接在末尾
      */
     private String buildSystemPrompt(String languageClause, String longTermMemoryText, String searchContext) {
         Map<String, String> params = new HashMap<>();
         params.put("language_clause", languageClause);
-        params.put("long_term_memory", longTermMemoryText);
         params.put("search_context", buildSearchContextSection(searchContext));
         params.put("user_profile", "");
 
@@ -244,7 +225,6 @@ public class PromptAssembler {
             systemPrompt = DefaultSystemPrompt.CONTENT
                     .replace("{language_clause}", languageClause)
                     .replace("{user_profile}", "")
-                    .replace("{long_term_memory}", longTermMemoryText)
                     .replace("{search_context}", params.get("search_context"));
         }
 
@@ -272,23 +252,6 @@ public class PromptAssembler {
     /**
      * 记录监控指标
      */
-    private void recordMetrics(List<ChatMessage> messages, List<MemoryDTO> longTermMemory,
-            long startTime, String conversationId, boolean truncated) {
-        try {
-            long buildDuration = System.currentTimeMillis() - startTime;
-            int tokenCount = calculateTokenCount(messages);
-            int memoryCount = longTermMemory != null ? longTermMemory.size() : 0;
-
-            metricsService.recordMetrics(conversationId != null ? conversationId : "unknown",
-                    tokenCount, memoryCount, buildDuration, truncated);
-
-            log.debug("Metrics recorded: tokens={}, duration={}ms, memories={}",
-                    tokenCount, buildDuration, memoryCount);
-        } catch (Exception e) {
-            log.warn("Failed to record metrics: {}", e.getMessage());
-        }
-    }
-
     /**
      * 降级组装（当主要流程失败时使用）
      */
@@ -305,20 +268,9 @@ public class PromptAssembler {
     }
 
     /**
-     * 向后兼容的无语言参数版本
-     */
-    public List<ChatMessage> assemble(
-            List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
-            String userMessage) {
-        return assemble(shortTermMemory, longTermMemory, userMessage, null, null, null);
-    }
-
-    /**
      * 组装消息并自动截断到 Token 限制
      *
      * @param shortTermMemory 短期记忆（对话历史）
-     * @param longTermMemory  长期记忆（召回的知识片段）
      * @param userMessage     当前用户输入
      * @param language        用户语言偏好
      * @param maxTokens       最大 Token 限制
@@ -326,11 +278,10 @@ public class PromptAssembler {
      */
     public List<ChatMessage> assembleWithTruncation(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
             int maxTokens) {
-        return assembleWithTruncation(shortTermMemory, longTermMemory, userMessage, language, maxTokens, null);
+        return assembleWithTruncation(shortTermMemory, userMessage, language, maxTokens, null);
     }
 
     /**
@@ -338,13 +289,12 @@ public class PromptAssembler {
      */
     public List<ChatMessage> assembleWithTruncation(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language,
             int maxTokens,
             String conversationId) {
 
-        List<ChatMessage> messages = assemble(shortTermMemory, longTermMemory, userMessage, language, conversationId, null);
+        List<ChatMessage> messages = assemble(shortTermMemory, userMessage, language, conversationId, null);
 
         if (calculateTokenCount(messages) <= maxTokens) {
             return messages;
@@ -358,10 +308,9 @@ public class PromptAssembler {
      */
     public List<ChatMessage> assembleWithTruncation(
             List<ChatMessage> shortTermMemory,
-            List<MemoryDTO> longTermMemory,
             String userMessage,
             String language) {
-        return assembleWithTruncation(shortTermMemory, longTermMemory, userMessage, language, defaultMaxTokens, null);
+        return assembleWithTruncation(shortTermMemory, userMessage, language, defaultMaxTokens, null);
     }
 
     /**
@@ -376,47 +325,6 @@ public class PromptAssembler {
         }
         String languageName = LANGUAGE_NAMES.getOrDefault(language, language);
         return "请使用 " + languageName + " 回复。";
-    }
-
-    /**
-     * 格式化长期记忆为自然语言列表
-     *
-     * 以纯自然语言呈现，不暴露内部元数据（类型枚举、重要性分数）给 LLM。
-     * 无记忆时返回空字符串，由模板中的 {long_term_memory} 占位符整体替换为空。
-     *
-     * @param memories 记忆 DTO 列表
-     * @return 带标签的记忆列表文本，无记忆时返回空字符串
-     */
-    private String formatLongTermMemory(List<MemoryDTO> memories) {
-        if (memories == null || memories.isEmpty()) {
-            return "";
-        }
-
-        List<MemoryDTO> sortedMemories = new ArrayList<>(memories);
-        sortedMemories.sort((a, b) -> Integer.compare(b.getImportance(), a.getImportance()));
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("长期记忆（可能过时，仅作参考）：\n");
-        for (MemoryDTO memory : sortedMemories) {
-            sb.append("- ");
-            LocalDateTime time = memory.getUpdatedAt() != null ? memory.getUpdatedAt() : memory.getCreatedAt();
-            if (time != null) {
-                sb.append("[").append(time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("] ");
-            }
-            sb.append(memory.getContent());
-            List<String> tags = new ArrayList<>();
-            if (memory.getConfidence() != null) {
-                tags.add("置信度 " + Math.round(memory.getConfidence() * 100) + "%");
-            }
-            if (memory.getSource() != null && !memory.getSource().isBlank()) {
-                tags.add("来源 " + memory.getSource());
-            }
-            if (!tags.isEmpty()) {
-                sb.append("（").append(String.join("，", tags)).append("）");
-            }
-            sb.append("\n");
-        }
-        return sb.toString().trim();
     }
 
     /**

@@ -462,10 +462,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
         printBlock(sb, "▸ 用户档案", userProfile);
 
         // 记忆各块
-        printBlock(sb, "▸ 记忆-L1 档案", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_L1));
         printBlock(sb, "▸ 记忆-知识图谱 (Cognee)", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE));
-        printBlock(sb, "▸ 记忆-L3 偏好", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_L3));
-        printBlock(sb, "▸ 记忆-L2 精确", (String) state.get(ConversationContext.KEY_FORMATTED_MEMORY_PRECISE));
         printBlock(sb, "▸ 搜索上下文", (String) state.get(ConversationContext.KEY_FORMATTED_SEARCH));
 
         // 3. 输出规范（模板末尾固定部分）

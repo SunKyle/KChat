@@ -22,19 +22,18 @@ public interface MemoryExtractionAI {
 
             1. 提取值得长期记忆的重要事实信息
             2. 对相关信息进行总结归纳
-            3. 识别用户的身份、技能、偏好、项目、任务、知识、关系、事件等
+            3. 识别用户的偏好、项目、技能、任务、知识、关系、事件等
 
             提取规则：
             - 只提取事实性信息，不要保存对话内容本身
             - 忽略问候语、闲聊、一次性问题
             - 每条记忆保持简洁（不超过50字）
             - 对相关信息进行合并总结
-            - 为每条记忆标注类型：PROFILE/PREFERENCE/PROJECT/SKILL/TASK/KNOWLEDGE/RELATION/EVENT
+            - 为每条记忆标注类型：PREFERENCE/PROJECT/SKILL/TASK/KNOWLEDGE/RELATION/EVENT
             - 为每条记忆评估重要性（1-10分，越高越重要）
             - 为每条记忆评估置信度（0.0-1.0）
 
             记忆类型说明：
-            - PROFILE: 用户身份、职业、角色等基本信息
             - PREFERENCE: 用户偏好、喜好、习惯等
             - PROJECT: 用户正在进行的项目或工作
             - SKILL: 用户掌握的技能、技术栈
@@ -58,7 +57,7 @@ public interface MemoryExtractionAI {
      * 单条记忆条目
      *
      * @param content    记忆内容（不超过50字）
-     * @param type       记忆类型（PROFILE/PREFERENCE/PROJECT/SKILL/TASK/KNOWLEDGE/RELATION/EVENT）
+     * @param type       记忆类型（PREFERENCE/PROJECT/SKILL/TASK/KNOWLEDGE/RELATION/EVENT）
      * @param importance 重要性（1-10）
      * @param confidence  置信度（0.0-1.0）
      */

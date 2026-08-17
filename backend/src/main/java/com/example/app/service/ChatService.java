@@ -4,7 +4,6 @@ import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
-import com.example.app.dto.MemoryDTO;
 import com.example.app.entity.Message;
 import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineExecutor;
@@ -188,11 +187,9 @@ public class ChatService {
         chatWorkflowService.clearShortTermMemory(conversationId);
 
         List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
-        List<MemoryDTO> longTermMemory = chatWorkflowService.recallLongTermMemory(userId, userMessage, 5);
-        log.debug("Recalled {} long-term memories for user {}", longTermMemory.size(), userId);
 
         String language = userProfileService.getLanguage(userId);
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, longTermMemory, userMessage,
+        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, userMessage,
                 language, null);
 
         String userMessageWithImages = buildMessageWithImages(userMessage, imageUrls);

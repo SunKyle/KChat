@@ -10,7 +10,7 @@ import { Modal } from './components/common/Modal'
 import { ToastContainer } from './components/common/ToastContainer'
 import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
-import { KnowledgeGraph } from './components/settings/Memory/KnowledgeGraph'
+import { KnowledgeGraph } from './components/settings/knowledge-graph'
 import { KnowledgeContentView } from './components/knowledge/KnowledgeContentView'
 import { useState, useEffect, useCallback } from 'react'
 import {

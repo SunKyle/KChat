@@ -47,7 +47,10 @@ public class AutoMemoryExtractor {
         return tryExtractDtos(conversationId, userId, model).size();
     }
 
-    /** Same as tryExtract, but returns the list of saved MemoryDTOs (empty if nothing was extracted) */
+    /**
+     * 尝试提取记忆（带阈值检测），达到阈值时提取并返回 DTOs。
+     * 提取结果直接用于 Cognee 索引，不再保存到 JPA。
+     */
     public List<MemoryDTO> tryExtractDtos(String conversationId, String userId) {
         return tryExtractDtos(conversationId, userId, null);
     }
@@ -73,8 +76,8 @@ public class AutoMemoryExtractor {
         if (messageCount >= threshold) {
             log.info("[记忆提取] 达到阈值，开始提取...");
             messageCounter.reset(conversationId);
-            List<MemoryDTO> extracted = extractAndSaveDtos(conversationId, userId, model);
-            log.info("[记忆提取] 提取完成 - 保存了 {} 条记忆", extracted.size());
+            List<MemoryDTO> extracted = extractDtos(conversationId, userId, model);
+            log.info("[记忆提取] 提取完成 - 返回 {} 条记忆", extracted.size());
             return extracted;
         }
 
@@ -83,35 +86,17 @@ public class AutoMemoryExtractor {
     }
 
     /**
-     * 记忆提取核心逻辑
-     *
-     * 流程：获取上下文 -> LLM 总结事实 -> 去重和筛选 -> 向量化存储
-     *
-     * 异常处理：
-     * - 捕获所有异常，保证不影响主对话流程
-     * - 记录错误日志便于排查
-     *
-     * @param conversationId 对话 ID
-     * @param userId         用户 ID
-     * @return 保存的记忆数量
+     * 直接提取记忆（不检查阈值），返回提取的 DTOs。
+     * 提取结果直接用于 Cognee 索引，不再保存到 JPA。
      */
-    public int extractAndSave(String conversationId, String userId) {
-        return extractAndSaveDtos(conversationId, userId, null).size();
+    public List<MemoryDTO> extractDtos(String conversationId, String userId) {
+        return extractDtos(conversationId, userId, null);
     }
 
-    public int extractAndSave(String conversationId, String userId, String model) {
-        return extractAndSaveDtos(conversationId, userId, model).size();
-    }
-
-    /** Core extraction logic that returns saved DTOs instead of just count. */
-    public List<MemoryDTO> extractAndSaveDtos(String conversationId, String userId) {
-        return extractAndSaveDtos(conversationId, userId, null);
-    }
-
-    public List<MemoryDTO> extractAndSaveDtos(String conversationId, String userId, String model) {
+    public List<MemoryDTO> extractDtos(String conversationId, String userId, String model) {
         try {
             List<ChatMessage> messages = shortTermMemoryService.getMemoryContext(conversationId);
-            return memoryExtractor.extractAndSaveDtos(conversationId, messages, userId, model);
+            return memoryExtractor.extractDtos(conversationId, messages, userId, model);
         } catch (Exception e) {
             log.error("Critical failure during memory extraction for user {}: {}", userId, e.getMessage());
             return List.of();

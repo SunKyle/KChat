@@ -1,9 +1,7 @@
 package com.example.app.util;
 
-import com.example.app.dto.MemoryDTO;
 import com.example.app.security.InputValidator;
 import com.example.app.security.SensitiveFilter;
-import com.example.app.service.PromptMetricsService;
 import com.example.app.service.PromptTemplateService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -14,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,68 +42,23 @@ class PromptAssemblerTest {
         
         SensitiveFilter sensitiveFilter = new SensitiveFilter();
         PromptTemplateService templateService = Mockito.mock(PromptTemplateService.class);
-        PromptMetricsService metricsService = Mockito.mock(PromptMetricsService.class);
         
         // 模拟模板服务抛出异常，使PromptAssembler使用默认模板
         Mockito.when(templateService.renderTemplate(Mockito.anyString(), Mockito.anyMap()))
                .thenThrow(new IllegalArgumentException("Template not found"));
         
         promptAssembler = new PromptAssembler(tokenEstimator, inputValidator, sensitiveFilter, 
-                                              templateService, metricsService);
+                                              templateService);
     }
 
     @Test
-    @DisplayName("组装Prompt - 包含长期记忆")
-    void assemble_WithLongTermMemory() {
-        MemoryDTO memory1 = MemoryDTO.builder()
-                .id(1L)
-                .userId("user123")
-                .content("用户使用Java开发")
-                .type("SKILL")
-                .importance(8)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        MemoryDTO memory2 = MemoryDTO.builder()
-                .id(2L)
-                .userId("user123")
-                .content("用户喜欢简洁回答")
-                .type("PREFERENCE")
-                .importance(6)
-                .createdAt(LocalDateTime.now())
-                .build();
-
+    @DisplayName("组装Prompt - 基本组装")
+    void assemble_Basic() {
         List<ChatMessage> shortTermMemory = Collections.singletonList(
                 UserMessage.from("你好")
         );
 
-        List<MemoryDTO> longTermMemory = Arrays.asList(memory1, memory2);
-
-        List<ChatMessage> result = promptAssembler.assemble(shortTermMemory, longTermMemory, "今天天气怎么样");
-
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        
-        assertTrue(result.get(0) instanceof SystemMessage);
-        assertTrue(result.get(1) instanceof UserMessage);
-        assertTrue(result.get(2) instanceof UserMessage);
-        
-        // 验证系统消息包含长期记忆信息
-        String systemText = ((SystemMessage) result.get(0)).text();
-        assertTrue(systemText.contains("用户使用Java开发") || systemText.contains("智能助手"), 
-                   "System message should contain memory or fallback content");
-    }
-
-    @Test
-    @DisplayName("组装Prompt - 无长期记忆")
-    void assemble_WithoutLongTermMemory() {
-        List<ChatMessage> shortTermMemory = Collections.singletonList(
-                UserMessage.from("你好")
-        );
-
-        List<MemoryDTO> longTermMemory = Collections.emptyList();
-
-        List<ChatMessage> result = promptAssembler.assemble(shortTermMemory, longTermMemory, "今天天气怎么样");
+        List<ChatMessage> result = promptAssembler.assemble(shortTermMemory, "今天天气怎么样", "zh-CN");
 
         assertNotNull(result);
         assertEquals(3, result.size());

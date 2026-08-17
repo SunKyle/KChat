@@ -35,10 +35,6 @@ public class UserProfile {
     private String bio;
 
     // Preferences stored as JSON-like fields
-    @Column(name = "theme", length = 20)
-    @Builder.Default
-    private String theme = "light";
-
     @Column(name = "language", length = 10)
     @Builder.Default
     private String language = "zh-CN";

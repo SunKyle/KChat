@@ -28,11 +28,6 @@ components/
 │   ├── TodoForm.tsx         # 待办表单
 │   └── TodoList.tsx         # 待办列表
 ├── settings/                # 设置页面
-│   ├── Memory/              # 记忆体管理组件
-│   │   ├── MemoryForm.tsx   # 记忆体表单
-│   │   ├── MemoryList.tsx   # 记忆体列表
-│   │   ├── MemoryPanel.tsx  # 记忆体面板
-│   │   └── MemorySearch.tsx # 记忆体搜索
 │   ├── APIKeys.tsx          # API密钥设置
 │   ├── ModelSettings.tsx    # 模型设置
 │   ├── Preferences.tsx      # 偏好设置

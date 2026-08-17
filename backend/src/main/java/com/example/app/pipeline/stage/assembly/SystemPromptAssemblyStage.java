@@ -17,16 +17,14 @@ import java.util.Map;
 /**
  * System Prompt 组装 Stage（ASSEMBLY 阶段，order=410）
  *
- * <p>v5 改造：语言并入用户档案、移除档案双源（{@code memory_l1_profile} 废弃）
+ * <p>v6 改造：JPA long_term_memory 完全迁移至 Cognee，移除 L3/Precise 记忆块。
  * <ul>
  *   <li>{user_profile}: 用户档案（设置表，含语言偏好）</li>
  *   <li>{memory_cognee_graph}: 相关知识图谱 (Cognee, 片段+实体+关系)</li>
- *   <li>{memory_l3_preference}: 用户偏好 (JPA L3, PREFERENCE/SKILL/RULE)</li>
- *   <li>{memory_precise}: 精确记忆 (JPA L2, FACT/KNOWLEDGE)</li>
  *   <li>{context_policy}: 根据意图类型动态注入的上下文使用策略指令</li>
  * </ul>
  *
- * <p>注入顺序：用户档案 → 搜索上下文 → 知识图谱 → 用户偏好 → 精确记忆
+ * <p>注入顺序：用户档案 → 搜索上下文 → 知识图谱
  */
 @Component
 @RequiredArgsConstructor
@@ -50,17 +48,9 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         String userProfileText = (String) ctx.getAgentState()
                 .getOrDefault(ConversationContext.KEY_FORMATTED_USER_PROFILE, "");
 
-        // Memory blocks (v5)：L1 档案块已废弃（由 user_profile 设置表承担），仅注入图谱/偏好/精确
+        // Memory blocks (v6)：仅保留 Cognee 知识图谱
         String cogneeGraph = (String) ctx.getAgentState()
                 .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE, "");
-        String l3Preference = (String) ctx.getAgentState()
-                .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_L3, "");
-        String preciseMemory = (String) ctx.getAgentState()
-                .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_PRECISE, "");
-
-        // Legacy combined (v2) — for template backward compat
-        String legacyMemory = (String) ctx.getAgentState()
-                .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY, "");
 
         // context_policy: 根据意图类型动态生成
         String contextPolicy = buildContextPolicy(ctx.getQueryAnalysisResult());
@@ -74,8 +64,6 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         Map<String, String> params = new HashMap<>();
         params.put("user_profile", userProfileText);
         params.put("memory_cognee_graph", blankToNone(cogneeGraph));
-        params.put("memory_l3_preference", blankToNone(l3Preference));
-        params.put("memory_precise", blankToNone(preciseMemory));
         params.put("context_policy", contextPolicy);
         params.put("search_context", searchText);
         params.put("custom_rules", customRulesSection);
@@ -92,17 +80,10 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
             systemPrompt = DefaultSystemPrompt.CONTENT
                     .replace("{user_profile}", userProfileText)
                     .replace("{memory_cognee_graph}", blankToNone(cogneeGraph))
-                    .replace("{memory_l3_preference}", blankToNone(l3Preference))
-                    .replace("{memory_precise}", blankToNone(preciseMemory))
                     .replace("{custom_rules}", customRulesSection)
                     .replace("{context_policy}", contextPolicy)
                     .replace("{search_context}", searchText);
             templateVersion = -1;
-        }
-
-        // 降级：如果模板不含新占位符，用旧格式兜底
-        if (systemPrompt.contains("{long_term_memory}")) {
-            systemPrompt = systemPrompt.replace("{long_term_memory}", blankToNone(legacyMemory));
         }
 
         if (systemPrompt == null || systemPrompt.isBlank()) {
@@ -121,11 +102,9 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         ctx.getAgentState().put("contextPolicy", contextPolicy);
         ctx.getAgentState().put("customRules", customRulesSection);
 
-        log.debug("[SystemPrompt] templateVersion={}, cognee='{}', l3='{}', precise='{}', policy='{}'",
+        log.debug("[SystemPrompt] templateVersion={}, cognee='{}', policy='{}'",
                 templateVersion,
                 truncate(cogneeGraph, 30),
-                truncate(l3Preference, 30),
-                truncate(preciseMemory, 30),
                 truncate(contextPolicy, 50));
     }
 
