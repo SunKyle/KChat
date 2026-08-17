@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Wrench,
   Loader2,
@@ -7,11 +7,16 @@ import {
   Power,
   Sliders,
   ChevronDown,
+  Search,
+  Filter,
+  X,
 } from 'lucide-react'
 import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
 import type { ToolInfo, ModelConfig } from '../../types'
 
 const DEFAULT_USER_ID = 'default'
+
+type StatusFilter = 'all' | 'enabled' | 'disabled'
 
 /**
  * Agent 工具箱展示面板
@@ -19,6 +24,7 @@ const DEFAULT_USER_ID = 'default'
  * 从 GET /api/tools 加载 ToolRegistry 中注册的所有工具，
  * 展示工具名、描述、参数 schema，供用户了解 Agent 模式下可调用的能力。
  *
+ * 支持搜索工具名称、按开启/关闭状态筛选。
  * 对依赖特定模型能力的工具（如图片生成/识别），额外提供模型下拉框，
  * 用户可为该工具指定默认模型，持久化到 user_setting.tool_models。
  *
@@ -32,6 +38,10 @@ export function ToolsPanel() {
   const [toolModels, setToolModels] = useState<Record<string, string>>({})
   const [enabledTools, setEnabledTools] = useState<Record<string, boolean>>({})
   const [togglingTools, setTogglingTools] = useState<Set<string>>(new Set())
+
+  // 搜索和筛选状态
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const loadTools = async () => {
     setLoading(true)
@@ -67,6 +77,38 @@ export function ToolsPanel() {
       }
     })()
   }, [])
+
+  // 过滤后的工具列表
+  const filteredTools = useMemo(() => {
+    let list = toolList
+
+    // 搜索过滤
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      list = list.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          (t.description && t.description.toLowerCase().includes(q))
+      )
+    }
+
+    // 状态过滤
+    if (statusFilter === 'enabled') {
+      list = list.filter((t) => t.enabled !== false)
+    } else if (statusFilter === 'disabled') {
+      list = list.filter((t) => t.enabled === false)
+    }
+
+    return list
+  }, [toolList, searchQuery, statusFilter])
+
+  // 计算统计信息
+  const stats = useMemo(() => {
+    const total = toolList.length
+    const enabled = toolList.filter((t) => t.enabled !== false).length
+    const disabled = total - enabled
+    return { total, enabled, disabled }
+  }, [toolList])
 
   // 保存某工具配置的默认模型
   const saveToolModel = useCallback(
@@ -143,16 +185,17 @@ export function ToolsPanel() {
 
   return (
     <div className='space-y-6'>
+      {/* 头部：标题 + 统计 + 刷新 */}
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <Wrench className='w-5 h-5 theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>工具箱</h3>
           {!loading && !error && (
             <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-secondary'>
-              {toolList.length} 个工具
-              {toolList.some((t) => t.enabled === false) && (
+              {stats.total} 个工具
+              {stats.disabled > 0 && (
                 <span className='ml-1 text-amber-500'>
-                  · {toolList.filter((t) => t.enabled === false).length} 已关闭
+                  · {stats.disabled} 已关闭
                 </span>
               )}
             </span>
@@ -172,6 +215,66 @@ export function ToolsPanel() {
         LLM 可调用以下工具。关闭的工具对大模型不可见。
         依赖模型能力的工具可为它指定默认模型；不指定时自动选择。
       </p>
+
+      {/* 搜索和筛选栏 */}
+      {!loading && !error && toolList.length > 0 && (
+        <div className='flex items-center gap-3'>
+          {/* 搜索框 */}
+          <div className='relative flex-1'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted' />
+            <input
+              type='text'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder='搜索工具名称或描述...'
+              className='w-full pl-9 pr-8 py-2 text-sm rounded-xl theme-border-primary theme-bg-input theme-text-primary placeholder:theme-text-muted/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 transition-shadow'
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:theme-bg-hover transition-colors'
+              >
+                <X className='w-3.5 h-3.5 theme-text-muted' />
+              </button>
+            )}
+          </div>
+
+          {/* 状态筛选按钮 */}
+          <div className='flex items-center gap-1 bg-theme-bg-hover rounded-xl p-1'>
+            <Filter className='w-4 h-4 theme-text-muted ml-2 mr-1' />
+            {(
+              [
+                { key: 'all', label: '全部' },
+                { key: 'enabled', label: `开启 (${stats.enabled})` },
+                { key: 'disabled', label: `关闭 (${stats.disabled})` },
+              ] as const
+            ).map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setStatusFilter(item.key)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  statusFilter === item.key
+                    ? 'bg-[var(--accent-primary)] text-white shadow-sm'
+                    : 'theme-text-secondary hover:theme-bg-hover'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 搜索结果提示 */}
+      {!loading && !error && searchQuery && filteredTools.length === 0 && (
+        <div className='card-float-solid rounded-2xl p-8 text-center'>
+          <Search className='w-10 h-10 theme-text-muted mx-auto mb-3' />
+          <p className='font-semibold theme-text-primary mb-1'>未找到匹配的工具</p>
+          <p className='text-sm theme-text-muted'>
+            尝试修改搜索关键词或切换筛选条件
+          </p>
+        </div>
+      )}
 
       {loading ? (
         <div className='flex items-center justify-center py-12'>
@@ -199,7 +302,7 @@ export function ToolsPanel() {
         </div>
       ) : (
         <div className='space-y-3'>
-          {toolList.map((tool) => (
+          {filteredTools.map((tool) => (
             <ToolCard
               key={tool.name}
               tool={tool}
@@ -254,8 +357,8 @@ function ToolCard({
 
   return (
     <div
-      className={`card-float-solid rounded-2xl transition-opacity overflow-hidden ${
-        !isEnabled ? 'opacity-50' : ''
+      className={`card-float-solid rounded-2xl transition-all overflow-hidden ${
+        !isEnabled ? 'opacity-50 hover:opacity-70' : ''
       }`}
     >
       {/* 头部 */}
