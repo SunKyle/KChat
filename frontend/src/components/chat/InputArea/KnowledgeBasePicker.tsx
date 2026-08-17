@@ -8,6 +8,8 @@ const DEFAULT_USER_ID = 'default'
 interface KnowledgeBasePickerProps {
   open: boolean
   query: string
+  /** 已引用的知识库 id，选择器中将其过滤掉，避免重复引用 */
+  excludeIds?: string[]
   onQueryChange: (query: string) => void
   onSelect: (kb: KnowledgeBase) => void
   onClose: () => void
@@ -16,6 +18,7 @@ interface KnowledgeBasePickerProps {
 export function KnowledgeBasePicker({
   open,
   query,
+  excludeIds = [],
   onSelect,
   onClose,
 }: KnowledgeBasePickerProps) {
@@ -66,10 +69,12 @@ export function KnowledgeBasePicker({
     return () => document.removeEventListener('mousedown', onMouseDown)
   }, [open, onClose])
 
+  const excludeSet = new Set(excludeIds)
   const trimmed = query.trim().toLocaleLowerCase()
-  const filtered = trimmed
+  const filtered = (trimmed
     ? knowledgeBases.filter((kb) => kb.name.toLocaleLowerCase().includes(trimmed))
     : knowledgeBases
+  ).filter((kb) => !excludeSet.has(kb.id))
 
   return (
     <motion.div

@@ -27,6 +27,12 @@ interface SidebarProps {
   onCloseSettings?: () => void
   /** 头像点击：打开或关闭设置 */
   onAvatarClick?: () => void
+  /** 一级菜单切换回调（用于 App 侧监听当前菜单） */
+  onActiveMenuChange?: (menu: MenuId) => void
+  /** 当前选中的知识库 id（用于二级列表高亮） */
+  selectedKbId?: string | null
+  /** 当前选中的数据集名（用于二级列表高亮） */
+  selectedDatasetName?: string | null
 }
 
 const ACTIVE_MENU_STORAGE_KEY = 'sidebarActiveMenu'
@@ -47,6 +53,9 @@ export function Sidebar({
   onSettingsTabChange,
   onCloseSettings,
   onAvatarClick,
+  onActiveMenuChange,
+  selectedKbId,
+  selectedDatasetName,
 }: SidebarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
     const saved = localStorage.getItem(ACTIVE_MENU_STORAGE_KEY)
@@ -55,6 +64,8 @@ export function Sidebar({
 
   useEffect(() => {
     localStorage.setItem(ACTIVE_MENU_STORAGE_KEY, activeMenu)
+    onActiveMenuChange?.(activeMenu)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMenu])
 
   const handleMenuClick = (menu: MenuId) => {
@@ -104,6 +115,7 @@ export function Sidebar({
           <KnowledgePanel
             onToggle={() => onToggle?.()}
             onSelectKnowledgeBase={(kb) => onSelectKnowledgeBase?.(kb)}
+            selectedKbId={selectedKbId}
           />
         )
       case 'graph':
@@ -111,6 +123,7 @@ export function Sidebar({
           <GraphPanel
             onToggle={() => onToggle?.()}
             onSelectDataset={(name, displayName) => onSelectDataset?.(name, displayName)}
+            selectedDatasetName={selectedDatasetName}
           />
         )
       default:

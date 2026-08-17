@@ -31,6 +31,8 @@ interface NoteTodoPanelProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  /** 是否隐藏右侧浮动胶囊（仅一级菜单为会话时展示） */
+  hideCapsule?: boolean
 }
 
 interface DeleteConfirmState {
@@ -275,7 +277,7 @@ function isOverdue(dueDate: string | null, status: string) {
 
 // ─── Main component ──────────────────────────────────────────────
 
-export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
+export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: NoteTodoPanelProps) {
   const {
     notes,
     setNotes,
@@ -539,16 +541,17 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
 
   return (
     <>
-      {/* Floating capsule — collapsed state */}
-      <div
-        className={`fixed top-1/2 z-40 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isOpen
-            ? 'opacity-0 scale-75 pointer-events-none translate-x-4 -translate-y-1/2'
-            : 'opacity-100 scale-100 translate-x-0 -translate-y-1/2'
-        }`}
-        style={{ right: 'calc(var(--note-pad, 1rem) + 1rem)' }}
-        aria-hidden={isOpen}
-      >
+      {/* Floating capsule — collapsed state（仅一级菜单为会话时展示） */}
+      {!hideCapsule && (
+        <div
+          className={`fixed top-1/2 z-40 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isOpen
+              ? 'opacity-0 scale-75 pointer-events-none translate-x-4 -translate-y-1/2'
+              : 'opacity-100 scale-100 translate-x-0 -translate-y-1/2'
+          }`}
+          style={{ right: 'calc(var(--note-pad, 1rem) + 1rem)' }}
+          aria-hidden={isOpen}
+        >
         <div
           className='flex flex-col items-center gap-1 py-2.5 px-1.5 rounded-full bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_0.5px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow duration-200'
           style={{ backdropFilter: 'blur(12px)' }}
@@ -591,7 +594,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
                   />
                   {count > 0 && (
                     <span
-                      className='absolute top-1 right-1 translate-x-1 -translate-y-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full text-white ring-2 ring-[var(--bg-sidebar)]'
+                      className='absolute top-1 right-1 translate-x-1 -translate-y-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-xs font-bold rounded-full text-white ring-2 ring-[var(--bg-sidebar)]'
                       style={{ backgroundColor: color }}
                     >
                       {count > 99 ? '99+' : count}
@@ -606,6 +609,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen }: NoteTodoPanelProps) {
           })}
         </div>
       </div>
+      )}
 
       {/* Panel — expanded state */}
       <div

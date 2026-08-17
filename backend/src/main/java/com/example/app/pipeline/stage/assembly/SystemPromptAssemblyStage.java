@@ -17,16 +17,16 @@ import java.util.Map;
 /**
  * System Prompt 组装 Stage（ASSEMBLY 阶段，order=410）
  *
- * <p>v4 改造：双源分离 + 四块注入
+ * <p>v5 改造：语言并入用户档案、移除档案双源（{@code memory_l1_profile} 废弃）
  * <ul>
- *   <li>{memory_l1_profile}: 用户档案 (JPA L1, PROFILE)</li>
+ *   <li>{user_profile}: 用户档案（设置表，含语言偏好）</li>
  *   <li>{memory_cognee_graph}: 相关知识图谱 (Cognee, 片段+实体+关系)</li>
  *   <li>{memory_l3_preference}: 用户偏好 (JPA L3, PREFERENCE/SKILL/RULE)</li>
  *   <li>{memory_precise}: 精确记忆 (JPA L2, FACT/KNOWLEDGE)</li>
  *   <li>{context_policy}: 根据意图类型动态注入的上下文使用策略指令</li>
  * </ul>
  *
- * <p>注入顺序：用户档案 → 知识图谱 → 用户偏好 → 精确记忆
+ * <p>注入顺序：用户档案 → 搜索上下文 → 知识图谱 → 用户偏好 → 精确记忆
  */
 @Component
 @RequiredArgsConstructor
@@ -34,19 +34,6 @@ import java.util.Map;
 public class SystemPromptAssemblyStage implements ContextPipelineStage {
 
     private final PromptTemplateService templateService;
-
-    private static final Map<String, String> LANGUAGE_NAMES = Map.ofEntries(
-            Map.entry("zh-CN", "中文（简体）"),
-            Map.entry("zh-TW", "中文（繁體）"),
-            Map.entry("en", "English"),
-            Map.entry("en-US", "English"),
-            Map.entry("en-GB", "English"),
-            Map.entry("ja", "日本語"),
-            Map.entry("ko", "한국어"),
-            Map.entry("fr", "Français"),
-            Map.entry("de", "Deutsch"),
-            Map.entry("es", "Español"),
-            Map.entry("ru", "Русский"));
 
     @Override
     public Phase getPhase() {
@@ -59,14 +46,11 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        String languageClause = buildLanguageClause(ctx.getLanguage());
         String searchText = (String) ctx.getAgentState().getOrDefault(ConversationContext.KEY_FORMATTED_SEARCH, "");
         String userProfileText = (String) ctx.getAgentState()
                 .getOrDefault(ConversationContext.KEY_FORMATTED_USER_PROFILE, "");
 
-        // Four memory blocks (v4)
-        String l1Profile = (String) ctx.getAgentState()
-                .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_L1, "");
+        // Memory blocks (v5)：L1 档案块已废弃（由 user_profile 设置表承担），仅注入图谱/偏好/精确
         String cogneeGraph = (String) ctx.getAgentState()
                 .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE, "");
         String l3Preference = (String) ctx.getAgentState()
@@ -88,9 +72,7 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
                 : "";
 
         Map<String, String> params = new HashMap<>();
-        params.put("language_clause", languageClause);
         params.put("user_profile", userProfileText);
-        params.put("memory_l1_profile", blankToNone(l1Profile));
         params.put("memory_cognee_graph", blankToNone(cogneeGraph));
         params.put("memory_l3_preference", blankToNone(l3Preference));
         params.put("memory_precise", blankToNone(preciseMemory));
@@ -108,9 +90,7 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         } catch (IllegalArgumentException e) {
             log.warn("Template not found, using fallback: {}", e.getMessage());
             systemPrompt = DefaultSystemPrompt.CONTENT
-                    .replace("{language_clause}", languageClause)
                     .replace("{user_profile}", userProfileText)
-                    .replace("{memory_l1_profile}", blankToNone(l1Profile))
                     .replace("{memory_cognee_graph}", blankToNone(cogneeGraph))
                     .replace("{memory_l3_preference}", blankToNone(l3Preference))
                     .replace("{memory_precise}", blankToNone(preciseMemory))
@@ -141,9 +121,8 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         ctx.getAgentState().put("contextPolicy", contextPolicy);
         ctx.getAgentState().put("customRules", customRulesSection);
 
-        log.debug("[SystemPrompt] templateVersion={}, l1='{}', cognee='{}', l3='{}', precise='{}', policy='{}'",
+        log.debug("[SystemPrompt] templateVersion={}, cognee='{}', l3='{}', precise='{}', policy='{}'",
                 templateVersion,
-                truncate(l1Profile, 30),
                 truncate(cogneeGraph, 30),
                 truncate(l3Preference, 30),
                 truncate(preciseMemory, 30),
@@ -177,14 +156,6 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
 
     private String blankToNone(String s) {
         return (s == null || s.isBlank()) ? "无" : s;
-    }
-
-    private String buildLanguageClause(String language) {
-        if (language == null || language.isBlank()) {
-            return "";
-        }
-        String languageName = LANGUAGE_NAMES.getOrDefault(language, language);
-        return "请使用 " + languageName + " 回复。";
     }
 
     private String truncate(String s, int maxLen) {

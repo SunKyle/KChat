@@ -17,9 +17,15 @@ interface KnowledgePanelProps {
   onToggle: () => void
   /** 点击知识库 → 在主区域展示提取信息 */
   onSelectKnowledgeBase?: (kb: KnowledgeBase) => void
+  /** 当前选中的知识库 id（用于二级列表高亮） */
+  selectedKbId?: string | null
 }
 
-export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePanelProps) {
+export function KnowledgePanel({
+  onToggle,
+  onSelectKnowledgeBase,
+  selectedKbId,
+}: KnowledgePanelProps) {
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -44,6 +50,13 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
   useEffect(() => {
     loadAll()
   }, [loadAll])
+
+  // 无选中项时，默认选中列表中第一条
+  useEffect(() => {
+    if (!selectedKbId && knowledgeBases.length > 0) {
+      onSelectKnowledgeBase?.(knowledgeBases[0])
+    }
+  }, [selectedKbId, knowledgeBases, onSelectKnowledgeBase])
 
   const handleCreate = async () => {
     const name = newKbName.trim()
@@ -131,6 +144,7 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
               <KnowledgeBaseItem
                 key={kb.id}
                 kb={kb}
+                active={selectedKbId === kb.id}
                 onSelect={() => onSelectKnowledgeBase?.(kb)}
                 onDelete={(e) => handleDeleteKb(kb.id, e)}
               />
@@ -211,10 +225,12 @@ export function KnowledgePanel({ onToggle, onSelectKnowledgeBase }: KnowledgePan
 /** 知识库列表项 */
 function KnowledgeBaseItem({
   kb,
+  active,
   onSelect,
   onDelete,
 }: {
   kb: KnowledgeBase
+  active?: boolean
   onSelect: () => void
   onDelete: (e: React.MouseEvent) => void
 }) {
@@ -222,14 +238,22 @@ function KnowledgeBaseItem({
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className='group flex items-center gap-2.5 p-2.5 rounded-xl hover:theme-bg-hover cursor-pointer transition-all duration-200'
+      className={`group flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+        active ? 'bg-brand-selected theme-brand-primary' : 'hover:theme-bg-hover'
+      }`}
       onClick={onSelect}
     >
       <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
         <Database className='w-4 h-4 theme-text-muted' />
       </div>
       <div className='flex-1 min-w-0'>
-        <p className='text-sm theme-text-primary truncate font-medium'>{kb.name}</p>
+        <p
+          className={`text-sm truncate font-medium ${
+            active ? 'theme-brand-primary' : 'theme-text-primary'
+          }`}
+        >
+          {kb.name}
+        </p>
         <p className='text-xs theme-text-muted flex items-center gap-1'>
           <FileText className='w-3 h-3' />
           {kb.documentCount} 篇文档

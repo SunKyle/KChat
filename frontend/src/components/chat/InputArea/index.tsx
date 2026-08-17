@@ -13,6 +13,7 @@ import {
   X,
   Undo2,
   FileText,
+  Database,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
 import { isImageModel } from '../../../utils/model'
@@ -36,11 +37,23 @@ interface KnowledgeBaseReference {
   name: string
 }
 
+/** 默认引用知识库在 localStorage 中的存储 key */
+const DEFAULT_KB_REFS_KEY = 'kchat_default_kb_references'
+
 export function InputArea() {
   const [input, setInput] = useState('')
   const [uploadingImages, setUploadingImages] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-  const [kbReferences, setKbReferences] = useState<KnowledgeBaseReference[]>([])
+  const [kbReferences, setKbReferences] = useState<KnowledgeBaseReference[]>(() => {
+    try {
+      const raw = localStorage.getItem(DEFAULT_KB_REFS_KEY)
+      if (!raw) return []
+      const parsed = JSON.parse(raw)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  })
   const [showKbPicker, setShowKbPicker] = useState(false)
   const [kbQuery, setKbQuery] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -119,6 +132,15 @@ export function InputArea() {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px'
     }
   }, [input])
+
+  // 默认引用知识库持久化：选择记录库、剔除永久移除，刷新后依然保持
+  useEffect(() => {
+    try {
+      localStorage.setItem(DEFAULT_KB_REFS_KEY, JSON.stringify(kbReferences))
+    } catch {
+      // localStorage 不可用时静默忽略
+    }
+  }, [kbReferences])
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     // 输入法组合状态（如中文输入法输入英文过程中）下，
@@ -229,7 +251,6 @@ export function InputArea() {
     setInput('')
     setUploadingImages([])
     setUploadedFiles([])
-    setKbReferences([])
     setShowKbPicker(false)
     setKbQuery('')
 
@@ -405,22 +426,23 @@ export function InputArea() {
           </div>
         )}
 
-        {/* 已选中的知识库引用 */}
+        {/* 已选中的知识库引用 — 默认引用库，入住式 chip */}
         {kbReferences.length > 0 && (
-          <div className='mb-4 mx-4 lg:mx-6'>
-            <div className='flex flex-wrap gap-2'>
+          <div className='mb-8 mx-4 lg:mx-6'>
+            <div className='flex flex-wrap items-center gap-2'>
+              <span className='text-xs font-medium theme-text-muted'>引用</span>
               {kbReferences.map((ref) => (
                 <div
                   key={ref.id}
-                  className='relative flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10 transition-colors duration-200'
+                  className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10'
                 >
-                  <FileText className='w-4 h-4 text-[var(--brand-primary)] shrink-0' />
-                  <span className='text-sm theme-text-primary max-w-[160px] truncate'>
-                    @{ref.name}
+                  <Database className='w-3.5 h-3.5 text-[var(--brand-primary)] shrink-0' />
+                  <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
+                    {ref.name}
                   </span>
                   <button
                     onClick={() => handleRemoveKb(ref.id)}
-                    className='w-5 h-5 hover:bg-red-500 rounded-full flex items-center justify-center transition-all duration-200 text-[var(--text-muted)] hover:text-white'
+                    className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
                     aria-label='移除知识库引用'
                   >
                     <X className='w-3 h-3' />
@@ -437,6 +459,7 @@ export function InputArea() {
             <KnowledgeBasePicker
               open={showKbPicker}
               query={kbQuery}
+              excludeIds={kbReferences.map((r) => r.id)}
               onQueryChange={setKbQuery}
               onSelect={handleSelectKb}
               onClose={() => setShowKbPicker(false)}

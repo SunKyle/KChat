@@ -2,6 +2,7 @@ import { ChatProvider, useChat } from './context/ChatContext'
 import { ModalProvider } from './context/ModalContext'
 import { UserProvider } from './context/UserContext'
 import { Sidebar } from './components/sidebar'
+import type { MenuId } from './components/sidebar/SidebarRail'
 import { ChatArea } from './components/chat/ChatArea'
 import { InputArea } from './components/chat/InputArea'
 import { Header } from './components/chat/Header'
@@ -21,6 +22,7 @@ import {
   Search,
   ArrowLeftRight,
   FileText,
+  Database,
 } from 'lucide-react'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
@@ -38,10 +40,20 @@ function AppContent() {
     toggleCollapsed,
   } = useSidebar()
   const { showSettings, settingsTab, setSettingsTab, openSettings, closeSettings } = useSettings()
-  const { activeConversation } = useChat()
-  const { remove } = useConversation()
+  const { activeConversation, conversations } = useChat()
+  const { remove, select } = useConversation()
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null)
   const [noteTodoDrawerOpen, setNoteTodoDrawerOpen] = useState(false)
+  // 一级菜单状态（Sidebar 上报），用于决定右侧胶囊是否展示
+  const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
+    try {
+      const saved = localStorage.getItem('sidebarActiveMenu')
+      if (saved === 'chat' || saved === 'knowledge' || saved === 'graph') return saved as MenuId
+    } catch {
+      // ignore
+    }
+    return 'chat'
+  })
   const [graphViewDataset, setGraphViewDataset] = useState<{
     name: string
     displayName: string
@@ -63,6 +75,23 @@ function AppContent() {
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  const isChatMenu = activeMenu === 'chat'
+
+  // 一级菜单离开会话时，关闭笔记/待办/提醒抽屉，避免占用右侧空间
+  useEffect(() => {
+    if (!isChatMenu) setNoteTodoDrawerOpen(false)
+  }, [isChatMenu])
+
+  // 会话菜单：无 activeConversation 时，默认选活跃会话列表第一条（置顶优先）
+  useEffect(() => {
+    if (activeMenu !== 'chat') return
+    if (activeConversation) return
+    if (!conversations || conversations.length === 0) return
+    const firstPinned = conversations.find((c) => c.pinned)
+    const first = firstPinned || conversations[0]
+    select(first)
+  }, [activeMenu, activeConversation, conversations, select])
 
   const handleDeleteClick = (id: string, title: string) => {
     setDeleteConfirm({ id, title })
@@ -104,7 +133,6 @@ function AppContent() {
     (kb: KnowledgeBase) => {
       setKnowledgeViewKb(kb)
       setKnowledgeDocCount(0)
-      setGraphViewDataset(null)
       closeSettings()
     },
     [closeSettings]
@@ -167,15 +195,12 @@ function AppContent() {
               onDeleteClick={handleDeleteClick}
               onConversationClick={() => {
                 closeSettings()
-                setGraphViewDataset(null)
-                setKnowledgeViewKb(null)
               }}
               onSelectKnowledgeBase={handleSelectKnowledgeBase}
               onSelectDataset={(name, displayName) => {
                 setGraphViewDataset({ name, displayName })
                 setGraphSearchQuery('')
                 setGraphRankdir('LR')
-                setKnowledgeViewKb(null)
                 closeSettings()
               }}
               showSettings={showSettings}
@@ -183,6 +208,9 @@ function AppContent() {
               onSettingsTabChange={setSettingsTab}
               onCloseSettings={closeSettings}
               onAvatarClick={handleAvatarClick}
+              onActiveMenuChange={setActiveMenu}
+              selectedKbId={knowledgeViewKb?.id ?? null}
+              selectedDatasetName={graphViewDataset?.name ?? null}
             />
           </div>
         </aside>
@@ -214,9 +242,9 @@ function AppContent() {
               }}
             />
             {/* 对话视图的 Header */}
-            {!graphViewDataset && !knowledgeViewKb && !showSettings && <Header />}
+            {activeMenu === 'chat' && !showSettings && <Header />}
             {/* 图谱视图的 Header */}
-            {graphViewDataset && !showSettings && (
+            {activeMenu === 'graph' && graphViewDataset && !showSettings && (
               <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
                 <div className='flex items-center gap-2.5 min-w-0 flex-shrink-0'>
                   <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[200px]'>
@@ -292,7 +320,7 @@ function AppContent() {
             )}
 
             {/* 知识库视图的 Header */}
-            {knowledgeViewKb && !showSettings && (
+            {activeMenu === 'knowledge' && knowledgeViewKb && !showSettings && (
               <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3'>
                 <div className='flex items-center gap-2.5 min-w-0 flex-shrink-0'>
                   <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 max-w-[240px]'>
@@ -314,32 +342,48 @@ function AppContent() {
             )}
 
             {/* 数据集图谱视图 */}
-            {graphViewDataset && !showSettings && (
-              <div className='relative flex-1 min-h-0'>
-                <KnowledgeGraph
-                  key={graphRefreshKey}
-                  dataset={graphViewDataset.name}
-                  onStatsChange={handleGraphStatsChange}
-                  externalSearchQuery={graphSearchQuery}
-                  externalRankdir={graphRankdir}
-                />
-              </div>
-            )}
+            {activeMenu === 'graph' && !showSettings &&
+              (graphViewDataset ? (
+                <div className='relative flex-1 min-h-0'>
+                  <KnowledgeGraph
+                    key={graphRefreshKey}
+                    dataset={graphViewDataset.name}
+                    onStatsChange={handleGraphStatsChange}
+                    externalSearchQuery={graphSearchQuery}
+                    externalRankdir={graphRankdir}
+                  />
+                </div>
+              ) : (
+                <div className='relative flex-1 min-h-0 flex items-center justify-center'>
+                  <div className='flex flex-col items-center text-center px-4'>
+                    <BarChart3 className='w-10 h-10 theme-text-muted mb-3' />
+                    <p className='text-sm theme-text-secondary font-medium mb-1'>暂无图谱数据</p>
+                    <p className='text-xs theme-text-muted'>在知识库中上传文档以生成图谱</p>
+                  </div>
+                </div>
+              ))}
             {/* 知识库提取信息视图 */}
-            {knowledgeViewKb && !showSettings && (
-              <div className='relative flex-1 min-h-0'>
-                <KnowledgeContentView
-                  key={knowledgeViewKb.id}
-                  kbId={knowledgeViewKb.id}
-                  onStatsChange={handleKnowledgeStatsChange}
-                />
-              </div>
-            )}
+            {activeMenu === 'knowledge' && !showSettings &&
+              (knowledgeViewKb ? (
+                <div className='relative flex-1 min-h-0'>
+                  <KnowledgeContentView
+                    key={knowledgeViewKb.id}
+                    kbId={knowledgeViewKb.id}
+                    onStatsChange={handleKnowledgeStatsChange}
+                  />
+                </div>
+              ) : (
+                <div className='relative flex-1 min-h-0 flex items-center justify-center'>
+                  <div className='flex flex-col items-center text-center px-4'>
+                    <Database className='w-10 h-10 theme-text-muted mb-3' />
+                    <p className='text-sm theme-text-secondary font-medium mb-1'>暂无知识库</p>
+                    <p className='text-xs theme-text-muted'>创建知识库并上传文档</p>
+                  </div>
+                </div>
+              ))}
             {/* 对话视图 */}
-            {!graphViewDataset && !knowledgeViewKb && (
-              <div
-                className={`relative flex-1 flex flex-col overflow-hidden ${showSettings ? 'hidden' : ''}`}
-              >
+            {activeMenu === 'chat' && !showSettings && (
+              <div className='relative flex-1 flex flex-col overflow-hidden'>
                 <ChatArea />
                 {activeConversation && <InputArea />}
               </div>
@@ -368,6 +412,7 @@ function AppContent() {
         isOpen={noteTodoDrawerOpen}
         onClose={() => setNoteTodoDrawerOpen(false)}
         onOpen={() => setNoteTodoDrawerOpen(true)}
+        hideCapsule={!isChatMenu}
       />
 
       <ToastContainer />

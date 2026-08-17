@@ -7,6 +7,8 @@ import { knowledgeBaseApi, type KnowledgeBase } from '../../api/knowledge'
 interface GraphPanelProps {
   onToggle: () => void
   onSelectDataset: (datasetName: string, displayName: string) => void
+  /** 当前选中的数据集名（用于二级列表高亮） */
+  selectedDatasetName?: string | null
 }
 
 interface GraphDatasetEntry {
@@ -17,7 +19,11 @@ interface GraphDatasetEntry {
   description?: string
 }
 
-export function GraphPanel({ onToggle, onSelectDataset }: GraphPanelProps) {
+export function GraphPanel({
+  onToggle,
+  onSelectDataset,
+  selectedDatasetName,
+}: GraphPanelProps) {
   const [datasets, setDatasets] = useState<GraphDatasetEntry[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -75,6 +81,13 @@ export function GraphPanel({ onToggle, onSelectDataset }: GraphPanelProps) {
     loadDatasets()
   }, [loadDatasets])
 
+  // 无选中项时，默认选中列表中第一个 dataset
+  useEffect(() => {
+    if (!selectedDatasetName && datasets.length > 0) {
+      onSelectDataset(datasets[0].datasetName, datasets[0].displayName)
+    }
+  }, [selectedDatasetName, datasets, onSelectDataset])
+
   return (
     <div className='flex flex-col h-full'>
       {/* 标题栏 */}
@@ -114,12 +127,15 @@ export function GraphPanel({ onToggle, onSelectDataset }: GraphPanelProps) {
           <div className='space-y-1.5'>
             {datasets.map((entry) => {
               const isMain = entry.datasetName === 'main_dataset'
+              const isActive = selectedDatasetName === entry.datasetName
               return (
                 <motion.div
                   key={entry.datasetName}
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className='group flex items-center gap-2.5 p-2.5 rounded-xl hover:theme-bg-hover cursor-pointer transition-all duration-200'
+                  className={`group flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+                    isActive ? 'bg-brand-selected theme-brand-primary' : 'hover:theme-bg-hover'
+                  }`}
                   onClick={() => onSelectDataset(entry.datasetName, entry.displayName)}
                 >
                   <div
@@ -134,7 +150,11 @@ export function GraphPanel({ onToggle, onSelectDataset }: GraphPanelProps) {
                     )}
                   </div>
                   <div className='flex-1 min-w-0'>
-                    <p className='text-sm theme-text-primary truncate font-medium'>
+                    <p
+                      className={`text-sm truncate font-medium ${
+                        isActive ? 'theme-brand-primary' : 'theme-text-primary'
+                      }`}
+                    >
                       {entry.displayName}
                     </p>
                     <p className='text-xs theme-text-muted'>
