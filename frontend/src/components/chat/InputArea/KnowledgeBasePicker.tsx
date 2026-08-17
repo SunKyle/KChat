@@ -85,7 +85,7 @@ export function KnowledgeBasePicker({
       transition={{ duration: 0.15, ease: 'easeOut' }}
       role='listbox'
       aria-label='知识库引用选择器'
-      className='relative z-30 mx-4 lg:mx-6 mb-1 overflow-hidden rounded-2xl theme-bg-elevated border theme-border-primary shadow-2xl'
+      className='relative z-30 mx-4 lg:mx-6 mb-6 overflow-hidden rounded-2xl theme-bg-elevated border theme-border-primary shadow-2xl'
     >
       <div className='px-3 pt-2.5 pb-2'>
         <div className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted'>

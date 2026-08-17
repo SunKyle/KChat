@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send,
   Square,
-  Image,
   Paperclip,
   Loader2,
   Globe,
@@ -16,7 +15,6 @@ import {
   Database,
 } from 'lucide-react'
 import { useChat } from '../../../context/ChatContext'
-import { isImageModel } from '../../../utils/model'
 import {
   images,
   files,
@@ -207,15 +205,16 @@ export function InputArea() {
     setUploadedFiles(newFiles)
   }
 
-  // 选中知识库 → 追加 @引用标记并加入引用列表
+  // 选中知识库 → 加入引用列表（已通过 chip 展示，不再把 @名称 注入输入框）
   const handleSelectKb = (kb: KnowledgeBase) => {
     setKbReferences((prev) =>
       prev.some((r) => r.id === kb.id) ? prev : [...prev, { id: kb.id, name: kb.name }]
     )
+    // 仅清除唤起选择器时输入的尾部 "@搜索词"，保留用户正式输入内容
     setInput((prev) => {
-      const match = /@[^@]*$/.exec(prev)
-      if (match) return `${prev.slice(0, match.index)}@${kb.name}`
-      return `${prev}@${kb.name}`
+      const match = /@([^@]*)$/.exec(prev)
+      if (match) return prev.slice(0, match.index)
+      return prev
     })
     setKbQuery('')
     setShowKbPicker(false)
@@ -359,7 +358,7 @@ export function InputArea() {
       <div className='max-w-3xl mx-auto relative group'>
         {/* 已上传图片预览 */}
         {uploadingImages.length > 0 && (
-          <div className='mb-4 mx-4 lg:mx-6'>
+          <div className='mb-8 mx-4 lg:mx-6'>
             <div className='flex flex-wrap gap-2'>
               {uploadingImages.map((imageUrl, index) => (
                 <div
@@ -393,7 +392,7 @@ export function InputArea() {
 
         {/* 已上传文档文件预览 */}
         {uploadedFiles.length > 0 && (
-          <div className='mb-4 mx-4 lg:mx-6'>
+          <div className='mb-8 mx-4 lg:mx-6'>
             <div className='flex flex-wrap gap-2'>
               {uploadedFiles.map((f, index) => (
                 <div
@@ -408,33 +407,6 @@ export function InputArea() {
                     onClick={() => handleRemoveFile(index)}
                     className='w-5 h-5 hover:bg-red-500 rounded-full flex items-center justify-center transition-all duration-200 text-[var(--text-muted)] hover:text-white'
                     aria-label='移除文件'
-                  >
-                    <X className='w-3 h-3' />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 已选中的知识库引用 — 默认引用库，入住式 chip */}
-        {kbReferences.length > 0 && (
-          <div className='mb-8 mx-4 lg:mx-6'>
-            <div className='flex flex-wrap items-center gap-2'>
-              <span className='text-xs font-medium theme-text-muted'>引用</span>
-              {kbReferences.map((ref) => (
-                <div
-                  key={ref.id}
-                  className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10'
-                >
-                  <Database className='w-3.5 h-3.5 text-[var(--brand-primary)] shrink-0' />
-                  <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
-                    {ref.name}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveKb(ref.id)}
-                    className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
-                    aria-label='移除知识库引用'
                   >
                     <X className='w-3 h-3' />
                   </button>
@@ -464,7 +436,6 @@ export function InputArea() {
             (() => {
               const isOutputting =
                 streamingState.isStreaming && streamingState.currentContent.length > 0
-              const isThinking = streamingState.isStreaming && !isOutputting
               const isOptimizingNow = isOptimizing
 
               return (
@@ -543,6 +514,29 @@ export function InputArea() {
             >
               {/* 上半部分：文本输入区域 */}
               <div className='px-4 py-1.5'>
+                {/* 已选中的知识库引用 — 入住式 chip */}
+                {kbReferences.length > 0 && (
+                  <div className='flex flex-wrap items-center gap-1.5 pt-1.5 pb-1'>
+                    {kbReferences.map((ref) => (
+                      <div
+                        key={ref.id}
+                        className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10'
+                      >
+                        <Database className='w-3.5 h-3.5 text-[var(--brand-primary)] shrink-0' />
+                        <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
+                          {ref.name}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveKb(ref.id)}
+                          className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
+                          aria-label='移除知识库引用'
+                        >
+                          <X className='w-3 h-3' />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -571,7 +565,7 @@ export function InputArea() {
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
                   placeholder={
-                    streamingState.isStreaming ? '添加到队列' : '输入消息...'
+                    streamingState.isStreaming ? '添加到队列' : '输入消息，输入 @ 可引用知识库'
                   }
                   aria-label='输入消息'
                   className={`w-full resize-none bg-transparent px-0 py-1 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[32px] max-h-[200px] overflow-y-auto font-input-text transition-opacity duration-200 ${

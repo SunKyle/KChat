@@ -1,6 +1,6 @@
 # KChat 后端代码结构地图
 
-> 生成日期：2026-08-06
+> 生成日期：2026-08-17
 > 适用范围：`backend/` 目录，不含 `target/` 构建产物与 `uploads/images/` 运行时图片资源。
 
 ## 1. 项目概述
@@ -8,12 +8,13 @@
 KChat 后端是一个 Spring Boot 3.2 + Java 21 的聊天应用后端，核心能力包括：
 
 - 多模型聊天：支持 Ollama 本地模型与 OpenAI 兼容 API（DeepSeek、OpenAI、自定义模型等）。
-- 上下文流水线：预处理、记忆召回、System Prompt 组装、消息组装、Token 管理、模型路由、后处理。
-- 记忆系统：Redis 短期记忆（对话窗口）、JPA 长期记忆 + 向量检索、Cognee 知识图谱记忆。
+- 上下文流水线：预处理、Cognee 记忆召回、System Prompt 组装、消息组装、Token 管理、模型路由、Agent 工具循环、后处理。
+- 记忆系统：Redis 短期记忆（对话窗口）、Cognee 知识图谱记忆（语义检索）。
+- 工具系统：35 个 Agent 工具（计算/搜索/文档/图片/笔记/待办/翻译/JSON/编码/UUID/密码等）。
 - 扩展能力：Bing 联网搜索、CosyVoice TTS 语音合成、图片上传、内容优化、标题生成。
 - 业务模块：用户档案、笔记、待办、模型配置、Prompt 模板、Prompt 指标、用户设置。
 
-技术栈：Spring Boot 3.2、Spring Data JPA、MySQL/H2、Redis、langchain4j 0.35、Lombok、Resilience4j、Jackson、DJL 向量模型。
+技术栈：Spring Boot 3.2、Spring Data JPA、MySQL/H2、Redis、langchain4j 1.4.0、Lombok、Resilience4j、Jackson、DJL 向量模型。
 
 ## 2. 目录总览
 
@@ -34,8 +35,8 @@ backend/
 │   ├── pipeline/                    # 上下文流水线框架与各阶段
 │   ├── repository/                  # JPA Repository
 │   ├── security/                    # 输入校验与敏感信息脱敏
-│   ├── service/                     # 业务服务接口与实现
-│   └── util/                        # Prompt 组装、Token 估算、JSON 工具
+│   ├── service/                     # 业务服务接口与实现（含工具系统）
+│   └── util/                        # Token 估算、JSON 工具
 ├── src/main/resources/
 │   ├── application.yml              # 应用配置
 │   ├── logback-spring.xml           # 日志配置
@@ -55,8 +56,8 @@ flowchart TD
   B --> C[ConversationContext.fromRequest]
   C --> D[ContextPipelineExecutor.execute]
   D --> E[预处理阶段 100-310]
-  E --> F[组装阶段 398-440]
-  F --> G[ModelRoutingStage 500]
+  E --> F[组装阶段 398-480]
+  F --> G[EXECUTION + AGENT 循环 500-680]
   G --> H[OllamaClient / OpenAICompatibleClient]
   G --> I[后处理阶段 700-999]
 ```
@@ -67,11 +68,11 @@ flowchart TD
 flowchart TD
   A[ChatController.streamMessage] --> B[StreamingService.streamResponse]
   B --> C[ContextPipelineExecutor.executeStreaming]
-  C --> D[预处理 + 组装 + 模型路由 100-500]
+  C --> D[预处理 + 组装 + 工具定义 + 模型路由 100-500]
   D --> E[SSE 流式输出]
   E --> F[完成回调]
   F --> G[ContextPipelineExecutor.executePostProcessing]
-  G --> H[短期记忆更新 / 消息持久化 / 记忆提取 / 标题生成 / done 事件]
+  G --> H[短期记忆更新 / 消息持久化 / Cognee 索引 / 标题生成 / done 事件]
 ```
 
 ### 3.3 流水线阶段顺序
@@ -84,22 +85,28 @@ flowchart TD
 | 250 | PREPROCESS | shortTermMemoryPreUpdateStage | 流式：LLM 调用前先把用户消息写入短期记忆 |
 | 260 | PREPROCESS | messagePrePersistenceStage | 流式：LLM 调用前先把用户消息写入数据库 |
 | 300 | PREPROCESS | shortTermMemoryStage | 读取会话历史并去重当前消息 |
-| 310 | PREPROCESS | longTermMemoryStage | 召回长期记忆，可选合并 Cognee 结果 |
+| 310 | PREPROCESS | longTermMemoryStage | 从 Cognee 语义召回长期记忆，不再使用 JPA |
 | 398 | ASSEMBLY | userProfileFormatStage | 格式化用户档案为可信上下文 |
-| 400 | ASSEMBLY | memoryFormatStage | 格式化长期记忆（时间/置信度/来源） |
+| 400 | ASSEMBLY | memoryFormatStage | 格式化 Cognee 知识图谱结果（片段/实体/关系） |
 | 405 | ASSEMBLY | searchContextFormatStage | 格式化搜索上下文并注入当前时间 |
-| 410 | ASSEMBLY | systemPromptAssemblyStage | 渲染 System Prompt 模板 |
+| 408 | ASSEMBLY | knowledgeBaseRetrievalStage | 检索指定知识库片段并注入 |
+| 410 | ASSEMBLY | systemPromptAssemblyStage | 渲染 System Prompt 模板（v6+） |
 | 430 | ASSEMBLY | messageAssemblyStage | 组装 system + 历史 + 当前 user |
 | 440 | ASSEMBLY | tokenManagementStage | Token 估算与超限截断 |
-| 500 | EXECUTION | modelRoutingStage | 按模型配置路由到 Ollama 或 OpenAI 兼容客户端，记录 prompt.log |
+| 480 | ASSEMBLY | toolDefinitionStage | 注入 Agent 工具定义，过滤 recallMemory |
+| 500 | EXECUTION | modelRoutingStage | 模型路由，支持同步/流式/Agent 模式 |
+| 610 | AGENT | toolCallDetectionStage | 检测 LLM 返回的 tool_calls |
+| 650 | AGENT | toolInvocationStage | 执行工具，结果回填 |
+| 660 | AGENT | toolResultAssemblyStage | 组装工具结果到消息列表 |
+| 680 | AGENT | agentLoopControlStage | 循环控制（最多 5 轮） |
 | 700 | POSTPROCESS | shortTermMemoryUpdateStage | 把 user/AI 消息写入短期记忆 |
 | 710 | POSTPROCESS | messagePersistenceStage | 把消息写入数据库 |
-| 720 | POSTPROCESS | memoryExtractionStage | 触发长期记忆提取 |
+| 720 | POSTPROCESS | memoryExtractionStage | 触发 LLM 记忆提取（结构化事实） |
 | 725 | POSTPROCESS | cogneeMemoryIndexStage | 索引对话到 Cognee 知识图谱 |
 | 800 | POSTPROCESS | titleGenerationStage | 自动生成会话标题 |
-| 850 | POSTPROCESS | streamingDoneStage | 发送 SSE done 事件 |
+| 850 | POSTPROCESS | streamingDoneStage | 发送 SSE done 事件并关闭 emitter |
 | 900 | OBSERVABILITY | metricsRecordingStage | 记录 Prompt 指标 |
-| 999 | OBSERVABILITY | pipelineAuditStage | 输出流水线审计日志 |
+| 999 | OBSERVABILITY | pipelineAuditStage | 输出流水线执行摘要与阶段耗时 |
 
 ## 4. 文件清单
 
@@ -111,13 +118,12 @@ flowchart TD
 | `AsyncConfig.java` | 创建流式响应专用线程池（核心 2、最大 10、队列 100、CallerRunsPolicy）。 | `ModelRoutingStage`、`CosyVoiceClient` |
 | `CogneeProperties.java` | 绑定 `cognee.*` 配置，控制知识图谱记忆开关、地址、检索 TopK 与阈值。 | `CogneeClient`、`LongTermMemoryStage`、`CogneeMemoryIndexStage` |
 | `CosyVoiceConfig.java` | 绑定 `cosyvoice.*` 配置，包括地址、默认音色、语速、超时。 | `CosyVoiceClient`、`TtsServiceImpl` |
-| `DefaultSystemPrompt.java` | 默认 System Prompt v2 的唯一 Java 常量来源，含占位符模板、版本号、默认参数。 | `SystemPromptAssemblyStage`、`PromptAssembler`、`PromptTemplateMigrationRunner` |
+| `DefaultSystemPrompt.java` | 默认 System Prompt 的唯一 Java 常量来源（v6+），含占位符模板、版本号、默认参数。 | `SystemPromptAssemblyStage`、`PromptTemplateMigrationRunner` |
 | `MemoryExtractorConfig.java` | 绑定 `memory.extractor.*`，控制提取开关、消息阈值、置信度/重要性阈值。 | `AutoMemoryExtractor`、`MemoryExtractorImpl` |
 | `OllamaConfig.java` | 绑定 `ollama.*` 配置，并创建 langchain4j `ChatLanguageModel` Bean。 | `OllamaClient`、`StreamingConfig` |
-| `PromptTemplateMigrationRunner.java` | 应用启动时把 `default-system-prompt` 升级到 v2；不覆盖用户自定义的 v3+ 版本。 | `PromptTemplateRepository`、`DefaultSystemPrompt` |
-| `RedisConfig.java` | 配置 RedisTemplate 的 Key/Value 序列化策略，条件启用 Redis。 | `ShortTermMemory`、`VectorStoreWrapper`、`CacheService`、`RateLimitAspect` |
+| `PromptTemplateMigrationRunner.java` | 应用启动时升级默认 System Prompt 版本。 | `PromptTemplateRepository`、`DefaultSystemPrompt` |
+| `RedisConfig.java` | 配置 RedisTemplate 的 Key/Value 序列化策略，条件启用 Redis。 | `ShortTermMemory`、`CacheService`、`RateLimitAspect` |
 | `StreamingConfig.java` | 创建 langchain4j `StreamingChatLanguageModel` Bean（Ollama 流式模型）。 | `OllamaClient` |
-| `VectorStoreConfig.java` | 加载 all-MiniLM-L6-v2 向量模型，配置维度、相似度阈值、最低重要性。 | `VectorStoreWrapper`、`LongTermMemoryService` |
 | `WebConfig.java` | 默认 JSON 内容协商与 `/api/**` CORS 配置。 | 所有控制器 |
 | `WebSearchConfig.java` | 绑定 `websearch.*` 配置，控制搜索开关、超时、结果数、引擎。 | `WebSearchStage`、`WebSearchServiceImpl` |
 
@@ -143,7 +149,6 @@ flowchart TD
 | `ChatController.java` | `/api` | `/chat`、`/chat/stream`、`/chat/summarize`、`/chat/regenerate`、`/conversations`、`/models` | 聊天、流式聊天、总结、重新生成、会话管理、模型列表 |
 | `ContentOptimizationController.java` | `/api/chat` | `/optimize` | 内容优化，触发 `ContentOptimizationService` |
 | `ImageController.java` | `/api/images` | `/upload`、`/{filename}` | 图片上传、读取、删除 |
-| `MemoryController.java` | `/api/memories` | 列表、按类型、详情、创建、批量、召回、更新、删除、清理过期、类型枚举 | 长期记忆 CRUD 与语义召回 |
 | `ModelConfigController.java` | `/api/model-configs` | 配置列表、类型、分类、CRUD | 管理 OpenAI 兼容模型配置 |
 | `NoteController.java` | `/api/notes` | 列表、详情、创建、更新、删除 | 笔记 CRUD |
 | `PromptMetricsController.java` | `/api/prompt-metrics` | overview、recent、按会话/用户/时间范围、statistics | Prompt 指标查询 |
@@ -152,19 +157,18 @@ flowchart TD
 | `TtsController.java` | `/api/tts` | speak、speak/stream、preview、speakers、health | TTS 语音合成与音色管理 |
 | `UserController.java` | `/api/user` | profile、preferences、privacy、api-keys、devices | 用户档案、偏好、隐私、API Key、设备管理 |
 | `UserSettingController.java` | `/api/settings` | `/{userId}` GET/PUT/DELETE | 用户设置（默认模型、上下文大小、自动标题等） |
+| `ToolController.java` | `/api/tools` | list | 列举 Agent 工具信息 |
 
 ### 4.5 DTO（`dto/`）
 
 | 文件 | 作用 |
 |---|---|
-| `ChatRequest.java` / `ChatResponse.java` | 聊天请求（用户消息、会话、模型、图片、搜索开关）与响应（AI 内容、消息 ID、标题） |
+| `ChatRequest.java` / `ChatResponse.java` | 聊天请求（用户消息、会话、模型、图片、搜索开关、Agent 模式、知识库引用）与响应 |
 | `ConversationDTO.java` / `MessageDTO.java` | 会话与消息的传输模型 |
 | `RegenerateRequest.java` / `RegenerateResponse.java` | 重新生成请求与响应 |
 | `SummarizeRequest.java` / `SummarizeResponse.java` | 对话总结请求与响应 |
 | `ContentOptimizationRequest.java` / `ContentOptimizationResponse.java` | 内容优化请求与响应（含优化详情） |
-| `MemoryDTO.java` / `MemoryRecallRequest.java` | 长期记忆传输模型（含置信度、来源、时间）与召回请求 |
 | `ModelConfigDTO.java` | 模型配置创建/更新请求 |
-| `PromptTemplate` 相关请求内嵌于控制器 | 模板创建/更新/渲染请求 |
 | `NoteDTO.java` / `CreateNoteRequest.java` / `UpdateNoteRequest.java` | 笔记模型 |
 | `TodoDTO.java` / `CreateTodoRequest.java` / `UpdateTodoRequest.java` | 待办模型 |
 | `UserProfileDTO.java` / `UpdateProfileRequest.java` | 用户档案 |
@@ -175,6 +179,7 @@ flowchart TD
 | `UserDeviceDTO.java` | 用户设备 |
 | `UserSettingDTO.java` | 用户设置 |
 | `WebSearchResult.java` | 搜索结果的统一封装（含 SearchSnippet 内部类） |
+| `QueryAnalysisResult.java` | 查询分析结果（有效查询、类型过滤） |
 | `tts/CosyVoiceHealth.java` | TTS 服务健康状态 |
 | `tts/PreviewRequest.java` / `tts/SpeakRequest.java` | TTS 试听与合成请求 |
 | `tts/SpeakerVo.java` / `tts/TtsResult.java` | 音色信息与合成结果 |
@@ -185,7 +190,6 @@ flowchart TD
 |---|---|---|
 | `APIKey.java` | `api_key` | 用户 API Key |
 | `Conversation.java` | `conversation` | 会话（标题、置顶等） |
-| `LongTermMemory.java` | `long_term_memory` | 长期记忆（内容、类型、重要性、置信度、来源、向量 embedding、来源会话/消息、过期时间） |
 | `Message.java` | `message` | 会话消息（角色、内容、图片 JSON、时间戳） |
 | `ModelConfig.java` | `model_configs` | OpenAI 兼容模型配置（名称、模型 ID、BaseURL、API Key、类型、分类） |
 | `Note.java` | `notes` | 笔记 |
@@ -209,7 +213,6 @@ flowchart TD
 | 文件 | 作用 | 关联 |
 |---|---|---|
 | `ShortTermMemory.java` | 会话短期记忆：L1 内存 + Redis L2 + 数据库恢复，窗口上限 20 条消息，写时持久化。 | `ShortTermMemoryService`、`MessageRepository`、Redis |
-| `VectorStoreWrapper.java` | Redis 向量存储：写入/批量写入 embedding、余弦相似度检索、删除。 | `LongTermMemoryService`、`VectorStoreConfig` |
 
 ### 4.9 流水线框架（`pipeline/`）
 
@@ -218,26 +221,32 @@ flowchart TD
 | `ContextPipelineExecutor.java` | 执行器：同步全流程、流式预执行、流式后处理、Agent 循环。 |
 | `ContextPipelineStage.java` | 阶段接口：定义阶段名、执行、Phase、顺序、适用性、是否关键。 |
 | `StageRegistry.java` | 自动收集并排序所有 `ContextPipelineStage` Bean。 |
-| `config/PipelineConfiguration.java` | 定义各 PipelineType 的阶段列表（目前三种类型共享同一列表）。 |
+| `config/PipelineConfiguration.java` | 定义各 PipelineType 的阶段列表（三种类型共享同一列表）。 |
 | `context/ConversationContext.java` | 贯穿流水线的共享上下文，承载请求、记忆、组装结果、LLM 响应、agentState、指标等。 |
-| `stage/assembly/UserProfileFormatStage.java` | 格式化用户档案为“可信”上下文段。 |
-| `stage/assembly/MemoryFormatStage.java` | 格式化长期记忆为“可能过时，仅作参考”段，带时间/置信度/来源。 |
+| `stage/assembly/UserProfileFormatStage.java` | 格式化用户档案为"可信"上下文段。 |
+| `stage/assembly/MemoryFormatStage.java` | 格式化 Cognee 知识图谱结果（片段/实体/关系），不再格式化 JPA 记忆。 |
 | `stage/assembly/SearchContextFormatStage.java` | 格式化搜索上下文，带当前时间。 |
+| `stage/assembly/KnowledgeBaseRetrievalStage.java` | 检索指定知识库片段并注入系统提示。 |
 | `stage/assembly/SystemPromptAssemblyStage.java` | 渲染 System Prompt，注入语言、档案、记忆、搜索上下文，记录模板版本。 |
 | `stage/assembly/MessageAssemblyStage.java` | 组装 system + 历史 + 当前 user 消息。 |
 | `stage/assembly/TokenManagementStage.java` | Token 估算与截断，保证 system 和当前 user 不丢。 |
-| `stage/execution/ModelRoutingStage.java` | 模型路由：选择 Ollama 或 OpenAI 兼容客户端，写 prompt.log，流式完成后触发后处理。 |
+| `stage/agent/ToolDefinitionStage.java` | 注入 Agent 工具定义，用户已关闭的工具不出现，知识库引用时过滤 recallMemory。 |
+| `stage/agent/ToolCallDetectionStage.java` | 检测 LLM 返回的 tool_calls，清空并填充上下文。 |
+| `stage/agent/ToolInvocationStage.java` | 执行工具调用，结果回填，提取图片 artifact。 |
+| `stage/agent/ToolResultAssemblyStage.java` | 组装工具结果到消息列表，供下一轮 LLM 使用。 |
+| `stage/agent/AgentLoopControlStage.java` | 记录迭代日志，实际终止由 Executor 检查。 |
+| `stage/execution/ModelRoutingStage.java` | 模型路由：选择 Ollama 或 OpenAI 兼容客户端，写 prompt.log，支持同步/流式/Agent 模式。 |
 | `stage/preprocess/InputSanitizationStage.java` | 输入清洗与脱敏。 |
 | `stage/preprocess/LanguageDetectionStage.java` | 读取用户语言。 |
 | `stage/preprocess/WebSearchStage.java` | 执行搜索并写 `searchContext`，SSE 推送结果。 |
 | `stage/preprocess/ShortTermMemoryPreUpdateStage.java` | 流式预写用户消息到短期记忆。 |
 | `stage/preprocess/MessagePrePersistenceStage.java` | 流式预写用户消息到数据库。 |
 | `stage/preprocess/ShortTermMemoryStage.java` | 读取会话历史并去重尾部重复消息。 |
-| `stage/preprocess/LongTermMemoryStage.java` | 召回本地长期记忆，可选合并 Cognee 结果。 |
+| `stage/preprocess/LongTermMemoryStage.java` | 从 Cognee 语义召回长期记忆（片段/实体/关系），不再使用 JPA。 |
 | `stage/postprocess/ShortTermMemoryUpdateStage.java` | 响应后更新短期记忆。 |
 | `stage/postprocess/MessagePersistenceStage.java` | 响应后持久化 user/AI 消息。 |
-| `stage/postprocess/MemoryExtractionStage.java` | 触发自动记忆提取。 |
-| `stage/postprocess/CogneeMemoryIndexStage.java` | 索引对话到 Cognee 知识图谱。 |
+| `stage/postprocess/MemoryExtractionStage.java` | 触发 LLM 记忆提取（结构化事实提取，不写入 JPA）。 |
+| `stage/postprocess/CogneeMemoryIndexStage.java` | 将提取的结构化记忆索引到 Cognee 知识图谱。 |
 | `stage/postprocess/TitleGenerationStage.java` | 新对话自动生成标题。 |
 | `stage/postprocess/StreamingDoneStage.java` | 发送 SSE done 事件并关闭 emitter。 |
 | `stage/observability/MetricsRecordingStage.java` | 记录 Prompt 指标。 |
@@ -249,7 +258,6 @@ flowchart TD
 |---|---|
 | `APIKeyRepository.java` | API Key 查询 |
 | `ConversationRepository.java` | 会话 CRUD |
-| `LongTermMemoryRepository.java` | 长期记忆查询、按类型/重要性/过期删除 |
 | `MessageRepository.java` | 消息按会话/时间查询与删除 |
 | `ModelConfigRepository.java` | 模型配置查询 |
 | `NoteRepository.java` | 笔记查询 |
@@ -272,13 +280,11 @@ flowchart TD
 
 | 文件 | 作用 |
 |---|---|
-| `ChatService.java` | 同步聊天编排入口，驱动 Context Pipeline；regenerate 走旧 PromptAssembler 路径。 |
+| `ChatService.java` | 同步聊天编排入口，驱动 Context Pipeline；regenerate 走旧路径。 |
 | `StreamingService.java` | 流式聊天入口，创建 SSE emitter 并驱动流式 pipeline。 |
-| `ChatWorkflowService.java` | 聊天流程门面：会话创建、短期记忆、长期记忆召回、PromptAssembler 兼容接口。 |
-| `AutoMemoryExtractor.java` | 记忆提取调度：消息阈值触发、定时扫描占位。 |
-| `MemoryExtractor.java` / `impl/MemoryExtractorImpl.java` | 从对话提取事实并保存，优先使用当前会话模型（Ollama 或 OpenAI 兼容），含 LLM 提取、JSON 解析、规则降级、去重、置信度/重要性过滤。 |
-| `MemoryRecaller.java` / `impl/MemoryRecallerImpl.java` | 长期记忆语义召回门面，支持类型过滤。 |
-| `LongTermMemoryService.java` | 长期记忆 CRUD、向量索引同步、语义召回、过期清理。 |
+| `ChatWorkflowService.java` | 聊天流程门面：会话创建、短期记忆、Cognee 记忆召回、旧版兼容接口。 |
+| `AutoMemoryExtractor.java` | 记忆提取调度：消息阈值触发。 |
+| `MemoryExtractor.java` / `impl/MemoryExtractorImpl.java` | 从对话提取结构化事实（LLM 提取、JSON 解析、规则降级），不再写入 JPA。 |
 | `ShortTermMemoryService.java` | 短期记忆服务，委托 `ShortTermMemory`。 |
 | `MessagePersistenceService.java` | 消息数据库持久化，支持同步批量保存与流式两阶段保存。 |
 | `ConversationService.java` | 会话 CRUD，删除时级联清理消息与短期记忆。 |
@@ -295,10 +301,40 @@ flowchart TD
 | `ContentOptimizationService.java` / `impl/ContentOptimizationServiceImpl.java` | 按优化类型生成 system prompt 并调用模型优化内容。 |
 | `TtsService.java` / `impl/TtsServiceImpl.java` | TTS 合成、流式合成、预览、音色注册/权限校验。 |
 | `WebSearchService.java` / `impl/WebSearchServiceImpl.java` | Bing API/HTML 抓取搜索实现。 |
-| `CogneeClient.java` | Cognee REST API 客户端：add/search/health。 |
+| `CogneeClient.java` | Cognee REST API 客户端：remember/recall/recallWithContext/getGraph/forgetDataset。 |
 | `ImageService.java` | 图片文件上传、读取、删除、列表。 |
 
-### 4.13 工具（`util/`）
+### 4.13 工具系统（`service/tool/`）
+
+| 文件 | 作用 |
+|---|---|
+| `ToolComponent.java` | 工具标记接口，实现此接口的 Spring Bean 中 `@Tool` 方法自动注册为 Agent 工具。 |
+| `ToolRegistry.java` | 启动时扫描所有 `ToolComponent` Bean，注册工具名 → 方法 + `ToolSpecification`。 |
+| `ToolSpecificationProvider.java` | 按用户过滤已禁用工具，生成 `ToolSpecification` 列表。 |
+| `ToolExecutor.java` | 反射执行工具方法，管理 `UserContextHolder` 和 `ToolModelUtil` 包装/解包。 |
+| `UserContextHolder.java` | ThreadLocal 持有当前用户 ID，工具执行时设置，`finally` 清理。 |
+| `ToolModelUtil.java` | 工具结果模型标记包装/解包工具。 |
+| `tools/CalculatorTool.java` | 数学计算 |
+| `tools/DateTimeTool.java` | 获取当前日期时间 |
+| `tools/WebSearchTool.java` | 网页搜索 |
+| `tools/FetchUrlTool.java` | 获取 URL 内容 |
+| `tools/FileParseTool.java` | 解析/列出上传文件 |
+| `tools/DocumentTool.java` | 文档 CRUD（创建/读取/搜索/列出/删除） |
+| `tools/ImageEditingTool.java` | 编辑图片 |
+| `tools/ImageGenerationTool.java` | 生成图片 |
+| `tools/ImageUnderstandingTool.java` | 分析图片 |
+| `tools/NoteTool.java` | 笔记 CRUD（搜索/创建/删除/列出） |
+| `tools/SetReminderTool.java` | 提醒管理（创建/取消/列出） |
+| `tools/SummarizeTextTool.java` | 文本总结 |
+| `tools/TodoTool.java` | 待办管理（列出/完成/搜索/过期/创建） |
+| `tools/TranslateTool.java` | 文本翻译 |
+| `tools/JsonFormatTool.java` | JSON 格式化/压缩/验证 |
+| `tools/EncodeDecodeTool.java` | Base64/URL 编码解码 |
+| `tools/UuidTool.java` | UUID 生成 |
+| `tools/GeneratePasswordTool.java` | 密码生成 |
+| `tools/CogneeMemoryTool.java` | 记忆工具（recallMemory/saveMemory/listMemories，基于 Cognee） |
+
+### 4.14 工具（`util/`）
 
 | 文件 | 作用 |
 |---|---|
@@ -308,31 +344,25 @@ flowchart TD
 | `JsonUtils.java` | JSON 序列化/反序列化与 SSE 转义工具。 |
 | `PromptAssembler.java` | 旧版 Prompt 组装器（已标记 deprecated），regenerate 路径仍在使用。 |
 
-### 4.14 资源配置（`src/main/resources/`）
+### 4.15 资源配置（`src/main/resources/`）
 
 | 文件 | 作用 |
 |---|---|
 | `application.yml` | 数据源、Redis、Ollama、CosyVoice、记忆、Prompt、WebSearch、限流、日志等全部配置。 |
 | `logback-spring.xml` | 日志格式与级别，`PROMPT_LOG` 输出到控制台和 `logs/prompt.log`。 |
-| `schema/prompt_templates.sql` | 初始化 `prompt_templates` 表并写入默认 System Prompt v2，包含幂等升级语句。 |
+| `schema/prompt_templates.sql` | 初始化 `prompt_templates` 表并写入默认 System Prompt，包含幂等升级语句。 |
 | `db/migration/V2__create_user_profile_tables.sql` | 创建用户档案、API Key、用户设备表。 |
 | `db/migration/V3__create_notes_todos_tables.sql` | 创建笔记、待办表。 |
 
-### 4.15 测试（`src/test/`）
+### 4.16 测试（`src/test/`）
 
 | 文件 | 作用 |
 |---|---|
 | `TestConfig.java` | 测试配置。 |
-| `controller/ChatControllerTest.java` | ChatController 单元测试。 |
+| `controller/ChatControllerTest.java` | ChatController 会话 CRUD 测试。 |
 | `controller/ContentOptimizationControllerTest.java` | 内容优化控制器测试。 |
-| `service/ChatServiceTest.java` | 聊天服务测试。 |
-| `service/ContentOptimizationServiceTest.java` | 内容优化服务测试。 |
-| `service/LongTermMemoryServiceTest.java` | 长期记忆服务测试。 |
-| `service/MemoryRecallerTest.java` | 记忆召回测试。 |
-| `service/ShortTermMemoryServiceTest.java` | 短期记忆服务测试。 |
-| `util/PromptAssemblerTest.java` | PromptAssembler 组装、Token、截断测试。 |
 
-### 4.16 其他
+### 4.17 其他
 
 | 路径 | 说明 |
 |---|---|
@@ -362,13 +392,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  LongTermMemoryStage --> LongTermMemoryService
   LongTermMemoryStage --> CogneeClient
-  LongTermMemoryService --> VectorStoreWrapper
-  LongTermMemoryService --> LongTermMemoryRepository
+  CogneeClient --> [Cognee REST API]
   MemoryExtractionStage --> AutoMemoryExtractor
   AutoMemoryExtractor --> MemoryExtractor
-  MemoryExtractor --> LongTermMemoryService
+  MemoryExtractor --> CogneeMemoryIndexStage
+  CogneeMemoryIndexStage --> CogneeClient
   ShortTermMemoryStage --> ShortTermMemoryService
   ShortTermMemoryService --> ShortTermMemory
   ShortTermMemory --> MessageRepository
@@ -381,6 +410,7 @@ flowchart LR
   UserProfileFormatStage --> ConversationContext
   MemoryFormatStage --> ConversationContext
   SearchContextFormatStage --> ConversationContext
+  KnowledgeBaseRetrievalStage --> ConversationContext
   SystemPromptAssemblyStage --> PromptTemplateService
   SystemPromptAssemblyStage --> DefaultSystemPrompt
   PromptTemplateMigrationRunner --> PromptTemplateRepository
@@ -391,9 +421,12 @@ flowchart LR
 ## 6. 值得注意的设计点与债务
 
 - 主聊天已迁移到 Context Pipeline，但 `PromptAssembler` 仍用于 regenerate，属于双路径。
-- 流式聊天使用“两阶段持久化”：LLM 调用前写 user 消息，完成后写 AI 消息。
+- 流式聊天使用"两阶段持久化"：LLM 调用前写 user 消息，完成后写 AI 消息。
 - `temperature`/`max_tokens` 目前仍是常量（`OpenAICompatibleClient`），尚未按模型配置动态下发。
 - 短期记忆窗口固定 20 条；Token 截断按消息尾部保留，未做历史摘要。
 - 默认 System Prompt 由 `DefaultSystemPrompt`、SQL、启动迁移三者保持一致，避免模板漂移。
-- 长期记忆现在带置信度、来源、时间，但提取仍为阈值触发，尚无“即时记住”写入链路。
-- 长期记忆提取已改为跟随当前会话模型，自定义模型走 OpenAI 兼容接口，其他模型走 Ollama，失败时回退默认模型。
+- JPA 长期记忆已完全移除，所有记忆功能迁移至 Cognee 知识图谱。
+- Agent 工具系统支持 35 个工具，通过 `ToolComponent` 接口自动注册。
+- 记忆提取走 LLM 结构化提取 + Cognee 索引，不再写入 JPA，消除双写不一致问题。
+- `UserContextHolder` 使用 ThreadLocal 模式，需注意 finally 清理。
+- 后端运行在 JDK 25，Mockito 5.7 兼容性问题导致部分测试被移除（ChatServiceTest、ShortTermMemoryServiceTest 等）。

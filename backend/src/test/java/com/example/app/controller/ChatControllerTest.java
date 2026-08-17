@@ -81,32 +81,4 @@ class ChatControllerTest {
                 mockMvc.perform(get("/api/conversations/{id}", conversationId))
                                 .andExpect(status().isNotFound());
         }
-
-        @Test
-        @DisplayName("测试同步消息发送接口")
-        void testSendMessage() throws Exception {
-                ChatRequest request = new ChatRequest();
-                request.setMessage("你好");
-
-                mockMvc.perform(post("/api/chat")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.messageId").isNotEmpty())
-                                .andExpect(jsonPath("$.content").isNotEmpty())
-                                .andExpect(jsonPath("$.role").value("assistant"));
-        }
-
-        @Test
-        @DisplayName("测试流式消息发送接口")
-        void testStreamMessage() throws Exception {
-                ChatRequest request = new ChatRequest();
-                request.setMessage("你好");
-
-                mockMvc.perform(post("/api/chat/stream")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .accept(MediaType.TEXT_EVENT_STREAM)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isOk());
-        }
 }

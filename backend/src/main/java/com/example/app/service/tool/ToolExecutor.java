@@ -57,8 +57,8 @@ public class ToolExecutor {
 
         long t0 = System.currentTimeMillis();
         // 在工具执行期间把 userId 暴露给工具（工具可能读取工具箱配置的默认模型等）
-        UserContextHolder.set(userId);
-        try {
+        // try-with-resources 自动调用 UserContextHolder.clear()，确保 ThreadLocal 不泄漏
+        try (var ignored = UserContextHolder.set(userId)) {
             DefaultToolExecutor delegate = new DefaultToolExecutor(toolOpt.get(), methodOpt.get());
             String raw = delegate.execute(request, null);
             // 剥离工具内嵌的模型标记，模型单独取出供展示，内容保持纯净（回填 LLM）。
@@ -75,8 +75,6 @@ public class ToolExecutor {
             log.error("[ToolExecutor] '{}' failed in {}ms: {}", toolName, elapsed, e.getMessage(), e);
             return new ConversationContext.ToolResultRecord(
                     toolName, call.toolCallId(), null, false, e.getMessage(), null);
-        } finally {
-            UserContextHolder.clear();
         }
     }
 }
