@@ -54,6 +54,19 @@ public class LongTermMemoryStage implements ContextPipelineStage {
                 return;
             }
 
+            // ── 用户显式引用知识库时，跳过 main_dataset 召回 ─────
+            // 用户通过 @ 指定了知识库，KnowledgeBaseRetrievalStage(408) 会从指定库召回，
+            // 此时不应再从 main_dataset 兜底检索，避免语义冲突。
+            boolean hasExplicitKbRefs = ctx.getKnowledgeBaseIds() != null
+                    && !ctx.getKnowledgeBaseIds().isEmpty();
+            if (hasExplicitKbRefs) {
+                log.info("[LongTermMemory] Skip main_dataset recall (KB refs present: {})",
+                        ctx.getKnowledgeBaseIds());
+                ctx.setCogneeContext(new ConversationContext.CogneeContext(
+                        List.of(), List.of(), List.of()));
+                return;
+            }
+
             // ── Query Understanding ────────────────────────────
             QueryAnalysisResult analysis = ctx.getQueryAnalysisResult();
             String recallQuery = analysis != null
