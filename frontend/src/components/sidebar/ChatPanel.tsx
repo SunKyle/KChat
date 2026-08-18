@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '../../context/ChatContext'
 import { useConversation } from '../../hooks/useConversation'
 import { ConversationItem } from './ConversationItem'
-import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 
 interface ChatPanelProps {
   onToggle: () => void
@@ -47,35 +47,6 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
   } = useChat()
 
   const { create, update, pin, select } = useConversation()
-
-  const [highlightRect, setHighlightRect] = useState<{ top: number; height: number } | null>(null)
-  const itemRefs = useRef<Map<string, HTMLElement>>(new Map())
-
-  const registerItemRef = useCallback((id: string, el: HTMLElement | null) => {
-    if (el) {
-      itemRefs.current.set(id, el)
-    } else {
-      itemRefs.current.delete(id)
-    }
-  }, [])
-
-  const measureActiveItem = useCallback(() => {
-    if (!activeConversation?.id || !scrollContainerRef.current) {
-      setHighlightRect(null)
-      return
-    }
-    const el = itemRefs.current.get(activeConversation.id)
-    if (!el) {
-      setHighlightRect(null)
-      return
-    }
-    const containerRect = scrollContainerRef.current.getBoundingClientRect()
-    const elRect = el.getBoundingClientRect()
-    setHighlightRect({
-      top: elRect.top - containerRect.top + scrollContainerRef.current.scrollTop,
-      height: elRect.height,
-    })
-  }, [activeConversation?.id])
 
   const toggleGroup = (group: string) => {
     const newExpanded = new Set(expandedGroups)
@@ -128,21 +99,6 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
   const filteredGrouped = useMemo(() => {
     return groupConversationsByList(filteredConversations)
   }, [filteredConversations, groupConversationsByList])
-
-  useLayoutEffect(() => {
-    measureActiveItem()
-  }, [measureActiveItem, filteredGrouped, expandedGroups])
-
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
-    container.addEventListener('scroll', measureActiveItem, { passive: true })
-    window.addEventListener('resize', measureActiveItem)
-    return () => {
-      container.removeEventListener('scroll', measureActiveItem)
-      window.removeEventListener('resize', measureActiveItem)
-    }
-  }, [measureActiveItem])
 
   // 新增/切换会话时自动展开对应分组并滚动到激活项
   useEffect(() => {
@@ -291,15 +247,7 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
         ref={scrollContainerRef}
         className='flex-1 overflow-y-auto py-2 px-2 scrollbar-auto-hide relative'
       >
-        {highlightRect && (
-          <motion.div
-            className='absolute left-2 right-2 active-item-highlight rounded-lg pointer-events-none z-0'
-            animate={{ top: highlightRect.top, height: highlightRect.height }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          />
-        )}
-        <div className='relative z-[1]'>
-          {conversations.length === 0 ? (
+        {conversations.length === 0 ? (
             <div className='text-center py-12 px-4'>
               <div className='w-12 h-12 mx-auto mb-4 rounded-full theme-bg-hover/50 flex items-center justify-center'>
                 <MessageSquare className='w-5 h-5 theme-text-muted' />
@@ -384,7 +332,6 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
                             collapsed={false}
                             index={idx}
                             total={items.length}
-                            registerRef={registerItemRef}
                           />
                         </motion.div>
                       ))}
@@ -394,7 +341,6 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
               ))}
             </div>
           )}
-        </div>
       </div>
     </div>
   )

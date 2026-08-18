@@ -176,15 +176,12 @@ export const ConversationItem = memo(
         ref={(el) => registerRef?.(conversation.id, el)}
         className={`group relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-lg cursor-pointer transition-[background-color,transform] duration-200 ease-out focus-ring border-2 ${
           isActive
-            ? 'border-transparent'
+            ? 'bg-brand-selected border-transparent'
             : 'hover:theme-bg-hover hover:translate-y-[-1px] border-transparent'
-        } ${isStreaming && !isActive ? 'animate-stream-bg' : ''}`}
+        }`}
         style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 40px' }}
       >
-        {isActive && (
-          <div className='absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--brand-primary)]' />
-        )}
-        <div className='flex-1 min-w-0 pr-12 relative'>
+        <div className='flex-1 min-w-0 relative'>
           {isEditing ? (
             <input
               ref={inputRef}
@@ -199,7 +196,7 @@ export const ConversationItem = memo(
           ) : (
             <p
               title={conversation.title}
-              className={`font-conversation-name truncate transition-colors duration-150 ${
+              className={`font-conversation-name truncate pr-24 transition-colors duration-150 ${
                 isActive
                   ? 'theme-brand-primary font-semibold'
                   : hasNewReply
