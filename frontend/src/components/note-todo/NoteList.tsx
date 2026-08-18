@@ -43,77 +43,75 @@ function NoteListItem({
       onClick={onSelect}
     >
       <div className='p-4'>
-        <div className='flex items-start gap-2 min-w-0'>
-          <div className='flex-1 min-w-0'>
-            <h3 className='text-base font-semibold text-[var(--text-primary)] leading-tight pr-16'>
-              {note.title || '无标题'}
-            </h3>
-            <p className='text-sm text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed'>
-              {getContentPreview(note.content)}
-            </p>
-            <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
-              <div className='flex items-center gap-2 flex-wrap'>
-                <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}
-                >
-                  {note.category}
-                </span>
-                {note.tags.slice(0, 2).map((tag) => (
-                  <span
-                    key={tag}
-                    className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-              <span className='text-xs text-[var(--text-muted)]/60 flex-shrink-0'>
-                {formatDateFull(note.updatedAt)}
-              </span>
-            </div>
+        <div className='flex items-start justify-between gap-2 min-w-0'>
+          <h3 className='flex-1 min-w-0 text-base font-semibold text-[var(--text-primary)] leading-tight truncate'>
+            {note.title || '无标题'}
+          </h3>
+          <div className='flex-shrink-0 -mt-1 -mr-2 flex items-center gap-0.5 p-0.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)] shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto'>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onPin()
+              }}
+              className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+              aria-label={note.pinned ? '取消置顶' : '置顶'}
+            >
+              <Pin
+                className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
+              />
+            </button>
+            <button
+              onClick={handleDownload}
+              className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+              aria-label='下载'
+            >
+              <Download className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit()
+              }}
+              className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+              aria-label='编辑'
+            >
+              <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete()
+              }}
+              className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+              aria-label='删除'
+            >
+              <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+            </button>
           </div>
         </div>
-      </div>
-      <div className='absolute top-2.5 right-2.5 flex items-center gap-0.5 p-1 rounded-lg bg-[var(--bg-card)]/95 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto translate-x-1 group-hover:translate-x-0'>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onPin()
-          }}
-          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
-          aria-label={note.pinned ? '取消置顶' : '置顶'}
-        >
-          <Pin
-            className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
-          />
-        </button>
-        <button
-          onClick={handleDownload}
-          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
-          aria-label='下载'
-        >
-          <Download className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onEdit()
-          }}
-          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
-          aria-label='编辑'
-        >
-          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete()
-          }}
-          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
-          aria-label='删除'
-        >
-          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
-        </button>
+        <p className='text-sm text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed'>
+          {getContentPreview(note.content)}
+        </p>
+        <div className='flex items-center justify-between mt-3 flex-wrap gap-2'>
+          <div className='flex items-center gap-2 flex-wrap'>
+            <span
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryStyles(note.category).bg} ${getCategoryStyles(note.category).text} ${getCategoryStyles(note.category).border}`}
+            >
+              {note.category}
+            </span>
+            {note.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+          <span className='text-xs text-[var(--text-muted)]/60 flex-shrink-0'>
+            {formatDateFull(note.updatedAt)}
+          </span>
+        </div>
       </div>
     </div>
   )
