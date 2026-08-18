@@ -1,5 +1,11 @@
 import { request, requestStream, uploadFile, requestSSE } from './client'
-import type { AgentThinkingStep, Conversation, Message, ChatRequest } from '../types'
+import type {
+  AgentThinkingStep,
+  Conversation,
+  Message,
+  ChatRequest,
+  KbReference,
+} from '../types'
 
 export const conversations = {
   list: async (): Promise<Conversation[]> => {
@@ -67,7 +73,7 @@ export const chat = {
       messageId: string,
       title?: string,
       artifacts?: Array<{ type: string; url: string; text?: string }>,
-      kbReferences?: string[]
+      kbReferences?: KbReference[]
     ) => void,
     onError: (error: Error) => void,
     controller?: AbortController,

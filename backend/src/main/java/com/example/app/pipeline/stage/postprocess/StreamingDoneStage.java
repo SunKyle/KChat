@@ -26,8 +26,8 @@ public class StreamingDoneStage implements ContextPipelineStage {
         String artifactsJson = ctx.getArtifacts() != null
                 ? JsonUtils.toJson(ctx.getArtifacts())
                 : "[]";
-        String kbRefsJson = ctx.getKbReferenceNames() != null
-                ? JsonUtils.toJson(ctx.getKbReferenceNames())
+        String kbRefsJson = ctx.getKbReferences() != null
+                ? JsonUtils.toJson(ctx.getKbReferences())
                 : "[]";
         StringBuilder doneData = new StringBuilder(
                 "{\"messageId\": \"" + ctx.getAiMessageId() + "\"");

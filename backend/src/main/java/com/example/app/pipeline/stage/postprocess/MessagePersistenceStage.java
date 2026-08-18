@@ -37,14 +37,14 @@ public class MessagePersistenceStage implements ContextPipelineStage {
             String aiMessageId = messagePersistenceService.saveAiMessage(
                     ctx.getConversationId(), messageId,
                     ctx.getLlmResponse(), ctx.getArtifacts(),
-                    ctx.getAgentThinkingSteps(), ctx.getKbReferenceNames());
+                    ctx.getAgentThinkingSteps(), ctx.getKbReferences());
             ctx.setAiMessageId(aiMessageId);
         } else {
             // Sync: save AI response (user message not yet persisted)
             String aiMessageId = messagePersistenceService.saveAiMessage(
                     ctx.getConversationId(), messageId,
                     ctx.getLlmResponse(), ctx.getArtifacts(),
-                    ctx.getAgentThinkingSteps(), ctx.getKbReferenceNames());
+                    ctx.getAgentThinkingSteps(), ctx.getKbReferences());
             ctx.setAiMessageId(aiMessageId);
         }
     }

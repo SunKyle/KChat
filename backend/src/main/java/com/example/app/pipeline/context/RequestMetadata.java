@@ -1,5 +1,6 @@
 package com.example.app.pipeline.context;
 
+import com.example.app.dto.KbReference;
 import lombok.Builder;
 import lombok.Data;
 
@@ -25,10 +26,10 @@ public class RequestMetadata {
     private List<String> knowledgeBaseIds;
 
     /**
-     * 引用的知识库名称列表（KnowledgeBaseRetrievalStage 填充），
+     * 引用的知识库来源记录列表（KnowledgeBaseRetrievalStage 填充，含知识库名 + 文档名），
      * 持久化为 Message.kbReferences，供前端展示"引用来源"标签。
      */
-    private List<String> kbReferenceNames;
+    private List<KbReference> kbReferences;
 
     /**
      * 用户语言偏好，从 user_profile 读取。

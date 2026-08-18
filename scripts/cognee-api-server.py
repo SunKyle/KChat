@@ -141,6 +141,15 @@ class RecallResultItem(BaseModel):
     text: str = ""
     score: float = 0.0
     source: str = "graph"
+    # ── 溯源元数据（从 Cognee SearchResultItem 提取）──
+    # data_id = 入库的 Data item id（document_id），可用于反查原始文档
+    # document_name = 源文档名（Cognee chunk payload 提供）
+    # chunk_id = 命中的 chunk node id
+    # dataset_name = 命中结果所属的数据集名（知识库 dataset 名）
+    data_id: str = ""
+    document_name: str = ""
+    chunk_id: str = ""
+    dataset_name: str = ""
 
 class RecallResponse(BaseModel):
     results: list[RecallResultItem] = []
@@ -530,6 +539,46 @@ async def recall_memories(request: RecallRequest):
                 text = ""
                 score = 0.0
                 source = "graph"
+                data_id = ""
+                document_name = ""
+                chunk_id = ""
+                dataset_name = ""
+
+                # ── 元数据提取：metadata / raw / 顶层字段多级探测 ──
+                def _attr(obj, name, default=None):
+                    if isinstance(obj, dict):
+                        return obj.get(name, default)
+                    return getattr(obj, name, default)
+
+                # 数据集名：SearchResultItem 直接提供 dataset_name / dataset_id
+                dataset_name = str(_attr(r, "dataset_name") or "")
+                if not dataset_name:
+                    ds_id = _attr(r, "dataset_id")
+                    if ds_id:
+                        dataset_name = str(ds_id)
+
+                # metadata 字典：Cognee normalize 生成的溯源元数据
+                meta = _attr(r, "metadata")
+                if isinstance(meta, dict):
+                    data_id = str(meta.get("data_id") or meta.get("document_id") or "")
+                    chunk_id = str(meta.get("chunk_id") or "")
+                    document_name = str(meta.get("document_name") or "")
+
+                # raw 兜底：chunk payload 里的 document_id / document_name / id
+                raw = _attr(r, "raw")
+                if isinstance(raw, dict):
+                    if not data_id:
+                        data_id = str(raw.get("document_id") or raw.get("data_id") or "")
+                    if not chunk_id:
+                        chunk_id = str(raw.get("id") or raw.get("chunk_id") or "")
+                    if not document_name:
+                        document_name = str(raw.get("document_name") or "")
+
+                # 顶层字段兜底
+                if not data_id:
+                    data_id = str(_attr(r, "data_id") or _attr(r, "document_id") or "")
+                if not document_name:
+                    document_name = str(_attr(r, "document_name") or "")
 
                 # Try common field names for text content
                 for attr in ('text', 'content', 'answer', 'response', 'summary'):
@@ -554,10 +603,21 @@ async def recall_memories(request: RecallRequest):
                 if src_val:
                     source = str(src_val)
 
+                # 文本级兜底：从 recall 文本中解析 "文档名称: xxx" 前缀（写入时的格式）
+                if not document_name:
+                    import re as _re
+                    m = _re.search(r"文档名称[:：]\s*([^\n]+)", text)
+                    if m:
+                        document_name = m.group(1).strip()
+
                 items.append(RecallResultItem(
                     text=text[:2000],  # Cap at 2000 chars to keep payload reasonable
                     score=score if score > 0 else 0.5,  # Default neutral score if not provided
                     source=source,
+                    data_id=data_id,
+                    document_name=document_name,
+                    chunk_id=chunk_id,
+                    dataset_name=dataset_name,
                 ))
 
         logger.info(f"recall returned {len(items)} results (sources: "

@@ -19,6 +19,9 @@ public interface KnowledgeBaseRepository extends JpaRepository<KnowledgeBase, St
     /** 删除指定用户的知识库 */
     void deleteByIdAndUserId(String id, String userId);
 
+    /** 按数据集名列表查询（用于 recall 结果溯源反查知识库名） */
+    List<KnowledgeBase> findByDatasetNameIn(java.util.Collection<String> datasetNames);
+
     /** 统计用户知识库数量 */
     long countByUserId(String userId);
 }

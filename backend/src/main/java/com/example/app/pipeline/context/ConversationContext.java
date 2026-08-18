@@ -2,6 +2,7 @@ package com.example.app.pipeline.context;
 
 import com.example.app.dto.Artifact;
 import com.example.app.dto.ChatRequest;
+import com.example.app.dto.KbReference;
 import com.example.app.dto.MemoryDTO;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.dto.WebSearchResult;
@@ -209,12 +210,12 @@ public class ConversationContext {
         requestMetadata.setKnowledgeBaseIds(knowledgeBaseIds);
     }
 
-    public List<String> getKbReferenceNames() {
-        return requestMetadata.getKbReferenceNames();
+    public List<KbReference> getKbReferences() {
+        return requestMetadata.getKbReferences();
     }
 
-    public void setKbReferenceNames(List<String> kbReferenceNames) {
-        requestMetadata.setKbReferenceNames(kbReferenceNames);
+    public void setKbReferences(List<KbReference> kbReferences) {
+        requestMetadata.setKbReferences(kbReferences);
     }
 
     public String getLanguage() {

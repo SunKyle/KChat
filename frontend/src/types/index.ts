@@ -8,6 +8,36 @@ export interface Conversation {
   customRules?: string
 }
 
+/**
+ * 知识库引用来源（文档层级）。
+ *
+ * `kbName` 为知识库名称，`docName` 为命中的具体文档名（可空）。
+ * 当溯源元数据缺失时 `docName` 为 undefined，前端降级为仅展示知识库层级。
+ */
+export interface KbReference {
+  kbName: string
+  docName?: string | null
+}
+
+/**
+ * 归一化知识库引用来源：兼容历史消息中的纯字符串数组（旧格式 ["知识库A"]）。
+ */
+export function normalizeKbReferences(value: unknown): KbReference[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item): KbReference | null => {
+      if (typeof item === 'string') return { kbName: item }
+      if (item && typeof item === 'object') {
+        const ref = item as Partial<KbReference>
+        if (typeof ref.kbName === 'string' && ref.kbName) {
+          return { kbName: ref.kbName, docName: ref.docName ?? undefined }
+        }
+      }
+      return null
+    })
+    .filter((ref): ref is KbReference => ref !== null)
+}
+
 export interface Message {
   id: string
   conversationId: string
@@ -17,8 +47,8 @@ export interface Message {
   images?: string[]
   /** Agent 模式下的思考过程步骤（工具调用、LLM 调用等），仅流式推送累积 */
   agentThinking?: AgentThinkingStep[]
-  /** 该回复引用的知识库名称（来自后端 done 事件的 kbReferences），用于展示"引用来源"标签 */
-  kbReferences?: string[]
+  /** 该回复引用的知识库来源（含知识库名 + 文档名），用于展示"引用来源"标签 */
+  kbReferences?: KbReference[]
 }
 
 /**

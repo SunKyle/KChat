@@ -21,8 +21,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 知识库管理服务。
@@ -410,5 +413,17 @@ public class KnowledgeBaseService {
         return kbRepository.findAllById(kbIds).stream()
                 .map(KnowledgeBase::getName)
                 .toList();
+    }
+
+    /**
+     * 根据 Cognee 数据集名列表反查知识库名（用于 recall 结果溯源到具体知识库）。
+     * 返回 datasetName → 知识库名 的映射；未命中的数据集名不包含在结果中。
+     */
+    public Map<String, String> getKnowledgeBaseNameByDatasets(Collection<String> datasetNames) {
+        if (datasetNames == null || datasetNames.isEmpty()) {
+            return Map.of();
+        }
+        return kbRepository.findByDatasetNameIn(datasetNames).stream()
+                .collect(Collectors.toMap(KnowledgeBase::getDatasetName, KnowledgeBase::getName));
     }
 }

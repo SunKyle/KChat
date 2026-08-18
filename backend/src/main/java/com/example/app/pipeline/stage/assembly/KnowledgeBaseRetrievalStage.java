@@ -1,6 +1,7 @@
 package com.example.app.pipeline.stage.assembly;
 
 import com.example.app.config.CogneeProperties;
+import com.example.app.dto.KbReference;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.CogneeClient;
@@ -9,7 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -18,6 +25,11 @@ import java.util.stream.Collectors;
  * <p>当用户显式引用了知识库（ChatRequest.knowledgeBaseIds 非空）时：
  * 从指定的知识库数据集召回相关片段，格式化为 LLM 可读文本，
  * 写入 agentState，供 SystemPromptAssemblyStage(410) 注入系统提示。
+ *
+ * <p>同时构建文档层级的"引用来源"记录（{@link KbReference}：知识库名 + 文档名），
+ * 存入 ConversationContext.kbReferences，经消息持久化 + SSE done 事件
+ * 透传给前端渲染引用标签。文档名来自 Cognee recall 的溯源元数据
+ * （document_name），缺失时降级为仅知识库层级。
  *
  * <p>设计约束：
  * <ul>
@@ -68,17 +80,18 @@ public class KnowledgeBaseRetrievalStage implements ContextPipelineStage {
                 return;
             }
 
-            // 记录引用的知识库名称，供持久化为消息的"引用来源"标签
-            ctx.setKbReferenceNames(knowledgeBaseService.getKnowledgeBaseNames(kbIds));
-
             int topK = cogneeProperties.getSearch().getTopK();
             List<CogneeClient.RecallResult> fragments = cogneeClient.recallFromDatasets(
                     ctx.getUserMessage(), topK, datasets);
 
+            // 构建文档层级引用来源（知识库名 + 文档名），供持久化展示
+            List<KbReference> kbRefs = buildKbReferences(kbIds, fragments);
+            ctx.setKbReferences(kbRefs);
+            log.info("[KbRetrieval] kbIds={} datasets={} recalled {} fragments, refs={}",
+                    kbIds, datasets, fragments.size(), kbRefs.size());
+
             String formatted = formatFragments(kbIds, datasets, fragments);
             ctx.getAgentState().put(KEY_FORMATTED_KB_REFERENCES, formatted);
-            log.info("[KbRetrieval] kbIds={} datasets={} recalled {} fragments",
-                    kbIds, datasets, fragments.size());
 
         } catch (Exception e) {
             log.warn("[KbRetrieval] recall failed: {}", e.getMessage(), e);
@@ -86,8 +99,74 @@ public class KnowledgeBaseRetrievalStage implements ContextPipelineStage {
         }
     }
 
+    /**
+     * 构建引用来源记录。
+     *
+     * <p>优先使用召回片段携带的溯源元数据：document_name（文档名）+ dataset_name
+     * （反查知识库名）。同一 知识库+文档 去重。当没有任何文档级信息时，
+     * 降级为仅展示被引用的知识库本身。
+     */
+    private List<KbReference> buildKbReferences(List<String> kbIds,
+            List<CogneeClient.RecallResult> fragments) {
+        // datasetName → 知识库名 反查
+        Set<String> datasets = fragments.stream()
+                .map(CogneeClient.RecallResult::datasetName)
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
+        Map<String, String> datasetToKbName =
+                knowledgeBaseService.getKnowledgeBaseNameByDatasets(datasets);
+
+        // 被引用知识库名（降级兜底用）
+        List<String> kbNames = knowledgeBaseService.getKnowledgeBaseNames(kbIds);
+        String fallbackKbName = kbNames.isEmpty() ? null : kbNames.get(0);
+
+        List<KbReference> refs = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+
+        // 有文档信息的片段优先
+        for (CogneeClient.RecallResult f : fragments) {
+            String docName = f.documentName();
+            if (docName == null || docName.isBlank()) {
+                continue;
+            }
+            String kbName = f.datasetName() != null
+                    ? datasetToKbName.get(f.datasetName())
+                    : null;
+            if (kbName == null || kbName.isBlank()) {
+                kbName = fallbackKbName;
+            }
+            if (kbName == null || kbName.isBlank()) {
+                continue;
+            }
+            String key = kbName + "|" + docName;
+            if (seen.add(key)) {
+                refs.add(KbReference.of(kbName, docName));
+            }
+        }
+
+        // 兜底：被引用的知识库本身（无文档级信息时展示知识库层级）
+        if (refs.isEmpty()) {
+            for (String name : kbNames) {
+                if (seen.add("kb|" + name)) {
+                    refs.add(KbReference.of(name));
+                }
+            }
+        }
+        return refs;
+    }
+
     private String formatFragments(List<String> kbIds, List<String> datasets,
             List<CogneeClient.RecallResult> fragments) {
+        // datasetName → 知识库名（用于 LLM 片段标注出处）
+        Set<String> datasetSet = fragments.stream()
+                .map(CogneeClient.RecallResult::datasetName)
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
+        Map<String, String> datasetToKbName =
+                knowledgeBaseService.getKnowledgeBaseNameByDatasets(datasetSet);
+
         StringBuilder sb = new StringBuilder();
         sb.append("【用户显式引用的知识库内容】\n");
         sb.append("引用知识库: ").append(String.join("、", datasets)).append("\n");
@@ -96,11 +175,26 @@ public class KnowledgeBaseRetrievalStage implements ContextPipelineStage {
         if (fragments == null || fragments.isEmpty()) {
             sb.append("<所选知识库中未检索到与当前问题相关的内容>\n");
         } else {
-            for (int i = 0; i < fragments.size(); i++) {
-                CogneeClient.RecallResult r = fragments.get(i);
-                sb.append("[").append(i + 1).append("] (来源: ")
-                        .append(r.source() != null ? r.source() : "知识库").append(")\n");
-                sb.append(r.text().trim()).append("\n\n");
+            // 片段按知识库分组，便于 LLM 区分来源
+            Map<String, List<CogneeClient.RecallResult>> byDataset = new LinkedHashMap<>();
+            for (CogneeClient.RecallResult r : fragments) {
+                byDataset.computeIfAbsent(
+                        r.datasetName() != null ? r.datasetName() : "", k -> new ArrayList<>())
+                        .add(r);
+            }
+            int idx = 0;
+            for (Map.Entry<String, List<CogneeClient.RecallResult>> e : byDataset.entrySet()) {
+                String ds = e.getKey();
+                String kbName = datasetToKbName.getOrDefault(ds, ds);
+                for (CogneeClient.RecallResult r : e.getValue()) {
+                    idx++;
+                    sb.append("[").append(idx).append("] (来源: ").append(kbName);
+                    if (r.documentName() != null && !r.documentName().isBlank()) {
+                        sb.append(" / ").append(r.documentName());
+                    }
+                    sb.append(")\n");
+                    sb.append(r.text().trim()).append("\n\n");
+                }
             }
         }
         return sb.toString();

@@ -94,10 +94,22 @@ public class CogneeClient {
     }
 
     /**
-     * A recall result carrying text, score, and the source type
-     * (graph/session/trace).
+     * A recall result carrying text, score, the source type, and provenance
+     * metadata (dataId = ingested Data item id, documentName = source doc name,
+     * datasetName = 命中结果所属的数据集名).
      */
-    public record RecallResult(String text, double score, String source) {
+    public record RecallResult(
+            String text,
+            double score,
+            String source,
+            String dataId,
+            String documentName,
+            String datasetName) {
+
+        /** 便捷构造：无溯源元数据时的降级。 */
+        public RecallResult(String text, double score, String source) {
+            this(text, score, source, null, null, null);
+        }
     }
 
     /** A graph node (entity) from cognee's knowledge graph. */
@@ -166,6 +178,16 @@ public class CogneeClient {
         private String text;
         private double score;
         private String source;
+        /** 溯源元数据：入库 Data item id（对应 KnowledgeDocument.cogneeDataId） */
+        @JsonProperty("data_id")
+        private String dataId;
+        /** 溯源元数据：源文档名（Cognee chunk payload 提供，可能为空） */
+        @JsonProperty("document_name")
+        private String documentName;
+        @JsonProperty("chunk_id")
+        private String chunkId;
+        @JsonProperty("dataset_name")
+        private String datasetName;
 
         public String getText() {
             return text != null ? text : "";
@@ -375,7 +397,10 @@ public class CogneeClient {
                     .map(item -> new RecallResult(
                             item.getText(),
                             item.getScore() >= 0.01 ? item.getScore() : threshold,
-                            item.getSource() != null ? item.getSource() : "graph"))
+                            item.getSource() != null ? item.getSource() : "graph",
+                            item.getDataId(),
+                            item.getDocumentName(),
+                            item.getDatasetName()))
                     .toList();
 
             log.info("[Cognee] recall returned {} results (sources: {})",
@@ -435,7 +460,10 @@ public class CogneeClient {
                     .map(item -> new RecallResult(
                             item.getText(),
                             item.getScore() >= 0.01 ? item.getScore() : threshold,
-                            item.getSource() != null ? item.getSource() : "graph"))
+                            item.getSource() != null ? item.getSource() : "graph",
+                            item.getDataId(),
+                            item.getDocumentName(),
+                            item.getDatasetName()))
                     .toList();
         } catch (Exception e) {
             log.warn("[Cognee] recallFromDatasets() failed: {}", e.getMessage());

@@ -1,5 +1,5 @@
 import { appConfig } from '../config/app.config'
-import type { AgentThinkingStep } from '../types'
+import { normalizeKbReferences, type AgentThinkingStep, type KbReference } from '../types'
 
 const BASE_URL = appConfig.api.baseUrl
 
@@ -289,7 +289,7 @@ export async function requestSSE(
     messageId: string,
     title?: string,
     artifacts?: Array<{ type: string; url: string; text?: string }>,
-    kbReferences?: string[]
+    kbReferences?: KbReference[]
   ) => void,
   onError: (error: ApiError) => void,
   controller?: AbortController,
@@ -373,7 +373,7 @@ export async function requestSSE(
               parsedData.messageId,
               parsedData.title,
               parsedData.artifacts,
-              parsedData.kbReferences
+              normalizeKbReferences(parsedData.kbReferences)
             )
           } else if (eventType === 'search_results') {
             onSearchResults?.(parsedData)

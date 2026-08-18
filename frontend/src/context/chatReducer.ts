@@ -1,6 +1,7 @@
 import type {
   AgentThinkingStep,
   Conversation,
+  KbReference,
   Message,
   StreamingState,
   WebSearchResultData,
@@ -18,7 +19,7 @@ export type ChatAction =
         content: string
         conversationId: string
         images?: string[]
-        kbReferences?: string[]
+        kbReferences?: KbReference[]
       }
     }
   | { type: 'UPDATE_MESSAGE_ID'; payload: { oldId: string; newId: string; conversationId: string } }

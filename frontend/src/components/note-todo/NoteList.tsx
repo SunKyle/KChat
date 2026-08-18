@@ -1,4 +1,4 @@
-import { FileText, Pin, Edit3, Trash2 } from 'lucide-react'
+import { FileText, Pin, Edit3, Trash2, Download } from 'lucide-react'
 import type { Note } from '../../types/note-todo'
 import { getCategoryStyles } from './categoryStyles'
 
@@ -21,15 +21,31 @@ function NoteListItem({
   formatDateFull,
   getContentPreview,
 }: NoteListItemProps) {
+  // 下载笔记为 Markdown 文件
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const title = note.title || '无标题'
+    const md = `# ${title}\n\n${note.content || ''}\n`
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${title.replace(/[\\/:*?"<>|]/g, '_')}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div
       className='group relative rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--brand-primary)]/30 transition-all duration-200 cursor-pointer overflow-hidden'
       onClick={onSelect}
     >
       <div className='p-4'>
-        <div className='flex items-start min-w-0'>
+        <div className='flex items-start gap-2 min-w-0'>
           <div className='flex-1 min-w-0'>
-            <h3 className='text-base font-semibold text-[var(--text-primary)] leading-tight'>
+            <h3 className='text-base font-semibold text-[var(--text-primary)] leading-tight pr-16'>
               {note.title || '无标题'}
             </h3>
             <p className='text-sm text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed'>
@@ -58,7 +74,7 @@ function NoteListItem({
           </div>
         </div>
       </div>
-      <div className='absolute top-3 right-3 flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity'>
+      <div className='absolute top-2.5 right-2.5 flex items-center gap-0.5 p-1 rounded-lg bg-[var(--bg-card)]/95 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto translate-x-1 group-hover:translate-x-0'>
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -70,6 +86,13 @@ function NoteListItem({
           <Pin
             className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
           />
+        </button>
+        <button
+          onClick={handleDownload}
+          className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
+          aria-label='下载'
+        >
+          <Download className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {

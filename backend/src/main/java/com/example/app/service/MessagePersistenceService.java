@@ -3,6 +3,7 @@ package com.example.app.service;
 
 import com.example.app.entity.Message;
 import com.example.app.dto.Artifact;
+import com.example.app.dto.KbReference;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,7 +72,7 @@ public class MessagePersistenceService {
     @Transactional
     public String saveAiMessage(String conversationId, String messageId, String content,
             List<Artifact> artifacts, List<Map<String, Object>> agentThinkingSteps,
-            List<String> kbReferenceNames) {
+            List<KbReference> kbReferences) {
         Message aiMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
@@ -79,7 +80,7 @@ public class MessagePersistenceService {
                 .role("assistant")
                 .artifacts(serializeArtifacts(artifacts))
                 .agentThinking(serializeAgentThinking(agentThinkingSteps))
-                .kbReferences(serializeKbReferences(kbReferenceNames))
+                .kbReferences(serializeKbReferences(kbReferences))
                 .build();
         
         messageRepository.save(aiMsg);
@@ -137,12 +138,12 @@ public class MessagePersistenceService {
         }
     }
 
-    private String serializeKbReferences(List<String> kbReferenceNames) {
-        if (kbReferenceNames == null || kbReferenceNames.isEmpty()) {
+    private String serializeKbReferences(List<KbReference> kbReferences) {
+        if (kbReferences == null || kbReferences.isEmpty()) {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(kbReferenceNames);
+            return objectMapper.writeValueAsString(kbReferences);
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize kbReferences", e);
             return null;

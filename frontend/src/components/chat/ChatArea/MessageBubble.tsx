@@ -46,7 +46,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
-  const { startSummarizing, endSummarizing, summarizingMessageId, currentModel } = useChat()
+  const { startSummarizing, endSummarizing, summarizingMessageId } = useChat()
 
   // TTS Hook for voice playback
   const ttsUserId = profile?.id || 'default'
@@ -192,18 +192,19 @@ export const MessageBubble = memo(function MessageBubble({
                 )}
                 <MarkdownRenderer content={renderContent} />
 
-                {/* 引用来源标签：展示该回复引用的知识库名称 */}
+                {/* 引用来源标签：展示该回复引用的知识库（含具体文档名） */}
                 {!isUser && message.kbReferences && message.kbReferences.length > 0 && (
                   <div className='flex flex-wrap items-center gap-1.5 mt-3'>
                     <Database className='w-3.5 h-3.5 text-[var(--text-muted)]' />
                     <span className='text-xs text-[var(--text-muted)] mr-0.5'>引用来源</span>
-                    {message.kbReferences.map((name) => (
+                    {message.kbReferences.map((ref) => (
                       <span
-                        key={name}
+                        key={`${ref.kbName}-${ref.docName ?? ''}`}
                         className='text-xs px-2 py-0.5 rounded-md theme-bg-card theme-text-secondary border border-[var(--border)]
                           hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/50 transition-colors'
+                        title={ref.docName ? `${ref.kbName} / ${ref.docName}` : ref.kbName}
                       >
-                        {name}
+                        {ref.docName ? `${ref.kbName} / ${ref.docName}` : ref.kbName}
                       </span>
                     ))}
                   </div>
@@ -221,12 +222,6 @@ export const MessageBubble = memo(function MessageBubble({
             >
               {formatTimestamp(message.timestamp)}
             </span>
-            {!isUser && !isThinking && (
-              <span className='text-xs text-[var(--text-muted)] opacity-40 group-hover:opacity-70 transition-opacity'>
-                {currentModel}
-              </span>
-            )}
-
             {summarizingMessageId === message.id ? (
               <div className='flex items-center gap-2'>
                 <div className='h-1 w-20 rounded-full overflow-hidden bg-[var(--bg-hover)]'>
