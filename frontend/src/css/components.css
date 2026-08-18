@@ -531,6 +531,66 @@ Button System ============================================ */ .btn-primary {
   border: none;
 }
 
+/* 呼吸分割线：贴在元素边缘，两端用 mask 渐变柔和淡出，避免完全封闭的生硬感 */
+/* 用法：在原本使用 border-b/border-r 的元素上加下列类，并移除原 border 类 */
+.breath-divider-b {
+  position: relative;
+  border-bottom: none;
+}
+.breath-divider-b::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: var(--border-primary);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.breath-divider-r {
+  position: relative;
+  border-right: none;
+}
+.breath-divider-r::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  background-color: var(--border-divider);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent
+  );
+  pointer-events: none;
+}
+
 /* ============================================
    React Flow — 拖拽节点时禁用 transition
    知识图谱自适应布局会给节点添加 transform transition，

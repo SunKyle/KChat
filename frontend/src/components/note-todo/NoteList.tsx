@@ -39,7 +39,11 @@ function NoteListItem({
 
   return (
     <div
-      className='group relative rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--brand-primary)]/30 transition-all duration-200 cursor-pointer overflow-hidden'
+      className={`group relative rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden ${
+        note.pinned
+          ? 'bg-[var(--bg-pinned)] border-amber-200/50 dark:border-amber-800/30'
+          : 'bg-[var(--bg-card)] border-[var(--border-primary)]'
+      } hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--brand-primary)]/30`}
       onClick={onSelect}
     >
       <div className='p-4'>

@@ -39,9 +39,9 @@
   /* === Reference Design Tokens (shadcn/ui convention) === */
 
   /* Surfaces */
-  --background: #e8eaed;
+  --background: #f5f6f8;
   --foreground: #0f1419;
-  --card: #fbfbfb;
+  --card: #ffffff;
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
@@ -67,7 +67,7 @@
   --radius: 1.3rem;
 
   /* Sidebar */
-  --sidebar: #f7f8f8;
+  --sidebar: #ffffff;
   --sidebar-foreground: #0f1419;
   --sidebar-primary: #1e9df1;
   --sidebar-primary-foreground: #ffffff;

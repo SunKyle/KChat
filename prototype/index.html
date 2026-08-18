@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KChat 原型设计 - 重新构想</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1e9df1;
+    --primary-light: #e3f2fd;
+    --primary-dark: #1976d2;
+    --purple: #8b5cf6;
+    --emerald: #00b87a;
+    --amber: #f7b928;
+    --rose: #e0245e;
+    
+    --bg: #f5f6f8;
+    --bg-card: #ffffff;
+    --bg-sidebar: #fafbfc;
+    --bg-hover: #f0f2f5;
+    --bg-active: #e3f2fd;
+    
+    --text-primary: #0f1419;
+    --text-secondary: #536471;
+    --text-muted: #8b98a5;
+    
+    --border: #e8eaed;
+    --border-light: #f0f2f5;
+    
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-glow: 0 0 24px rgba(30, 157, 241, 0.15), 0 8px 24px rgba(30, 157, 241, 0.08);
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    
+    --sidebar-width: 280px;
+    --rail-width: 64px;
+    --right-panel-width: 360px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-container {
+    display: flex;
+    height: 100vh;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* ============ 左侧导航 + 会话列表 ============ */
+  .sidebar {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .sidebar-rail {
+    width: var(--rail-width);
+    background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 8px;
+  }
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(30, 157, 241, 0.4);
+  }
+
+  .nav-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #72767a;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d9d9d9;
+  }
+
+  .nav-item.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(30, 157, 241, 0.35);
+  }
+
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-item .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--rose);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-content {
+    width: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-light);
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .btn-icon:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .btn-icon svg { width: 16px; height: 16px; }
+
+  .search-box {
+    margin: 8px 16px 12px;
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 10px 36px 10px 36px;
+    background: var(--bg-hover);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .search-box input:focus {
+    background: var(--bg-card);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(30, 157, 241, 0.12);
+  }
+
+  .search-box input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .search-box .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  .search-box .kbd {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 2px 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .new-chat-btn {
+    margin: 0 16px 16px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, #1976d2 100%);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(30, 157, 241, 0.25);
+  }
+
+  .new-chat-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(30, 157, 241, 0.35);
+  }
+
+  .new-chat-btn:active { transform: translateY(0); }
+  .new-chat-btn svg { width: 16px; height: 16px; }
+
+  .conversation-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 16px;
+  }
+
+  .conversation-list::-webkit-scrollbar { width: 4px; }
+  .conversation-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .group-header svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .group-header.collapsed svg { transform: rotate(-90deg); }
+
+  .conversation-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 2px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .conversation-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .conversation-item.active {
+    background: var(--bg-active);
+  }
+
+  .conversation-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  .conv-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .conv-icon.blue { background: #e3f2fd; color: #1976d2; }
+  .conv-icon.purple { background: #f3e8ff; color: #7c3aed; }
+  .conv-icon.green { background: #e6f7f0; color: #00875a; }
+  .conv-icon.amber { background: #fff7e6; color: #d97706; }
+
+  .conv-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .conv-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .conv-item.active .conv-title { color: var(--primary-dark); }
+
+  .conv-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pin-indicator {
+    color: var(--amber);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ============ 主内容区 ============ */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .main-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(30, 157, 241, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .chat-header {
+    height: 56px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+    position: relative;
+    z-index: 1;
+  }
+
+  .chat-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-title h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .model-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .model-selector:hover {
+    border-color: var(--primary);
+    background: var(--bg-card);
+  }
+
+  .model-selector .cpu-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--primary);
+  }
+
+  .model-selector .model-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .model-selector .chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .icon-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .chat-area::-webkit-scrollbar { width: 6px; }
+  .chat-area::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .message {
+    max-width: 760px;
+    margin: 0 auto 24px;
+    display: flex;
+    gap: 12px;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.assistant { }
+  .message.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .message.assistant .avatar {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    color: white;
+  }
+
+  .message.user .avatar {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+  }
+
+  .bubble {
+    flex: 1;
+    max-width: calc(100% - 52px);
+  }
+
+  .message.user .bubble {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .bubble-content {
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-primary);
+  }
+
+  .message.assistant .bubble-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+
+  .message.user .bubble-content {
+    background: linear-gradient(135deg, var(--primary) 0%, #1976d2 100%);
+    color: white;
+    border-top-right-radius: 4px;
+  }
+
+  .bubble-content p { margin-bottom: 10px; }
+  .bubble-content p:last-child { margin-bottom: 0; }
+
+  .bubble-content ul {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+
+  .bubble-content ul li { margin-bottom: 4px; }
+
+  .bubble-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .message:hover .bubble-actions { opacity: 1; }
+
+  .bubble-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 4px 0 0 4px;
+  }
+
+  .message.user .bubble-time { margin: 4px 4px 0 0; }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .action-btn svg { width: 14px; height: 14px; }
+
+  .thinking-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--primary-light);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+  }
+
+  .thinking-dots {
+    display: inline-flex;
+    gap: 3px;
+  }
+
+  .thinking-dots span {
+    width: 5px;
+    height: 5px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .thinking-dots span:nth-child(1) { animation-delay: 0s; }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  .source-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f3e8ff;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #7c3aed;
+  }
+
+  .source-tag svg { width: 12px; height: 12px; }
+
+  /* ============ 输入区 ============ */
+  .input-area {
+    padding: 0 24px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .input-wrapper {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .input-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .toolbar-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .toolbar-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .toolbar-btn svg { width: 18px; height: 18px; }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  .mode-switch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-hover);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mode-switch.active {
+    background: var(--primary);
+    color: white;
+  }
+
+  .mode-switch svg { width: 14px; height: 14px; }
+
+  .input-textarea {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: transparent;
+    min-height: 56px;
+    max-height: 200px;
+  }
+
+  .input-textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .input-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .send-btn {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary) 0%, #1976d2 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(30, 157, 241, 0.3);
+  }
+
+  .send-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(30, 157, 241, 0.4);
+  }
+
+  .send-btn:active { transform: translateY(0); }
+  .send-btn svg { width: 18px; height: 18px; }
+
+  /* ============ 右侧面板 ============ */
+  .right-panel {
+    width: var(--right-panel-width);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    height: 56px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .panel-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .panel-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .panel-tab:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .panel-tab.active {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+  }
+
+  .panel-tab svg { width: 14px; height: 14px; }
+
+  .panel-tab .count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--bg-hover);
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel-tab.active .count {
+    background: rgba(30, 157, 241, 0.2);
+    color: var(--primary-dark);
+  }
+
+  .panel-search {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .panel-search input {
+    width: 100%;
+    padding: 9px 32px 9px 12px;
+    background: var(--bg-hover);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .panel-search input:focus {
+    background: var(--bg-card);
+    border-color: var(--primary);
+  }
+
+  .panel-search .search-icon {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+  }
+
+  .panel-search { position: relative; }
+
+  .panel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+  }
+
+  .panel-list::-webkit-scrollbar { width: 4px; }
+  .panel-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .note-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .note-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .note-card.pinned {
+    background: linear-gradient(135deg, #fff7e6 0%, var(--bg-card) 100%);
+    border-color: #f7b928;
+  }
+
+  .note-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .note-preview {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .note-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .note-category {
+    padding: 2px 8px;
+    background: var(--bg-hover);
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .empty-state .icon-wrap {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-hover);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .empty-state svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
+  }
+
+  .empty-state p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  /* ============ 标签页切换 ============ */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 1200px) {
+    :root {
+      --right-panel-width: 320px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    :root {
+      --sidebar-width: 240px;
+      --right-panel-width: 300px;
+    }
+  }
+
+  /* ============ 动画 ============ */
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ============ 左侧导航 + 会话列表 ============ -->
+  <div class="sidebar">
+    <!-- 深色导航栏 -->
+    <div class="sidebar-rail">
+      <div class="logo">K</div>
+      
+      <div class="nav-item active" title="对话">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      
+      <div class="nav-item" title="知识库">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+        </svg>
+      </div>
+      
+      <div class="nav-item" title="知识图谱">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="3"/>
+          <circle cx="5" cy="19" r="3"/>
+          <circle cx="19" cy="19" r="3"/>
+          <line x1="12" y1="8" x2="5" y2="16"/>
+          <line x1="12" y1="8" x2="19" y2="16"/>
+          <line x1="5" y1="19" x2="19" y2="19"/>
+        </svg>
+      </div>
+      
+      <div class="nav-item" title="工具" style="margin-top: auto;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+      </div>
+      
+      <div class="nav-item" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 会话列表 -->
+    <div class="sidebar-content">
+      <div class="sidebar-header">
+        <span class="sidebar-title">对话</span>
+        <button class="btn-icon" title="收起侧边栏">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" placeholder="搜索会话..." />
+        <span class="kbd">⌘K</span>
+      </div>
+
+      <button class="new-chat-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        新建对话
+      </button>
+
+      <div class="conversation-list">
+        <!-- 置顶分组 -->
+        <div class="group-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          置顶
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon blue">会</div>
+          <div class="conv-info">
+            <div class="conv-title">AI 确认用户信息</div>
+            <div class="conv-meta">
+              <span class="pin-indicator">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 17v5"/><path d="M9 10.76V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4.76a2 2 0 0 0 .59 1.41l2 2.05a1 1 0 0 1-.7 1.7H7.82a1 1 0 0 1-.7-1.7l2-2.05A2 2 0 0 0 9 10.76z"/>
+                </svg>
+              </span>
+              <span>昨天</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 今天分组 -->
+        <div class="group-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          今天
+        </div>
+
+        <div class="conversation-item active">
+          <div class="conv-icon blue">设</div>
+          <div class="conv-info">
+            <div class="conv-title">设置会议提醒</div>
+            <div class="conv-meta"><span>10:48</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon purple">数</div>
+          <div class="conv-info">
+            <div class="conv-title">数字人民币知识...</div>
+            <div class="conv-meta"><span>09:30</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon green">知</div>
+          <div class="conv-info">
+            <div class="conv-title">知识库内容总结</div>
+            <div class="conv-meta"><span>09:15</span></div>
+          </div>
+        </div>
+
+        <!-- 昨天分组 -->
+        <div class="group-header collapsed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          昨天
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon amber">小</div>
+          <div class="conv-info">
+            <div class="conv-title">小兔子吃草</div>
+            <div class="conv-meta"><span>昨天</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon blue">询</div>
+          <div class="conv-info">
+            <div class="conv-title">询问当前时间</div>
+            <div class="conv-meta"><span>昨天</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon purple">问</div>
+          <div class="conv-info">
+            <div class="conv-title">问候与回应</div>
+            <div class="conv-meta"><span>昨天</span></div>
+          </div>
+        </div>
+
+        <!-- 本周分组 -->
+        <div class="group-header collapsed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          本周
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon green">K</div>
+          <div class="conv-info">
+            <div class="conv-title">KChat 项目的架构</div>
+            <div class="conv-meta"><span>5天前</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon blue">C</div>
+          <div class="conv-info">
+            <div class="conv-title">Claude Code 常用指令大全</div>
+            <div class="conv-meta"><span>6月22日</span></div>
+          </div>
+        </div>
+
+        <div class="conversation-item">
+          <div class="conv-icon purple">A</div>
+          <div class="conv-info">
+            <div class="conv-title">Agent 阶段和工具执行的核心...</div>
+            <div class="conv-meta"><span>6月20日</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 主内容区 ============ -->
+  <div class="main-content">
+    <!-- 聊天头部 -->
+    <div class="chat-header">
+      <div class="chat-title">
+        <h1>设置会议提醒</h1>
+        <div class="model-selector">
+          <svg class="cpu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+            <rect x="9" y="9" width="6" height="6"/>
+            <line x1="9" y1="1" x2="9" y2="4"/>
+            <line x1="15" y1="1" x2="15" y2="4"/>
+            <line x1="9" y1="20" x2="9" y2="23"/>
+            <line x1="15" y1="20" x2="15" y2="23"/>
+            <line x1="20" y1="9" x2="23" y2="9"/>
+            <line x1="20" y1="14" x2="23" y2="14"/>
+            <line x1="1" y1="9" x2="4" y2="9"/>
+            <line x1="1" y1="14" x2="4" y2="14"/>
+          </svg>
+          <span class="model-name">DeepSeek:deepseek-v4-flash</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn" title="主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <button class="icon-btn" title="设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 聊天消息区 -->
+    <div class="chat-area">
+      <!-- 用户消息 -->
+      <div class="message user">
+        <div class="avatar">我</div>
+        <div class="bubble">
+          <div class="bubble-content">
+            提醒我明天下午3点40开会
+          </div>
+          <div class="bubble-time">10:47</div>
+        </div>
+      </div>
+
+      <!-- AI 回复 -->
+      <div class="message assistant">
+        <div class="avatar">K</div>
+        <div class="bubble">
+          <div class="thinking-badge">
+            <div class="thinking-dots">
+              <span></span><span></span><span></span>
+            </div>
+            思考中...
+          </div>
+          <div class="bubble-content">
+            <p>好的，我记住了：明天下午 3:40 开会。我会在明天下午 3:40 提醒你，请保持通知畅通。</p>
+          </div>
+          <div class="bubble-actions">
+            <button class="action-btn" title="复制">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+            <button class="action-btn" title="重新生成">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+            </button>
+            <button class="action-btn" title="点赞">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户第二条消息 -->
+      <div class="message user">
+        <div class="avatar">我</div>
+        <div class="bubble">
+          <div class="bubble-content">
+            提醒我明天下午3点40开会
+          </div>
+          <div class="bubble-time">10:48</div>
+        </div>
+      </div>
+
+      <!-- AI 确认消息 -->
+      <div class="message assistant">
+        <div class="avatar">K</div>
+        <div class="bubble">
+          <div class="bubble-content">
+            <p>已设置好提醒 ✅</p>
+            <ul>
+              <li><strong>提醒内容：</strong>开会提醒</li>
+              <li><strong>提醒时间：</strong>明天（2026-08-13）下午 3:40</li>
+            </ul>
+            <p>到时候我会准时通知你，请留意消息提醒。</p>
+          </div>
+          <div class="source-tags">
+            <span class="source-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              日程表
+            </span>
+          </div>
+          <div class="bubble-actions">
+            <button class="action-btn" title="复制">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+            <button class="action-btn" title="重新生成">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 输入区 -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="input-toolbar">
+          <button class="toolbar-btn" title="附件">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <button class="toolbar-btn" title="图片">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+          <div class="toolbar-divider"></div>
+          <button class="toolbar-btn" title="@ 知识库">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>
+            </svg>
+          </button>
+          <button class="toolbar-btn" title="搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+          <div class="toolbar-divider"></div>
+          <div class="mode-switch active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Agent
+          </div>
+        </div>
+
+        <textarea class="input-textarea" placeholder="输入消息，输入 @ 可引用知识库"></textarea>
+
+        <div class="input-footer">
+          <div class="input-hint">
+            <span>0 / 2000</span>
+            <span>Shift + Enter 换行</span>
+          </div>
+          <button class="send-btn" title="发送">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 右侧面板 ============ -->
+  <div class="right-panel">
+    <!-- 面板头部 -->
+    <div class="panel-header">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          笔记
+          <span class="count">77</span>
+        </button>
+        <button class="panel-tab" data-tab="todo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          待办
+          <span class="count">10</span>
+        </button>
+        <button class="panel-tab" data-tab="reminder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          提醒
+          <span class="count">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="panel-search">
+      <input type="text" placeholder="搜索笔记..." />
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+
+    <!-- 笔记列表 -->
+    <div class="panel-list tab-content active" id="note">
+      <!-- 置顶标签 -->
+      <div style="padding: 8px 4px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        置顶
+      </div>
+
+      <!-- 笔记卡片 -->
+      <div class="note-card pinned">
+        <div class="note-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f7b928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 17v5"/><path d="M9 10.76V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4.76a2 2 0 0 0 .59 1.41l2 2.05a1 1 0 0 1-.7 1.7H7.82a1 1 0 0 1-.7-1.7l2-2.05A2 2 0 0 0 9 10.76z"/>
+          </svg>
+          Agent 阶段和工具执行的核心...
+        </div>
+        <div class="note-preview">我来深入读取 Agent 阶段和工具执行的核心实现。用户要求深入展开 Agent 工具调用闭环的实现细节...</div>
+        <div class="note-meta">
+          <span class="note-category">默认</span>
+          <span>今天 09:15</span>
+        </div>
+      </div>
+
+      <div class="note-card pinned">
+        <div class="note-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f7b928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 17v5"/><path d="M9 10.76V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4.76a2 2 0 0 0 .59 1.41l2 2.05a1 1 0 0 1-.7 1.7H7.82a1 1 0 0 1-.7-1.7l2-2.05A2 2 0 0 0 9 10.76z"/>
+          </svg>
+          KChat 项目的架构
+        </div>
+        <div class="note-preview">我来梳理一下 KChat 项目的架构。先了解整体目录结构。用户要求梳理项目架构。这是一个针对 KChat ...</div>
+        <div class="note-meta">
+          <span class="note-category">默认</span>
+          <span>今天 09:15</span>
+        </div>
+      </div>
+
+      <!-- 今天标签 -->
+      <div style="padding: 12px 4px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">今天</div>
+
+      <div class="note-card">
+        <div class="note-title">Claude Code 常用指令大全（...</div>
+        <div class="note-preview">一、交互式斜杠指令（会话内输入 / 调用，最常用）1. 会话与上下文管理（高频日常）| 指令 | 功能 | ...</div>
+        <div class="note-meta">
+          <span class="note-category">默认</span>
+          <span>6月22日</span>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-title">数字人民币调研报告</div>
+        <div class="note-preview">数字人民币（Digital Currency Electronic Payment，DC/EP）是由中国人民银行发行的数字形式的法定货币...</div>
+        <div class="note-meta">
+          <span class="note-category">工作</span>
+          <span>6月20日</span>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-title">React 性能优化笔记</div>
+        <div class="note-preview">1. 使用 React.memo 避免不必要的组件重渲染 2. useMemo/useCallback 缓存计算结果和函数引用 3. 虚拟列表处理长列表...</div>
+        <div class="note-meta">
+          <span class="note-category">学习</span>
+          <span>6月18日</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 待办列表 -->
+    <div class="panel-list tab-content" id="todo">
+      <div class="note-card">
+        <div class="note-title">
+          <input type="checkbox" style="margin-right: 8px;" checked>
+          <span style="text-decoration: line-through; color: var(--text-muted);">完成项目周报</span>
+        </div>
+        <div class="note-meta">
+          <span class="note-category">工作</span>
+          <span style="color: var(--text-muted);">已完成</span>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-title">
+          <input type="checkbox" style="margin-right: 8px;">
+          准备技术分享材料
+        </div>
+        <div class="note-meta">
+          <span class="note-category">工作</span>
+          <span style="color: var(--rose);">明天截止</span>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-title">
+          <input type="checkbox" style="margin-right: 8px;">
+          代码审查 PR #123
+        </div>
+        <div class="note-meta">
+          <span class="note-category">开发</span>
+          <span>周五截止</span>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-title">
+          <input type="checkbox" style="margin-right: 8px;">
+          更新 API 文档
+        </div>
+        <div class="note-meta">
+          <span class="note-category">文档</span>
+          <span>下周</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 提醒列表 -->
+    <div class="panel-list tab-content" id="reminder">
+      <div class="empty-state">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+        <p>暂无提醒</p>
+        <button class="new-chat-btn" style="width: auto; padding: 8px 16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          添加提醒
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab 切换
+  const tabs = document.querySelectorAll('.panel-tab');
+  const contents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      contents.forEach(c => c.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+    });
+  });
+
+  // 会话分组折叠
+  function collapseGroup(header) {
+    const items = [];
+    let next = header.nextElementSibling;
+    while (next && !next.classList.contains('group-header')) {
+      items.push(next);
+      next = next.nextElementSibling;
+    }
+    items.forEach(item => item.style.display = 'none');
+  }
+
+  function expandGroup(header) {
+    const items = [];
+    let next = header.nextElementSibling;
+    while (next && !next.classList.contains('group-header')) {
+      items.push(next);
+      next = next.nextElementSibling;
+    }
+    items.forEach(item => item.style.display = '');
+  }
+
+  document.querySelectorAll('.group-header.collapsed').forEach(header => {
+    collapseGroup(header);
+  });
+
+  document.querySelectorAll('.group-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const isCollapsed = header.classList.toggle('collapsed');
+      if (isCollapsed) {
+        collapseGroup(header);
+      } else {
+        expandGroup(header);
+      }
+    });
+  });
+
+  // 导航项激活状态
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // 会话项选中
+  document.querySelectorAll('.conversation-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.conversation-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // 输入框自动调整高度
+  const textarea = document.querySelector('.input-textarea');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    });
+  }
+
+  // 模式切换
+  document.querySelectorAll('.mode-switch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      sw.classList.toggle('active');
+    });
+  });
+
+  // 工具按钮交互
+  document.querySelectorAll('.toolbar-btn, .icon-btn, .action-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+    });
+  });
+</script>
+
+</body>
+</html>

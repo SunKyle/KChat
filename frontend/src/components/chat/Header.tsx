@@ -41,7 +41,7 @@ export function Header() {
   }, [isModelDropdownOpen])
 
   return (
-    <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary'>
+    <header className='relative z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 breath-divider-b'>
       <div className='flex items-center gap-3 min-w-0'>
         {activeConversation ? (
           <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0 flex-shrink'>

@@ -187,7 +187,7 @@ function AppContent() {
         `}
         >
           <div
-            className={`h-full card-panel-quiet ${sidebarWidth} transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width]`}
+            className={`h-full card-panel-quiet overflow-hidden ${sidebarWidth} transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width]`}
           >
             <Sidebar
               collapsed={sidebarCollapsed}

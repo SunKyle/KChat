@@ -73,12 +73,12 @@ function NoteTodoHeader({
             <button
               key={tab.key}
               onClick={() => onModeChange(tab.key)}
-              className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${active ? 'bg-[var(--brand-primary)]/15 text-[var(--brand-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+              className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${active ? 'bg-[var(--brand-primary)] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
             >
               <Icon className='w-3.5 h-3.5' />
               {tab.label}
               <span
-                className={`ml-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${active ? 'bg-[var(--brand-primary)]/20 text-[var(--brand-primary)]' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
+                className={`ml-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${active ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
               >
                 {tab.count}
               </span>

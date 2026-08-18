@@ -37,12 +37,12 @@ export function SidebarRail({
     <div
       role='navigation'
       aria-label='主导航'
-      className={`flex flex-col h-full w-16 flex-shrink-0 items-center ${
-        collapsed ? '' : 'border-r border-[var(--border-divider)]'
+      className={`flex flex-col h-full w-16 flex-shrink-0 items-center bg-[var(--bg-sidebar)] ${
+        collapsed ? '' : 'breath-divider-r'
       }`}
     >
-      {/* Logo 区域：h-14 对齐主对话区 Header，底部 border-b 与 Header 分割线一致 */}
-      <div className='h-14 w-full flex items-center justify-center flex-shrink-0 border-b theme-border-primary'>
+      {/* Logo 区域：h-14 对齐主对话区 Header，底部呼吸分割线 */}
+      <div className='h-14 w-full flex items-center justify-center flex-shrink-0 breath-divider-b'>
         <div className='relative flex-shrink-0'>
           <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--brand-primary)]/40 to-[var(--accent-purple)]/40 blur-md opacity-25' />
           <img src='/kchat-icon.svg' alt='KChat' className='relative w-6 h-6 object-contain' />

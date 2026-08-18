@@ -11,6 +11,7 @@ export interface ThemeConfig {
       hover: string
       input: string
       overlay: string
+      pinned: string
     }
     text: {
       primary: string
@@ -51,6 +52,7 @@ export const darkTheme: ThemeConfig = {
       hover: '#181818',
       input: '#22303c',
       overlay: 'rgba(0, 0, 0, 0.6)',
+      pinned: '#1a1500',
     },
     text: {
       primary: '#e7e9ea',
@@ -85,12 +87,13 @@ export const lightTheme: ThemeConfig = {
   label: '明亮主题',
   colors: {
     bg: {
-      primary: '#ffffff',
-      sidebar: '#f7f8f8',
-      card: '#f7f8f8',
+      primary: '#f5f6f8',
+      sidebar: '#ffffff',
+      card: '#ffffff',
       hover: '#E5E5E6',
       input: '#f7f9fa',
       overlay: 'rgba(0, 0, 0, 0.4)',
+      pinned: '#FFFCF6',
     },
     text: {
       primary: '#0f1419',
@@ -131,6 +134,7 @@ export const animalIslandTheme: ThemeConfig = {
       hover: '#fdecd3',
       input: '#fff8f0',
       overlay: 'rgba(0, 0, 0, 0.5)',
+      pinned: '#fff8e8',
     },
     text: {
       primary: '#4a3728',
