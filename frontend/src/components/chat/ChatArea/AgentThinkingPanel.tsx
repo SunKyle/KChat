@@ -203,20 +203,18 @@ function buildTree(steps: AgentThinkingStep[]): {
       } else {
         // ORCHESTRATOR frame llm_call → top-level item
         const toolNames = toolRequests.map((r) => resolveToolName(r.name))
-        let title: string
 
-        if (hasToolCalls) {
-          title = 'AI 分析需求'
-        } else if (items.length === 0) {
-          title = 'AI 分析需求'
-        } else {
-          title = 'AI 生成回复'
+        // 有 tool_calls → AI 分析需求（需要展示决策过程）
+        // 无 tool_calls 且是第一条 → AI 分析需求（初始分析）
+        // 无 tool_calls 且非第一条 → 最终回复生成，不需要展示（回复本身已在消息气泡中）
+        if (!hasToolCalls && items.length > 0) {
+          continue
         }
 
         items.push({
           kind: 'orchestrator_decision',
           id: `orch_${fid}_${i}`,
-          title,
+          title: 'AI 分析需求',
           thinkingText: (d.text as string) ?? '',
           model: (d.model as string) ?? undefined,
           hasToolCalls,
