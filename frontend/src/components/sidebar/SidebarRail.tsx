@@ -1,8 +1,8 @@
-import { MessageSquare, Database, Network, User } from 'lucide-react'
+import { MessageSquare, Database, Network, User, Wand2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useUser } from '../../context/UserContext'
 
-export type MenuId = 'chat' | 'knowledge' | 'graph'
+export type MenuId = 'chat' | 'knowledge' | 'graph' | 'skills'
 
 interface MenuConfig {
   id: MenuId
@@ -14,6 +14,7 @@ const menus: MenuConfig[] = [
   { id: 'chat', label: '对话', icon: MessageSquare },
   { id: 'knowledge', label: '知识库', icon: Database },
   { id: 'graph', label: '知识图谱', icon: Network },
+  { id: 'skills', label: '技能库', icon: Wand2 },
 ]
 
 interface SidebarRailProps {
@@ -56,41 +57,40 @@ export function SidebarRail({
           // 设置模式打开时，主菜单不高亮
           const isActive = !showSettings && activeMenu === menu.id
           return (
-            <button
-              key={menu.id}
-              onClick={() => onMenuClick(menu.id)}
-              aria-label={menu.label}
-              aria-current={isActive ? 'page' : undefined}
-              title={menu.label}
-              className={`group relative w-full flex items-center justify-center h-10 rounded-lg transition-all duration-200 focus-ring ${
-                isActive ? 'theme-brand-primary' : 'theme-text-muted hover:theme-text-primary'
-              }`}
-            >
-              <span
-                className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
-                  isActive ? 'bg-brand-selected' : 'group-hover:theme-bg-hover'
+            <div key={menu.id} className='relative'>
+              <button
+                onClick={() => onMenuClick(menu.id)}
+                aria-label={menu.label}
+                aria-current={isActive ? 'page' : undefined}
+                className={`group relative w-full flex items-center justify-center h-10 rounded-lg transition-all duration-200 focus-ring ${
+                  isActive ? 'theme-brand-primary' : 'theme-text-muted hover:theme-text-primary'
                 }`}
               >
-                <Icon className='w-5 h-5' aria-hidden='true' />
-              </span>
-              {isActive && (
-                <motion.div
-                  layoutId='rail-active-indicator'
-                  className='absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--brand-primary)]'
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-            </button>
+                <span
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
+                    isActive ? 'bg-brand-selected' : 'group-hover:theme-bg-hover'
+                  }`}
+                >
+                  <Icon className='w-5 h-5' aria-hidden='true' />
+                </span>
+                {isActive && (
+                  <motion.div
+                    layoutId='rail-active-indicator'
+                    className='absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--brand-primary)]'
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </button>
+            </div>
           )
         })}
       </nav>
 
       {/* 用户头像：点击打开/关闭设置 */}
-      <div className='w-full px-2 pb-3'>
+      <div className='relative w-full px-2 pb-3'>
         <button
           onClick={onAvatarClick}
           aria-label={showSettings ? '关闭设置' : '打开设置'}
-          title='设置'
           className={`w-full flex items-center justify-center rounded-[var(--radius-xl)] p-1.5 transition-all duration-200 cursor-pointer focus-ring ${
             showSettings
               ? 'border border-[var(--brand-primary)]/40 bg-[var(--bg-card)] shadow-sm'

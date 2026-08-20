@@ -5,6 +5,7 @@ import { ChatPanel } from './ChatPanel'
 import { GraphPanel } from './GraphPanel'
 import { KnowledgePanel } from './KnowledgePanel'
 import { SettingsPanel } from './SettingsPanel'
+import { SkillsPanel } from './SkillsPanel'
 import type { KnowledgeBase } from '../../api/knowledge'
 import type { SettingsTab } from '../../hooks/useSettings'
 
@@ -33,12 +34,18 @@ interface SidebarProps {
   selectedKbId?: string | null
   /** 当前选中的数据集名（用于二级列表高亮） */
   selectedDatasetName?: string | null
+  /** 当前选中的技能 id（用于二级列表高亮） */
+  selectedSkillId?: string | null
+  /** 技能列表项点击回调 */
+  onSelectSkill?: (id: string) => void
+  /** 新建技能回调 */
+  onCreateSkill?: () => void
 }
 
 const ACTIVE_MENU_STORAGE_KEY = 'sidebarActiveMenu'
 
 const isValidMenu = (value: string | null): value is MenuId => {
-  return value === 'chat' || value === 'knowledge' || value === 'graph'
+  return value === 'chat' || value === 'knowledge' || value === 'graph' || value === 'skills'
 }
 
 export function Sidebar({
@@ -56,6 +63,9 @@ export function Sidebar({
   onActiveMenuChange,
   selectedKbId,
   selectedDatasetName,
+  selectedSkillId,
+  onSelectSkill,
+  onCreateSkill,
 }: SidebarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
     const saved = localStorage.getItem(ACTIVE_MENU_STORAGE_KEY)
@@ -124,6 +134,15 @@ export function Sidebar({
             onToggle={() => onToggle?.()}
             onSelectDataset={(name, displayName) => onSelectDataset?.(name, displayName)}
             selectedDatasetName={selectedDatasetName}
+          />
+        )
+      case 'skills':
+        return (
+          <SkillsPanel
+            onToggle={() => onToggle?.()}
+            selectedSkillId={selectedSkillId}
+            onSelectSkill={(id) => onSelectSkill?.(id)}
+            onCreateSkill={() => onCreateSkill?.()}
           />
         )
       default:

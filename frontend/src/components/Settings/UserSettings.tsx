@@ -5,7 +5,6 @@ import { Privacy } from './Privacy'
 import { APIKeys } from './APIKeys'
 import { ModelSettings } from './ModelSettings'
 import { ToolsPanel } from './ToolsPanel'
-import { SkillsPanel } from './SkillsPanel'
 import { useUser } from '../../context/UserContext'
 import type { SettingsTab } from '../../hooks/useSettings'
 
@@ -46,8 +45,6 @@ export function UserSettings({ activeTab }: UserSettingsProps) {
         return <ModelSettings />
       case 'agent':
         return <ToolsPanel />
-      case 'skills':
-        return <SkillsPanel />
       default:
         return <ProfileInfo />
     }

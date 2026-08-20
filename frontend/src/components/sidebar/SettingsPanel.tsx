@@ -1,4 +1,4 @@
-import { User, Monitor, Lock, Key, Brain, Wrench, ChevronRight, Sparkles } from 'lucide-react'
+import { User, Monitor, Lock, Key, Brain, Wrench, ChevronRight } from 'lucide-react'
 import type { SettingsTab } from '../../hooks/useSettings'
 
 interface SettingsPanelProps {
@@ -14,7 +14,6 @@ const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
   { id: 'api', label: 'API 密钥', icon: Key },
   { id: 'models', label: '模型管理', icon: Brain },
   { id: 'agent', label: '工具管理', icon: Wrench },
-  { id: 'skills', label: '技能中心', icon: Sparkles },
 ]
 
 export function SettingsPanel({ activeTab, onTabChange, onToggle }: SettingsPanelProps) {

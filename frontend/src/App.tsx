@@ -12,6 +12,7 @@ import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
 import { KnowledgeGraph } from './components/settings/knowledge-graph'
 import { KnowledgeContentView } from './components/knowledge/KnowledgeContentView'
+import { SkillDetailPage } from './components/skill/SkillDetailPage'
 import { useState, useEffect, useCallback } from 'react'
 import {
   Menu,
@@ -48,12 +49,15 @@ function AppContent() {
   const [activeMenu, setActiveMenu] = useState<MenuId>(() => {
     try {
       const saved = localStorage.getItem('sidebarActiveMenu')
-      if (saved === 'chat' || saved === 'knowledge' || saved === 'graph') return saved as MenuId
+      if (saved === 'chat' || saved === 'knowledge' || saved === 'graph' || saved === 'skills')
+        return saved as MenuId
     } catch {
       // ignore
     }
     return 'chat'
   })
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null)
+  const [skillRefreshKey, setSkillRefreshKey] = useState(0)
   const [graphViewDataset, setGraphViewDataset] = useState<{
     name: string
     displayName: string
@@ -211,6 +215,11 @@ function AppContent() {
               onActiveMenuChange={setActiveMenu}
               selectedKbId={knowledgeViewKb?.id ?? null}
               selectedDatasetName={graphViewDataset?.name ?? null}
+              selectedSkillId={selectedSkillId}
+              onSelectSkill={(id) => setSelectedSkillId(id)}
+              onCreateSkill={() => {
+                setSelectedSkillId(null)
+              }}
             />
           </div>
         </aside>
@@ -388,6 +397,18 @@ function AppContent() {
                 {activeConversation && <InputArea />}
               </div>
             )}
+            {/* 技能库视图 */}
+            {activeMenu === 'skills' && !showSettings && (
+              <SkillDetailPage
+                key={`${selectedSkillId}-${skillRefreshKey}`}
+                skillId={selectedSkillId}
+                onDeleted={() => {
+                  setSelectedSkillId(null)
+                  setSkillRefreshKey((k) => k + 1)
+                }}
+                onSaved={() => setSkillRefreshKey((k) => k + 1)}
+              />
+            )}
             {showSettings && (
               <div className='relative flex-1 overflow-y-auto p-6'>
                 <UserSettings activeTab={settingsTab} />
@@ -412,7 +433,7 @@ function AppContent() {
         isOpen={noteTodoDrawerOpen}
         onClose={() => setNoteTodoDrawerOpen(false)}
         onOpen={() => setNoteTodoDrawerOpen(true)}
-        hideCapsule={!isChatMenu}
+        hideCapsule={!isChatMenu || showSettings}
       />
 
       <ToastContainer />

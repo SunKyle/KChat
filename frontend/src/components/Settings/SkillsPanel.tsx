@@ -351,21 +351,21 @@ function SkillCard({ skill, isToggling, onEdit, onDelete, onToggleEnabled }: Ski
   )
 }
 
-interface SkillFormProps {
+export interface SkillFormProps {
   initial: Skill | null
   toolList: ToolInfo[]
   onCancel: () => void
   onSubmit: (data: SkillRequest) => void
 }
 
-const HOOK_TYPE_LABELS: Record<CompletionHookType, string> = {
+export const HOOK_TYPE_LABELS: Record<CompletionHookType, string> = {
   NONE: '无',
   CREATE_NOTE: '写入笔记',
   SCHEDULE_REMINDER: '创建提醒',
   SAVE_TO_KB: '存入知识库',
 }
 
-function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormProps) {
+export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [systemPromptTemplate, setSystemPromptTemplate] = useState(initial?.systemPromptTemplate ?? '')

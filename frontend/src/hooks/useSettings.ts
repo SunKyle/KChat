@@ -7,7 +7,6 @@ export type SettingsTab =
   | 'api'
   | 'models'
   | 'agent'
-  | 'skills'
 
 export function useSettings() {
   const [showSettings, setShowSettings] = useState(false)

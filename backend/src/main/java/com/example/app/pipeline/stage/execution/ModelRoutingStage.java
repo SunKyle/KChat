@@ -189,15 +189,21 @@ public class ModelRoutingStage implements ContextPipelineStage {
     /**
      * 流式路径：使用 StreamingChatModel.chat() + StreamingChatResponseHandler。
      *
-     * <p>关键设计：onPartialResponse 只缓冲 token，不直接推 message 事件。
-     * onCompleteResponse 时判断本轮是否有 tool calls：
+     * <p>关键设计（方案2：确认后快速回放）：
      * <ul>
-     *   <li>有 tool calls → 文本属于中间推理，不进消息正文（由 storeAiMessage
-     *       的 emitAgentThinking 推送到思考面板）</li>
-     * <li>无 tool calls → 这是最终回复，推 message 事件到前端消息正文</li>
+     *   <li>onPartialResponse 只缓冲 token，不推 message 事件（因为无法预知
+     *       本轮是否有 tool calls）</li>
+     *   <li>onCompleteResponse 判断本轮是否有 tool calls：
+     *     <ul>
+     *       <li>有 tool calls → 文本属于中间推理，不进消息正文（由 storeAiMessage
+     *           的 emitAgentThinking 推送到思考面板）</li>
+     *       <li>无 tool calls（最终回复）→ 调用 streamReplayChunks 把缓冲的
+     *           完整文本切块快速回放，模拟流式逐字输出效果</li>
+     *     </ul>
+     *   </li>
      * </ul>
      * 这样保证最终消息正文只包含最后一轮（无 tool calls）的文本，
-     * 中间轮次的推理文本不会混入。
+     * 中间轮次的推理文本不会混入，同时最终回复有逐字流式观感。
      */
     private void executeWithToolsStreaming(ConversationContext ctx, String model, ChatRequest chatRequest) {
         StreamingChatModel streamingModel = aiServiceFactory.getStreamingChatModel(model);
@@ -231,14 +237,10 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 boolean isOrchestrator = ctx.getAgentStack().peek().getRole() == AgentFrame.Role.ORCHESTRATOR;
 
                 if (!hasToolCalls && !fullText.isEmpty() && emitter != null && isOrchestrator) {
-                    // 最终回复：推 message 事件到消息正文
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .name("message")
-                                .data("{\"content\": \"" + JsonUtils.escapeJson(fullText) + "\"}"));
-                    } catch (Exception e) {
-                        log.debug("Failed to send final message SSE: {}", e.getMessage());
-                    }
+                    // 最终回复：切块快速回放，模拟流式逐字输出
+                    // onPartialResponse 时无法预知本轮是否有 tool calls，故先缓冲，
+                    // 确认无 tool calls 后切块回放，避免中间轮推理文本污染消息正文
+                    streamReplayChunks(emitter, fullText);
                 }
                 // 有 tool calls 时：文本不推 message，会通过 storeAiMessage → emitAgentThinking 进思考面板
                 // SPECIALIST 最终轮文本不推 message，作为 outputPayload 回传给 Orchestrator
@@ -276,6 +278,59 @@ public class ModelRoutingStage implements ContextPipelineStage {
         }
 
         storeAiMessage(ctx, aiMessage);
+    }
+
+    /**
+     * 把完整文本切成小块逐个快速推送，模拟流式逐字输出效果。
+     *
+     * <p>仅用于 Agent 模式最终回复（onCompleteResponse 确认无 tool calls 后）。
+     * 由于 onPartialResponse 时无法预知本轮是否为最终回复，先缓冲全部 token，
+     * 确认后用此方法切块回放——既避免中间轮推理文本污染消息正文，
+     * 又让最终回复有逐字流式观感。
+     *
+     * <p>块大小和间隔随文本长度自适应，总回放时长控制在 ~1s 内，
+     * 避免长回复回放过慢。
+     *
+     * @param emitter  SSE 推送器
+     * @param fullText 已缓冲的完整回复文本
+     */
+    private void streamReplayChunks(SseEmitter emitter, String fullText) {
+        int len = fullText.length();
+        if (len == 0) {
+            return;
+        }
+        // 块大小和间隔随文本长度自适应，总回放时长控制在 ~1s 内
+        int chunkSize;
+        int delayMs;
+        if (len <= 100) {
+            chunkSize = 4;
+            delayMs = 25;
+        } else if (len <= 500) {
+            chunkSize = 12;
+            delayMs = 20;
+        } else {
+            chunkSize = 30;
+            delayMs = 15;
+        }
+        for (int i = 0; i < len; i += chunkSize) {
+            int end = Math.min(i + chunkSize, len);
+            String chunk = fullText.substring(i, end);
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("message")
+                        .data("{\"content\": \"" + JsonUtils.escapeJson(chunk) + "\"}"));
+                if (end < len) {
+                    // 最后一块不 sleep，减少尾部延迟
+                    Thread.sleep(delayMs);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (Exception e) {
+                log.debug("Failed to send replay chunk SSE: {}", e.getMessage());
+                break;
+            }
+        }
     }
 
     /**
