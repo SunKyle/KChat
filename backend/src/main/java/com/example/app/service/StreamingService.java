@@ -65,16 +65,25 @@ public class StreamingService {
 
         if (ctx.isAgentMode()) {
             ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
-            // Agent 模式：异步执行循环，立即返回 emitter 让 Spring MVC 建立 SSE 连接。
-            // 否则 executeWithAgentLoop 同步阻塞请求线程，期间 emitter.send 的 token
+            // 入口调度（同 ChatService）：显式单 Skill → executeWithAgentLoop；否则 → executeWithOrchestratorLoop
+            boolean explicitSingleSkill = ctx.getSkillId() != null && !ctx.getSkillId().isBlank();
+            String mode = explicitSingleSkill ? "AgentLoop" : "OrchestratorLoop";
+            log.info("[STREAM] Agent mode: explicitSingleSkill={}, use {}", explicitSingleSkill, mode);
+
+            // 异步执行循环，立即返回 emitter 让 Spring MVC 建立 SSE 连接。
+            // 否则循环同步阻塞请求线程，期间 emitter.send 的 token
             // 会被 Spring 的 earlyEvents 缓存，等连接建立后一次性回放，前端看到的是
             // "全部一起到"而非流式。
             CompletableFuture.runAsync(() -> {
                 try {
-                    pipelineExecutor.executeWithAgentLoop(ctx);
+                    if (explicitSingleSkill) {
+                        pipelineExecutor.executeWithAgentLoop(ctx);
+                    } else {
+                        pipelineExecutor.executeWithOrchestratorLoop(ctx);
+                    }
                     pipelineExecutor.executePostProcessing(ctx);
                 } catch (Exception e) {
-                    log.error("[STREAM] Agent loop failed: {}", e.getMessage(), e);
+                    log.error("[STREAM] {} failed: {}", mode, e.getMessage(), e);
                     ctx.emitSseEvent("error", "{\"message\": \"" + JsonUtils.escapeJson(e.getMessage()) + "\"}");
                     emitter.completeWithError(e);
                 }

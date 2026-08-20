@@ -3,5 +3,7 @@ export type { OptimizationResponse, OptimizationRequest, UploadedFile } from './
 export { models, modelConfigs } from './models'
 export { userApi, settingsApi } from './user'
 export { tools } from './tools'
+export { skills } from './skill'
+export type { Skill, SkillRequest, CompletionHookType } from './skill'
 export { request, requestStream, uploadFile, requestSSE } from './client'
 export type { Model, ModelConfig, ToolInfo } from '../types'

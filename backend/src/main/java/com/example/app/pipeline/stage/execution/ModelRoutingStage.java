@@ -7,6 +7,7 @@ import com.example.app.config.OpenAIClientProperties;
 import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineExecutor;
 import com.example.app.pipeline.ContextPipelineStage;
+import com.example.app.pipeline.context.AgentFrame;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.pipeline.stage.agent.ToolDefinitionStage;
 import com.example.app.service.ModelConfigService;
@@ -186,9 +187,17 @@ public class ModelRoutingStage implements ContextPipelineStage {
     }
 
     /**
-     * 流式路径：使用 StreamingChatModel.chat() + StreamingChatResponseHandler
-     * onPartialResponse 实时推送 token 到 SSE，onCompleteResponse 交付完整 AiMessage。
-     * 通过 CountDownLatch 保持同步语义，确保 Agent 循环按序执行。
+     * 流式路径：使用 StreamingChatModel.chat() + StreamingChatResponseHandler。
+     *
+     * <p>关键设计：onPartialResponse 只缓冲 token，不直接推 message 事件。
+     * onCompleteResponse 时判断本轮是否有 tool calls：
+     * <ul>
+     *   <li>有 tool calls → 文本属于中间推理，不进消息正文（由 storeAiMessage
+     *       的 emitAgentThinking 推送到思考面板）</li>
+     * <li>无 tool calls → 这是最终回复，推 message 事件到前端消息正文</li>
+     * </ul>
+     * 这样保证最终消息正文只包含最后一轮（无 tool calls）的文本，
+     * 中间轮次的推理文本不会混入。
      */
     private void executeWithToolsStreaming(ConversationContext ctx, String model, ChatRequest chatRequest) {
         StreamingChatModel streamingModel = aiServiceFactory.getStreamingChatModel(model);
@@ -204,22 +213,36 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 if (partialResponse == null || partialResponse.isEmpty()) {
                     return;
                 }
+                // 只缓冲，不推 message 事件
+                // 等 onCompleteResponse 判断本轮是否为最终回复
                 fullResponse.append(partialResponse);
-                if (emitter != null) {
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .name("message")
-                                .data("{\"content\": \"" + JsonUtils.escapeJson(partialResponse) + "\"}"));
-                    } catch (Exception e) {
-                        log.debug("Failed to send agent streaming SSE: {}", e.getMessage());
-                    }
-                }
             }
 
             @Override
             public void onCompleteResponse(ChatResponse chatResponse) {
                 AiMessage aiMessage = chatResponse.aiMessage();
                 aiMessageRef.set(aiMessage);
+
+                // 判断本轮是否为最终回复（无 tool calls）
+                boolean hasToolCalls = aiMessage.hasToolExecutionRequests();
+                String fullText = fullResponse.toString();
+                // 只在 Orchestrator 帧的最终轮推 message 事件到消息正文
+                // SPECIALIST 帧的文本是 skill output，回传给 Orchestrator，不直接给前端
+                boolean isOrchestrator = ctx.getAgentStack().peek().getRole() == AgentFrame.Role.ORCHESTRATOR;
+
+                if (!hasToolCalls && !fullText.isEmpty() && emitter != null && isOrchestrator) {
+                    // 最终回复：推 message 事件到消息正文
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name("message")
+                                .data("{\"content\": \"" + JsonUtils.escapeJson(fullText) + "\"}"));
+                    } catch (Exception e) {
+                        log.debug("Failed to send final message SSE: {}", e.getMessage());
+                    }
+                }
+                // 有 tool calls 时：文本不推 message，会通过 storeAiMessage → emitAgentThinking 进思考面板
+                // SPECIALIST 最终轮文本不推 message，作为 outputPayload 回传给 Orchestrator
+
                 latch.countDown();
             }
 
@@ -250,12 +273,6 @@ public class ModelRoutingStage implements ContextPipelineStage {
             log.warn("[ModelRouting][Agent] No AI message received from streaming");
             ctx.setLlmResponse("");
             return;
-        }
-
-        // 推送最终响应（如果有完整文本且已通过 partial 推送过，可跳过）
-        String fullText = fullResponse.toString();
-        if (!fullText.isEmpty() && emitter != null) {
-            // 文本已通过 partial 推送，此处不再重复推送
         }
 
         storeAiMessage(ctx, aiMessage);

@@ -1,6 +1,7 @@
 package com.example.app.pipeline.stage.assembly;
 
 import com.example.app.pipeline.ContextPipelineStage;
+import com.example.app.pipeline.context.AgentFrame;
 import com.example.app.pipeline.context.ConversationContext;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -25,6 +26,33 @@ public class MessageAssemblyStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
+        AgentFrame currentFrame = ctx.getAgentStack().peek();
+
+        // SPECIALIST 帧：SkillExecutor 已设置好 assembledMessages（[UserMessage(instruction)]），
+        // 这里只需把 SystemPromptAssemblyStage 产出的 SystemMessage 前置插入即可。
+        // 不重建列表，避免引入 ORCHESTRATOR 的 shortTermMemory 和原始 userMessage。
+        if (currentFrame.getRole() == AgentFrame.Role.SPECIALIST) {
+            List<ChatMessage> existing = ctx.getAssembledMessages();
+            if (existing == null) {
+                existing = new ArrayList<>();
+            }
+            SystemMessage systemMsg = (SystemMessage) ctx.getAgentState()
+                    .get(ConversationContext.KEY_SYSTEM_MESSAGE);
+            if (systemMsg != null) {
+                // 避免重复插入（内层循环第二轮时 SystemMessage 已在列表中）
+                boolean alreadyHasSystem = !existing.isEmpty()
+                        && existing.get(0) instanceof SystemMessage;
+                if (!alreadyHasSystem) {
+                    existing.add(0, systemMsg);
+                }
+            }
+            ctx.setAssembledMessages(existing);
+            log.debug("[MessageAssembly] SPECIALIST frame: using existing {} message(s), prepended SystemMessage={}",
+                    existing.size(), systemMsg != null);
+            return;
+        }
+
+        // ORCHESTRATOR 帧：从 scratch 重建消息列表（原逻辑）
         List<ChatMessage> messages = new ArrayList<>();
 
         SystemMessage systemMsg = (SystemMessage) ctx.getAgentState().get(ConversationContext.KEY_SYSTEM_MESSAGE);

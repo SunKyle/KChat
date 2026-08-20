@@ -27,7 +27,9 @@ import { useWebSearch } from '../../../hooks/useWebSearch'
 import { useToast } from '../../../hooks/useToast'
 import { toAccessibleImageUrl } from '../../../utils/imageUrl'
 import { KnowledgeBasePicker } from './KnowledgeBasePicker'
+import { SkillPicker } from './SkillPicker'
 import type { KnowledgeBase } from '../../../api/knowledge'
+import type { Skill } from '../../../api/skill'
 
 // 已选中的知识库引用
 interface KnowledgeBaseReference {
@@ -54,8 +56,11 @@ export function InputArea() {
   })
   const [showKbPicker, setShowKbPicker] = useState(false)
   const [kbQuery, setKbQuery] = useState('')
+  const [showSkillPicker, setShowSkillPicker] = useState(false)
+  const [skillQuery, setSkillQuery] = useState('')
   const [uploading, setUploading] = useState(false)
   const [agentModeEnabled, setAgentModeEnabled] = useState(true)
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showStatusBar, setShowStatusBar] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
@@ -149,6 +154,11 @@ export function InputArea() {
       setShowKbPicker(true)
       setKbQuery('')
     }
+    // 输入 / 唤起技能选择器
+    if (e.key === '/') {
+      setShowSkillPicker(true)
+      setSkillQuery('')
+    }
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -224,6 +234,22 @@ export function InputArea() {
     setKbReferences((prev) => prev.filter((r) => r.id !== id))
   }
 
+  const handleSelectSkill = (skill: Skill | null) => {
+    setSelectedSkill(skill)
+    // 清除唤起选择器时输入的尾部 "/搜索词"，保留正式输入内容
+    setInput((prev) => {
+      const match = /\/([^/@]*)$/.exec(prev)
+      if (match) return prev.slice(0, match.index)
+      return prev
+    })
+    setSkillQuery('')
+    setShowSkillPicker(false)
+  }
+
+  const handleRemoveSkill = () => {
+    setSelectedSkill(null)
+  }
+
   const handleSend = async () => {
     if (
       (!input.trim() && uploadingImages.length === 0 && uploadedFiles.length === 0) ||
@@ -250,13 +276,17 @@ export function InputArea() {
     setUploadedFiles([])
     setShowKbPicker(false)
     setKbQuery('')
+    setShowSkillPicker(false)
+    setSkillQuery('')
+    setSelectedSkill(null)
 
     sendMessage(
       currentInput,
       currentImages,
       webSearchEnabled,
       agentModeEnabled,
-      currentKbRefs.map((r) => r.id)
+      currentKbRefs.map((r) => r.id),
+      selectedSkill?.id
     )
   }
 
@@ -430,6 +460,19 @@ export function InputArea() {
           )}
         </AnimatePresence>
 
+        {/* 技能选择器（/ 唤起） */}
+        <AnimatePresence>
+          {showSkillPicker && (
+            <SkillPicker
+              open={showSkillPicker}
+              query={skillQuery}
+              selectedId={selectedSkill?.id}
+              onSelect={handleSelectSkill}
+              onClose={() => setShowSkillPicker(false)}
+            />
+          )}
+        </AnimatePresence>
+
         {/* 状态条 — 在输入框背后，从顶部滑出 */}
         <div className='relative mx-4 lg:mx-6 mb-0'>
           {(showStatusBar || isOptimizing) &&
@@ -514,9 +557,29 @@ export function InputArea() {
             >
               {/* 上半部分：文本输入区域 */}
               <div className='px-4 py-1.5'>
-                {/* 已选中的知识库引用 — 入住式 chip */}
-                {kbReferences.length > 0 && (
+                {/* 已选中的引用 chips（知识库 + 技能） — 入住式 chip */}
+                {(kbReferences.length > 0 || selectedSkill) && (
                   <div className='flex flex-wrap items-center gap-1.5 pt-1.5 pb-1'>
+                    {selectedSkill && (
+                      <div
+                        className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--accent-primary)]/25 bg-[var(--accent-primary)]/10'
+                      >
+                        <Sparkles className='w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0' />
+                        {selectedSkill.icon && (
+                          <span className='text-xs leading-none shrink-0'>{selectedSkill.icon}</span>
+                        )}
+                        <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
+                          {selectedSkill.name}
+                        </span>
+                        <button
+                          onClick={handleRemoveSkill}
+                          className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
+                          aria-label='移除技能引用'
+                        >
+                          <X className='w-3 h-3' />
+                        </button>
+                      </div>
+                    )}
                     {kbReferences.map((ref) => (
                       <div
                         key={ref.id}
@@ -545,7 +608,8 @@ export function InputArea() {
                     setInput(value)
                     // 当用户手动输入时，重置撤回状态
                     setCanUndoOptimize(false)
-                    // 弹层打开时，随输入实时更新引用关键词（匹配尾部 @后的文字）
+                    // ——— 弹层打开时，随输入实时更新引用关键词 ———
+                    // 知识库：匹配尾部 @后的文字
                     if (showKbPicker) {
                       const match = /@([^@]*)$/.exec(value)
                       if (match) {
@@ -553,6 +617,17 @@ export function InputArea() {
                       } else {
                         setKbQuery('')
                         setShowKbPicker(false)
+                      }
+                    }
+                    // 技能：匹配尾部 / 后的文字（注意不能踩到 @ 片段）
+                    if (showSkillPicker) {
+                      // 只认最后一次的 "/"，并且该 "/" 后面不能出现 "@"（避免误匹配知识库片段）
+                      const match = /\/([^/@]*)$/.exec(value)
+                      if (match) {
+                        setSkillQuery(match[1])
+                      } else {
+                        setSkillQuery('')
+                        setShowSkillPicker(false)
                       }
                     }
                   }}
@@ -565,7 +640,9 @@ export function InputArea() {
                   onKeyDown={handleKeyDown}
                   disabled={streamingState.isStreaming}
                   placeholder={
-                    streamingState.isStreaming ? '添加到队列' : '输入消息，输入 @ 可引用知识库'
+                    streamingState.isStreaming
+                      ? '添加到队列'
+                      : '输入消息，@ 引用知识库 · / 引用技能'
                   }
                   aria-label='输入消息'
                   className={`w-full resize-none bg-transparent px-0 py-1 theme-text-primary placeholder-theme-text-placeholder focus:outline-none min-h-[32px] max-h-[200px] overflow-y-auto font-input-text transition-opacity duration-200 ${

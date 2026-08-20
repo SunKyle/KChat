@@ -57,7 +57,11 @@ export interface Message {
  * 后端推送结构（详见 ConversationContext#emitAgentThinking）：
  * ```json
  * {
- *   "type": "tool_definition" | "llm_call" | "tool_detection" | "tool_execution" | "tool_assembly" | "final_response",
+ *   "type": "tool_definition" | "llm_call" | "tool_detection" | "tool_execution"
+ *         | "tool_assembly" | "final_response" | "skill_resolution" | "skill_completion",
+ *   "frameId": 0,
+ *   "role": "ORCHESTRATOR" | "SPECIALIST",
+ *   "skillId": null,
  *   "iteration": 0,
  *   "timestamp": 1234567890,
  *   "data": { ... }
@@ -74,6 +78,16 @@ export type AgentThinkingStep = {
     | 'tool_execution'
     | 'tool_assembly'
     | 'final_response'
+    | 'skill_resolution'
+    | 'skill_completion'
+    | 'skill_enter'
+    | 'skill_exit'
+  /** 当前栈帧 ID（0=Orchestrator，>0=Skill 层） */
+  frameId?: number
+  /** 帧角色（ORCHESTRATOR / SPECIALIST） */
+  role?: 'ORCHESTRATOR' | 'SPECIALIST'
+  /** 当前帧的 Skill ID（Orchestrator 帧为 null） */
+  skillId?: string | null
   iteration: number
   timestamp: number
   // 后端 data 负载是松散 Map，前端按 type 自行取字段
@@ -90,6 +104,8 @@ export interface ChatRequest {
   webSearch?: boolean
   agentMode?: boolean
   knowledgeBaseIds?: string[]
+  /** 手动激活的 Skill ID（前端技能选择器透传，非空时 SkillResolutionStage 直接激活） */
+  skillId?: string
 }
 
 export interface ChatResponse {

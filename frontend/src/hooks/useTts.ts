@@ -112,7 +112,7 @@ export function useTts(userId?: string) {
           // 所有 chunk 已接收，结束 SourceBuffer
           if (sourceBufferRef.current) {
             try {
-              sourceBufferRef.current.endOfStream()
+              ;(sourceBufferRef.current as unknown as { endOfStream: () => void }).endOfStream()
             } catch {
               // ignore
             }

@@ -57,22 +57,89 @@ public class ContextPipelineExecutor {
      * 以确保 StreamingDoneStage 在 message 事件之后发送 done 事件。
      *
      * 终止条件：toolCalls 为空（LLM 不再调用工具）/ 达到 maxIterations / 出现不可恢复错误。
+     *
+     * <p>典型调用方：
+     * <ul>
+     *   <li>旧单 Skill 激活链路（/ 手动选 Skill 或 关键词命中单 Skill）：
+     *       SkillResolutionStage 已写 KEY_ACTIVE_SKILL，本循环在单帧上跑原子 Tool ReAct</li>
+     *   <li>SkillExecutor 嵌套 SPECIALIST 帧内部：同样在单 Skill 帧上跑原子 Tool ReAct</li>
+     * </ul>
      */
     public void executeWithAgentLoop(ConversationContext ctx) {
+        // 顶层入口：先跑一次性 PREPROCESS（含 user message 预持久化等），
+        // 再跑 ReAct 循环。SPECIALIST 帧不应调此方法（用 executeSpecialistLoop）。
+        runStages(resolveStagesUpTo(ctx, ContextPipelineStage.Phase.PREPROCESS), ctx);
+        runReActLoop(ctx, "AgentLoop", false);
+    }
+
+    /**
+     * SPECIALIST 帧内部的 ReAct 循环（不跑 PREPROCESS）。
+     *
+     * <p>供 SkillExecutor 调用：PREPROCESS 已在顶层入口（executeWithOrchestratorLoop /
+     * executeWithAgentLoop）跑过，SPECIALIST 只需要 ASSEMBLY + EXECUTION + AGENT 循环。
+     * 这样避免 user message 被重复预持久化等问题。
+     */
+    public void executeSpecialistLoop(ConversationContext ctx) {
+        runReActLoop(ctx, "SpecialistLoop", false);
+    }
+
+    /**
+     * 顶层 Orchestrator 循环 —— 双层 ReAct 的上层。
+     *
+     * <p>与 {@link #executeWithAgentLoop} 结构一致，但语义不同：
+     * 当前活跃帧应为 ORCHESTRATOR 帧，且 KEY_ACTIVE_SKILL 未设置
+     * （即用户没有通过 / 手动指定某个 Skill）。这种情况下：
+     * <ul>
+     *   <li>SystemPromptAssemblyStage 走 OrchestratorSystemPromptProvider 编排 Prompt</li>
+     *   <li>ToolDefinitionStage 只暴露 call_skill_* 伪 functions（不暴露原子 Tool）</li>
+     *   <li>ToolInvocationStage 分发 Skill 调用到 SkillExecutor → push SPECIALIST 帧
+     *       → 内部递归调用 executeWithAgentLoop 跑原子 Tool ReAct → pop → 结果回填</li>
+     * </ul>
+     *
+     * <p>循环终止：Orchestrator LLM 不再 call_skill_*（即给出最终汇总文本），
+     * 或达到 Orchestrator 分派轮次上限（默认 10，见 AgentStack 构造函数）。
+     *
+     * <p>调用后同样需要显式 executePostProcessing。
+     */
+    public void executeWithOrchestratorLoop(ConversationContext ctx) {
+        // 顶层入口：先跑一次性 PREPROCESS（含 user message 预持久化等），
+        // 再跑 Orchestrator ReAct 循环。
+        runStages(resolveStagesUpTo(ctx, ContextPipelineStage.Phase.PREPROCESS), ctx);
+        runReActLoop(ctx, "OrchestratorLoop", true);
+    }
+
+    /**
+     * 共享的 ReAct 循环骨架。
+     *
+     * @param ctx          上下文
+     * @param logPrefix    日志前缀（用于区分 AgentLoop / OrchestratorLoop）
+     * @param orchestrator 是否是顶层 Orchestrator 循环（仅影响 trace 和日志）
+     */
+    private void runReActLoop(ConversationContext ctx, String logPrefix, boolean orchestrator) {
         ctx.setCurrentIteration(0);
+        int startDepth = ctx.getAgentStack().depth();
+        log.info("[{}] Start (role={}, frameId={}, maxIt={}, startDepth={})",
+                logPrefix,
+                ctx.getAgentStack().peek().getRole(),
+                ctx.getAgentStack().currentFrameId(),
+                ctx.getMaxAgentIterations(),
+                startDepth);
 
-        // 第一轮：PREPROCESS + ASSEMBLY + EXECUTION + AGENT
-        runStages(resolveStagesUpTo(ctx, ContextPipelineStage.Phase.AGENT), ctx);
+        // 第一轮：ASSEMBLY + EXECUTION + AGENT
+        // （PREPROCESS 已在顶层入口 executeWithOrchestratorLoop/executeWithAgentLoop
+        //   或 executeSpecialistLoop 之外完成，不在循环内重复跑）
+        runStages(resolveStagesBetween(ctx,
+                ContextPipelineStage.Phase.ASSEMBLY,
+                ContextPipelineStage.Phase.AGENT), ctx);
 
-        // 后续轮次：EXECUTION + AGENT，直到无 tool_calls 或达 maxIterations
+        // 后续轮次：EXECUTION + AGENT
         while (!ctx.getToolCalls().isEmpty()
                 && ctx.getCurrentIteration() + 1 < ctx.getMaxAgentIterations()) {
             int next = ctx.getCurrentIteration() + 1;
             ctx.setCurrentIteration(next);
-            log.info("[AgentLoop] Iteration {}: {} tool call(s), continuing",
-                    next, ctx.getToolCalls().size());
+            log.info("[{}] Iteration {}: {} pending call(s), depth={}, continuing",
+                    logPrefix, next, ctx.getToolCalls().size(), ctx.getAgentStack().depth());
             ctx.getTrace().addAgentIteration(next, 0, null, "CONTINUE", ctx.getToolCalls().size());
-            // 清空上一轮 toolCalls，让 ToolCallDetectionStage 重新检测
             ctx.getToolCalls().clear();
             runStages(resolveStagesBetween(ctx,
                     ContextPipelineStage.Phase.EXECUTION,
@@ -80,13 +147,22 @@ public class ContextPipelineExecutor {
         }
 
         if (!ctx.getToolCalls().isEmpty()) {
-            log.warn("[AgentLoop] Reached max iterations ({}) with {} pending tool calls",
-                    ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
+            log.warn("[{}] Reached max iterations ({}), {} pending call(s) remain unfinished",
+                    logPrefix, ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
             ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
                     "max iterations reached", "TERMINATE", ctx.getToolCalls().size());
         } else {
+            log.info("[{}] Ended after {} iteration(s), final depth={}",
+                    logPrefix, ctx.getCurrentIteration(), ctx.getAgentStack().depth());
             ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
-                    "no tool calls", "TERMINATE", 0);
+                    orchestrator ? "orchestrator final response" : "no tool calls",
+                    "TERMINATE", 0);
+        }
+
+        // 防御性检查：SPECIALIST 循环退出后，栈深度应回到起点
+        // （Orchestrator 循环退出 depth 仍为 1；SkillExecutor 内部 SPECIALIST 循环跑完后由 SkillExecutor pop）
+        if (orchestrator && ctx.getAgentStack().depth() != 1) {
+            log.error("[{}] Stack leak: ended at depth={}, expected 1", logPrefix, ctx.getAgentStack().depth());
         }
     }
 

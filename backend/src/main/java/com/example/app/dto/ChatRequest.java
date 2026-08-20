@@ -33,4 +33,11 @@ public class ChatRequest {
      * 为空 → 保留 Agent 记忆检索工具做 main_dataset 自动兜底。
      */
     private List<String> knowledgeBaseIds;
+
+    /**
+     * 手动激活的 Skill ID（前端在技能中心选择后随请求透传）。
+     * 非空 → SkillResolutionStage 直接激活该 Skill，覆盖默认 system prompt
+     * 和工具白名单；为空 → 走关键词匹配或默认通用模式。
+     */
+    private String skillId;
 }

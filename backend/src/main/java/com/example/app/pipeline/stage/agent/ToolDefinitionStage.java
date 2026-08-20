@@ -1,27 +1,40 @@
 package com.example.app.pipeline.stage.agent;
 
+import com.example.app.entity.Skill;
 import com.example.app.pipeline.ContextPipelineStage;
+import com.example.app.pipeline.context.AgentFrame;
 import com.example.app.pipeline.context.ConversationContext;
+import com.example.app.pipeline.stage.agent.tool.SkillToolSpecFactory;
+import com.example.app.service.SkillService;
 import com.example.app.service.tool.ToolSpecificationProvider;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Agent 工具定义注入阶段
+ * Agent 工具定义注入阶段（ASSEMBLY，order=480）
  *
- * 从 {@link ToolSpecificationProvider} 获取所有已注册工具的 ToolSpecification，
- * 写入 ctx.enabledToolNames（用于可观测性）和 ctx.agentState（供 ModelRoutingStage 读取）。
+ * <p>双层 ReAct 改造后，按当前帧角色分支提供完全不同的 tool list：
  *
- * 实际的 ToolSpecification 列表通过 agentState 传递，避免在 ConversationContext 中
- * 增加 LangChain4j 特定类型字段。
+ * <h3>ORCHESTRATOR 帧（栈深度=1）</h3>
+ * 顶层编排者 <b>看不到任何原子 Tool</b>（如 createReminder、webSearch 等）。
+ * 它只能看到一组由 Skill 编译而来的"伪 function"：
+ * {@code call_skill_<skillId>({instruction, ...})}，由 {@link SkillToolSpecFactory} 构建。
+ * 这样 Orchestrator 的 LLM 就只能在 Skill 粒度做路由决策，不能"跳过 Skill 直接干活"。
  *
- * order=480（ASSEMBLY 阶段，在 tokenManagementStage 之后、modelRoutingStage 之前）
+ * <h3>SPECIALIST 帧（栈深度>1）</h3>
+ * Skill 专家帧 <b>看不到其他 Skill 伪函数</b>，只能看到当前 Skill 白/黑名单过滤后的
+ * 原子 Tool 列表。保持原有行为：allowedToolNames（白名单优先）+ forbiddenToolNames（叠加排除）。
+ *
+ * <p>KB 引用过滤（recallMemory）：两条分支都生效，保持原有兼容性。
  */
 @Component
 @RequiredArgsConstructor
@@ -32,6 +45,10 @@ public class ToolDefinitionStage implements ContextPipelineStage {
     public static final String KEY_TOOL_SPECIFICATIONS = "toolSpecifications";
 
     private final ToolSpecificationProvider toolSpecificationProvider;
+    private final SkillService skillService;
+    private final ObjectMapper objectMapper;
+
+    private static final TypeReference<List<String>> LIST_STRING = new TypeReference<>() {};
 
     @Override
     public Phase getPhase() {
@@ -45,15 +62,33 @@ public class ToolDefinitionStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications(ctx.getUserId());
+        AgentFrame currentFrame = ctx.getAgentStack().peek();
+        Skill activeSkill = (Skill) ctx.getAgentState().get(ConversationContext.KEY_ACTIVE_SKILL);
 
-        // 当用户显式引用知识库（@唤起）时，过滤掉 recallMemory 工具，
-        // 避免 Agent 从 main_dataset 中兜底检索，只使用指定知识库的片段
-        boolean hasExplicitKbRefs = ctx.getKnowledgeBaseIds() != null && !ctx.getKnowledgeBaseIds().isEmpty();
-        if (hasExplicitKbRefs) {
-            specs = specs.stream()
-                    .filter(spec -> !"recallMemory".equals(spec.name()))
-                    .toList();
+        List<ToolSpecification> specs;
+        Map<String, Object> traceData = new LinkedHashMap<>();
+        traceData.put("frameId", ctx.getAgentStack().currentFrameId());
+        traceData.put("role", currentFrame.getRole().name());
+
+        // 判断是否走 SPECIALIST 过滤分支：
+        //   a) 帧角色是 SPECIALIST（SkillExecutor 嵌套 push 的帧）→ 始终 specialist
+        //   b) ORCHESTRATOR 帧 + KEY_ACTIVE_SKILL 已设置 = 旧"单 Skill 手动激活"链路
+        //      （用户通过 / 手动选 Skill，ChatService 走 executeWithAgentLoop 而非 OrchestratorLoop）
+        //   c) ORCHESTRATOR 帧 + 无 activeSkill = Orchestrator 路由模式 → 只暴露 call_skill_* 伪函数
+        //
+        // 关键：SkillResolutionStage 已移除关键词匹配，ORCHESTRATOR 帧上的 activeSkill
+        //       只可能来自手动 skillId（旧链路），不会污染 Orchestrator 路由路径。
+        boolean specialistMode = (currentFrame.getRole() == AgentFrame.Role.SPECIALIST)
+                || (activeSkill != null);
+
+        if (specialistMode) {
+            specs = buildSpecialistAtomicTools(ctx, currentFrame);
+            traceData.put("mode", "SPECIALIST (filtered atomic tools)");
+            if (activeSkill != null) traceData.put("skillId", activeSkill.getId());
+            else if (currentFrame.getSkillId() != null) traceData.put("skillId", currentFrame.getSkillId());
+        } else {
+            specs = buildOrchestratorSkillPseudoTools(ctx);
+            traceData.put("mode", "ORCHESTRATOR (skill pseudo-functions)");
         }
 
         ctx.getEnabledToolNames().clear();
@@ -61,13 +96,101 @@ public class ToolDefinitionStage implements ContextPipelineStage {
             ctx.getEnabledToolNames().add(spec.name());
         }
         ctx.getAgentState().put(KEY_TOOL_SPECIFICATIONS, specs);
-        log.info("[ToolDefinition] {} tool(s) enabled: {}", specs.size(), ctx.getEnabledToolNames());
+        traceData.put("tools", ctx.getEnabledToolNames());
+        traceData.put("count", specs.size());
 
-        // 推送 Agent 思考过程：当前可用的工具列表
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("tools", ctx.getEnabledToolNames());
-        data.put("count", specs.size());
-        ctx.emitAgentThinking("tool_definition", data);
+        log.info("[ToolDefinition] frameId={} role={} : {} tool(s) enabled: {}",
+                ctx.getAgentStack().currentFrameId(),
+                currentFrame.getRole(),
+                specs.size(),
+                ctx.getEnabledToolNames());
+        ctx.emitAgentThinking("tool_definition", traceData);
+    }
+
+    /**
+     * ORCHESTRATOR 帧专用：从 SkillService 取用户可见的全部启用 Skill，
+     * 用 SkillToolSpecFactory 编译为 call_skill_* 伪 ToolSpecification 列表。
+     */
+    private List<ToolSpecification> buildOrchestratorSkillPseudoTools(ConversationContext ctx) {
+        List<Skill> skills = skillService.listEnabledForUser(ctx.getUserId());
+        List<ToolSpecification> pseudoSpecs = SkillToolSpecFactory.build(skills);
+        log.info("[ToolDefinition][ORCH] Compiled {} skill(s) → {} pseudo-tool spec(s)",
+                skills.size(), pseudoSpecs.size());
+        return pseudoSpecs;
+    }
+
+    /**
+     * SPECIALIST 帧专用：取全部原子 Tool → (KB 过滤) → Skill 白/黑名单过滤。
+     */
+    private List<ToolSpecification> buildSpecialistAtomicTools(ConversationContext ctx,
+                                                               AgentFrame currentFrame) {
+        List<ToolSpecification> specs = toolSpecificationProvider.getToolSpecifications(ctx.getUserId());
+
+        boolean hasExplicitKbRefs = ctx.getKnowledgeBaseIds() != null && !ctx.getKnowledgeBaseIds().isEmpty();
+        if (hasExplicitKbRefs) {
+            specs = specs.stream()
+                    .filter(spec -> !"recallMemory".equals(spec.name()))
+                    .toList();
+        }
+
+        Skill activeSkill = (Skill) ctx.getAgentState().get(ConversationContext.KEY_ACTIVE_SKILL);
+        if (activeSkill == null && currentFrame.getSkillId() != null) {
+            activeSkill = skillService.getEntityById(currentFrame.getSkillId());
+            if (activeSkill != null) {
+                ctx.getAgentState().put(ConversationContext.KEY_ACTIVE_SKILL, activeSkill);
+            }
+        }
+        if (activeSkill != null) {
+            specs = filterBySkill(specs, activeSkill);
+            log.info("[ToolDefinition][SPEC] Filtered by skill '{}': {} tool(s) remaining",
+                    activeSkill.getName(), specs.size());
+        } else {
+            log.warn("[ToolDefinition][SPEC] No activeSkill bound for specialist frame skillId={}, " +
+                    "fallback to all atomic tools", currentFrame.getSkillId());
+        }
+        return specs;
+    }
+
+    /**
+     * 按 Skill 的白/黑名单过滤工具列表。
+     *
+     * <p>过滤规则：
+     * <ul>
+     *   <li>allowedToolNames 非空 → 只保留白名单内工具</li>
+     *   <li>forbiddenToolNames 非空 → 从结果中排除</li>
+     * </ul>
+     * 两者可叠加：先白名单收敛，再黑名单排除。
+     */
+    private List<ToolSpecification> filterBySkill(List<ToolSpecification> specs, Skill skill) {
+        List<String> allowed = fromJsonList(skill.getAllowedToolNamesJson());
+        List<String> forbidden = fromJsonList(skill.getForbiddenToolNamesJson());
+
+        List<ToolSpecification> filtered = specs;
+        if (!allowed.isEmpty()) {
+            filtered = filtered.stream()
+                    .filter(spec -> allowed.contains(spec.name()))
+                    .toList();
+            log.debug("[ToolDefinition][Skill] Whitelist filter: allowed={}, after={}",
+                    allowed, filtered.stream().map(ToolSpecification::name).toList());
+        }
+        if (!forbidden.isEmpty()) {
+            filtered = filtered.stream()
+                    .filter(spec -> !forbidden.contains(spec.name()))
+                    .toList();
+            log.debug("[ToolDefinition][Skill] Blacklist filter: forbidden={}, after={}",
+                    forbidden, filtered.stream().map(ToolSpecification::name).toList());
+        }
+        return filtered;
+    }
+
+    private List<String> fromJsonList(String json) {
+        if (json == null || json.isBlank()) return Collections.emptyList();
+        try {
+            return objectMapper.readValue(json, LIST_STRING);
+        } catch (Exception e) {
+            log.warn("[ToolDefinition] Failed to deserialize list: {}", json, e);
+            return Collections.emptyList();
+        }
     }
 
     @Override

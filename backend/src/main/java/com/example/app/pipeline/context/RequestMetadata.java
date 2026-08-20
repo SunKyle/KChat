@@ -40,4 +40,11 @@ public class RequestMetadata {
      * 是否启用 Web 搜索（来自请求参数 webSearch）。
      */
     private boolean webSearchEnabled;
+
+    /**
+     * 手动激活的 Skill ID（来自 ChatRequest.skillId）。
+     * 非空 → SkillResolutionStage 直接激活该 Skill；
+     * 为空 → 走关键词匹配或默认通用模式。
+     */
+    private String skillId;
 }

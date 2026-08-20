@@ -1,10 +1,5 @@
 import { Bell } from 'lucide-react'
-
-interface FormState {
-  title: string
-  description: string
-  remindAt: string
-}
+import type { FormState } from './useNoteTodoForm'
 
 interface ReminderFormProps {
   formState: FormState

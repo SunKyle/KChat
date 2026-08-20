@@ -1,14 +1,4 @@
-interface FormState {
-  title: string
-  content: string
-  category: string
-  tags: string[]
-  newTag: string
-  pinned: boolean
-  description: string
-  priority: 'high' | 'medium' | 'low'
-  dueDate: string
-}
+import type { FormState } from './useNoteTodoForm'
 
 const priorityMeta = {
   high: { label: '高', text: 'text-[var(--brand-danger)]' },

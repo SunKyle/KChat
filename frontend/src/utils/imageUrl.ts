@@ -1,5 +1,5 @@
 export function toAccessibleImageUrl(url: string | undefined): string {
-  if (!url) return url
+  if (!url) return ''
   try {
     const parsed = new URL(url, window.location.origin)
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {

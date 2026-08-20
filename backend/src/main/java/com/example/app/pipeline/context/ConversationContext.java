@@ -36,14 +36,44 @@ public class ConversationContext {
     private RequestMetadata requestMetadata;
     private PipelineOrchestration pipelineOrchestration;
     private MemoryContext memoryContext;
-    private AgentToolContext agentToolContext;
-    private AssemblyState assemblyState;
     private ExecutionState executionState;
+
+    /**
+     * Agent 栈 —— 管理嵌套调用的栈帧结构。
+     *
+     * <p>取代原有的 agentToolContext + assemblyState 两个字段：
+     * <ul>
+     *   <li>Orchestrator 帧承载原有的 AgentToolContext + AssemblyState
+     *   <li>Skill 帧 push 时创建独立的 AgentToolContext + AssemblyState
+     *   <li>Facade 方法（getToolCalls/getAssembledMessages 等）统一代理到 stack.peek()
+     * </ul>
+     *
+     * <p>设计保障：Stage 代码通过 Facade 方法访问，零感知栈帧切换。
+     */
+    private AgentStack agentStack;
+
+    /**
+     * 原有的 agentToolContext 和 assemblyState 字段保留为 @Deprecated，
+     * 仅供 fromRequest() 初始化时临时持有，构造完成后立即迁入 AgentStack 的 Orchestrator 帧。
+     * 外部代码应通过 Facade 方法访问（已代理到 stack.peek()）。
+     */
+    @Deprecated
+    private AgentToolContext agentToolContext;
+    @Deprecated
+    private AssemblyState assemblyState;
 
     // ── Fields not covered by sub-contexts ─────────────────────────
     private String searchContext;
     private WebSearchResult rawSearchResult;
     private String customRules;
+
+    /**
+     * Artifacts 列表 —— 从 AgentToolContext 提升到顶层共享。
+     *
+     * <p>跨帧可见：无论在 Orchestrator 层还是 Skill 层产生的图片/文件，
+     * 都写入这个全局列表，保证前端能渲染所有产物。
+     */
+    private java.util.List<Artifact> artifacts = new java.util.ArrayList<>();
 
     // ── Factory ────────────────────────────────────────────────────
 
@@ -57,6 +87,7 @@ public class ConversationContext {
                 .webSearchEnabled(request.isWebSearch())
                 .knowledgeBaseIds(request.getKnowledgeBaseIds() != null
                         ? request.getKnowledgeBaseIds() : List.of())
+                .skillId(request.getSkillId())
                 .build();
 
         PipelineOrchestration orchestration = PipelineOrchestration.builder()
@@ -76,9 +107,13 @@ public class ConversationContext {
         ctx.requestMetadata = metadata;
         ctx.pipelineOrchestration = orchestration;
         ctx.memoryContext = memory;
+        ctx.executionState = execution;
+        // 构造 AgentStack，把 fromRequest 创建的 agentTool/assembly 迁入 Orchestrator 帧
+        // Facade 方法统一代理到 stack.peek()，原有行为完全不变
+        ctx.agentStack = new AgentStack(agentTool, assembly, orchestration.getMaxAgentIterations());
+        // 保留旧字段引用（@Deprecated），仅供向后兼容，外部不应直接访问
         ctx.agentToolContext = agentTool;
         ctx.assemblyState = assembly;
-        ctx.executionState = execution;
         return ctx;
     }
 
@@ -114,6 +149,13 @@ public class ConversationContext {
      * ToolCallDetectionStage(610) and ToolResultAssemblyStage(660).
      */
     public static final String KEY_LAST_AI_MESSAGE = "lastAiMessage";
+
+    /**
+     * Key for the active Skill entity, written by SkillResolutionStage(330),
+     * read by SystemPromptAssemblyStage(410), ToolDefinitionStage(480),
+     * and SkillCompletionHookStage(810).
+     */
+    public static final String KEY_ACTIVE_SKILL = "activeSkill";
 
     // ── PipelineType backward compat ───────────────────────────────
 
@@ -218,6 +260,18 @@ public class ConversationContext {
         requestMetadata.setKbReferences(kbReferences);
     }
 
+    /**
+     * 手动激活的 Skill ID（来自请求参数）。
+     * SkillResolutionStage 读取此字段决定是否激活 Skill。
+     */
+    public String getSkillId() {
+        return requestMetadata.getSkillId();
+    }
+
+    public void setSkillId(String skillId) {
+        requestMetadata.setSkillId(skillId);
+    }
+
     public String getLanguage() {
         return requestMetadata.getLanguage();
     }
@@ -235,7 +289,7 @@ public class ConversationContext {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Delegation Methods — PipelineOrchestration
+    //  Delegation Methods — PipelineOrchestration (部分字段代理到栈帧)
     // ═══════════════════════════════════════════════════════════════
 
     public PipelineType getPipelineType() {
@@ -246,19 +300,31 @@ public class ConversationContext {
         pipelineOrchestration.setPipelineType(toOrchestrationType(pipelineType));
     }
 
+    /**
+     * Orchestrator 帧的最大迭代次数。
+     * 注意：Skill 帧有自己的 maxIterations（见 AgentFrame.maxIterations）。
+     */
     public int getMaxAgentIterations() {
-        return pipelineOrchestration.getMaxAgentIterations();
+        return agentStack.peek().getMaxIterations();
     }
 
     public void setMaxAgentIterations(int maxAgentIterations) {
+        agentStack.peek().setMaxIterations(maxAgentIterations);
+        // 同步到 PipelineOrchestration 保持向后兼容
         pipelineOrchestration.setMaxAgentIterations(maxAgentIterations);
     }
 
+    /**
+     * 当前活跃帧的迭代计数。
+     * Skill 帧的 iteration 独立于 Orchestrator 帧。
+     */
     public int getCurrentIteration() {
-        return pipelineOrchestration.getCurrentIteration();
+        return agentStack.peek().getIteration();
     }
 
     public void setCurrentIteration(int currentIteration) {
+        agentStack.peek().setIteration(currentIteration);
+        // 同步到 PipelineOrchestration 保持向后兼容
         pipelineOrchestration.setCurrentIteration(currentIteration);
     }
 
@@ -323,87 +389,101 @@ public class ConversationContext {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Delegation Methods — AgentToolContext
+    //  Delegation Methods — AgentToolContext (代理到 agentStack.peek())
     // ═══════════════════════════════════════════════════════════════
 
     public boolean isAgentMode() {
-        return agentToolContext.isAgentMode();
+        return agentStack.peek().getAgentTool().isAgentMode();
     }
 
     public void setAgentMode(boolean agentMode) {
-        agentToolContext.setAgentMode(agentMode);
+        agentStack.peek().getAgentTool().setAgentMode(agentMode);
     }
 
     public String getActiveSkillId() {
-        return agentToolContext.getActiveSkillId();
+        return agentStack.peek().getSkillId();
     }
 
     public void setActiveSkillId(String activeSkillId) {
-        agentToolContext.setActiveSkillId(activeSkillId);
+        // Skill 帧的 skillId 在 push 时设置，这里兼容旧代码：设置到当前帧
+        agentStack.peek().setSkillId(activeSkillId);
+        // 同步到 AgentToolContext 保持向后兼容
+        agentStack.peek().getAgentTool().setActiveSkillId(activeSkillId);
     }
 
+    /**
+     * Artifacts 列表（提升到顶层共享，跨帧可见）。
+     * 任何帧产生的图片/文件都写入这个全局列表。
+     */
     public List<Artifact> getArtifacts() {
-        return agentToolContext.getArtifacts();
+        return artifacts;
     }
 
     public void setArtifacts(List<Artifact> artifacts) {
-        agentToolContext.setArtifacts(artifacts);
+        this.artifacts = artifacts;
     }
 
     public List<ToolCallRecord> getToolCalls() {
-        return agentToolContext.getToolCalls();
+        return agentStack.peek().getAgentTool().getToolCalls();
     }
 
     public List<ToolResultRecord> getToolResults() {
-        return agentToolContext.getToolResults();
+        return agentStack.peek().getAgentTool().getToolResults();
     }
 
     public List<String> getEnabledToolNames() {
-        return agentToolContext.getEnabledToolNames();
+        return agentStack.peek().getAgentTool().getEnabledToolNames();
     }
 
     public Map<String, Object> getAgentState() {
-        return agentToolContext.getAgentState();
+        return agentStack.peek().getAgentTool().getAgentState();
     }
 
     public List<Map<String, Object>> getAgentThinkingSteps() {
-        return agentToolContext.getAgentThinkingSteps();
+        return agentStack.peek().getAgentTool().getAgentThinkingSteps();
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Delegation Methods — AssemblyState
+    //  Delegation Methods — AssemblyState (代理到 agentStack.peek())
     // ═══════════════════════════════════════════════════════════════
 
     public List<ChatMessage> getAssembledMessages() {
-        return assemblyState.getAssembledMessages();
+        return agentStack.peek().getAssemblyState().getAssembledMessages();
     }
 
     public void setAssembledMessages(List<ChatMessage> assembledMessages) {
-        assemblyState.setAssembledMessages(assembledMessages);
+        agentStack.peek().getAssemblyState().setAssembledMessages(assembledMessages);
     }
 
     public int getTokenCount() {
-        return assemblyState.getTokenCount();
+        return agentStack.peek().getAssemblyState().getTokenCount();
     }
 
     public void setTokenCount(int tokenCount) {
-        assemblyState.setTokenCount(tokenCount);
+        agentStack.peek().getAssemblyState().setTokenCount(tokenCount);
     }
 
     public boolean isTruncated() {
-        return assemblyState.isTruncated();
+        return agentStack.peek().getAssemblyState().isTruncated();
     }
 
     public void setTruncated(boolean truncated) {
-        assemblyState.setTruncated(truncated);
+        agentStack.peek().getAssemblyState().setTruncated(truncated);
     }
 
     public String getAiMessageId() {
-        return assemblyState.getAiMessageId();
+        return agentStack.peek().getAssemblyState().getAiMessageId();
     }
 
     public void setAiMessageId(String aiMessageId) {
-        assemblyState.setAiMessageId(aiMessageId);
+        agentStack.peek().getAssemblyState().setAiMessageId(aiMessageId);
+    }
+
+    /**
+     * 获取 AgentStack（供 OrchestratorLoop 驱动 push/pop）。
+     */
+    public AgentStack getAgentStack() {
+        return agentStack;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -557,12 +637,16 @@ public class ConversationContext {
      * @param data 该步骤的具体负载（会被 Jackson 序列化为 JSON）
      */
     public void emitAgentThinking(String type, Object data) {
+        AgentFrame currentFrame = agentStack.peek();
         Map<String, Object> envelope = new LinkedHashMap<>();
         envelope.put("type", type);
-        envelope.put("iteration", pipelineOrchestration.getCurrentIteration());
+        envelope.put("frameId", agentStack.currentFrameId());
+        envelope.put("role", currentFrame.getRole().name());
+        envelope.put("skillId", currentFrame.getSkillId());
+        envelope.put("iteration", currentFrame.getIteration());
         envelope.put("timestamp", System.currentTimeMillis());
         envelope.put("data", data);
-        agentToolContext.getAgentThinkingSteps().add(envelope);
+        currentFrame.getAgentTool().getAgentThinkingSteps().add(envelope);
         if (!executionState.isStreaming() || executionState.getSseEmitter() == null)
             return;
         emitSseEvent("agent_thinking", JsonUtils.toJson(envelope));

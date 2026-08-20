@@ -46,7 +46,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { profile } = useUser()
   const { getCurrentModel } = useModel()
   const toast = useToast()
-  const { startSummarizing, endSummarizing, summarizingMessageId } = useChat()
+  const { startSummarizing, endSummarizing, summarizingMessageId, currentModel } = useChat()
 
   // TTS Hook for voice playback
   const ttsUserId = profile?.id || 'default'

@@ -4,18 +4,7 @@ import { useModel } from '../../hooks/useModel'
 import { useToast } from '../../hooks/useToast'
 import { chat as chatApi } from '../../api/chat'
 import { BorderBeam } from '../ui/border-beam'
-
-interface FormState {
-  title: string
-  content: string
-  category: string
-  tags: string[]
-  newTag: string
-  pinned: boolean
-  description: string
-  priority: 'high' | 'medium' | 'low'
-  dueDate: string
-}
+import type { FormState } from './useNoteTodoForm'
 
 interface NoteFormProps {
   formState: FormState

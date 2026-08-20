@@ -25,7 +25,8 @@ interface ChatContextType {
     imageUrls?: string[],
     webSearch?: boolean,
     agentMode?: boolean,
-    knowledgeBaseIds?: string[]
+    knowledgeBaseIds?: string[],
+    skillId?: string
   ) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
@@ -294,7 +295,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       imageUrls: string[] = [],
       webSearch = false,
       agentMode = false,
-      knowledgeBaseIds?: string[]
+      knowledgeBaseIds?: string[],
+      skillId?: string
     ) => {
       if (!content.trim() && imageUrls.length === 0) return
 
@@ -348,6 +350,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         agentMode,
         knowledgeBaseIds:
           knowledgeBaseIds && knowledgeBaseIds.length > 0 ? knowledgeBaseIds : undefined,
+        skillId: skillId || undefined,
       }
 
       const tempMessageId = crypto.randomUUID()

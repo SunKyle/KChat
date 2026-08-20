@@ -110,7 +110,19 @@ public class ChatService {
         ctx.setAgentMode(request.isAgentMode());
         if (ctx.isAgentMode()) {
             ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
-            pipelineExecutor.executeWithAgentLoop(ctx);
+            // 入口调度：两条 Agent 链路
+            //   1) 用户通过 / 手动选了 Skill（skillId 非空）或关键词命中单 Skill（两者都通过 SkillResolutionStage
+            //      在 ORCHESTRATOR 帧写 KEY_ACTIVE_SKILL）→ 走旧 executeWithAgentLoop（单帧单 Skill 原子工具 ReAct）
+            //   2) 未手动选 Skill（skillId 为空） → 走双层 OrchestratorLoop：顶层 LLM 只看到 Skill 伪函数，
+            //      通过 SkillExecutor 嵌套进入 Specialist 帧（内部再递归调用 executeWithAgentLoop）
+            boolean explicitSingleSkill = ctx.getSkillId() != null && !ctx.getSkillId().isBlank();
+            if (explicitSingleSkill) {
+                log.info("[CHAT] Agent mode: explicit single skillId={}, use executeWithAgentLoop", ctx.getSkillId());
+                pipelineExecutor.executeWithAgentLoop(ctx);
+            } else {
+                log.info("[CHAT] Agent mode: no explicit skill, use executeWithOrchestratorLoop (double-decker ReAct)");
+                pipelineExecutor.executeWithOrchestratorLoop(ctx);
+            }
             pipelineExecutor.executePostProcessing(ctx);
         } else {
             ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
