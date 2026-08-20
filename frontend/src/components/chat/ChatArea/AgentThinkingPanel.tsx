@@ -449,18 +449,6 @@ function OrchestratorRow({
             <TruncatableText text={node.thinkingText!} maxChars={300} />
           </div>
         )}
-        {node.hasToolCalls && node.toolNames.length > 0 && (
-          <div className='mt-1.5 flex flex-wrap gap-x-2 gap-y-1'>
-            {node.toolNames.map((name, idx) => (
-              <span
-                key={`${name}-${idx}`}
-                className='text-[11px] text-[var(--text-secondary)]'
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )

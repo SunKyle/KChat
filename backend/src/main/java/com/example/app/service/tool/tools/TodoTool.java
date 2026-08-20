@@ -2,6 +2,7 @@ package com.example.app.service.tool.tools;
 
 import com.example.app.dto.CreateTodoRequest;
 import com.example.app.dto.TodoDTO;
+import com.example.app.dto.UpdateTodoRequest;
 import com.example.app.service.TodoService;
 import com.example.app.service.tool.ToolComponent;
 import com.example.app.service.tool.UserContextHolder;
@@ -97,6 +98,44 @@ public class TodoTool implements ToolComponent {
         } catch (Exception e) {
             log.error("[TodoTool] completeTodo failed", e);
             return "完成待办失败：" + e.getMessage();
+        }
+    }
+
+    @Tool("修改指定待办的内容。可修改标题、描述、状态、优先级、截止日期或分类，只传需要修改的字段。需要先通过 listTodos 或 searchTodos 获取待办 ID。")
+    String updateTodo(
+            @P("要修改的待办 ID") String todoId,
+            @P("新的标题，可选") String title,
+            @P("新的描述，可选") String description,
+            @P("新的状态：pending/completed，可选") String status,
+            @P("新的优先级：low/medium/high，可选") String priority,
+            @P("新的分类，可选") String category) {
+        String userId = UserContextHolder.get();
+        log.info("[TodoTool] updateTodo: userId={}, todoId={}", userId, todoId);
+
+        UpdateTodoRequest.UpdateTodoRequestBuilder builder = UpdateTodoRequest.builder();
+        if (title != null && !title.isBlank()) {
+            builder.title(title);
+        }
+        if (description != null && !description.isBlank()) {
+            builder.description(description);
+        }
+        if (status != null && !status.isBlank()) {
+            builder.status(status);
+        }
+        if (priority != null && !priority.isBlank()) {
+            builder.priority(priority);
+        }
+        if (category != null && !category.isBlank()) {
+            builder.category(category);
+        }
+
+        try {
+            TodoDTO todo = todoService.updateTodo(userId, todoId, builder.build());
+            return "待办修改成功。ID: " + todo.getId() + "，标题: " + todo.getTitle()
+                    + "，状态: " + todo.getStatus() + "，优先级: " + todo.getPriority();
+        } catch (Exception e) {
+            log.error("[TodoTool] updateTodo failed", e);
+            return "修改待办失败：" + e.getMessage();
         }
     }
 
