@@ -5,7 +5,6 @@ import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.config.OpenAIClientProperties;
 import com.example.app.entity.ModelConfig;
-import com.example.app.pipeline.ContextPipelineExecutor;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.AgentFrame;
 import com.example.app.pipeline.context.ConversationContext;
@@ -25,7 +24,6 @@ import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -48,7 +46,6 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final ModelConfigService modelConfigService;
     private final OllamaClient ollamaClient;
     private final OpenAICompatibleClient openAICompatibleClient;
-    private final ContextPipelineExecutor pipelineExecutor;
     private final OpenAIClientProperties openAIClientProperties;
     private final AiServiceFactory aiServiceFactory;
 
@@ -56,14 +53,12 @@ public class ModelRoutingStage implements ContextPipelineStage {
             OllamaClient ollamaClient,
             OpenAICompatibleClient openAICompatibleClient,
             OpenAIClientProperties openAIClientProperties,
-            AiServiceFactory aiServiceFactory,
-            @Lazy ContextPipelineExecutor pipelineExecutor) {
+            AiServiceFactory aiServiceFactory) {
         this.modelConfigService = modelConfigService;
         this.ollamaClient = ollamaClient;
         this.openAICompatibleClient = openAICompatibleClient;
         this.openAIClientProperties = openAIClientProperties;
         this.aiServiceFactory = aiServiceFactory;
-        this.pipelineExecutor = pipelineExecutor;
     }
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.ofEntries(
@@ -599,7 +594,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
             String actualModelId, SseEmitter emitter) {
         Consumer<String> onComplete = imageContent -> {
             ctx.setLlmResponse(imageContent);
-            pipelineExecutor.executePostProcessing(ctx);
+            ctx.runPostStreamingHook();
         };
 
         if (openAICompatibleClient.isStableDiffusionModel(actualModelId)) {
@@ -637,7 +632,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
                     chunk -> fullResponse.append(chunk),
                     () -> {
                         ctx.setLlmResponse(fullResponse.toString());
-                        pipelineExecutor.executePostProcessing(ctx);
+                        ctx.runPostStreamingHook();
                     });
         } catch (Exception e) {
             log.error("Custom model streaming failed: {}", e.getMessage());
@@ -683,7 +678,7 @@ public class ModelRoutingStage implements ContextPipelineStage {
                     ollamaClient.streamGenerate(effectiveMessages, callback, model);
                 }
                 ctx.setLlmResponse(fullResponse.toString());
-                pipelineExecutor.executePostProcessing(ctx);
+                ctx.runPostStreamingHook();
             } catch (Exception e) {
                 log.error("Ollama streaming failed: {}", e.getMessage());
                 failStreaming(ctx, emitter, "Ollama请求失败: " + e.getMessage());

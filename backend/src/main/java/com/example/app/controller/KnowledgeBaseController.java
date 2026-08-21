@@ -36,7 +36,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/knowledge-bases")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 @Slf4j
 public class KnowledgeBaseController {
 

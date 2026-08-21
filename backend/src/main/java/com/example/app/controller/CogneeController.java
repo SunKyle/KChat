@@ -24,7 +24,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/cognee")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 @Slf4j
 public class CogneeController {
 

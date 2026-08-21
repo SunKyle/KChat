@@ -1,37 +1,25 @@
 package com.example.app.service;
 
-import com.example.app.client.OllamaClient;
-import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.ChatResponse;
 import com.example.app.entity.Message;
-import com.example.app.entity.ModelConfig;
-import com.example.app.pipeline.ContextPipelineExecutor;
+import com.example.app.pipeline.PipelineEntryDispatcher;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * 聊天服务类，负责处理同步聊天请求的完整流程
- * 
- * <功能说明>
- * - 核心职责：协调对话管理、记忆检索、LLM调用、消息持久化等环节
- * - 设计模式：编排器模式（Orchestrator Pattern），将多个服务组合成完整流程
- * - 依赖关系：依赖
- * OllamaClient、ChatWorkflowService、MessagePersistenceService、AutoMemoryExtractor
- * 
- * <使用场景>
- * - 同步消息响应：用户发送消息后等待完整回复
- * - 记忆增强对话：自动融合短期和长期记忆
+ *
+ * <p>核心职责：编排 Pipeline 执行 + 处理重新生成请求。
+ * Pipeline 负责记忆召回 / Web 搜索 / Skill 解析 / LLM 调用 / 消息持久化等所有阶段。
  */
 @Service
 @RequiredArgsConstructor
@@ -39,44 +27,14 @@ import java.util.List;
 public class ChatService {
 
     /**
-     * Ollama 客户端，用于调用本地 LLM 模型
-     */
-    private final OllamaClient ollamaClient;
-
-    /**
-     * 聊天流程编排服务，用于对话创建和重新生成
+     * 聊天流程编排服务，用于对话创建和短期记忆清理
      */
     private final ChatWorkflowService chatWorkflowService;
 
     /**
-     * 自动记忆提取器，重新生成时使用
-     */
-    private final AutoMemoryExtractor autoMemoryExtractor;
-
-    /**
-     * 用户配置服务，重新生成时使用
-     */
-    private final UserProfileService userProfileService;
-
-    /**
-     * 对话服务，重新生成时使用
-     */
-    private final ConversationService conversationService;
-
-    /**
-     * 消息数据访问层，重新生成时使用
+     * 消息数据访问层，重新生成时查询 / 校验原消息
      */
     private final MessageRepository messageRepository;
-
-    /**
-     * OpenAI 兼容客户端，重新生成时使用
-     */
-    private final OpenAICompatibleClient openAICompatibleClient;
-
-    /**
-     * 模型配置服务，重新生成时使用
-     */
-    private final ModelConfigService modelConfigService;
 
     /**
      * 事务模板，用于手动控制事务边界
@@ -84,23 +42,20 @@ public class ChatService {
     private final TransactionTemplate transactionTemplate;
 
     /**
-     * Context Pipeline 执行引擎 — 替代原有的逐步编排逻辑
+     * Pipeline 入口调度器 — 统一封装 Agent / Simple Chat 入口分支
      */
-    private final ContextPipelineExecutor pipelineExecutor;
+    private final PipelineEntryDispatcher pipelineEntryDispatcher;
 
     /**
-     * JSON 序列化/反序列化
+     * JSON 序列化 / 反序列化
      */
     private final ObjectMapper objectMapper;
 
     /**
      * 处理用户聊天请求，生成 AI 响应。
      *
-     * 执行流程已迁移到 Context Pipeline：
-     * 预处理 → 组装 → 模型路由 → 后处理，全部由 pipelineExecutor.execute() 驱动。
-     *
-     * @param request 聊天请求
-     * @return 聊天响应
+     * <p>执行流程已迁移到 Context Pipeline：
+     * 预处理 → 组装 → 模型路由 → 后处理，全部由 {@link PipelineEntryDispatcher} 驱动。
      */
     public ChatResponse generateResponse(ChatRequest request) {
         String conversationId = chatWorkflowService.getOrCreateConversationId(request);
@@ -108,25 +63,11 @@ public class ChatService {
         ConversationContext ctx = ConversationContext.fromRequest(request);
         ctx.setConversationId(conversationId);
         ctx.setAgentMode(request.isAgentMode());
+        // 入口调度统一委托给 PipelineEntryDispatcher，避免与 StreamingService 重复
         if (ctx.isAgentMode()) {
-            ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
-            // 入口调度：两条 Agent 链路
-            //   1) 用户通过 / 手动选了 Skill（skillId 非空）或关键词命中单 Skill（两者都通过 SkillResolutionStage
-            //      在 ORCHESTRATOR 帧写 KEY_ACTIVE_SKILL）→ 走旧 executeWithAgentLoop（单帧单 Skill 原子工具 ReAct）
-            //   2) 未手动选 Skill（skillId 为空） → 走双层 OrchestratorLoop：顶层 LLM 只看到 Skill 伪函数，
-            //      通过 SkillExecutor 嵌套进入 Specialist 帧（内部再递归调用 executeWithAgentLoop）
-            boolean explicitSingleSkill = ctx.getSkillId() != null && !ctx.getSkillId().isBlank();
-            if (explicitSingleSkill) {
-                log.info("[CHAT] Agent mode: explicit single skillId={}, use executeWithAgentLoop", ctx.getSkillId());
-                pipelineExecutor.executeWithAgentLoop(ctx);
-            } else {
-                log.info("[CHAT] Agent mode: no explicit skill, use executeWithOrchestratorLoop (double-decker ReAct)");
-                pipelineExecutor.executeWithOrchestratorLoop(ctx);
-            }
-            pipelineExecutor.executePostProcessing(ctx);
+            pipelineEntryDispatcher.executeAgentChat(ctx);
         } else {
-            ctx.setPipelineType(ConversationContext.PipelineType.SIMPLE_CHAT);
-            pipelineExecutor.execute(ctx);
+            pipelineEntryDispatcher.executeSimpleChat(ctx);
         }
 
         return ChatResponse.builder()
@@ -146,7 +87,16 @@ public class ChatService {
     }
 
     /**
-     * 重新生成指定消息的响应
+     * 重新生成指定消息的响应。
+     *
+     * <p>复用 Pipeline 流程：预处理（记忆召回 / Web 搜索 / Skill 解析）→
+     * 组装 → 模型路由 → 后处理（记忆更新 / 消息持久化 / 记忆提取 / 标题生成）。
+     *
+     * <p>消息持久化策略：通过 {@code ctx.setAiMessageId(messageId)} 复用原 AI 消息 ID，
+     * {@link com.example.app.pipeline.stage.postprocess.MessagePersistenceStage} 调用
+     * {@code messageRepository.save(...)} 时 JPA 走 upsert 语义覆盖原行，
+     * 从而保留 messageId、避免消息堆积；用户消息则因 sync 路径下
+     * {@code MessagePrePersistenceStage} 不触发而保持原样。
      *
      * @param conversationId 对话ID
      * @param messageId      要重新生成的消息ID（必须是AI消息）
@@ -186,60 +136,45 @@ public class ChatService {
             throw new IllegalArgumentException("未找到对应的用户消息");
         }
 
-        String userMessage = precedingUserMessage.getContent();
-        List<String> imageUrls = parseImageUrls(precedingUserMessage.getImages());
-
-        // 事务内：删除后续消息 + 清除短期记忆缓存
+        // 删除目标消息之后的所有消息（目标消息本身保留，由 Pipeline 通过 ID 覆盖更新）
         transactionTemplate.executeWithoutResult(status -> {
             messageRepository.deleteByConversationIdAndTimestampGreaterThan(
                     conversationId, targetMessage.getTimestamp());
             log.info("[CHAT] Deleted messages after {} in conversation {}", messageId, conversationId);
         });
 
+        // 清除短期记忆缓存，让 Pipeline 内的 ShortTermMemoryStage 从 DB 回退加载完整历史
         chatWorkflowService.clearShortTermMemory(conversationId);
 
-        List<ChatMessage> shortTermMemory = chatWorkflowService.getShortTermMemory(conversationId);
+        // 构建 ChatRequest，复用原用户消息内容、图片、模型、用户 ID、对话 ID
+        ChatRequest pipelineRequest = ChatRequest.builder()
+                .conversationId(conversationId)
+                .message(precedingUserMessage.getContent())
+                .imageUrls(parseImageUrls(precedingUserMessage.getImages()))
+                .model(model)
+                .userId(userId)
+                .build();
 
-        String language = userProfileService.getLanguage(userId);
-        List<ChatMessage> messages = chatWorkflowService.assembleMessages(shortTermMemory, userMessage,
-                language, null);
-
-        String userMessageWithImages = buildMessageWithImages(userMessage, imageUrls);
-
-        String aiResponse;
-        ModelConfig customConfig = modelConfigService.getConfigByModelId(model);
-        if (customConfig != null) {
-            String actualModelId = model.substring(customConfig.getName().length() + 1);
-            String systemPrompt = """
-                    You are a helpful assistant. Answer the user's question in a friendly and natural way.
-                    %s
-                    """.formatted(language != null && !language.isEmpty() ? "Please respond in " + language + "." : "");
-            aiResponse = openAICompatibleClient.chatCompletion(
-                    actualModelId,
-                    customConfig.getBaseUrl(),
-                    customConfig.getApiKey(),
-                    systemPrompt,
-                    userMessageWithImages);
-        } else {
-            aiResponse = ollamaClient.generate(messages, model);
-        }
-
-        chatWorkflowService.updateShortTermMemory(conversationId, userMessage, aiResponse);
-
-        transactionTemplate.executeWithoutResult(status -> {
-            targetMessage.setContent(aiResponse);
-            targetMessage.setTimestamp(LocalDateTime.now());
-            messageRepository.save(targetMessage);
-            log.info("[CHAT] Updated message {} with new content", messageId);
-        });
-
-        autoMemoryExtractor.tryExtract(conversationId, userId, model);
+        ConversationContext ctx = ConversationContext.fromRequest(pipelineRequest);
+        ctx.setConversationId(conversationId);
+        // 复用原 AI 消息 ID，MessagePersistenceStage 会通过 JPA save 的 upsert 语义覆盖原行
+        ctx.setAiMessageId(messageId);
+        // 重新生成默认走 SIMPLE_CHAT，保持与原实现一致的行为
+        pipelineEntryDispatcher.executeSimpleChat(ctx);
 
         return ChatResponse.builder()
-                .messageId(messageId)
-                .content(aiResponse)
+                .messageId(ctx.getAiMessageId())
+                .content(ctx.getLlmResponse())
                 .role("assistant")
-                .conversationId(conversationId)
+                .conversationId(ctx.getConversationId())
+                .title(ctx.getGeneratedTitle())
+                .images(ctx.getArtifacts() != null
+                        ? ctx.getArtifacts().stream()
+                                .filter(a -> "image".equals(a.type()))
+                                .map(a -> a.url())
+                                .toList()
+                        : null)
+                .artifacts(ctx.getArtifacts())
                 .build();
     }
 
@@ -254,17 +189,5 @@ public class ChatService {
             log.warn("Failed to parse image URLs from JSON: {}", imagesJson, e);
             return List.of();
         }
-    }
-
-    private String buildMessageWithImages(String userMessage, List<String> imageUrls) {
-        if (imageUrls.isEmpty()) {
-            return userMessage;
-        }
-        StringBuilder sb = new StringBuilder(userMessage);
-        sb.append("\n\n[用户上传的图片]");
-        for (String url : imageUrls) {
-            sb.append("\n- ").append(url);
-        }
-        return sb.toString();
     }
 }

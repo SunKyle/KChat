@@ -18,7 +18,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/prompt-templates")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 @Slf4j
 public class PromptTemplateController {
 

@@ -1,7 +1,6 @@
 package com.example.app.aspect;
 
 import com.example.app.dto.ContentOptimizationResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +12,18 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 限流切面
- * 使用 Redis 实现滑动窗口限流
+ * 使用 Redis ZSet 实现滑动窗口限流。
+ *
+ * <p>客户端标识策略：优先从请求头 {@code X-User-Id} 读取（鉴权后由网关注入），
+ * 否则回退到客户端 IP。不再读取请求体，因为 {@code @RequestBody} 消费后
+ * ServletInputStream 无法 reset()，会导致请求解析失败。
  */
 @Aspect
 @Component
@@ -28,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 public class RateLimitAspect {
 
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
 
     @Value("${rate-limit.enabled:true}")
     private boolean rateLimitEnabled;
@@ -59,7 +62,7 @@ public class RateLimitAspect {
             return joinPoint.proceed();
         }
 
-        HttpServletRequest request = getHttpServletRequest(joinPoint);
+        HttpServletRequest request = resolveRequest(joinPoint);
         if (request == null) {
             log.warn("无法获取请求对象，跳过限流检查");
             return joinPoint.proceed();
@@ -94,12 +97,12 @@ public class RateLimitAspect {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
         }
 
-        // 记录当前请求时间
+        // 记录当前请求时间（ZSet 按 member 去重，同一 ms 内重复 add 是 no-op，
+        // 不再重复调用以避免无意义的 Redis 往返）
         redisTemplate.opsForZSet().add(key, String.valueOf(currentTime), currentTime);
 
         // 清理过期数据
         redisTemplate.opsForZSet().removeRangeByScore(key, 0, windowStart);
-        redisTemplate.opsForZSet().add(key, String.valueOf(currentTime), currentTime);
 
         // 设置过期时间
         redisTemplate.expire(key, windowSeconds, TimeUnit.SECONDS);
@@ -108,39 +111,33 @@ public class RateLimitAspect {
     }
 
     /**
-     * 从切点获取 HttpServletRequest
+     * 解析当前 HttpServletRequest。
+     * 优先从切点方法参数中查找；若未找到（方法签名无 HttpServletRequest 参数），
+     * 回退到 Spring {@link RequestContextHolder} 获取当前请求。
      */
-    private HttpServletRequest getHttpServletRequest(ProceedingJoinPoint joinPoint) {
+    private HttpServletRequest resolveRequest(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
-        for (Object arg : args) {
-            if (arg instanceof HttpServletRequest) {
-                return (HttpServletRequest) arg;
+        if (args != null) {
+            for (Object arg : args) {
+                if (arg instanceof HttpServletRequest httpReq) {
+                    return httpReq;
+                }
             }
         }
-        return null;
+        ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return attrs != null ? attrs.getRequest() : null;
     }
 
     /**
-     * 获取客户端标识（优先使用用户ID，否则使用IP）
+     * 获取客户端标识。
+     * 优先使用请求头 {@code X-User-Id}（鉴权后由网关注入），
+     * 否则回退到客户端 IP。不再读取请求体，避免破坏 {@code @RequestBody} 解析。
      */
     private String getClientId(HttpServletRequest request) {
-        // 尝试从请求体中获取 userId
-        try {
-            request.getInputStream().reset();
-            byte[] body = request.getInputStream().readAllBytes();
-            String bodyStr = new String(body, StandardCharsets.UTF_8);
-            if (!bodyStr.isEmpty()) {
-                try {
-                    var node = objectMapper.readTree(bodyStr);
-                    if (node.has("userId") && !node.get("userId").isNull()) {
-                        return node.get("userId").asText();
-                    }
-                } catch (Exception e) {
-                    // 忽略JSON解析错误
-                }
-            }
-        } catch (Exception e) {
-            // 忽略
+        String userId = request.getHeader("X-User-Id");
+        if (userId != null && !userId.isBlank()) {
+            return "user:" + userId;
         }
 
         // 使用客户端IP作为标识
@@ -153,10 +150,10 @@ public class RateLimitAspect {
         }
 
         // 如果是多个IP（通过代理），取第一个
-        if (clientIp.contains(",")) {
+        if (clientIp != null && clientIp.contains(",")) {
             clientIp = clientIp.split(",")[0].trim();
         }
 
-        return clientIp;
+        return "ip:" + clientIp;
     }
 }

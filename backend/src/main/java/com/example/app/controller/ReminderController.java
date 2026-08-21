@@ -14,7 +14,6 @@ import java.util.List;
 @RequestMapping("/api/reminders")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
 public class ReminderController {
 
     private final ReminderService reminderService;

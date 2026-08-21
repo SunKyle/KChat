@@ -42,7 +42,8 @@ public class InputValidator {
             Pattern.compile("\\bUNION\\s+SELECT\\b", Pattern.CASE_INSENSITIVE), // SQL UNION
             Pattern.compile("\\bDROP\\s+TABLE\\b", Pattern.CASE_INSENSITIVE),    // SQL DROP
             Pattern.compile("\\bDELETE\\s+FROM\\b", Pattern.CASE_INSENSITIVE),   // SQL DELETE
-            Pattern.compile("\\bUPDATE\\b", Pattern.CASE_INSENSITIVE),            // SQL UPDATE
+            // UPDATE 单独出现过于宽泛（合法英文对话常含 "update"），改为更精确的 UPDATE...SET 模式
+            Pattern.compile("\\bUPDATE\\s+\\w+\\s+SET\\b", Pattern.CASE_INSENSITIVE), // SQL UPDATE...SET
             Pattern.compile("\\bINSERT\\s+INTO\\b", Pattern.CASE_INSENSITIVE)    // SQL INSERT
     );
 

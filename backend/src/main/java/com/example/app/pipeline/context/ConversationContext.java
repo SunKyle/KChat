@@ -72,8 +72,11 @@ public class ConversationContext {
      *
      * <p>跨帧可见：无论在 Orchestrator 层还是 Skill 层产生的图片/文件，
      * 都写入这个全局列表，保证前端能渲染所有产物。
+     *
+     * <p>并发安全：流式 Agent 路径下 LLM 回调线程与主线程都可能写入，
+     * 使用 {@link java.util.concurrent.CopyOnWriteArrayList} 保证线程安全。
      */
-    private java.util.List<Artifact> artifacts = new java.util.ArrayList<>();
+    private java.util.List<Artifact> artifacts = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     // ── Factory ────────────────────────────────────────────────────
 
@@ -544,6 +547,29 @@ public class ConversationContext {
 
     public void setUserMessageInMemory(boolean userMessageInMemory) {
         executionState.setUserMessageInMemory(userMessageInMemory);
+    }
+
+    /**
+     * 设置流式完成后的后处理回调钩子。
+     *
+     * <p>由 {@code StreamingService} 在执行 pipeline 前注入，
+     * 指向 {@code pipelineExecutor.executePostProcessing(ctx)}。
+     * Stage（如 ModelRoutingStage）在非 Agent 流式回调中调用
+     * {@link #runPostStreamingHook()} 触发后处理，
+     * 避免 Stage 反向依赖 {@link ContextPipelineExecutor} 造成循环依赖。
+     */
+    public void setPostStreamingHook(Runnable hook) {
+        executionState.setPostStreamingHook(hook);
+    }
+
+    /**
+     * 触发流式完成后的后处理回调。若无钩子则 no-op。
+     */
+    public void runPostStreamingHook() {
+        Runnable hook = executionState.getPostStreamingHook();
+        if (hook != null) {
+            hook.run();
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

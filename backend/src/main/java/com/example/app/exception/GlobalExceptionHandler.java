@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -59,10 +58,11 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         log.error("Runtime exception occurred: ", ex);
-        if (ex.getMessage().contains("not found")) {
-            return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
+        String message = ex.getMessage();
+        if (message != null && message.contains("not found")) {
+            return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", message);
         }
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", ex.getMessage());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", message);
     }
 
     @ExceptionHandler(Exception.class)
