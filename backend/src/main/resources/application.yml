@@ -226,6 +226,13 @@ app:
     upload-dir: uploads/images # 本地图片上传目录
     base-url: http://localhost:8080/api/images/ # 访问上传图片的 URL 前缀
 
+# ==================== 流式响应超时配置 ====================
+# sse-timeout-ms 必须 > agent-streaming-timeout-ms，否则 LLM 还在响应时 SSE 连接已断
+# （启动时会 fail-fast 校验，详见 StreamingProperties#validate）
+streaming:
+  sse-timeout-ms: 720000 # SSE 连接超时 12 分钟（= 10min LLM 等待 + 2min 回调窗口）
+  agent-streaming-timeout-ms: 600000 # Agent 流式 LLM 单次响应等待上限 10 分钟
+
 # ==================== 知识库配置 ====================
 kchat:
   knowledge-base:

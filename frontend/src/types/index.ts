@@ -20,6 +20,19 @@ export interface KbReference {
 }
 
 /**
+ * 用户消息引用的资源记录（知识库 / 技能）。
+ *
+ * `type` 区分引用类型，用于前端渲染不同图标：
+ * - `knowledge_base`：用户通过 @ 引用的知识库
+ * - `skill`：用户通过技能选择器激活的技能
+ */
+export interface MessageReference {
+  id: string
+  name: string
+  type: 'knowledge_base' | 'skill'
+}
+
+/**
  * 归一化知识库引用来源：兼容历史消息中的纯字符串数组（旧格式 ["知识库A"]）。
  */
 export function normalizeKbReferences(value: unknown): KbReference[] {
@@ -49,6 +62,8 @@ export interface Message {
   agentThinking?: AgentThinkingStep[]
   /** 该回复引用的知识库来源（含知识库名 + 文档名），用于展示"引用来源"标签 */
   kbReferences?: KbReference[]
+  /** 用户消息引用的资源（知识库 / 技能），用于历史会话展示"当时引用了什么" */
+  references?: MessageReference[]
 }
 
 /**
@@ -106,6 +121,8 @@ export interface ChatRequest {
   knowledgeBaseIds?: string[]
   /** 手动激活的 Skill ID（前端技能选择器透传，非空时 SkillResolutionStage 直接激活） */
   skillId?: string
+  /** 用户消息引用的资源列表（知识库 / 技能），随请求透传并持久化到 Message.references */
+  references?: MessageReference[]
 }
 
 export interface ChatResponse {

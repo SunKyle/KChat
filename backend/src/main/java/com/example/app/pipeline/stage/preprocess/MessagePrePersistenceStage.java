@@ -38,7 +38,8 @@ public class MessagePrePersistenceStage implements ContextPipelineStage {
             return;
         }
         messagePersistenceService.saveUserMessage(
-                ctx.getConversationId(), ctx.getUserMessage(), ctx.getImageUrls());
+                ctx.getConversationId(), ctx.getUserMessage(), ctx.getImageUrls(),
+                ctx.getReferences());
         ctx.setUserMessagePersisted(true);
     }
 

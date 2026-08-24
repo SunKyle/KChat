@@ -67,9 +67,11 @@ if _tiktoken is not None:
             return _DummyTikToken()
     _tiktoken.encoding_for_model = _safe_encoding_for_model
 
-# ── Cognee 系统设置（不属于用户配置，固定值）──────────────
+# ── Cognee 系统设置（可在 .env 中覆盖，未配置时用下方默认值）──
 os.environ.setdefault('COGNEE_CACHING', 'false')
-os.environ.setdefault('ENABLE_BACKEND_ACCESS_CONTROL', 'false')
+# 开启后按 dataset 检索时严格执行数据集隔离（含 GRAPH_COMPLETION 图补全），
+# 防止跨知识库记忆泄漏。可通过 .env 的 ENABLE_BACKEND_ACCESS_CONTROL 覆盖。
+os.environ.setdefault('ENABLE_BACKEND_ACCESS_CONTROL', 'true')
 os.environ.setdefault('COGNEE_DISABLE_TELEMETRY', 'true')
 os.environ.setdefault('COGNEE_SKIP_CONNECTION_TEST', 'true')
 

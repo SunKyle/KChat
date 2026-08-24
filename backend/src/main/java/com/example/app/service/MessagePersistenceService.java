@@ -4,6 +4,7 @@ package com.example.app.service;
 import com.example.app.entity.Message;
 import com.example.app.dto.Artifact;
 import com.example.app.dto.KbReference;
+import com.example.app.dto.MessageReference;
 import com.example.app.repository.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,17 +27,24 @@ public class MessagePersistenceService {
 
     @Transactional
     public String saveUserMessage(String conversationId, String content, List<String> imageUrls) {
+        return saveUserMessage(conversationId, content, imageUrls, null);
+    }
+
+    @Transactional
+    public String saveUserMessage(String conversationId, String content, List<String> imageUrls,
+            List<MessageReference> references) {
         String messageId = UUID.randomUUID().toString();
         String imagesJson = serializeImageUrls(imageUrls);
-        
+
         Message userMsg = Message.builder()
                 .id(messageId)
                 .conversationId(conversationId)
                 .content(content)
                 .role("user")
                 .images(imagesJson)
+                .references(serializeReferences(references))
                 .build();
-        
+
         messageRepository.save(userMsg);
         log.debug("Saved user message: conversationId={}, messageId={}", conversationId, messageId);
         return messageId;
@@ -146,6 +154,18 @@ public class MessagePersistenceService {
             return objectMapper.writeValueAsString(kbReferences);
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize kbReferences", e);
+            return null;
+        }
+    }
+
+    private String serializeReferences(List<MessageReference> references) {
+        if (references == null || references.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(references);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize references", e);
             return null;
         }
     }

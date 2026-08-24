@@ -3,6 +3,7 @@ package com.example.app.pipeline.stage.preprocess;
 import com.example.app.config.CogneeProperties;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.pipeline.ContextPipelineStage;
+import com.example.app.pipeline.context.CogneeMemoryContext;
 import com.example.app.pipeline.context.ConversationContext;
 import com.example.app.service.CogneeClient;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,10 @@ import java.util.regex.Pattern;
  * JPA long_term_memory 已完全迁移至 Cognee，不再使用。
  *
  * <p>设计原则：默认始终召回，只跳过明确的纯数学计算场景。
+ *
+ * <p>解耦边界：本 Stage 是 Pipeline 与 CogneeClient 的唯一耦合点，
+ * 把 {@code CogneeClient.RecallResult} 转成中性的 {@link CogneeMemoryContext}
+ * 后写入 ctx，下游 {@code MemoryFormatStage} 不再依赖 CogneeClient 类型。
  */
 @Component
 @RequiredArgsConstructor
@@ -49,8 +54,7 @@ public class LongTermMemoryStage implements ContextPipelineStage {
             // ── 唯一可靠的跳过场景：纯数学计算 ─────────────────
             if (userMessage != null && PURE_MATH_PATTERN.matcher(userMessage.trim()).matches()) {
                 log.info("[LongTermMemory] Skip memory for pure math: '{}'", truncate(userMessage, 50));
-                ctx.setCogneeContext(new ConversationContext.CogneeContext(
-                        List.of(), List.of(), List.of()));
+                ctx.setCogneeContext(CogneeMemoryContext.empty());
                 return;
             }
 
@@ -62,8 +66,7 @@ public class LongTermMemoryStage implements ContextPipelineStage {
             if (hasExplicitKbRefs) {
                 log.info("[LongTermMemory] Skip main_dataset recall (KB refs present: {})",
                         ctx.getKnowledgeBaseIds());
-                ctx.setCogneeContext(new ConversationContext.CogneeContext(
-                        List.of(), List.of(), List.of()));
+                ctx.setCogneeContext(CogneeMemoryContext.empty());
                 return;
             }
 
@@ -74,8 +77,7 @@ public class LongTermMemoryStage implements ContextPipelineStage {
                     : userMessage;
 
             // ── Cognee 语义召回 ────────────────────────────────
-            ConversationContext.CogneeContext cogneeCtx = retrieveCogneeContext(
-                    ctx, recallQuery);
+            CogneeMemoryContext cogneeCtx = retrieveCogneeContext(ctx, recallQuery);
             ctx.setCogneeContext(cogneeCtx);
 
             // ── Logging ────────────────────────────────────────
@@ -89,19 +91,19 @@ public class LongTermMemoryStage implements ContextPipelineStage {
 
         } catch (Exception e) {
             log.warn("Long-term memory recall failed: {}", e.getMessage(), e);
-            ctx.setCogneeContext(new ConversationContext.CogneeContext(
-                    List.of(), List.of(), List.of()));
+            ctx.setCogneeContext(CogneeMemoryContext.empty());
         }
     }
 
     /**
-     * Cognee 语义召回（片段 + 实体 + 关系）
+     * Cognee 语义召回（片段 + 实体 + 关系）。
+     *
+     * <p>边界职责：把 CogneeClient 的具体 record 类型转成 Pipeline 中性载体
+     * {@link CogneeMemoryContext}，切断下游 Stage 对 CogneeClient 的依赖。
      */
-    private ConversationContext.CogneeContext retrieveCogneeContext(
-            ConversationContext ctx, String recallQuery) {
-
+    private CogneeMemoryContext retrieveCogneeContext(ConversationContext ctx, String recallQuery) {
         if (!cogneeProperties.isEnabled()) {
-            return new ConversationContext.CogneeContext(List.of(), List.of(), List.of());
+            return CogneeMemoryContext.empty();
         }
 
         try {
@@ -116,17 +118,22 @@ public class LongTermMemoryStage implements ContextPipelineStage {
             List<CogneeClient.CogneeRelationRecord> relations = result.relations() != null
                     ? result.relations() : List.of();
 
-            // Convert to ConversationContext inner types
-            List<ConversationContext.CogneeRelation> convRelations = relations.stream()
-                    .map(r -> new ConversationContext.CogneeRelation(
+            // 把 CogneeClient 类型转成 Pipeline 中性载体
+            List<CogneeMemoryContext.Fragment> convFragments = fragments.stream()
+                    .map(f -> new CogneeMemoryContext.Fragment(
+                            f.text(), f.score(), f.source(),
+                            f.dataId(), f.documentName(), f.datasetName()))
+                    .toList();
+            List<CogneeMemoryContext.Relation> convRelations = relations.stream()
+                    .map(r -> new CogneeMemoryContext.Relation(
                             r.source(), r.relation(), r.target()))
                     .toList();
 
-            return new ConversationContext.CogneeContext(fragments, entities, convRelations);
+            return new CogneeMemoryContext(convFragments, entities, convRelations);
 
         } catch (Exception e) {
             log.warn("[LongTermMemory] Cognee recall failed: {}", e.getMessage());
-            return new ConversationContext.CogneeContext(List.of(), List.of(), List.of());
+            return CogneeMemoryContext.empty();
         }
     }
 

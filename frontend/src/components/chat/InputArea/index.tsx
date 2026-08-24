@@ -30,6 +30,7 @@ import { KnowledgeBasePicker } from './KnowledgeBasePicker'
 import { SkillPicker } from './SkillPicker'
 import type { KnowledgeBase } from '../../../api/knowledge'
 import type { Skill } from '../../../api/skill'
+import type { MessageReference } from '../../../types'
 
 // 已选中的知识库引用
 interface KnowledgeBaseReference {
@@ -280,13 +281,24 @@ export function InputArea() {
     setSkillQuery('')
     setSelectedSkill(null)
 
+    // 打包用户引用的资源（知识库 + 技能），随请求持久化到 Message.references
+    const refs: MessageReference[] = [
+      ...currentKbRefs.map(
+        (r): MessageReference => ({ id: r.id, name: r.name, type: 'knowledge_base' })
+      ),
+      ...(selectedSkill
+        ? [{ id: selectedSkill.id, name: selectedSkill.name, type: 'skill' } as MessageReference]
+        : []),
+    ]
+
     sendMessage(
       currentInput,
       currentImages,
       webSearchEnabled,
       agentModeEnabled,
       currentKbRefs.map((r) => r.id),
-      selectedSkill?.id
+      selectedSkill?.id,
+      refs.length > 0 ? refs : undefined
     )
   }
 

@@ -40,4 +40,11 @@ public class ChatRequest {
      * 和工具白名单；为空 → 走关键词匹配或默认通用模式。
      */
     private String skillId;
+
+    /**
+     * 用户消息引用的资源列表（知识库 / 技能，含 id + name + type），
+     * 由前端打包随请求透传，持久化到 Message.references 列，
+     * 供历史会话展示"当时引用了什么"。
+     */
+    private List<MessageReference> references;
 }

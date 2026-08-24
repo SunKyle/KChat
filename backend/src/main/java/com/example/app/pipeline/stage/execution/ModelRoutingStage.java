@@ -4,6 +4,7 @@ import com.example.app.client.OllamaClient;
 import com.example.app.client.OpenAICompatibleClient;
 import com.example.app.config.ModelCapability;
 import com.example.app.config.OpenAIClientProperties;
+import com.example.app.config.StreamingProperties;
 import com.example.app.entity.ModelConfig;
 import com.example.app.pipeline.ContextPipelineStage;
 import com.example.app.pipeline.context.AgentFrame;
@@ -48,17 +49,20 @@ public class ModelRoutingStage implements ContextPipelineStage {
     private final OpenAICompatibleClient openAICompatibleClient;
     private final OpenAIClientProperties openAIClientProperties;
     private final AiServiceFactory aiServiceFactory;
+    private final StreamingProperties streamingProperties;
 
     public ModelRoutingStage(ModelConfigService modelConfigService,
             OllamaClient ollamaClient,
             OpenAICompatibleClient openAICompatibleClient,
             OpenAIClientProperties openAIClientProperties,
-            AiServiceFactory aiServiceFactory) {
+            AiServiceFactory aiServiceFactory,
+            StreamingProperties streamingProperties) {
         this.modelConfigService = modelConfigService;
         this.ollamaClient = ollamaClient;
         this.openAICompatibleClient = openAICompatibleClient;
         this.openAIClientProperties = openAIClientProperties;
         this.aiServiceFactory = aiServiceFactory;
+        this.streamingProperties = streamingProperties;
     }
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.ofEntries(
@@ -214,6 +218,14 @@ public class ModelRoutingStage implements ContextPipelineStage {
                 if (partialResponse == null || partialResponse.isEmpty()) {
                     return;
                 }
+                // 客户端已断连：停止缓冲并短路 latch，避免继续等满 10min
+                // 注意：上游 HTTP 请求已发出，无法真正取消模型生成，
+                // 但能避免后续轮次的 LLM 调用和 streamReplayChunks 推送
+                if (ctx.isClientCancelled()) {
+                    log.debug("[ModelRouting][Agent] Client cancelled, short-circuit onPartialResponse");
+                    latch.countDown();
+                    return;
+                }
                 // 只缓冲，不推 message 事件
                 // 等 onCompleteResponse 判断本轮是否为最终回复
                 fullResponse.append(partialResponse);
@@ -223,6 +235,13 @@ public class ModelRoutingStage implements ContextPipelineStage {
             public void onCompleteResponse(ChatResponse chatResponse) {
                 AiMessage aiMessage = chatResponse.aiMessage();
                 aiMessageRef.set(aiMessage);
+
+                // 客户端已断连：跳过 streamReplayChunks，直接释放 latch
+                if (ctx.isClientCancelled()) {
+                    log.debug("[ModelRouting][Agent] Client cancelled, skip streamReplayChunks");
+                    latch.countDown();
+                    return;
+                }
 
                 // 判断本轮是否为最终回复（无 tool calls）
                 boolean hasToolCalls = aiMessage.hasToolExecutionRequests();
@@ -252,12 +271,20 @@ public class ModelRoutingStage implements ContextPipelineStage {
         });
 
         try {
-            if (!latch.await(10, TimeUnit.MINUTES)) {
-                throw new RuntimeException("Agent streaming timed out");
+            long agentTimeoutMs = streamingProperties.getAgentStreamingTimeoutMs();
+            if (!latch.await(agentTimeoutMs, TimeUnit.MILLISECONDS)) {
+                throw new RuntimeException("Agent streaming timed out after " + agentTimeoutMs + "ms");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Agent streaming interrupted", e);
+        }
+
+        // 客户端已断连：跳过 storeAiMessage 和后续循环，
+        // 让 ContextPipelineExecutor.runReActLoop 检测到 cancelled 后提前 break
+        if (ctx.isClientCancelled()) {
+            log.info("[ModelRouting][Agent] Client cancelled, skip storeAiMessage and abort ReAct loop");
+            return;
         }
 
         Throwable error = errorRef.get();

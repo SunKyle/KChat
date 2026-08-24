@@ -104,21 +104,30 @@ public class SystemPromptAssemblyStage implements ContextPipelineStage {
         String customRulesSection = (customRules != null && !customRules.isBlank())
                 ? "【会话自定义指令】\n" + customRules.trim() : "";
 
+        // Web 搜索 / Cognee 长期记忆：PREPROCESS 已获取的上下文。
+        // OrchestratorSystemPromptProvider 的 prompt 允许"模式一：直接答"分支
+        // （普通对话、知识问答等），若不注入这些上下文，Orchestrator 在模式一
+        // 直接回答依赖搜索/记忆的知识问答时会幻觉。空值时模板对应块整体跳过，
+        // 不会浪费 token；路由场景（模式二）下多带少量上下文，可辅助 Skill 路由判断。
+        String searchContext = (String) ctx.getAgentState()
+                .getOrDefault(ConversationContext.KEY_FORMATTED_SEARCH, "");
+        String cogneeMemory = (String) ctx.getAgentState()
+                .getOrDefault(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE, "");
+
         // 简单的语言推断：用户消息中如果汉字占比高，用 zh-CN，否则留空让 provider 用默认
         String userLanguage = guessLanguageFromMessage(ctx.getUserMessage());
 
         String systemPrompt = orchestratorPromptProvider.build(
-                userLanguage, customRulesSection, userProfileText, kbReferences);
-
-        // 搜索上下文对 Orchestrator 意义不大（它只做路由不查资料，查资料由 Skill 内部自己调用），
-        // 这里不注入 {search_context} 以减少 token 占用。Cognee 记忆同样不在 Orchestrator 层注入。
-        // 如果 future 场景需要，再加回来。
+                userLanguage, customRulesSection, userProfileText, kbReferences,
+                searchContext, cogneeMemory);
 
         ctx.getAgentState().put(ConversationContext.KEY_SYSTEM_MESSAGE, SystemMessage.from(systemPrompt));
         ctx.getAgentState().put(ConversationContext.KEY_PROMPT_TEMPLATE_VERSION, -99); // 标识 Orchestrator 自定义
 
-        log.info("[SystemPrompt][ORCH] role=ORCHESTRATOR promptLen={} userLang={}",
-                systemPrompt.length(), userLanguage);
+        log.info("[SystemPrompt][ORCH] role=ORCHESTRATOR promptLen={} userLang={} searchCtxLen={} cogneeLen={}",
+                systemPrompt.length(), userLanguage,
+                searchContext != null ? searchContext.length() : 0,
+                cogneeMemory != null ? cogneeMemory.length() : 0);
     }
 
     private static String guessLanguageFromMessage(String msg) {

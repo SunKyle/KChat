@@ -52,6 +52,10 @@ public class Message {
     @Column(name = "kb_references", columnDefinition = "TEXT")
     private String kbReferences;
 
+    /** 用户消息引用的资源（知识库 / 技能，JSON 数组 of MessageReference），供历史会话展示"当时引用了什么" */
+    @Column(name = "msg_references", columnDefinition = "TEXT")
+    private String references;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

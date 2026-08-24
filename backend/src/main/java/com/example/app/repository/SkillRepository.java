@@ -36,4 +36,7 @@ public interface SkillRepository extends JpaRepository<Skill, String> {
 
     /** 统计用户自己的 Skill 数量 */
     long countByUserId(String userId);
+
+    /** 按名称查找公共 Skill（用于种子初始化器的幂等判断） */
+    Optional<Skill> findByNameAndIsPublicTrue(String name);
 }

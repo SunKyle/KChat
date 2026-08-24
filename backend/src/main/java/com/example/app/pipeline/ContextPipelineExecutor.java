@@ -133,8 +133,13 @@ public class ContextPipelineExecutor {
                 ContextPipelineStage.Phase.AGENT), ctx);
 
         // 后续轮次：EXECUTION + AGENT
+        // 终止条件：
+        //   1. toolCalls 为空（LLM 给出最终回复）
+        //   2. 达 maxIterations
+        //   3. ctx.clientCancelled（SSE 断连，节省 token 不再继续）
         while (!ctx.getToolCalls().isEmpty()
-                && ctx.getCurrentIteration() + 1 < ctx.getMaxAgentIterations()) {
+                && ctx.getCurrentIteration() + 1 < ctx.getMaxAgentIterations()
+                && !ctx.isClientCancelled()) {
             int next = ctx.getCurrentIteration() + 1;
             ctx.setCurrentIteration(next);
             log.info("[{}] Iteration {}: {} pending call(s), depth={}, continuing",
@@ -146,7 +151,12 @@ public class ContextPipelineExecutor {
                     ContextPipelineStage.Phase.AGENT), ctx);
         }
 
-        if (!ctx.getToolCalls().isEmpty()) {
+        if (ctx.isClientCancelled()) {
+            log.warn("[{}] Aborted: client disconnected, skipping remaining iterations",
+                    logPrefix);
+            ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
+                    "client disconnected", "ABORT", ctx.getToolCalls().size());
+        } else if (!ctx.getToolCalls().isEmpty()) {
             log.warn("[{}] Reached max iterations ({}), {} pending call(s) remain unfinished",
                     logPrefix, ctx.getMaxAgentIterations(), ctx.getToolCalls().size());
             ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
@@ -159,10 +169,20 @@ public class ContextPipelineExecutor {
                     "TERMINATE", 0);
         }
 
-        // 防御性检查：SPECIALIST 循环退出后，栈深度应回到起点
-        // （Orchestrator 循环退出 depth 仍为 1；SkillExecutor 内部 SPECIALIST 循环跑完后由 SkillExecutor pop）
-        if (orchestrator && ctx.getAgentStack().depth() != 1) {
-            log.error("[{}] Stack leak: ended at depth={}, expected 1", logPrefix, ctx.getAgentStack().depth());
+        // 防御性检查：Orchestrator 循环退出后栈深度应回到 1
+        // 若仍有 SPECIALIST 帧残留（说明 SkillExecutor 异常路径未 pop 干净），
+        // 强制 pop 到 depth=1，避免后续 POSTPROCESS 在错误的帧上跑导致数据污染
+        if (orchestrator) {
+            int finalDepth = ctx.getAgentStack().depth();
+            if (finalDepth != 1) {
+                log.error("[{}] Stack leak: ended at depth={}, expected 1. Force-popping to depth=1",
+                        logPrefix, finalDepth);
+                while (ctx.getAgentStack().depth() > 1) {
+                    ctx.getAgentStack().popFrame();
+                }
+                ctx.getTrace().addAgentIteration(ctx.getCurrentIteration(), 0,
+                        "stack leak detected, force-popped to depth=1", "RECOVER", 0);
+            }
         }
     }
 

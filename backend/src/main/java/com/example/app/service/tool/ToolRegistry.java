@@ -41,13 +41,29 @@ public class ToolRegistry {
 
     @PostConstruct
     public void init() {
+        int duplicateCount = 0;
         for (ToolComponent bean : toolBeans) {
-            registerBean(bean);
+            duplicateCount += registerBean(bean);
         }
-        log.info("ToolRegistry initialized with {} tool(s): {}", specByName.size(), specByName.keySet());
+        if (duplicateCount > 0) {
+            log.error("ToolRegistry initialized with {} tool(s), {} duplicate(s) skipped (first-wins): {}",
+                    specByName.size(), duplicateCount, specByName.keySet());
+        } else {
+            log.info("ToolRegistry initialized with {} tool(s): {}", specByName.size(), specByName.keySet());
+        }
     }
 
-    private void registerBean(Object bean) {
+    /**
+     * 注册单个 Bean 上的所有 @Tool 方法。
+     *
+     * <p>重名策略：first-wins。已注册的工具名不会被后续注册覆盖，
+     * 避免静默 override 导致工具行为漂移。重名以 ERROR 级别告警并打印双方来源，
+     * 便于在启动日志中快速定位冲突。
+     *
+     * @return 本次注册过程中跳过的重名工具数
+     */
+    private int registerBean(Object bean) {
+        int duplicates = 0;
         for (Method method : bean.getClass().getDeclaredMethods()) {
             Tool annotation = method.getAnnotation(Tool.class);
             if (annotation == null) {
@@ -57,13 +73,24 @@ public class ToolRegistry {
                     ? method.getName()
                     : annotation.name();
             if (toolByName.containsKey(toolName)) {
-                log.warn("Duplicate tool name '{}', overriding previous registration", toolName);
+                Object previousBean = toolByName.get(toolName);
+                log.error(
+                        "Duplicate tool name '{}' — keeping first registration {}#{}, skipping {}#{} (first-wins; "
+                                + "rename one of the @Tool annotations to avoid silent behavior drift)",
+                        toolName,
+                        previousBean.getClass().getSimpleName(),
+                        methodByName.get(toolName).getName(),
+                        bean.getClass().getSimpleName(),
+                        method.getName());
+                duplicates++;
+                continue;
             }
             method.setAccessible(true);
             toolByName.put(toolName, bean);
             methodByName.put(toolName, method);
             specByName.put(toolName, ToolSpecifications.toolSpecificationFrom(method));
         }
+        return duplicates;
     }
 
     /** 所有已注册工具名（按注册顺序）。 */

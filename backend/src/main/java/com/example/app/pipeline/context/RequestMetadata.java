@@ -1,6 +1,7 @@
 package com.example.app.pipeline.context;
 
 import com.example.app.dto.KbReference;
+import com.example.app.dto.MessageReference;
 import lombok.Builder;
 import lombok.Data;
 
@@ -47,4 +48,10 @@ public class RequestMetadata {
      * 为空 → 走关键词匹配或默认通用模式。
      */
     private String skillId;
+
+    /**
+     * 用户消息引用的资源列表（知识库 / 技能，含 id + name + type），
+     * 由 ChatRequest.references 透传，持久化到 Message.references 列。
+     */
+    private List<MessageReference> references;
 }

@@ -229,6 +229,68 @@ public class KnowledgeBaseService {
     }
 
     /**
+     * 将纯文本内容直接写入知识库（供 Agent Tool 调用，无 MultipartFile）。
+     *
+     * <p>保存文件 → 保存文档记录 → 异步写入 Cognee。
+     * 与 uploadDocument(MultipartFile) 复用同一套持久化链路。
+     */
+    public KnowledgeDocumentDTO uploadTextDocument(String userId, String kbId,
+                                                   String fileName, String content) {
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("文档内容不能为空");
+        }
+        if (fileName == null || fileName.isBlank()) {
+            fileName = "untitled.txt";
+        }
+
+        String docId = UUID.randomUUID().toString();
+
+        // 存一份文本文件到磁盘（与 uploadDocument 同目录结构，保持一致可下载）
+        Path dirPath = getAbsoluteUploadDir().resolve(kbId);
+        try {
+            Files.createDirectories(dirPath);
+        } catch (IOException e) {
+            throw new RuntimeException("创建知识库目录失败: " + e.getMessage(), e);
+        }
+        String safeFileName = fileName.replaceAll("[^a-zA-Z0-9\\.\\-_\\u4e00-\\u9fa5]", "_");
+        Path filePath = dirPath.resolve(docId + "_" + safeFileName);
+        String relativeFilePath = kbId + "/" + docId + "_" + safeFileName;
+        try {
+            Files.writeString(filePath, content, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("写入文档文件失败: " + e.getMessage(), e);
+        }
+
+        KnowledgeDocument doc = KnowledgeDocument.builder()
+                .id(docId)
+                .kbId(kbId)
+                .fileName(fileName)
+                .fileType("text/plain")
+                .fileSize((long) content.getBytes(java.nio.charset.StandardCharsets.UTF_8).length)
+                .content(content)
+                .contentLength(content.length())
+                .status(KnowledgeDocument.ProcessingStatus.PROCESSING)
+                .storedFilePath(relativeFilePath)
+                .build();
+        doc = documentRepository.save(doc);
+
+        kb.setDocumentCount(kb.getDocumentCount() + 1);
+        kbRepository.save(kb);
+
+        log.info("[KnowledgeBase] Text document uploaded: kb={}, doc={}, file={}, chars={}",
+                kbId, docId, fileName, doc.getContentLength());
+
+        // 异步写入 Cognee
+        ingestToCogneeAsync(doc.getId(), kb.getDatasetName(), content, fileName);
+
+        String downloadUrl = "/api/knowledge-bases/" + kbId + "/documents/" + docId + "/download";
+        return KnowledgeDocumentDTO.from(doc, downloadUrl);
+    }
+
+    /**
      * 获取知识库下所有文档。
      */
     public List<KnowledgeDocumentDTO> listDocuments(String userId, String kbId) {
@@ -292,6 +354,9 @@ public class KnowledgeBaseService {
         KnowledgeDocument doc = documentRepository.findByIdAndKbId(docId, kbId)
                 .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
 
+        // 先取出 Cognee data_id（删除记录后实体不再可查）
+        String cogneeDataId = doc.getCogneeDataId();
+
         // 同时删除磁盘上的原始文件
         if (doc.getStoredFilePath() != null && !doc.getStoredFilePath().isBlank()) {
             try {
@@ -312,8 +377,19 @@ public class KnowledgeBaseService {
 
         log.info("[KnowledgeBase] Document deleted: kb={}, doc={}", kbId, docId);
 
-        // 重新同步 Cognee dataset（删除单条文档后需要重建）
-        // Cognee 不支持精确删除单条 data，所以重建整个 dataset
+        // Cognee 同步：优先精确删除单条 data（Cognee v1.0 支持按 data_id 删除，
+        // 节点+边一起消除，图的其余部分保持完整，无需重建整个 dataset）。
+        // 仅当文档没有 data_id（历史数据/未入库）或精确删除失败时，才回退全量重建。
+        if (cogneeDataId != null && !cogneeDataId.isBlank()) {
+            if (cogneeClient.forgetData(cogneeDataId, kb.getDatasetName())) {
+                log.info("[KnowledgeBase] Cognee precise deletion: doc={}, dataId={}", docId, cogneeDataId);
+                return;
+            }
+            log.warn("[KnowledgeBase] Cognee precise deletion failed for dataId={}, fallback to dataset resync",
+                    cogneeDataId);
+        } else {
+            log.info("[KnowledgeBase] doc={} has no cogneeDataId (legacy/unindexed), fallback to dataset resync", docId);
+        }
         resyncKbDatasetAsync(kbId, kb.getDatasetName());
     }
 
@@ -334,11 +410,14 @@ public class KnowledgeBaseService {
             // 带上文件名作为上下文前缀，帮助 Cognee 实体提取
             String formattedContent = "文档名称: " + fileName + "\n\n" + content;
 
-            boolean success = cogneeClient.remember(formattedContent, datasetName);
+            // rememberWithId 返回 data_id，持久化到 doc.cogneeDataId，
+            // 供后续 forgetData 精确删除（避免删除时重建整个 dataset）
+            String dataId = cogneeClient.rememberWithId(formattedContent, datasetName);
 
-            if (success) {
-                updateDocStatus(docId, KnowledgeDocument.ProcessingStatus.INDEXED, null, null);
-                log.info("[KnowledgeBase] Cognee ingestion succeeded: doc={}, dataset={}", docId, datasetName);
+            if (dataId != null) {
+                updateDocStatus(docId, KnowledgeDocument.ProcessingStatus.INDEXED, null, dataId);
+                log.info("[KnowledgeBase] Cognee ingestion succeeded: doc={}, dataset={}, dataId={}",
+                        docId, datasetName, dataId);
             } else {
                 updateDocStatus(docId, KnowledgeDocument.ProcessingStatus.FAILED,
                         "Cognee 入库返回失败", null);
@@ -361,12 +440,16 @@ public class KnowledgeBaseService {
             // 清空旧 dataset
             cogneeClient.forgetDataset(datasetName);
 
-            // 重新写入所有已入库的文档
+            // 重新写入所有已入库的文档，并更新每个文档的 cogneeDataId
             List<KnowledgeDocument> docs = documentRepository.findByKbIdOrderByCreatedAtDesc(kbId);
             for (KnowledgeDocument doc : docs) {
                 if (doc.getContent() != null && !doc.getContent().isBlank()) {
                     String formattedContent = "文档名称: " + doc.getFileName() + "\n\n" + doc.getContent();
-                    cogneeClient.remember(formattedContent, datasetName);
+                    String dataId = cogneeClient.rememberWithId(formattedContent, datasetName);
+                    if (dataId != null && !dataId.equals(doc.getCogneeDataId())) {
+                        doc.setCogneeDataId(dataId);
+                        documentRepository.save(doc);
+                    }
                 }
             }
 

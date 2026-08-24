@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
-import type { Conversation, Message, ChatRequest, StreamingState } from '../types'
+import type { Conversation, Message, ChatRequest, StreamingState, MessageReference } from '../types'
 import { conversations, chat, models } from '../api'
 import { initialState, chatReducer } from './chatReducer'
 import type { ChatAction, ChatState } from './chatReducer'
@@ -26,7 +26,8 @@ interface ChatContextType {
     webSearch?: boolean,
     agentMode?: boolean,
     knowledgeBaseIds?: string[],
-    skillId?: string
+    skillId?: string,
+    references?: MessageReference[]
   ) => Promise<void>
   stopStreaming: (conversationId?: string) => void
   loadMessages: (conversationId: string) => Promise<void>
@@ -296,7 +297,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       webSearch = false,
       agentMode = false,
       knowledgeBaseIds?: string[],
-      skillId?: string
+      skillId?: string,
+      references?: MessageReference[]
     ) => {
       if (!content.trim() && imageUrls.length === 0) return
 
@@ -334,6 +336,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         role: 'user',
         timestamp: new Date().toISOString(),
         images: imageUrls.length > 0 ? imageUrls : undefined,
+        references: references && references.length > 0 ? references : undefined,
       }
 
       dispatch({ type: 'ADD_MESSAGE', payload: userMessage })
@@ -351,6 +354,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         knowledgeBaseIds:
           knowledgeBaseIds && knowledgeBaseIds.length > 0 ? knowledgeBaseIds : undefined,
         skillId: skillId || undefined,
+        references: references && references.length > 0 ? references : undefined,
       }
 
       const tempMessageId = crypto.randomUUID()

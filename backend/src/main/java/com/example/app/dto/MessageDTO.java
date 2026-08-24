@@ -29,6 +29,7 @@ public class MessageDTO {
     private List<Artifact> artifacts;
     private List<Map<String, Object>> agentThinking;
     private List<KbReference> kbReferences;
+    private List<MessageReference> references;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -38,6 +39,7 @@ public class MessageDTO {
         List<Artifact> artifacts = new ArrayList<>();
         List<Map<String, Object>> agentThinking = new ArrayList<>();
         List<KbReference> kbReferences = parseKbReferences(message.getKbReferences());
+        List<MessageReference> references = parseReferences(message.getReferences());
         if (message.getImages() != null && !message.getImages().isEmpty()) {
             try {
                 images = OBJECT_MAPPER.readValue(message.getImages(), new TypeReference<List<String>>() {});
@@ -78,6 +80,7 @@ public class MessageDTO {
                 .artifacts(artifacts)
                 .agentThinking(agentThinking)
                 .kbReferences(kbReferences)
+                .references(references)
                 .build();
     }
 
@@ -103,6 +106,20 @@ public class MessageDTO {
         try {
             List<String> names = OBJECT_MAPPER.readValue(json, new TypeReference<List<String>>() {});
             return names.stream().map(KbReference::of).collect(java.util.stream.Collectors.toList());
+        } catch (JsonProcessingException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 解析 Message.references JSON 列（用户消息引用的知识库 / 技能）。
+     */
+    private static List<MessageReference> parseReferences(String json) {
+        if (json == null || json.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, new TypeReference<List<MessageReference>>() {});
         } catch (JsonProcessingException e) {
             return new ArrayList<>();
         }

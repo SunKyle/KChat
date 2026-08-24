@@ -309,9 +309,24 @@ public class CogneeClient {
      * @return true if the operation succeeded
      */
     public boolean remember(String content, String datasetName) {
+        return rememberWithId(content, datasetName) != null;
+    }
+
+    /**
+     * Remember with a dataset name and return the generated data_id.
+     *
+     * <p>与 {@link #remember(String, String)} 语义一致，但额外返回 Cognee
+     * 分配的 data_id，供调用方持久化后用于 {@link #forgetData(String, String)}
+     * 精确删除，避免删除单条内容时重建整个 dataset。
+     *
+     * @param content     Text to store
+     * @param datasetName Target Cognee dataset (e.g., "kb_{uuid}")
+     * @return Cognee data_id，成功时返回；失败/未启用返回 null
+     */
+    public String rememberWithId(String content, String datasetName) {
         if (!properties.isEnabled()) {
             log.debug("[Cognee] Integration disabled, skipping remember");
-            return false;
+            return null;
         }
         try {
             String url = properties.getBaseUrl() + "/remember";
@@ -326,19 +341,21 @@ public class CogneeClient {
             ResponseEntity<AddResponse> response = restTemplate.postForEntity(
                     url, new HttpEntity<>(req), AddResponse.class);
 
-            boolean success = response.getBody() != null && response.getBody().isSuccess();
+            AddResponse body = response.getBody();
+            boolean success = body != null && body.isSuccess();
             if (success) {
                 log.info("[Cognee] remember() succeeded for dataset={} (id={})",
-                        datasetName, response.getBody().getId());
+                        datasetName, body.getId());
+                return body.getId();
             } else {
                 log.warn("[Cognee] remember() returned failure for dataset={}: {}",
-                        datasetName, response.getBody() != null ? response.getBody().getMessage() : "null body");
+                        datasetName, body != null ? body.getMessage() : "null body");
+                return null;
             }
-            return success;
         } catch (Exception e) {
             log.warn("[Cognee] remember() failed for dataset={} ({} chars): {}",
                     datasetName, content.length(), e.getMessage());
-            return false;
+            return null;
         }
     }
 
@@ -784,6 +801,30 @@ public class CogneeClient {
         ForgetRequest req = new ForgetRequest();
         req.setEverything(true);
         return forgetInternal(req, "forgetEverything");
+    }
+
+    /**
+     * 精确删除单条记忆（data_id 及其关联的节点/边/向量）。
+     *
+     * <p>Cognee v1.0 的 forget 支持按 data_id 精确删除：该节点及其关系边一起消除，
+     * 图的其余部分保持完整，无需重建整个 dataset。用于删除单条文档/单条记忆时，
+     * 避免「清空整个 dataset + 全量重灌」的开销。
+     *
+     * @param dataId  要删除的 data_id（入库时 remember 返回的 id）
+     * @param dataset 所属 dataset（如 "kb_{uuid}"，可空）
+     * @return true on success
+     */
+    public boolean forgetData(String dataId, String dataset) {
+        if (dataId == null || dataId.isBlank()) {
+            log.warn("[Cognee] forgetData skipped: empty dataId");
+            return false;
+        }
+        ForgetRequest req = new ForgetRequest();
+        req.setDataId(dataId);
+        if (dataset != null && !dataset.isBlank()) {
+            req.setDataset(dataset);
+        }
+        return forgetInternal(req, "forgetData(" + dataId + ")");
     }
 
     /**

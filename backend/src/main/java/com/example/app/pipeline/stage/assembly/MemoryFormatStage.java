@@ -1,8 +1,8 @@
 package com.example.app.pipeline.stage.assembly;
 
 import com.example.app.pipeline.ContextPipelineStage;
+import com.example.app.pipeline.context.CogneeMemoryContext;
 import com.example.app.pipeline.context.ConversationContext;
-import com.example.app.service.CogneeClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +13,9 @@ import java.util.List;
  *
  * <p>仅格式化 Cognee 语义召回结果，供 SystemPrompt 注入。
  * JPA long_term_memory 已完全迁移至 Cognee，不再使用。
+ *
+ * <p>解耦：本 Stage 只读取中性载体 {@link CogneeMemoryContext}，
+ * 不依赖 {@code CogneeClient} 的具体类型。
  */
 @Component
 @Slf4j
@@ -27,7 +30,7 @@ public class MemoryFormatStage implements ContextPipelineStage {
 
     @Override
     public void execute(ConversationContext ctx) {
-        ConversationContext.CogneeContext cogneeCtx = ctx.getCogneeContextTyped();
+        CogneeMemoryContext cogneeCtx = ctx.getCogneeContextTyped();
         String cogneeGraph = formatCogneeGraph(cogneeCtx);
 
         ctx.getAgentState().put(ConversationContext.KEY_FORMATTED_MEMORY_COGNEE, cogneeGraph);
@@ -37,17 +40,17 @@ public class MemoryFormatStage implements ContextPipelineStage {
 
     // ── 相关知识图谱 (Cognee) ────────────────────────────────
 
-    private String formatCogneeGraph(ConversationContext.CogneeContext ctx) {
+    private String formatCogneeGraph(CogneeMemoryContext ctx) {
         if (ctx == null || ctx.isEmpty()) return "";
 
         StringBuilder sb = new StringBuilder();
         sb.append("## 相关知识\n");
 
         // Part A: 语义相关片段
-        List<CogneeClient.RecallResult> fragments = ctx.fragments();
+        List<CogneeMemoryContext.Fragment> fragments = ctx.fragments();
         if (fragments != null && !fragments.isEmpty()) {
             sb.append("\n语义相关片段:\n");
-            for (CogneeClient.RecallResult fragment : fragments) {
+            for (CogneeMemoryContext.Fragment fragment : fragments) {
                 double score = fragment.score();
                 sb.append("- [相似度:").append(String.format("%.2f", score)).append("] ")
                         .append(fragment.text()).append("\n");
@@ -61,10 +64,10 @@ public class MemoryFormatStage implements ContextPipelineStage {
         }
 
         // Part C: 关联关系
-        List<ConversationContext.CogneeRelation> relations = ctx.relations();
+        List<CogneeMemoryContext.Relation> relations = ctx.relations();
         if (relations != null && !relations.isEmpty()) {
             sb.append("\n关联关系:\n");
-            for (ConversationContext.CogneeRelation rel : relations) {
+            for (CogneeMemoryContext.Relation rel : relations) {
                 sb.append("- ").append(rel.source())
                         .append(" → (").append(rel.relation()).append(") → ")
                         .append(rel.target()).append("\n");

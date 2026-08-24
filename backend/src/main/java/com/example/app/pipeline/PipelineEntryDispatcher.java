@@ -47,6 +47,14 @@ public class PipelineEntryDispatcher {
     public void executeAgentChat(ConversationContext ctx) {
         ctx.setPipelineType(ConversationContext.PipelineType.AGENT_CHAT);
         dispatchAgentLoop(ctx);
+
+        // 客户端已断连：跳过 POSTPROCESS
+        // 用户消息已在 MessagePrePersistenceStage 预持久化，AI 消息未生成（llmResponse 为空），
+        // 跑 POSTPROCESS 只会产生无意义的 DB 操作 + 必失败的 done 推送
+        if (ctx.isClientCancelled()) {
+            log.info("[Dispatcher] Client cancelled, skip post-processing (no AI message persisted)");
+            return;
+        }
         pipelineExecutor.executePostProcessing(ctx);
     }
 

@@ -4,10 +4,10 @@ import com.example.app.dto.Artifact;
 import com.example.app.dto.ChatRequest;
 import com.example.app.dto.KbReference;
 import com.example.app.dto.MemoryDTO;
+import com.example.app.dto.MessageReference;
 import com.example.app.dto.QueryAnalysisResult;
 import com.example.app.dto.WebSearchResult;
 import com.example.app.entity.ModelConfig;
-import com.example.app.service.CogneeClient;
 import com.example.app.util.JsonUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -41,26 +41,13 @@ public class ConversationContext {
     /**
      * Agent 栈 —— 管理嵌套调用的栈帧结构。
      *
-     * <p>取代原有的 agentToolContext + assemblyState 两个字段：
-     * <ul>
-     *   <li>Orchestrator 帧承载原有的 AgentToolContext + AssemblyState
-     *   <li>Skill 帧 push 时创建独立的 AgentToolContext + AssemblyState
-     *   <li>Facade 方法（getToolCalls/getAssembledMessages 等）统一代理到 stack.peek()
-     * </ul>
+     * <p>Orchestrator 帧承载 AgentToolContext + AssemblyState；Skill 帧 push 时
+     * 创建独立的 AgentToolContext + AssemblyState；Facade 方法（getToolCalls /
+     * getAssembledMessages 等）统一代理到 stack.peek()。
      *
      * <p>设计保障：Stage 代码通过 Facade 方法访问，零感知栈帧切换。
      */
     private AgentStack agentStack;
-
-    /**
-     * 原有的 agentToolContext 和 assemblyState 字段保留为 @Deprecated，
-     * 仅供 fromRequest() 初始化时临时持有，构造完成后立即迁入 AgentStack 的 Orchestrator 帧。
-     * 外部代码应通过 Facade 方法访问（已代理到 stack.peek()）。
-     */
-    @Deprecated
-    private AgentToolContext agentToolContext;
-    @Deprecated
-    private AssemblyState assemblyState;
 
     // ── Fields not covered by sub-contexts ─────────────────────────
     private String searchContext;
@@ -91,6 +78,7 @@ public class ConversationContext {
                 .knowledgeBaseIds(request.getKnowledgeBaseIds() != null
                         ? request.getKnowledgeBaseIds() : List.of())
                 .skillId(request.getSkillId())
+                .references(request.getReferences())
                 .build();
 
         PipelineOrchestration orchestration = PipelineOrchestration.builder()
@@ -114,9 +102,6 @@ public class ConversationContext {
         // 构造 AgentStack，把 fromRequest 创建的 agentTool/assembly 迁入 Orchestrator 帧
         // Facade 方法统一代理到 stack.peek()，原有行为完全不变
         ctx.agentStack = new AgentStack(agentTool, assembly, orchestration.getMaxAgentIterations());
-        // 保留旧字段引用（@Deprecated），仅供向后兼容，外部不应直接访问
-        ctx.agentToolContext = agentTool;
-        ctx.assemblyState = assembly;
         return ctx;
     }
 
@@ -189,20 +174,6 @@ public class ConversationContext {
             boolean recoverable) {
     }
 
-    public record CogneeContext(
-            List<CogneeClient.RecallResult> fragments,
-            List<String> entities,
-            List<CogneeRelation> relations) {
-        public boolean isEmpty() {
-            return (fragments == null || fragments.isEmpty())
-                    && (entities == null || entities.isEmpty())
-                    && (relations == null || relations.isEmpty());
-        }
-    }
-
-    public record CogneeRelation(String source, String relation, String target) {
-    }
-
     // ═══════════════════════════════════════════════════════════════
     //  Delegation Methods — RequestMetadata
     // ═══════════════════════════════════════════════════════════════
@@ -273,6 +244,18 @@ public class ConversationContext {
 
     public void setSkillId(String skillId) {
         requestMetadata.setSkillId(skillId);
+    }
+
+    /**
+     * 用户消息引用的资源列表（知识库 / 技能），由 ChatRequest 透传，
+     * 持久化到 Message.references 列，供历史会话展示"当时引用了什么"。
+     */
+    public List<MessageReference> getReferences() {
+        return requestMetadata.getReferences();
+    }
+
+    public void setReferences(List<MessageReference> references) {
+        requestMetadata.setReferences(references);
     }
 
     public String getLanguage() {
@@ -573,6 +556,34 @@ public class ConversationContext {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    //  Client disconnect — SSE 断连后的取消信号
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 标记客户端已断连。
+     *
+     * <p>由 SSE 容器的 onTimeout / onError 回调调用（SSE 容器线程）。
+     * 设置后，LLM 回调线程、Pipeline 循环、StreamingService 异步 catch
+     * 检测到标志后会提前短路，避免继续生成无用 token。
+     *
+     * <p>幂等：可被多次调用，第二次及之后为 no-op。
+     */
+    public void markClientCancelled() {
+        if (!executionState.isClientCancelled()) {
+            executionState.setClientCancelled(true);
+        }
+    }
+
+    /**
+     * 客户端是否已断连。
+     *
+     * <p>volatile 读，保证 SSE 容器线程的写入对其他线程立即可见。
+     */
+    public boolean isClientCancelled() {
+        return executionState.isClientCancelled();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     //  Direct fields — searchContext / rawSearchResult / customRules
     // ═══════════════════════════════════════════════════════════════
 
@@ -604,15 +615,18 @@ public class ConversationContext {
     //  Convenience methods
     // ═══════════════════════════════════════════════════════════════
 
-    /** Cognee 上下文快捷获取（需要转型为 CogneeContext） */
-    public CogneeContext getCogneeContextTyped() {
+    /**
+     * Cognee 长期记忆上下文（中性载体，不依赖 CogneeClient 实现类型）。
+     * 由 LongTermMemoryStage 写入，MemoryFormatStage 读取。
+     */
+    public CogneeMemoryContext getCogneeContextTyped() {
         Object raw = memoryContext.getCogneeContext();
-        if (raw instanceof CogneeContext ctx)
+        if (raw instanceof CogneeMemoryContext ctx)
             return ctx;
         return null;
     }
 
-    public void setCogneeContext(CogneeContext ctx) {
+    public void setCogneeContext(CogneeMemoryContext ctx) {
         memoryContext.setCogneeContext(ctx);
     }
 
