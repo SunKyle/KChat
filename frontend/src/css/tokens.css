@@ -241,7 +241,7 @@
   --bg-toolbar-hover: rgba(255, 255, 255, 0.06);
   --text-toolbar: #72767a;
   --text-toolbar-hover: var(--foreground);
-  --text-timestamp: rgba(255, 255, 255, 0.3);
+  --text-timestamp: rgba(255, 255, 255, 0.55);
   --border-divider: rgba(255, 255, 255, 0.16);
   --bg-status-connected: rgba(29, 161, 242, 0.1);
   --bg-dropdown: var(--popover);

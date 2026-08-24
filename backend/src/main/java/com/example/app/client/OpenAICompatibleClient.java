@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -96,37 +97,45 @@ public class OpenAICompatibleClient {
         OkHttpClient client = buildClient(props.getImageGen());
 
         try {
-            ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", modelId);
-            requestBody.put("prompt", prompt);
-            requestBody.put("n", 1);
-            requestBody.put("response_format", "url");
-
             boolean hasReferenceImage = imageUrls != null && !imageUrls.isEmpty();
+            Request request;
             if (hasReferenceImage) {
-                String imageDataUri = fetchImageAsBase64(imageUrls.get(0));
-                if (imageDataUri != null) {
-                    String rawBase64 = imageDataUri.contains(",")
-                            ? imageDataUri.substring(imageDataUri.indexOf(",") + 1)
-                            : imageDataUri;
-                    requestBody.put("image", rawBase64);
-                    log.info("Img2img mode: using reference image ({} chars base64)", rawBase64.length());
-                }
+                // 图生图必须走 /v1/images/edits 的 multipart/form-data 接口，
+                // 不能把 image 塞进 /v1/images/generations 的 JSON body（中转层会拒绝）。
+                String referenceImageUrl = imageUrls.get(0);
+                MultipartBody multipart = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("model", modelId)
+                        .addFormDataPart("prompt", prompt)
+                        .addFormDataPart("image", referenceImageUrl)
+                        .addFormDataPart("n", "1")
+                        .addFormDataPart("response_format", "url")
+                        .build();
+                request = new Request.Builder()
+                        .url(buildFullUrl(baseUrl, "/v1/images/edits"))
+                        .header("Authorization", "Bearer " + apiKey)
+                        .post(multipart)
+                        .build();
+                log.info("Img2img mode: editing via multipart images/edits with reference image");
+            } else {
+                ObjectNode requestBody = objectMapper.createObjectNode();
+                requestBody.put("model", modelId);
+                requestBody.put("prompt", prompt);
+                requestBody.put("n", 1);
+                requestBody.put("response_format", "url");
+
+                String requestBodyStr = objectMapper.writeValueAsString(requestBody);
+                RequestBody body = RequestBody.create(
+                        requestBodyStr,
+                        MediaType.parse("application/json"));
+
+                request = new Request.Builder()
+                        .url(buildFullUrl(baseUrl, "/v1/images/generations"))
+                        .header("Authorization", "Bearer " + apiKey)
+                        .header("Content-Type", "application/json")
+                        .post(body)
+                        .build();
             }
-
-            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
-            RequestBody body = RequestBody.create(
-                    requestBodyStr,
-                    MediaType.parse("application/json"));
-
-            String fullUrl = buildFullUrl(baseUrl, "/v1/images/generations");
-
-            Request request = new Request.Builder()
-                    .url(fullUrl)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .post(body)
-                    .build();
 
             Call call = client.newCall(request);
             emitter.onCompletion(() -> call.cancel());
@@ -453,6 +462,57 @@ public class OpenAICompatibleClient {
             }
         }
         throw lastException != null ? lastException : new IOException("Unknown error during image generation");
+    }
+
+    /**
+     * 同步调用 OpenAI 兼容图像编辑接口（图生图 / img2img）。
+     *
+     * <p>OpenAI 规范（以及 new-api / one-api 等中转层）要求 images/edits 使用
+     * {@code multipart/form-data} 而非 JSON，否则中转层会拒绝（如 "Unknown parameter: 'image'"）。
+     * 参考图通过 multipart 的 {@code image} 字段以 HTTP URL 形式传入。
+     *
+     * @throws IOException 网络层失败
+     */
+    public String generateImageEditSync(
+            String modelId,
+            String baseUrl,
+            String apiKey,
+            String prompt,
+            String referenceImageUrl) throws IOException {
+        OkHttpClient client = buildClient(props.getMultimodal());
+
+        MultipartBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("model", modelId)
+                .addFormDataPart("prompt", prompt)
+                .addFormDataPart("image", referenceImageUrl)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(buildFullUrl(baseUrl, "/v1/images/edits"))
+                .header("Authorization", "Bearer " + apiKey)
+                .post(body)
+                .build();
+
+        try (okhttp3.Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "No response body";
+                throw new RuntimeException("Image edit failed: " + response.code() + ". " + errorBody);
+            }
+            String responseBodyStr = response.body() != null ? response.body().string() : "";
+            JsonNode node = objectMapper.readTree(responseBodyStr);
+            JsonNode data = node.path("data");
+            if (data.isArray() && data.size() > 0) {
+                JsonNode firstItem = data.get(0);
+                if (firstItem.has("url")) {
+                    return firstItem.get("url").asText();
+                }
+                if (firstItem.has("b64_json")) {
+                    return "data:image/png;base64," + firstItem.get("b64_json").asText();
+                }
+            }
+            throw new RuntimeException("Failed to parse image edit response");
+        }
     }
 
     /**

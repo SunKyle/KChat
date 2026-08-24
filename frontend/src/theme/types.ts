@@ -18,6 +18,7 @@ export interface ThemeConfig {
       secondary: string
       muted: string
       placeholder: string
+      timestamp: string
     }
     border: {
       primary: string
@@ -59,6 +60,7 @@ export const darkTheme: ThemeConfig = {
       secondary: '#72767a',
       muted: '#72767a',
       placeholder: '#72767a',
+      timestamp: 'rgba(255, 255, 255, 0.55)',
     },
     border: {
       primary: '#242628',
@@ -100,6 +102,7 @@ export const lightTheme: ThemeConfig = {
       secondary: '#536471',
       muted: '#536471',
       placeholder: '#536471',
+      timestamp: 'rgba(0, 0, 0, 0.4)',
     },
     border: {
       primary: '#e1eaef',
@@ -141,6 +144,7 @@ export const animalIslandTheme: ThemeConfig = {
       secondary: '#8b7355',
       muted: '#a69076',
       placeholder: '#c4b5a0',
+      timestamp: 'rgba(74, 55, 40, 0.5)',
     },
     border: {
       primary: '#e8d5b7',

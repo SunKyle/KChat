@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * 图像编辑工具（图生图，img2img）
  *
@@ -95,14 +93,15 @@ public class ImageEditingTool implements ToolComponent {
         }
 
         String modelId = imageModel.getName() + ":" + imageModel.getModelId();
-        List<String> imageUrls = List.of(referenceImageUrl);
         try {
-            String imageUrl = openAICompatibleClient.generateImageSync(
+            // 图生图必须走 images/edits 的 multipart/form-data 接口，
+            // 而非把 image 塞进 images/generations 的 JSON body（部分中转层会拒绝该参数）。
+            String imageUrl = openAICompatibleClient.generateImageEditSync(
                     imageModel.getModelId(),
                     imageModel.getBaseUrl(),
                     imageModel.getApiKey(),
                     prompt,
-                    imageUrls);
+                    referenceImageUrl);
             log.info("[ImageEditingTool] edited image for model={}, mode=img2img, urlLen={}",
                     modelId, imageUrl != null ? imageUrl.length() : 0);
             return ToolModelUtil.wrap("![Edited Image](" + imageUrl + ")", modelId);

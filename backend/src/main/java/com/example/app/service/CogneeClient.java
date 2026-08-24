@@ -403,12 +403,15 @@ public class CogneeClient {
             req.setQuery(query);
             req.setTopK(Math.min(topK, properties.getSearch().getTopK()));
             req.setOnlyContext(true); // Only retrieve context, don't generate LLM answer
+            // 显式指定 CHUNKS：避免默认 AUTO_ROUTE 在无匹配时回退成 GRAPH_COMPLETION
+            // 返回整张知识图谱（会混入无关的个人资料实体），而 CHUNKS 无匹配时返回空
+            req.setSearchType("CHUNKS");
             if (sessionId != null && !sessionId.isBlank()) {
                 req.setSessionId(sessionId);
             }
 
-            log.debug("[Cognee] recall: query='{}', topK={}, session={}", query, req.getTopK(),
-                    sessionId != null);
+            log.debug("[Cognee] recall: query='{}', topK={}, searchType=CHUNKS, session={}",
+                    query, req.getTopK(), sessionId != null);
 
             ResponseEntity<RecallResponseDto> response = searchRestTemplate.postForEntity(
                     url, new HttpEntity<>(req), RecallResponseDto.class);
