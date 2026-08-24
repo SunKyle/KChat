@@ -93,4 +93,11 @@ export const knowledgeBaseApi = {
   getDocumentStatus: async (userId: string, kbId: string, docId: string): Promise<KnowledgeDocument> => {
     return request(`/knowledge-bases/${kbId}/documents/${docId}/status?userId=${userId}`)
   },
+
+  /** 重新索引知识库（清空图谱并重建） */
+  reindex: async (userId: string, kbId: string): Promise<void> => {
+    await request(`/knowledge-bases/${kbId}/reindex?userId=${userId}`, {
+      method: 'POST',
+    })
+  },
 }

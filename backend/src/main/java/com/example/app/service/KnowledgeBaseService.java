@@ -10,7 +10,9 @@ import com.example.app.repository.KnowledgeDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,6 +48,17 @@ public class KnowledgeBaseService {
     private final KnowledgeBaseRepository kbRepository;
     private final KnowledgeDocumentRepository documentRepository;
     private final CogneeClient cogneeClient;
+
+    /**
+     * 自引用代理（@Lazy 避免循环依赖）。
+     *
+     * <p>同 class 内部直接调用 @Async 方法属于 self-invocation，会绕过 Spring AOP 代理，
+     * 导致异步方法同步阻塞（如 reindex 触发前端超时）。必须通过 self.xxx() 走代理，
+     * @Async 才会真正生效。
+     */
+    @Autowired
+    @Lazy
+    private KnowledgeBaseService self;
 
     @Value("${kchat.knowledge-base.upload-dir:uploads/knowledge}")
     private String uploadDir;
@@ -243,8 +256,8 @@ public class KnowledgeBaseService {
         log.info("[KnowledgeBase] Document uploaded: kb={}, doc={}, file={}, chars={}, stored={}",
                 kbId, docId, originalFilename, doc.getContentLength(), relativeFilePath);
 
-        // 异步写入 Cognee
-        ingestToCogneeAsync(doc.getId(), kb.getDatasetName(), content, originalFilename);
+        // 异步写入 Cognee（走代理，确保 @Async 生效，不阻塞上传请求）
+        self.ingestToCogneeAsync(doc.getId(), kb.getDatasetName(), content, originalFilename);
 
         String downloadUrl = "/api/knowledge-bases/" + kbId + "/documents/" + docId + "/download";
         return KnowledgeDocumentDTO.from(doc, downloadUrl);
@@ -305,8 +318,8 @@ public class KnowledgeBaseService {
         log.info("[KnowledgeBase] Text document uploaded: kb={}, doc={}, file={}, chars={}",
                 kbId, docId, fileName, doc.getContentLength());
 
-        // 异步写入 Cognee
-        ingestToCogneeAsync(doc.getId(), kb.getDatasetName(), content, fileName);
+        // 异步写入 Cognee（走代理，确保 @Async 生效）
+        self.ingestToCogneeAsync(doc.getId(), kb.getDatasetName(), content, fileName);
 
         String downloadUrl = "/api/knowledge-bases/" + kbId + "/documents/" + docId + "/download";
         return KnowledgeDocumentDTO.from(doc, downloadUrl);
@@ -412,7 +425,8 @@ public class KnowledgeBaseService {
         } else {
             log.info("[KnowledgeBase] doc={} has no cogneeDataId (legacy/unindexed), fallback to dataset resync", docId);
         }
-        resyncKbDatasetAsync(kbId, kb.getDatasetName());
+        // 兜底重建走代理异步执行，避免阻塞删除请求（self-invocation 会让 @Async 失效）
+        self.resyncKbDatasetAsync(kbId, kb.getDatasetName());
     }
 
     // ── 重新索引 ──────────────────────────────────────────────
@@ -421,14 +435,19 @@ public class KnowledgeBaseService {
      * 重新索引单个知识库：清空 Cognee dataset 后重灌全部文档（异步执行）。
      *
      * <p>用于修复历史文档向量索引缺失（后台 remember 未完成）等问题。
-     * 触发后立即返回，实际重建异步进行，可轮询文档状态查看进度。
+     * 触发后立即返回，实际重建通过 self.resyncKbDatasetAsync 在 Spring 异步线程执行，
+     * 可轮询文档状态查看进度。
+     *
+     * <p>注意：重建必须走 self 代理调用（@Lazy self-injection），
+     * 若直接调用 resyncKbDatasetAsync 属于 self-invocation，@Async 不生效，
+     * 会同步阻塞请求导致前端超时。
      */
     public void reindexKb(String userId, String kbId) {
         String normalizedId = normalizeKbId(kbId);
         KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizedId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         log.info("[KnowledgeBase] Reindex KB requested: kb={}, user={}", normalizedId, userId);
-        resyncKbDatasetAsync(normalizedId, kb.getDatasetName());
+        self.resyncKbDatasetAsync(normalizedId, kb.getDatasetName());
     }
 
     /**
@@ -440,7 +459,7 @@ public class KnowledgeBaseService {
         List<KnowledgeBase> kbs = kbRepository.findByUserIdOrderByUpdatedAtDesc(userId);
         for (KnowledgeBase kb : kbs) {
             log.info("[KnowledgeBase] Reindex KB requested (all): kb={}, user={}", kb.getId(), userId);
-            resyncKbDatasetAsync(kb.getId(), kb.getDatasetName());
+            self.resyncKbDatasetAsync(kb.getId(), kb.getDatasetName());
         }
         return kbs.size();
     }

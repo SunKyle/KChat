@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Download,
   FileSearch,
+  RefreshCw,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { knowledgeBaseApi, type KnowledgeDocument } from '../../../api/knowledge'
@@ -26,6 +27,7 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [reindexing, setReindexing] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -102,6 +104,22 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
     window.open(fullUrl, '_blank', 'noopener,noreferrer')
   }
 
+  /** 重新索引当前知识库（清空图谱并重建） */
+  const handleReindex = async () => {
+    if (!confirm('重新索引会清空该知识库的图谱并重新建立索引，文档较多时可能较慢。确定继续？')) return
+    setReindexing(true)
+    setError('')
+    try {
+      await knowledgeBaseApi.reindex(DEFAULT_USER_ID, kbId)
+      await loadDocuments()
+    } catch (e) {
+      console.error('Reindex failed:', e)
+      setError('重新索引失败')
+    } finally {
+      setReindexing(false)
+    }
+  }
+
   const selectedDoc = documents.find((d) => d.id === selectedId) ?? null
 
   return (
@@ -117,7 +135,7 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
 
       {/* 左侧：文档列表 */}
       <div className='flex flex-col w-56 sm:w-64 flex-shrink-0 border-r theme-border-primary h-full'>
-        <div className='p-3 flex-shrink-0'>
+        <div className='p-3 flex-shrink-0 space-y-2'>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
@@ -132,6 +150,25 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
               <>
                 <Upload className='w-3.5 h-3.5' />
                 上传文档
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleReindex}
+            disabled={reindexing}
+            className='w-full flex items-center justify-center gap-2 py-2 rounded-lg border theme-border hover:theme-bg-hover transition-all duration-200 text-xs theme-text-secondary disabled:opacity-50'
+            title='清空该知识库图谱并重新建立索引'
+          >
+            {reindexing ? (
+              <>
+                <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                索引中...
+              </>
+            ) : (
+              <>
+                <RefreshCw className='w-3.5 h-3.5' />
+                重新索引
               </>
             )}
           </button>

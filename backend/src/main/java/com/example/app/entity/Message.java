@@ -45,7 +45,7 @@ public class Message {
     @Builder.Default
     private Integer tokenCount = 0;
 
-    @Column(name = "agent_thinking", columnDefinition = "TEXT")
+    @Column(name = "agent_thinking", columnDefinition = "LONGTEXT")
     private String agentThinking;
 
     /** 该消息引用的知识库名称列表（JSON 数组），供前端展示"引用来源"标签 */

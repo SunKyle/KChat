@@ -214,6 +214,31 @@ export const MessageBubble = memo(function MessageBubble({
             )}
           </div>
 
+          {/* 用户消息引用标签：独立于消息气泡，展示当时引用的知识库 / 技能 */}
+          {isUser && message.references && message.references.length > 0 && (
+            <div className='flex flex-wrap items-center justify-end gap-1.5 mt-1'>
+              <span className='text-xs text-[var(--text-muted)] mr-0.5'>引用</span>
+              {message.references.map((ref) => {
+                const isKb = ref.type === 'knowledge_base'
+                const Icon = isKb ? Database : Sparkles
+                return (
+                  <span
+                    key={`${ref.type}-${ref.id}`}
+                    className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md theme-bg-card theme-text-secondary border transition-colors ${
+                      isKb
+                        ? 'border-[var(--border)] hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/50'
+                        : 'border-[var(--accent-purple)]/30 hover:text-[var(--accent-purple)] hover:border-[var(--accent-purple)]/60'
+                    }`}
+                    title={isKb ? `知识库：${ref.name}` : `技能：${ref.name}`}
+                  >
+                    <Icon className='w-3 h-3' aria-hidden='true' />
+                    {ref.name}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+
           <div
             className={`flex items-center gap-2.5 mt-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}
           >
