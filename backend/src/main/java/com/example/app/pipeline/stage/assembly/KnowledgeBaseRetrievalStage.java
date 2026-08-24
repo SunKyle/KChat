@@ -17,6 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -81,16 +85,43 @@ public class KnowledgeBaseRetrievalStage implements ContextPipelineStage {
             }
 
             int topK = cogneeProperties.getSearch().getTopK();
-            List<CogneeClient.RecallResult> fragments = cogneeClient.recallFromDatasets(
-                    ctx.getUserMessage(), topK, datasets);
+            int graphTopK = Math.min(3, topK); // 图谱关系更浓缩，取少量控制成本
 
-            // 构建文档层级引用来源（知识库名 + 文档名），供持久化展示
+            // 双轨检索（并行）：正文片段（CHUNKS）+ 图谱关系（GRAPH_COMPLETION）。
+            // CHUNKS 提供文档正文（时间线/数字/名单等事实），GRAPH_COMPLETION 提供
+            // 实体与关系洞察（跨文档关联、主题结构），两者互补，LLM 既能拿事实又能做结构推理。
+            List<CogneeClient.RecallResult> fragments;
+            List<CogneeClient.RecallResult> graphResults;
+            ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+            try {
+                CompletableFuture<List<CogneeClient.RecallResult>> textFuture = CompletableFuture.supplyAsync(
+                        () -> cogneeClient.recallFromDatasets(ctx.getUserMessage(), topK, datasets, "CHUNKS"),
+                        executor);
+                CompletableFuture<List<CogneeClient.RecallResult>> graphFuture = CompletableFuture.supplyAsync(
+                        () -> cogneeClient.recallFromDatasets(ctx.getUserMessage(), graphTopK, datasets,
+                                "GRAPH_COMPLETION"),
+                        executor);
+                fragments = textFuture.get(20, TimeUnit.SECONDS);
+                graphResults = graphFuture.get(25, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.warn("[KbRetrieval] dual recall failed, fallback to text-only: {}", e.getMessage(), e);
+                fragments = cogneeClient.recallFromDatasets(ctx.getUserMessage(), topK, datasets, "CHUNKS");
+                graphResults = List.of();
+            } finally {
+                executor.shutdown();
+            }
+
+            // 构建文档层级引用来源（知识库名 + 文档名），供持久化展示（基于正文片段）
             List<KbReference> kbRefs = buildKbReferences(kbIds, fragments);
             ctx.setKbReferences(kbRefs);
-            log.info("[KbRetrieval] kbIds={} datasets={} recalled {} fragments, refs={}",
-                    kbIds, datasets, fragments.size(), kbRefs.size());
+            log.info("[KbRetrieval] kbIds={} datasets={} recalled {} text + {} graph fragments, refs={}",
+                    kbIds, datasets, fragments.size(), graphResults.size(), kbRefs.size());
 
             String formatted = formatFragments(kbIds, datasets, fragments);
+            String graphFormatted = formatGraphFragments(graphResults);
+            if (!graphFormatted.isBlank()) {
+                formatted = formatted + "\n" + graphFormatted;
+            }
             ctx.getAgentState().put(KEY_FORMATTED_KB_REFERENCES, formatted);
 
         } catch (Exception e) {
@@ -196,6 +227,38 @@ public class KnowledgeBaseRetrievalStage implements ContextPipelineStage {
                     sb.append(r.text().trim()).append("\n\n");
                 }
             }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 格式化图谱关系检索结果（GRAPH_COMPLETION）。
+     *
+     * <p>返回的是图补全上下文（实体、关系、跨文档关联等结构性信息），
+     * 与正文片段（CHUNKS）互补。全部为空时返回空串，由调用方决定是否拼接。
+     */
+    private String formatGraphFragments(List<CogneeClient.RecallResult> graphResults) {
+        if (graphResults == null || graphResults.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("【知识库图谱关系】\n");
+        sb.append("以下是从知识图谱提取的实体与关联关系，用于理解文档间的结构联系"
+                + "（与正文片段互补，回答时以正文事实为准）：\n\n");
+        int idx = 0;
+        for (CogneeClient.RecallResult r : graphResults) {
+            if (r.text() == null || r.text().isBlank()) {
+                continue;
+            }
+            idx++;
+            sb.append("[").append(idx).append("]");
+            if (r.documentName() != null && !r.documentName().isBlank()) {
+                sb.append(" (来源: ").append(r.documentName()).append(")");
+            }
+            sb.append("\n").append(r.text().trim()).append("\n\n");
+        }
+        if (idx == 0) {
+            return "";
         }
         return sb.toString();
     }

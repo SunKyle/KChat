@@ -71,6 +71,28 @@ public class KnowledgeBaseService {
         return absoluteUploadDir;
     }
 
+    /**
+     * 归一化知识库 ID：容忍 LLM 误传 "kb_" 前缀（datasetName 风格），还原为纯 UUID。
+     * 知识库 ID 在数据库里是纯 UUID（如 01510f33-...），而 Cognee dataset 名是
+     * "kb_{id}"。LLM 容易把两者混淆、把带前缀的 datasetName 当 ID 传入，
+     * 这里在查询前统一剥离前缀，避免误报「知识库不存在」。
+     *
+     * @param kbId 可能带 "kb_" 前缀的 ID
+     * @return 纯 UUID；若剥离后不是合法 UUID 则保留原值，交给查询层报错
+     */
+    private String normalizeKbId(String kbId) {
+        if (kbId != null && kbId.startsWith("kb_")) {
+            String stripped = kbId.substring(3);
+            try {
+                UUID.fromString(stripped);
+                return stripped;
+            } catch (IllegalArgumentException ignore) {
+                // 不是 UUID，保留原值
+            }
+        }
+        return kbId;
+    }
+
     // ── 知识库 CRUD ──────────────────────────────────────────
 
     /**
@@ -103,7 +125,7 @@ public class KnowledgeBaseService {
      * 获取知识库详情。
      */
     public KnowledgeBaseDTO getById(String userId, String kbId) {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         return KnowledgeBaseDTO.from(kb);
     }
@@ -112,7 +134,7 @@ public class KnowledgeBaseService {
      * 更新知识库信息。
      */
     public KnowledgeBaseDTO update(String userId, String kbId, CreateKnowledgeBaseRequest request) {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         kb.setName(request.getName());
         kb.setDescription(request.getDescription());
@@ -125,7 +147,7 @@ public class KnowledgeBaseService {
      * 删除知识库（同时删除 Cognee dataset、所有文档记录、以及磁盘上的上传目录）。
      */
     public void delete(String userId, String kbId) {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
 
         // 删除 Cognee dataset
@@ -167,7 +189,7 @@ public class KnowledgeBaseService {
      * 同步执行：保存文件 → Tika 提取文本 → 保存文档记录 → 异步写入 Cognee。
      */
     public KnowledgeDocumentDTO uploadDocument(String userId, String kbId, MultipartFile file) throws IOException {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
 
         if (file.isEmpty()) {
@@ -236,7 +258,7 @@ public class KnowledgeBaseService {
      */
     public KnowledgeDocumentDTO uploadTextDocument(String userId, String kbId,
                                                    String fileName, String content) {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
 
         if (content == null || content.isBlank()) {
@@ -295,7 +317,7 @@ public class KnowledgeBaseService {
      */
     public List<KnowledgeDocumentDTO> listDocuments(String userId, String kbId) {
         // 验证权限
-        kbRepository.findByIdAndUserId(kbId, userId)
+        kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         return documentRepository.findByKbIdOrderByCreatedAtDesc(kbId).stream()
                 .map(doc -> {
@@ -309,7 +331,7 @@ public class KnowledgeBaseService {
      * 获取文档处理状态。
      */
     public KnowledgeDocumentDTO getDocumentStatus(String userId, String kbId, String docId) {
-        kbRepository.findByIdAndUserId(kbId, userId)
+        kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         KnowledgeDocument doc = documentRepository.findByIdAndKbId(docId, kbId)
                 .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
@@ -325,7 +347,7 @@ public class KnowledgeBaseService {
      */
     public java.util.AbstractMap.SimpleEntry<byte[], String> downloadDocument(
             String userId, String kbId, String docId) throws IOException {
-        kbRepository.findByIdAndUserId(kbId, userId)
+        kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         KnowledgeDocument doc = documentRepository.findByIdAndKbId(docId, kbId)
                 .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
@@ -349,7 +371,7 @@ public class KnowledgeBaseService {
      * 删除文档。
      */
     public void deleteDocument(String userId, String kbId, String docId) {
-        KnowledgeBase kb = kbRepository.findByIdAndUserId(kbId, userId)
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizeKbId(kbId), userId)
                 .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
         KnowledgeDocument doc = documentRepository.findByIdAndKbId(docId, kbId)
                 .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
@@ -393,6 +415,36 @@ public class KnowledgeBaseService {
         resyncKbDatasetAsync(kbId, kb.getDatasetName());
     }
 
+    // ── 重新索引 ──────────────────────────────────────────────
+
+    /**
+     * 重新索引单个知识库：清空 Cognee dataset 后重灌全部文档（异步执行）。
+     *
+     * <p>用于修复历史文档向量索引缺失（后台 remember 未完成）等问题。
+     * 触发后立即返回，实际重建异步进行，可轮询文档状态查看进度。
+     */
+    public void reindexKb(String userId, String kbId) {
+        String normalizedId = normalizeKbId(kbId);
+        KnowledgeBase kb = kbRepository.findByIdAndUserId(normalizedId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("知识库不存在或无权访问"));
+        log.info("[KnowledgeBase] Reindex KB requested: kb={}, user={}", normalizedId, userId);
+        resyncKbDatasetAsync(normalizedId, kb.getDatasetName());
+    }
+
+    /**
+     * 重新索引当前用户的所有知识库（异步逐个重建）。
+     *
+     * @return 触发的知识库数量
+     */
+    public int reindexAll(String userId) {
+        List<KnowledgeBase> kbs = kbRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        for (KnowledgeBase kb : kbs) {
+            log.info("[KnowledgeBase] Reindex KB requested (all): kb={}, user={}", kb.getId(), userId);
+            resyncKbDatasetAsync(kb.getId(), kb.getDatasetName());
+        }
+        return kbs.size();
+    }
+
     // ── 异步操作 ──────────────────────────────────────────────
 
     /**
@@ -430,7 +482,10 @@ public class KnowledgeBaseService {
     }
 
     /**
-     * 异步重建知识库的 Cognee dataset（删除单条文档后调用）。
+     * 异步重建知识库的 Cognee dataset（删除单条文档兜底、或手动重新索引时调用）。
+     *
+     * <p>重建前把所有文档置为 PROCESSING 便于前端轮询进度，逐篇重灌成功后置 INDEXED
+     * （失败置 FAILED），并刷新每篇文档的 cogneeDataId，保证之后能精确单条删除。
      */
     @Async
     public void resyncKbDatasetAsync(String kbId, String datasetName) {
@@ -442,14 +497,27 @@ public class KnowledgeBaseService {
 
             // 重新写入所有已入库的文档，并更新每个文档的 cogneeDataId
             List<KnowledgeDocument> docs = documentRepository.findByKbIdOrderByCreatedAtDesc(kbId);
+
+            // 先统一标记为处理中，便于前端轮询整体进度
+            for (KnowledgeDocument doc : docs) {
+                doc.setStatus(KnowledgeDocument.ProcessingStatus.PROCESSING);
+                doc.setErrorMessage(null);
+                documentRepository.save(doc);
+            }
+
             for (KnowledgeDocument doc : docs) {
                 if (doc.getContent() != null && !doc.getContent().isBlank()) {
                     String formattedContent = "文档名称: " + doc.getFileName() + "\n\n" + doc.getContent();
                     String dataId = cogneeClient.rememberWithId(formattedContent, datasetName);
-                    if (dataId != null && !dataId.equals(doc.getCogneeDataId())) {
-                        doc.setCogneeDataId(dataId);
-                        documentRepository.save(doc);
+                    if (dataId != null) {
+                        updateDocStatus(doc.getId(), KnowledgeDocument.ProcessingStatus.INDEXED, null, dataId);
+                    } else {
+                        updateDocStatus(doc.getId(), KnowledgeDocument.ProcessingStatus.FAILED,
+                                "Cognee 入库返回失败", null);
                     }
+                } else {
+                    updateDocStatus(doc.getId(), KnowledgeDocument.ProcessingStatus.FAILED,
+                            "文档内容为空", null);
                 }
             }
 

@@ -131,11 +131,11 @@ public class ToolDefinitionStage implements ContextPipelineStage {
             // 用户显式 @ 了知识库 → KnowledgeBaseRetrievalStage(408) 已把指定库片段注入 system prompt：
             // - recallMemory ：查 main_dataset，绕过"只看指定知识库"的用户意图，过滤
             // - searchAllKb ：跨所有知识库搜，同样绕过指定限制，过滤
-            // - searchInKb  ：同库重复检索，片段已注入上下文，过滤
+            // - searchInKb  ：保留。只在指定库内搜，符合用户意图；且注入片段 topK 有限，
+            //                 LLM 需要它深挖正文（如机构名单、时间节点等片段未覆盖的内容）
             specs = specs.stream()
                     .filter(spec -> !"recallMemory".equals(spec.name()))
                     .filter(spec -> !"searchAllKb".equals(spec.name()))
-                    .filter(spec -> !"searchInKb".equals(spec.name()))
                     .toList();
         }
 

@@ -48,6 +48,7 @@ public class KnowledgeBaseTool implements ToolComponent {
             在指定知识库内搜索与查询相关的内容。
             输入知识库ID和自然语言查询，返回语义相关的文档片段（带相似度、来源文档名）。
             适用于：当用户需要从特定知识库里查资料时调用，例如「帮我查设计库里关于RAG的资料」。
+            注意：知识库ID是UUID格式（如 01510f33-...），不要加 kb_ 前缀。
             调用前如不知道知识库ID，请先用 listKb 或 listKbDocuments 确认。
             """)
     public String searchInKb(String kbId, String query, Integer topK) {
@@ -173,7 +174,8 @@ public class KnowledgeBaseTool implements ToolComponent {
             for (int i = 0; i < kbs.size(); i++) {
                 KnowledgeBaseDTO kb = kbs.get(i);
                 sb.append(i + 1).append(". 【").append(kb.getName()).append("】")
-                        .append("（ID: ").append(kb.getId()).append("）\n");
+                        .append("（ID: ").append(kb.getId())
+                        .append("，UUID格式，调用时不要加 kb_ 前缀）\n");
                 if (kb.getDescription() != null && !kb.getDescription().isBlank()) {
                     sb.append("   描述: ").append(kb.getDescription()).append("\n");
                 }
@@ -197,6 +199,7 @@ public class KnowledgeBaseTool implements ToolComponent {
             列出指定知识库下的所有文档清单。
             输入知识库ID，返回每个文档的ID、文件名、处理状态、大小和创建时间。
             适用于：当用户想查看某个知识库里有哪些文档、或需要获取文档ID来删除/查询状态时调用。
+            注意：知识库ID是UUID格式（如 01510f33-...），不要加 kb_ 前缀。
             如不知道知识库ID，请先用 listKb 确认。
             """)
     public String listKbDocuments(String kbId) {
@@ -312,6 +315,7 @@ public class KnowledgeBaseTool implements ToolComponent {
             输入：知识库ID、文件名（任意名称用于展示，可选）、文档正文内容。
             系统会将内容写入数据库，并异步索引到 Cognee 知识图谱（稍后可被检索）。
             适用于：当用户要求把某段文字/笔记/文章保存到知识库时调用。
+            注意：知识库ID是UUID格式（如 01510f33-...），不要加 kb_ 前缀。
             如不知道知识库ID，请先用 listKb 确认。
             """)
     public String uploadKbDocument(String kbId, String fileName, String content) {

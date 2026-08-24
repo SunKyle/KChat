@@ -171,6 +171,13 @@ public class CogneeClient {
         private List<String> datasets;
         @JsonProperty("only_context")
         private boolean onlyContext = true;
+        /**
+         * 强制指定检索策略（如 "CHUNKS" / "RAG_COMPLETION" / "GRAPH_COMPLETION"）。
+         * 为空时 cognee 走 auto_route 自动路由，无 cue 匹配会回退 GRAPH_COMPLETION，
+         * 返回图结构而非文档正文。知识库检索需要正文片段，应显式指定 "CHUNKS"。
+         */
+        @JsonProperty("search_type")
+        private String searchType;
     }
 
     @Data
@@ -334,7 +341,11 @@ public class CogneeClient {
             req.setContent(content);
             req.setDatasetName(datasetName);
             req.setSelfImprovement(true);
-            req.setRunInBackground(true);
+            // 必须前台执行（run_in_background=false）：cognee 1.2.2 的后台 remember
+            // 任务不可靠，可能只写原始文本、cognify（chunk+向量+图）未完成，导致
+            // 后续 CHUNKS/GRAPH 检索不到内容。调用方（ingestToCogneeAsync）本身已是
+            // Java @Async 后台线程，此处同步等待不会阻塞用户请求。
+            req.setRunInBackground(false);
 
             log.debug("[Cognee] remember: {} chars, dataset={}", content.length(), datasetName);
 
@@ -441,12 +452,26 @@ public class CogneeClient {
      * Pass a list of Cognee dataset names (e.g., ["kb_uuid1", "kb_uuid2"])
      * to restrict the search to those knowledge bases only.
      *
+     * <p>默认使用 CHUNKS（纯文本片段）。知识库问答需要文档正文
+     * （时间线、数字、名单等），而非图结构描述。
+     *
      * @param query    Natural language query
      * @param topK     Maximum results
      * @param datasets List of dataset names to search
      * @return List of scored results
      */
     public List<RecallResult> recallFromDatasets(String query, int topK, List<String> datasets) {
+        return recallFromDatasets(query, topK, datasets, "CHUNKS");
+    }
+
+    /**
+     * Recall from specific datasets with an explicit retrieval strategy.
+     *
+     * @param searchType Cognee 检索策略：CHUNKS（正文）/ GRAPH_COMPLETION（图关系）/
+     *                   HYBRID_COMPLETION（文本+图混合）等
+     */
+    public List<RecallResult> recallFromDatasets(String query, int topK, List<String> datasets,
+            String searchType) {
         if (!properties.isEnabled()) {
             return List.of();
         }
@@ -456,6 +481,7 @@ public class CogneeClient {
             req.setQuery(query);
             req.setTopK(Math.min(topK, properties.getSearch().getTopK()));
             req.setOnlyContext(true);
+            req.setSearchType(searchType);
             if (datasets != null && !datasets.isEmpty()) {
                 req.setDatasets(datasets);
             }

@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 知识库管理 REST API。
@@ -113,6 +114,32 @@ public class KnowledgeBaseController {
         log.info("[KBController] Delete document: kb={}, doc={}", kbId, docId);
         knowledgeBaseService.deleteDocument(userId, kbId, docId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 重新索引知识库：清空 Cognee dataset 后重灌全部文档（异步）。
+     * 用于修复历史文档向量索引缺失（如后台 remember 未完成导致检索不到正文）。
+     * 触发后立即返回 202，可轮询文档状态查看进度。
+     */
+    @PostMapping("/{kbId}/reindex")
+    public ResponseEntity<Void> reindexKb(
+            @RequestParam String userId,
+            @PathVariable String kbId) {
+        log.info("[KBController] Reindex KB: kb={}, user={}", kbId, userId);
+        knowledgeBaseService.reindexKb(userId, kbId);
+        return ResponseEntity.accepted().build();
+    }
+
+    /**
+     * 重新索引当前用户的所有知识库（异步逐个重建）。
+     *
+     * @return 触发的知识库数量
+     */
+    @PostMapping("/reindex-all")
+    public ResponseEntity<Map<String, Integer>> reindexAll(@RequestParam String userId) {
+        int count = knowledgeBaseService.reindexAll(userId);
+        log.info("[KBController] Reindex all KBs: user={}, count={}", userId, count);
+        return ResponseEntity.accepted().body(Map.of("triggered", count));
     }
 
     @GetMapping("/{kbId}/documents/{docId}/status")

@@ -138,6 +138,9 @@ class RecallRequest(BaseModel):
     session_id: str | None = None
     datasets: list[str] | None = None
     only_context: bool = True
+    # 强制检索策略（如 "CHUNKS"/"RAG_COMPLETION"/"GRAPH_COMPLETION"）。
+    # 为空时 cognee auto_route 自动路由，无 cue 匹配回退 GRAPH_COMPLETION（图结构，非正文）。
+    search_type: str | None = None
 
 class RecallResultItem(BaseModel):
     text: str = ""
@@ -526,6 +529,9 @@ async def recall_memories(request: RecallRequest):
             "only_context": request.only_context,
             "auto_route": True,
         }
+        if request.search_type:
+            from cognee import SearchType
+            kwargs["query_type"] = SearchType(request.search_type.upper())
         if request.session_id:
             kwargs["session_id"] = request.session_id
         if request.datasets:
@@ -582,8 +588,10 @@ async def recall_memories(request: RecallRequest):
                 if not document_name:
                     document_name = str(_attr(r, "document_name") or "")
 
-                # Try common field names for text content
-                for attr in ('text', 'content', 'answer', 'response', 'summary'):
+                # Try common field names for text content.
+                # 注意：completion 类型结果（GRAPH_COMPLETION 等）把实际内容放在 context 字段，
+                # 必须纳入提取，否则图类结果会落到 str(r) 兜底成无用的对象字符串。
+                for attr in ('text', 'content', 'context', 'answer', 'response', 'summary'):
                     val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
                     if val and str(val).strip():
                         text = str(val)
