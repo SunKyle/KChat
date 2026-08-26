@@ -102,12 +102,22 @@ public class OpenAICompatibleClient {
             if (hasReferenceImage) {
                 // 图生图必须走 /v1/images/edits 的 multipart/form-data 接口，
                 // 不能把 image 塞进 /v1/images/generations 的 JSON body（中转层会拒绝）。
-                String referenceImageUrl = imageUrls.get(0);
+                // image 必须作为带 filename 的文件 part（原始字节）上传，不能传纯字符串，
+                // 否则 new-api 会报 "image is required"（convert_request_failed）。
+                String imageDataUri = fetchImageAsBase64(imageUrls.get(0));
+                if (imageDataUri == null) {
+                    throw new RuntimeException("Failed to load reference image for img2img: " + imageUrls.get(0));
+                }
+                ImagePayload payload = decodeDataUriToBytes(imageDataUri);
+                if (payload == null) {
+                    throw new RuntimeException("Failed to decode reference image for img2img: " + imageUrls.get(0));
+                }
+                RequestBody imagePart = RequestBody.create(payload.bytes, MediaType.parse(payload.mime));
                 MultipartBody multipart = new MultipartBody.Builder()
                         .setType(MultipartBody.FORM)
                         .addFormDataPart("model", modelId)
                         .addFormDataPart("prompt", prompt)
-                        .addFormDataPart("image", referenceImageUrl)
+                        .addFormDataPart("image", "reference.png", imagePart)
                         .addFormDataPart("n", "1")
                         .addFormDataPart("response_format", "url")
                         .build();
@@ -469,7 +479,8 @@ public class OpenAICompatibleClient {
      *
      * <p>OpenAI 规范（以及 new-api / one-api 等中转层）要求 images/edits 使用
      * {@code multipart/form-data} 而非 JSON，否则中转层会拒绝（如 "Unknown parameter: 'image'"）。
-     * 参考图通过 multipart 的 {@code image} 字段以 HTTP URL 形式传入。
+     * 参考图必须作为带 filename 的<b>文件 part</b>（原始字节）上传，不能传纯文本/base64 字符串，
+     * 否则 new-api 等服务端会报 "image is required"（convert_request_failed）。
      *
      * @throws IOException 网络层失败
      */
@@ -481,11 +492,23 @@ public class OpenAICompatibleClient {
             String referenceImageUrl) throws IOException {
         OkHttpClient client = buildClient(props.getMultimodal());
 
+        String imageDataUri = fetchImageAsBase64(referenceImageUrl);
+        if (imageDataUri == null) {
+            throw new RuntimeException("Failed to load reference image for edit: " + referenceImageUrl);
+        }
+        // 本地图片转成原始字节，作为文件 part 上传（避免中转层回源拉 localhost，也避免纯字符串被忽略）
+        ImagePayload payload = decodeDataUriToBytes(imageDataUri);
+        if (payload == null) {
+            throw new RuntimeException("Failed to decode reference image: " + referenceImageUrl);
+        }
+        RequestBody imagePart = RequestBody.create(
+                payload.bytes,
+                MediaType.parse(payload.mime));
         MultipartBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("model", modelId)
                 .addFormDataPart("prompt", prompt)
-                .addFormDataPart("image", referenceImageUrl)
+                .addFormDataPart("image", "reference.png", imagePart)
                 .build();
 
         Request request = new Request.Builder()
@@ -757,6 +780,35 @@ public class OpenAICompatibleClient {
             mime = meta.substring(0, semi);
         }
         return ImageContent.from(Image.builder().base64Data(base64).mimeType(mime).build());
+    }
+
+    /** 从 data URI（data:<mime>;base64,<data>）解码出原始字节与 mime 类型。 */
+    private ImagePayload decodeDataUriToBytes(String dataUri) {
+        if (dataUri == null || !dataUri.startsWith("data:")) {
+            return null;
+        }
+        int comma = dataUri.indexOf(',');
+        if (comma < 0) {
+            return null;
+        }
+        String meta = dataUri.substring(5, comma);
+        String mime = "image/png";
+        int semi = meta.indexOf(';');
+        if (semi > 0) {
+            mime = meta.substring(0, semi);
+        }
+        byte[] bytes = java.util.Base64.getDecoder().decode(dataUri.substring(comma + 1));
+        return new ImagePayload(bytes, mime);
+    }
+
+    /** 图片原始字节与 mime 的简单载体 */
+    private static final class ImagePayload {
+        private final byte[] bytes;
+        private final String mime;
+        private ImagePayload(byte[] bytes, String mime) {
+            this.bytes = bytes;
+            this.mime = mime;
+        }
     }
 
     /**
