@@ -5,6 +5,8 @@
  * 接收后端推送的通知事件并分发到 window。
  */
 
+import { toast } from 'react-toastify'
+
 const RECONNECT_DELAY = 3000
 const MAX_RECONNECT_DELAY = 30000
 
@@ -42,6 +44,27 @@ export function connectNotificationSSE(userId: string): void {
         }
       } catch (e) {
         console.warn('[NotificationSSE] Failed to parse data_updated event:', e)
+      }
+    })
+
+    // 提醒到点时，后端推送名为 `reminder` 的事件，这里弹出可见的 Toast 提醒
+    eventSource.addEventListener('reminder', (event) => {
+      try {
+        const payload = JSON.parse((event as MessageEvent).data)
+        const message =
+          typeof payload.data === 'string' ? payload.data : JSON.stringify(payload.data ?? '')
+        toast(message, {
+          position: 'top-right',
+          autoClose: 10000,
+          closeOnClick: false,
+          draggable: false,
+          style: {
+            width: '360px',
+            whiteSpace: 'pre-line',
+          },
+        })
+      } catch (e) {
+        console.warn('[NotificationSSE] Failed to parse reminder event:', e)
       }
     })
 

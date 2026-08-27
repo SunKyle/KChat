@@ -91,10 +91,10 @@ export function SidebarRail({
         <button
           onClick={onAvatarClick}
           aria-label={showSettings ? '关闭设置' : '打开设置'}
-          className={`w-full flex items-center justify-center rounded-[var(--radius-xl)] p-1.5 transition-all duration-200 cursor-pointer focus-ring ${
+          className={`w-full flex items-center justify-center rounded-[var(--radius-xl)] p-1.5 transition-all duration-200 cursor-pointer outline-none focus:outline-none focus-visible:outline-none ${
             showSettings
-              ? 'border border-[var(--brand-primary)]/40 bg-[var(--bg-card)] shadow-sm'
-              : 'bg-[var(--bg-card)]/60 hover:border-[var(--brand-primary)]/20 hover:bg-[var(--bg-card)] hover:shadow-sm'
+              ? 'bg-[var(--bg-card)] shadow-sm'
+              : 'bg-[var(--bg-card)]/60 hover:bg-[var(--bg-card)] hover:shadow-sm'
           }`}
         >
           <div className='rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--bg-card)] w-10 h-10'>

@@ -68,7 +68,12 @@ if _tiktoken is not None:
     _tiktoken.encoding_for_model = _safe_encoding_for_model
 
 # ── Cognee 系统设置（可在 .env 中覆盖，未配置时用下方默认值）──
-os.environ.setdefault('COGNEE_CACHING', 'false')
+# 注意：COGNEE_CACHING 必须为 true 才能启用 session 缓存（SessionManager 可用）。
+# 之前默认 false 导致 remember(session_id) 静默跳过写入、recall(session_id) 永远搜不到
+# session 记忆（is_available=False，create_cache_engine 返回 None）。KChat 的
+# LongTermMemoryStage 用 conversationId 作为 session_id 做会话记忆召回，必须开启。
+# .env 显式设置 COGNEE_CACHING 仍可覆盖（setdefault 只在未设置时生效）。
+os.environ.setdefault('COGNEE_CACHING', 'true')
 # 开启后按 dataset 检索时严格执行数据集隔离（含 GRAPH_COMPLETION 图补全），
 # 防止跨知识库记忆泄漏。可通过 .env 的 ENABLE_BACKEND_ACCESS_CONTROL 覆盖。
 os.environ.setdefault('ENABLE_BACKEND_ACCESS_CONTROL', 'true')
@@ -159,6 +164,175 @@ class RecallResultItem(BaseModel):
 class RecallResponse(BaseModel):
     results: list[RecallResultItem] = []
     status: str = "success"
+
+
+def _normalize_recall_item(r) -> RecallResultItem:
+    """把 cognee recall 返回的单个对象规范化为 RecallResultItem。
+
+    recall() 返回类型是 ResponseQAEntry / ResponseGraphContextEntry /
+    ResponseSessionContextEntry / ResponseGraphEntry(SearchResultItem) 的联合，
+    字段差异大，这里做多级探测统一成 {text, score, source, ...}。
+    """
+    def _attr(obj, name, default=None):
+        if isinstance(obj, dict):
+            return obj.get(name, default)
+        return getattr(obj, name, default)
+
+    text = ""
+    score = 0.0
+    source = "graph"
+    data_id = ""
+    document_name = ""
+    chunk_id = ""
+    dataset_name = ""
+
+    # 数据集名：SearchResultItem 直接提供 dataset_name / dataset_id
+    dataset_name = str(_attr(r, "dataset_name") or "")
+    if not dataset_name:
+        ds_id = _attr(r, "dataset_id")
+        if ds_id:
+            dataset_name = str(ds_id)
+
+    # metadata 字典：Cognee normalize 生成的溯源元数据
+    meta = _attr(r, "metadata")
+    if isinstance(meta, dict):
+        data_id = str(meta.get("data_id") or meta.get("document_id") or "")
+        chunk_id = str(meta.get("chunk_id") or "")
+        document_name = str(meta.get("document_name") or "")
+
+    # raw 兜底：chunk payload 里的 document_id / document_name / id
+    raw = _attr(r, "raw")
+    if isinstance(raw, dict):
+        if not data_id:
+            data_id = str(raw.get("document_id") or raw.get("data_id") or "")
+        if not chunk_id:
+            chunk_id = str(raw.get("id") or raw.get("chunk_id") or "")
+        if not document_name:
+            document_name = str(raw.get("document_name") or "")
+
+    # 顶层字段兜底
+    if not data_id:
+        data_id = str(_attr(r, "data_id") or _attr(r, "document_id") or "")
+    if not document_name:
+        document_name = str(_attr(r, "document_name") or "")
+
+    # Try common field names for text content.
+    # 注意：completion 类型结果（GRAPH_COMPLETION 等）把实际内容放在 context 字段，
+    # 必须纳入提取，否则图类结果会落到 str(r) 兜底成无用的对象字符串。
+    for attr in ('text', 'content', 'context', 'answer', 'response', 'summary'):
+        val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
+        if val and str(val).strip():
+            text = str(val)
+            break
+
+    # If no text field found, stringify the object
+    if not text:
+        text = str(r)
+
+    # Try common field names for score
+    for attr in ('score', 'similarity', 'relevance', 'confidence'):
+        val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
+        if val is not None and isinstance(val, (int, float)):
+            score = float(val)
+            break
+
+    # Extract source tag
+    src_val = getattr(r, 'source', None) if not isinstance(r, dict) else r.get('source')
+    if src_val:
+        source = str(src_val)
+
+    # 文本级兜底：从 recall 文本中解析 "文档名称: xxx" 前缀（写入时的格式）
+    if not document_name:
+        import re as _re
+        m = _re.search(r"文档名称[:：]\s*([^\n]+)", text)
+        if m:
+            document_name = m.group(1).strip()
+
+    return RecallResultItem(
+        text=text[:2000],  # Cap at 2000 chars to keep payload reasonable
+        score=score if score > 0 else 0.5,  # Default neutral score if not provided
+        source=source,
+        data_id=data_id,
+        document_name=document_name,
+        chunk_id=chunk_id,
+        dataset_name=dataset_name,
+    )
+
+def _cn_match_tokens(text: str) -> set[str]:
+    """Tokenize for Chinese-aware recall matching.
+
+    cognee 的 _search_session 用 ``\\b\\w+\\b`` 做英文式空格分词：中文没有词边界，
+    整句被当作单个 token，查询词与条目词永远无法精确相等，导致 session 记忆对
+    中文检索永远命中 0 条（大段中文正文之间的交集恒为空集）。
+
+    这里改用混合分词，保证中文/英文查询都能产生有效交集：
+      - 拉丁词 + 数字（沿用 cognee 思路，保证英文兼容）
+      - CJK 相邻字符二元组（bigram），能捕捉「下季度/预算/方案」这类短语的部分重合
+    """
+    import re as _re
+
+    words = set(_re.findall(r"[A-Za-z0-9_]{2,}", text.lower()))
+    cjk = _re.findall(r"[\u4e00-\u9fff]", text)
+    for i in range(len(cjk) - 1):
+        words.add(cjk[i] + cjk[i + 1])
+    return words
+
+
+async def _session_search_cn(query_text: str, session_id: str, top_k: int, user=None):
+    """Chinese-aware session-cache recall for the /recall endpoint.
+
+    Wrapper-level replacement for cognee.recall()'s internal session search
+    (_search_session), which cannot match CJK text (see _cn_match_tokens).
+
+    Reads QA entries from the session cache via SessionManager and scores
+    them by token overlap (bigram + latin word). Returns normalized
+    RecallResultItem with source="session".
+    """
+    from cognee.infrastructure.session.get_session_manager import get_session_manager
+    from cognee.modules.users.methods import get_default_user
+
+    if not session_id:
+        return []
+
+    user_obj = user if user is not None else await get_default_user()
+    user_id = str(getattr(user_obj, "id", "")) if user_obj else ""
+    if not user_id:
+        return []
+
+    sm = get_session_manager()
+    if not sm.is_available:
+        return []
+
+    entries = await sm.get_session(user_id=user_id, session_id=session_id, formatted=False)
+    if not isinstance(entries, list) or not entries:
+        return []
+
+    query_words = _cn_match_tokens(query_text)
+    if not query_words:
+        return []
+
+    scored = []
+    for entry in entries:
+        entry_text = " ".join((
+            str(getattr(entry, "question", "") or ""),
+            str(getattr(entry, "context", "") or ""),
+            str(getattr(entry, "answer", "") or ""),
+        ))
+        entry_words = _cn_match_tokens(entry_text)
+        hits = len(query_words & entry_words)
+        if hits > 0:
+            scored.append((hits, entry_text.strip()))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    return [
+        RecallResultItem(
+            text=text[:2000],
+            score=0.9,  # session hit is a strong, exact-match signal
+            source="session",
+        )
+        for _, text in scored[:top_k]
+    ]
 
 class AddResponse(BaseModel):
     id: str = ""
@@ -489,15 +663,22 @@ async def remember_content(request: RememberRequest):
             run_in_background=request.run_in_background,
         )
 
-        # Extract a usable id from the result if available
+        # Extract a usable id from the result if available.
+        # cognee 的 RememberResult 没有顶层 `id` 字段：data_id 藏在
+        # items[0]["id"]（即入库 Data item 的 id，管道同步跑完后填充，
+        # 可作 forgetData 精确删除用）。无 items 时退回 pipeline_run_id。
         result_id = ""
         if result is not None:
             if isinstance(result, str):
                 result_id = result
-            elif hasattr(result, 'id'):
-                result_id = str(result.id)
             elif isinstance(result, dict):
                 result_id = str(result.get('id', ''))
+            else:
+                items = getattr(result, 'items', None) or []
+                if items and isinstance(items[0], dict) and items[0].get('id'):
+                    result_id = str(items[0]['id'])
+                elif getattr(result, 'pipeline_run_id', None):
+                    result_id = str(result.pipeline_run_id)
 
         return AddResponse(
             id=result_id,
@@ -518,11 +699,26 @@ async def recall_memories(request: RecallRequest):
 
     only_context=True returns retrieved context only (no LLM answer generation),
     making it suitable for pipeline integration where the caller has its own LLM.
+
+    Session retrieval is handled by this wrapper (not cognee.recall): cognee's
+    internal _search_session uses English-style space tokenization, which can
+    never match Chinese text, so session memories were silently never returned.
     """
     try:
         cognee = await get_cognee()
         logger.info(f"recall: query='{request.query[:80]}', top_k={request.top_k}, "
                     f"session={request.session_id}, only_context={request.only_context}")
+
+        # ── session 记忆检索（中文感知，wrapper 层实现）────
+        # cognee.recall() 自带 session 检索无法命中中文，这里先独立召回 session
+        # 记忆，再让 cognee 只跑 graph 检索，最后合并去重。
+        session_items = []
+        if request.session_id:
+            session_items = await _session_search_cn(
+                query_text=request.query,
+                session_id=request.session_id,
+                top_k=request.top_k,
+            )
 
         kwargs = {
             "top_k": request.top_k,
@@ -534,105 +730,32 @@ async def recall_memories(request: RecallRequest):
             kwargs["query_type"] = SearchType(request.search_type.upper())
         if request.session_id:
             kwargs["session_id"] = request.session_id
+            # 只跑 graph：session 部分已由 _session_search_cn 处理。
+            # 之前显式传 scope=["session","graph"] 只是让 cognee 的 session 源
+            # 参与检索，但它的匹配算法对中文失效，等于空跑。
+            kwargs["scope"] = ["graph"]
         if request.datasets:
             kwargs["datasets"] = request.datasets
 
         results = await cognee.recall(request.query, **kwargs)
 
-        items = []
-        if results:
-            for r in results[:request.top_k]:
-                # recall() returns typed objects with varying fields depending on source.
-                # Normalize to {text, score, source} for the Java client.
-                text = ""
-                score = 0.0
-                source = "graph"
-                data_id = ""
-                document_name = ""
-                chunk_id = ""
-                dataset_name = ""
+        # graph 结果规范化
+        graph_items = [_normalize_recall_item(r) for r in (results or [])]
 
-                # ── 元数据提取：metadata / raw / 顶层字段多级探测 ──
-                def _attr(obj, name, default=None):
-                    if isinstance(obj, dict):
-                        return obj.get(name, default)
-                    return getattr(obj, name, default)
+        # 合并：session 结果优先，按文本去重（session 与 graph 可能重复，
+        # 例如 session 已被 improve() 桥接进永久图）
+        seen = set()
+        merged = []
+        for it in session_items + graph_items:
+            key = (it.text or "").strip()[:80]
+            if key and key in seen:
+                continue
+            seen.add(key)
+            merged.append(it)
 
-                # 数据集名：SearchResultItem 直接提供 dataset_name / dataset_id
-                dataset_name = str(_attr(r, "dataset_name") or "")
-                if not dataset_name:
-                    ds_id = _attr(r, "dataset_id")
-                    if ds_id:
-                        dataset_name = str(ds_id)
-
-                # metadata 字典：Cognee normalize 生成的溯源元数据
-                meta = _attr(r, "metadata")
-                if isinstance(meta, dict):
-                    data_id = str(meta.get("data_id") or meta.get("document_id") or "")
-                    chunk_id = str(meta.get("chunk_id") or "")
-                    document_name = str(meta.get("document_name") or "")
-
-                # raw 兜底：chunk payload 里的 document_id / document_name / id
-                raw = _attr(r, "raw")
-                if isinstance(raw, dict):
-                    if not data_id:
-                        data_id = str(raw.get("document_id") or raw.get("data_id") or "")
-                    if not chunk_id:
-                        chunk_id = str(raw.get("id") or raw.get("chunk_id") or "")
-                    if not document_name:
-                        document_name = str(raw.get("document_name") or "")
-
-                # 顶层字段兜底
-                if not data_id:
-                    data_id = str(_attr(r, "data_id") or _attr(r, "document_id") or "")
-                if not document_name:
-                    document_name = str(_attr(r, "document_name") or "")
-
-                # Try common field names for text content.
-                # 注意：completion 类型结果（GRAPH_COMPLETION 等）把实际内容放在 context 字段，
-                # 必须纳入提取，否则图类结果会落到 str(r) 兜底成无用的对象字符串。
-                for attr in ('text', 'content', 'context', 'answer', 'response', 'summary'):
-                    val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
-                    if val and str(val).strip():
-                        text = str(val)
-                        break
-
-                # If no text field found, stringify the object
-                if not text:
-                    text = str(r)
-
-                # Try common field names for score
-                for attr in ('score', 'similarity', 'relevance', 'confidence'):
-                    val = getattr(r, attr, None) if not isinstance(r, dict) else r.get(attr)
-                    if val is not None and isinstance(val, (int, float)):
-                        score = float(val)
-                        break
-
-                # Extract source tag
-                src_val = getattr(r, 'source', None) if not isinstance(r, dict) else r.get('source')
-                if src_val:
-                    source = str(src_val)
-
-                # 文本级兜底：从 recall 文本中解析 "文档名称: xxx" 前缀（写入时的格式）
-                if not document_name:
-                    import re as _re
-                    m = _re.search(r"文档名称[:：]\s*([^\n]+)", text)
-                    if m:
-                        document_name = m.group(1).strip()
-
-                items.append(RecallResultItem(
-                    text=text[:2000],  # Cap at 2000 chars to keep payload reasonable
-                    score=score if score > 0 else 0.5,  # Default neutral score if not provided
-                    source=source,
-                    data_id=data_id,
-                    document_name=document_name,
-                    chunk_id=chunk_id,
-                    dataset_name=dataset_name,
-                ))
-
-        logger.info(f"recall returned {len(items)} results (sources: "
-                    f"{[i.source for i in items]})")
-        return RecallResponse(results=items, status="success")
+        logger.info("recall returned %d results (%d session, %d graph)",
+                    len(merged), len(session_items), len(graph_items))
+        return RecallResponse(results=merged[: request.top_k], status="success")
 
     except Exception as e:
         logger.error(f"recall failed: {e}")
