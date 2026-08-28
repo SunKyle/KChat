@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2, Sparkles, Lock } from 'lucide-react'
+import { Icon, isIconName } from '../../../components/common/Icon'
 import { skills as skillsApi } from '../../../api'
 import type { Skill } from '../../../api/skill'
 
@@ -115,7 +115,7 @@ export function SkillPicker({
     >
       <div className='px-3 pt-2.5 pb-2'>
         <div className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted'>
-          <Sparkles className='w-3.5 h-3.5' />
+          <Icon name='Sparkles' size='sm' />
           引用技能
           {trimmed && <span className='ml-1 text-[10px] opacity-70'>搜索「{query}」</span>}
         </div>
@@ -132,7 +132,7 @@ export function SkillPicker({
           }`}
         >
           <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
-            <Lock className='w-4 h-4 theme-text-muted' />
+            <Icon name='Lock' size='md' className='theme-text-muted' />
           </div>
           <div className='flex-1 min-w-0'>
             <p className='text-sm theme-text-primary truncate'>无技能（默认）</p>
@@ -144,11 +144,11 @@ export function SkillPicker({
 
         {loading ? (
           <div className='flex items-center justify-center py-8'>
-            <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
+            <Icon name='Loader2' size='lg' className='animate-spin theme-text-muted' />
           </div>
         ) : skillList.length === 0 ? (
           <div className='px-3 py-8 text-center'>
-            <Sparkles className='w-8 h-8 theme-text-muted mx-auto mb-2' />
+            <Icon name='Sparkles' size='2xl' className='theme-text-muted mx-auto mb-2' />
             <p className='text-sm theme-text-secondary'>暂无技能，请先在设置 → 技能中心创建</p>
           </div>
         ) : filtered.length === 0 ? (
@@ -171,11 +171,11 @@ export function SkillPicker({
                     }`}
                   >
                     <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
-                      {skill.icon ? (
-                        <span className='text-base leading-none'>{skill.icon}</span>
-                      ) : (
-                        <Sparkles className='w-4 h-4 text-[var(--accent-primary)]' />
-                      )}
+                      <Icon
+                        name={isIconName(skill.icon) ? skill.icon : 'Sparkles'}
+                        size='md'
+                        className='text-[var(--accent-primary)]'
+                      />
                     </div>
                     <div className='flex-1 min-w-0'>
                       <p className='text-sm theme-text-primary truncate font-medium'>

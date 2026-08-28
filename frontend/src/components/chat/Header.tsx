@@ -1,5 +1,5 @@
-import { Cpu, ChevronDown, Check, WifiOff } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { Icon } from '../common/Icon'
 import { useChat } from '../../context/ChatContext'
 import { useModel } from '../../hooks/useModel'
 import { ThemeToggle } from '../common/ThemeToggle'
@@ -62,12 +62,14 @@ export function Header() {
             aria-expanded={isModelDropdownOpen}
             aria-haspopup='listbox'
           >
-            <Cpu className='w-3.5 h-3.5 sm:w-4 sm:h-4 theme-brand-primary' />
+            <Icon name='Cpu' size='sm' className='sm:w-4 sm:h-4 theme-brand-primary' />
             <span className='text-xs sm:text-sm font-secondary theme-text-primary truncate max-w-[100px] sm:max-w-none'>
               {currentModel}
             </span>
-            <ChevronDown
-              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 theme-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`}
+            <Icon
+              name='ChevronDown'
+              size='sm'
+              className={`sm:w-4 sm:h-4 theme-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`}
             />
           </button>
 
@@ -95,7 +97,7 @@ export function Header() {
                   >
                     <span>{model}</span>
                     {model === currentModel && (
-                      <Check className='w-4 h-4 theme-brand-primary ml-auto' />
+                      <Icon name='Check' size='md' className='theme-brand-primary ml-auto' />
                     )}
                   </button>
                 ))}
@@ -112,7 +114,7 @@ export function Header() {
               className='flex items-center gap-1.5 px-2 py-1 bg-red-500/10 rounded-full'
               title='服务离线，请检查网络连接'
             >
-              <WifiOff className='w-3 h-3 text-red-500' />
+              <Icon name='WifiOff' size='xs' className='text-red-500' />
               <span className='font-secondary text-xs text-red-500'>离线</span>
             </div>
           )}

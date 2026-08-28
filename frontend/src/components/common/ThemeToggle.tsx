@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Sun, Moon, Leaf } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from './Icon'
+import type { IconName } from './Icon'
 import { useTheme } from '../../context/ThemeContext'
 
 export function ThemeToggle() {
@@ -8,14 +9,13 @@ export function ThemeToggle() {
   const [animating, setAnimating] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
-  const themeLabels: Record<string, { label: string; icon: typeof Sun }> = {
-    light: { label: '明亮主题', icon: Sun },
-    dark: { label: '深色主题', icon: Moon },
-    'animal-island': { label: '动物岛主题', icon: Leaf },
+  const themeLabels: Record<string, { label: string; icon: IconName }> = {
+    light: { label: '明亮主题', icon: 'Sun' },
+    dark: { label: '深色主题', icon: 'Moon' },
+    'animal-island': { label: '动物岛主题', icon: 'Leaf' },
   }
 
   const currentTheme = themeLabels[theme] || themeLabels.light
-  const CurrentIcon = currentTheme.icon
 
   const handleSelectTheme = (newTheme: string) => {
     setAnimating(true)
@@ -36,7 +36,7 @@ export function ThemeToggle() {
           animate={{ rotate: animating ? 360 : 0 }}
           transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
         >
-          <CurrentIcon className='w-[18px] h-[18px]' />
+          <Icon name={currentTheme.icon} size='lg' />
         </motion.div>
       </button>
 
@@ -50,8 +50,8 @@ export function ThemeToggle() {
             className='absolute top-full right-0 mt-2 w-40 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)] shadow-lg py-1 z-50'
           >
             {(
-              Object.entries(themeLabels) as Array<[string, { label: string; icon: typeof Sun }]>
-            ).map(([name, { label, icon: Icon }]) => (
+              Object.entries(themeLabels) as Array<[string, { label: string; icon: IconName }]>
+            ).map(([name, { label, icon }]) => (
               <button
                 key={name}
                 onClick={() => handleSelectTheme(name)}
@@ -61,7 +61,7 @@ export function ThemeToggle() {
                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                 }`}
               >
-                <Icon className='w-4 h-4' />
+                <Icon name={icon} size='md' />
                 {label}
               </button>
             ))}

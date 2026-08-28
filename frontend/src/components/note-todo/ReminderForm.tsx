@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import type { FormState } from './useNoteTodoForm'
 
 interface ReminderFormProps {
@@ -42,7 +42,7 @@ export function ReminderForm({
             className='w-full px-3 py-2.5 bg-[var(--bg-input)] border border-transparent rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)]/40 focus:ring-1 focus:ring-[var(--brand-primary)]/20 transition-all'
           />
           <p className='flex items-center gap-1 text-xs text-[var(--text-muted)] mt-1.5'>
-            <Bell className='w-3 h-3' />
+            <Icon name='Bell' size='xs' />
             到点后系统会通过通知推送提醒
           </p>
         </div>

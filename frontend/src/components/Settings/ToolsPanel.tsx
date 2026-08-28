@@ -1,16 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import {
-  Wrench,
-  Loader2,
-  RefreshCw,
-  AlertTriangle,
-  Power,
-  Sliders,
-  ChevronDown,
-  Search,
-  Filter,
-  X,
-} from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { tools as toolsApi, settingsApi, modelConfigs } from '../../api'
 import type { ToolInfo, ModelConfig } from '../../types'
 
@@ -188,7 +177,7 @@ export function ToolsPanel() {
       {/* 头部：标题 + 统计 + 刷新 */}
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
-          <Wrench className='w-5 h-5 theme-text-muted' />
+          <Icon name='Wrench' size='lg' className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>工具箱</h3>
           {!loading && !error && (
             <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-secondary'>
@@ -207,7 +196,7 @@ export function ToolsPanel() {
           className='icon-btn disabled:opacity-50'
           title='刷新'
         >
-          <RefreshCw className={`w-4 h-4 theme-text-muted ${loading ? 'animate-spin' : ''}`} />
+          <Icon name='RefreshCw' size='md' className={`theme-text-muted ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -221,7 +210,7 @@ export function ToolsPanel() {
         <div className='flex items-center gap-3'>
           {/* 搜索框 */}
           <div className='relative flex-1'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted' />
+            <Icon name='Search' size='md' className='absolute left-3 top-1/2 -translate-y-1/2 theme-text-muted' />
             <input
               type='text'
               value={searchQuery}
@@ -234,14 +223,14 @@ export function ToolsPanel() {
                 onClick={() => setSearchQuery('')}
                 className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:theme-bg-hover transition-colors'
               >
-                <X className='w-3.5 h-3.5 theme-text-muted' />
+                <Icon name='X' size='sm' className='theme-text-muted' />
               </button>
             )}
           </div>
 
           {/* 状态筛选按钮 */}
           <div className='flex items-center gap-1 bg-theme-bg-hover rounded-xl p-1'>
-            <Filter className='w-4 h-4 theme-text-muted ml-2 mr-1' />
+            <Icon name='Filter' size='md' className='theme-text-muted ml-2 mr-1' />
             {(
               [
                 { key: 'all', label: '全部' },
@@ -268,7 +257,7 @@ export function ToolsPanel() {
       {/* 搜索结果提示 */}
       {!loading && !error && searchQuery && filteredTools.length === 0 && (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
-          <Search className='w-10 h-10 theme-text-muted mx-auto mb-3' />
+          <Icon name='Search' size={40} className='theme-text-muted mx-auto mb-3' />
           <p className='font-semibold theme-text-primary mb-1'>未找到匹配的工具</p>
           <p className='text-sm theme-text-muted'>
             尝试修改搜索关键词或切换筛选条件
@@ -278,11 +267,11 @@ export function ToolsPanel() {
 
       {loading ? (
         <div className='flex items-center justify-center py-12'>
-          <Loader2 className='w-6 h-6 theme-text-muted animate-spin' />
+          <Icon name='Loader2' size='xl' className='theme-text-muted animate-spin' />
         </div>
       ) : error ? (
         <div className='card-float-solid rounded-2xl p-6 text-center'>
-          <AlertTriangle className='w-10 h-10 text-amber-500 mx-auto mb-3' />
+          <Icon name='AlertTriangle' size={40} className='text-amber-500 mx-auto mb-3' />
           <p className='font-semibold theme-text-primary mb-1'>加载失败</p>
           <p className='text-sm theme-text-muted mb-4'>{error}</p>
           <button
@@ -294,7 +283,7 @@ export function ToolsPanel() {
         </div>
       ) : toolList.length === 0 ? (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
-          <Wrench className='w-12 h-12 theme-text-muted mx-auto mb-4' />
+          <Icon name='Wrench' size={48} className='theme-text-muted mx-auto mb-4' />
           <p className='theme-text-secondary mb-2'>暂无注册工具</p>
           <p className='text-sm theme-text-muted'>
             在后端实现 ToolComponent 接口并添加 @Tool 注解即可在此展示
@@ -394,10 +383,12 @@ function ToolCard({
                 }`}
               >
                 {isToggling ? (
-                  <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
+                  <Icon name='Loader2' size='xs' className='theme-text-muted animate-spin' />
                 ) : (
-                  <Power
-                    className={`w-3 h-3 ${isEnabled ? 'text-green-500' : 'theme-text-muted'}`}
+                  <Icon
+                    name='Power'
+                    size='xs'
+                    className={`${isEnabled ? 'text-green-500' : 'theme-text-muted'}`}
                   />
                 )}
               </span>
@@ -437,15 +428,17 @@ function ToolCard({
             className='w-full px-4 py-3 flex items-center gap-2 hover:theme-bg-hover transition-colors'
           >
             <div className='flex-shrink-0 w-7 h-7 rounded-lg theme-bg-accent-primary/10 flex items-center justify-center'>
-              <Sliders className='w-4 h-4 theme-accent-primary' />
+              <Icon name='Sliders' size='md' className='theme-accent-primary' />
             </div>
             <span className='text-sm font-semibold theme-text-primary'>参数</span>
             <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-muted font-medium'>
               {paramEntries.length} 个参数
             </span>
             <div className='flex-1' />
-            <ChevronDown
-              className={`w-4 h-4 theme-text-muted transition-transform duration-200 ${
+            <Icon
+              name='ChevronDown'
+              size='md'
+              className={`theme-text-muted transition-transform duration-200 ${
                 paramsExpanded ? 'rotate-180' : ''
               }`}
             />

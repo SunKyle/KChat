@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, Brain, Database, Copy } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { modelConfigs } from '../../api'
 import type { ModelConfig, ProviderType, ModelCategory } from '../../types'
 import { useChat } from '../../context/ChatContext'
@@ -239,11 +239,11 @@ export function ModelSettings() {
 
       <div className='flex items-center justify-between mb-4'>
         <div className='flex items-center gap-2'>
-          <Brain className='w-5 h-5 theme-text-muted' />
+          <Icon name='Brain' size='lg' className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>模型列表</h3>
         </div>
         <Button onClick={handleOpenAddModal}>
-          <Plus className='w-4 h-4' />
+          <Icon name='Plus' size='md' />
           添加模型
         </Button>
       </div>
@@ -283,7 +283,7 @@ export function ModelSettings() {
       ) : configs.length === 0 ? (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
           <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mb-4'>
-            <Database className='w-7 h-7 theme-text-muted' />
+            <Icon name='Database' size='2xl' className='theme-text-muted' />
           </div>
           <h3 className='text-base font-semibold theme-text-primary mb-1'>暂无模型配置</h3>
           <p className='theme-text-muted text-sm mb-5'>添加你的第一个 AI 模型</p>
@@ -336,7 +336,7 @@ export function ModelSettings() {
                                 className='p-0.5 theme-text-muted/70 hover:theme-text-muted rounded transition-colors flex-shrink-0'
                                 title='复制模型 ID'
                               >
-                                <Copy className='w-3 h-3' />
+                                <Icon name='Copy' size='xs' />
                               </button>
                               {(() => {
                                 const cat = CATEGORIES.find(
@@ -373,14 +373,14 @@ export function ModelSettings() {
                               className='icon-btn'
                               title='编辑'
                             >
-                              <Edit2 className='w-4 h-4' />
+                              <Icon name='Pencil' size='md' />
                             </button>
                             <button
                               onClick={() => handleDelete(config.id, config.name)}
                               className='icon-btn hover:text-[var(--brand-danger)]'
                               title='删除'
                             >
-                              <Trash2 className='w-4 h-4' />
+                              <Icon name='Trash2' size='md' />
                             </button>
                           </div>
                         </div>
@@ -402,7 +402,7 @@ export function ModelSettings() {
                 {editingConfig ? '编辑模型' : '添加模型'}
               </h3>
               <button onClick={() => setShowAddModal(false)} className='icon-btn'>
-                <X className='w-5 h-5' />
+                <Icon name='X' size='lg' />
               </button>
             </div>
 

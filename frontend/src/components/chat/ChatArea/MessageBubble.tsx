@@ -1,16 +1,5 @@
-import {
-  User,
-  Bot,
-  Copy,
-  RotateCcw,
-  Check,
-  PenLine,
-  Loader2,
-  Volume2,
-  Square,
-  Database,
-  Sparkles,
-} from 'lucide-react'
+import { Icon } from '../../common/Icon'
+import type { IconName } from '../../common/Icon'
 import type { Message } from '../../../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ShiningText } from '../../ui/shining-text'
@@ -150,10 +139,10 @@ export const MessageBubble = memo(function MessageBubble({
             profile?.avatar ? (
               <img src={profile.avatar} alt='User Avatar' className='w-full h-full object-cover' />
             ) : (
-              <User className='w-[16px] h-[16px]' />
+              <Icon name='User' size='md' />
             )
           ) : (
-            <Bot className='w-[16px] h-[16px]' />
+            <Icon name='Bot' size='md' />
           )}
         </div>
 
@@ -196,7 +185,7 @@ export const MessageBubble = memo(function MessageBubble({
                 {/* 引用来源标签：展示该回复引用的知识库（含具体文档名） */}
                 {!isUser && message.kbReferences && message.kbReferences.length > 0 && (
                   <div className='flex flex-wrap items-center gap-1.5 mt-3'>
-                    <Database className='w-3.5 h-3.5 text-[var(--text-muted)]' />
+                    <Icon name='Database' size='sm' className='text-[var(--text-muted)]' />
                     <span className='text-xs text-[var(--text-muted)] mr-0.5'>引用来源</span>
                     {message.kbReferences.map((ref) => (
                       <span
@@ -220,7 +209,7 @@ export const MessageBubble = memo(function MessageBubble({
               <span className='text-xs text-[var(--text-muted)] mr-0.5'>引用</span>
               {message.references.map((ref) => {
                 const isKb = ref.type === 'knowledge_base'
-                const Icon = isKb ? Database : Sparkles
+                const iconName: IconName = isKb ? 'Database' : 'Sparkles'
                 return (
                   <span
                     key={`${ref.type}-${ref.id}`}
@@ -231,7 +220,7 @@ export const MessageBubble = memo(function MessageBubble({
                     }`}
                     title={isKb ? `知识库：${ref.name}` : `技能：${ref.name}`}
                   >
-                    <Icon className='w-3 h-3' aria-hidden='true' />
+                    <Icon name={iconName} size='xs' aria-hidden='true' />
                     {ref.name}
                   </span>
                 )
@@ -277,9 +266,9 @@ export const MessageBubble = memo(function MessageBubble({
                       aria-label={copied ? '已复制' : '复制'}
                     >
                       {copied ? (
-                        <Check className='w-[14px] h-[14px] text-green-400' />
+                        <Icon name='Check' size='sm' className='text-green-400' />
                       ) : (
-                        <Copy className='w-[14px] h-[14px]' />
+                        <Icon name='Copy' size='sm' />
                       )}
                     </button>
                     <span className='tooltip-content'>{copied ? '已复制' : '复制'}</span>
@@ -291,7 +280,7 @@ export const MessageBubble = memo(function MessageBubble({
                         className='icon-btn-sm peer'
                         aria-label='重新生成'
                       >
-                        <RotateCcw className='w-[14px] h-[14px]' />
+                        <Icon name='RotateCcw' size='sm' />
                       </button>
                       <span className='tooltip-content'>重新生成</span>
                     </div>
@@ -304,11 +293,11 @@ export const MessageBubble = memo(function MessageBubble({
                       disabled={saving}
                     >
                       {saving ? (
-                        <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
+                        <Icon name='Loader2' size='sm' className='animate-spin text-[var(--brand-primary)]' />
                       ) : saved ? (
-                        <Check className='w-[14px] h-[14px] text-green-400' />
+                        <Icon name='Check' size='sm' className='text-green-400' />
                       ) : (
-                        <PenLine className='w-[14px] h-[14px]' />
+                        <Icon name='Pencil' size='sm' />
                       )}
                     </button>
                     {!saving && !saved && (
@@ -325,11 +314,11 @@ export const MessageBubble = memo(function MessageBubble({
                       disabled={ttsState === 'loading'}
                     >
                       {ttsState === 'loading' ? (
-                        <Loader2 className='w-[14px] h-[14px] animate-spin text-[var(--brand-primary)]' />
+                        <Icon name='Loader2' size='sm' className='animate-spin text-[var(--brand-primary)]' />
                       ) : ttsState === 'playing' ? (
-                        <Square className='w-[14px] h-[14px] text-[var(--brand-primary)]' />
+                        <Icon name='Square' size='sm' className='text-[var(--brand-primary)]' />
                       ) : (
-                        <Volume2 className='w-[14px] h-[14px]' />
+                        <Icon name='Volume2' size='sm' />
                       )}
                     </button>
                     <span className='tooltip-content'>

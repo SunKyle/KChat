@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { ApiError } from '../api/client'
+import { Icon } from '../components/common/Icon'
 
 interface ErrorToast {
   id: string
@@ -144,14 +145,7 @@ function ErrorToastContainer() {
             onClick={() => removeError(toast.id)}
             className='p-1 hover:bg-white/20 rounded transition-colors'
           >
-            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
-              />
-            </svg>
+            <Icon name='X' size='md' />
           </button>
         </div>
       ))}

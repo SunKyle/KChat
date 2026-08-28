@@ -1,4 +1,4 @@
-import { Bell, BellOff, BellRing, Edit3, Trash2, Clock } from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import type { Reminder } from '../../types/note-todo'
 
 interface ReminderListItemProps {
@@ -11,17 +11,17 @@ interface ReminderListItemProps {
 
 const statusMeta = {
   pending: {
-    icon: Bell,
+    icon: 'Bell',
     label: '待触发',
     className: 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] border-[var(--brand-primary)]/30',
   },
   fired: {
-    icon: BellRing,
+    icon: 'BellRing',
     label: '已触发',
     className: 'bg-[var(--brand-success)]/10 text-[var(--brand-success)] border-[var(--brand-success)]/30',
   },
   cancelled: {
-    icon: BellOff,
+    icon: 'BellOff',
     label: '已取消',
     className: 'bg-[var(--text-muted)]/10 text-[var(--text-muted)] border-[var(--text-muted)]/30',
   },
@@ -35,14 +35,13 @@ function ReminderListItem({
   formatDateFull,
 }: ReminderListItemProps) {
   const meta = statusMeta[reminder.status]
-  const StatusIcon = meta.icon
   return (
     <div className='group relative rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] hover:shadow-md hover:shadow-[var(--shadow-color)]/15 hover:border-[var(--brand-primary)]/30 transition-all duration-200 cursor-pointer overflow-hidden'>
       <div className='p-4 flex items-start gap-3'>
         <div
           className={`flex-shrink-0 mt-0.5 w-8 h-8 rounded-full flex items-center justify-center ${meta.className}`}
         >
-          <StatusIcon className='w-4 h-4' />
+          <Icon name={meta.icon} size='md' />
         </div>
         <div className='flex-1 min-w-0'>
           <h3
@@ -64,11 +63,11 @@ function ReminderListItem({
               <span
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${meta.className}`}
               >
-                <StatusIcon className='w-3 h-3' />
+                <Icon name={meta.icon} size='xs' />
                 {meta.label}
               </span>
               <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-secondary)]'>
-                <Clock className='w-3 h-3' />
+                <Icon name='Clock' size='xs' />
                 {formatRemindAt(reminder.remindAt)}
               </span>
             </div>
@@ -87,7 +86,7 @@ function ReminderListItem({
           className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='编辑'
         >
-          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+          <Icon name='Pencil' size='sm' className='text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {
@@ -97,7 +96,7 @@ function ReminderListItem({
           className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='删除'
         >
-          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+          <Icon name='Trash2' size='sm' className='text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
         </button>
       </div>
     </div>
@@ -128,7 +127,7 @@ export function ReminderList({
     return (
       <div className='flex flex-col items-center justify-center py-16 px-4'>
         <div className='w-14 h-14 rounded-full bg-[var(--bg-hover)]/60 flex items-center justify-center mb-4'>
-          <Bell className='w-6 h-6 text-[var(--text-muted)]/50' />
+          <Icon name='Bell' size='xl' className='text-[var(--text-muted)]/50' />
         </div>
         <p className='text-sm text-[var(--text-muted)]'>暂无提醒</p>
         <button

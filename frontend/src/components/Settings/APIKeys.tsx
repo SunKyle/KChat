@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { useUser } from '../../context/UserContext'
 import { Modal } from '../common/Modal'
 import { Button } from '../ui/Button'
@@ -78,7 +78,7 @@ export function APIKeys() {
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
-          <Key className='w-5 h-5 theme-text-muted' />
+          <Icon name='Key' size='lg' className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>API 密钥</h3>
         </div>
         <Button
@@ -86,14 +86,14 @@ export function APIKeys() {
           disabled={isLoading}
           className='disabled:opacity-50 disabled:cursor-not-allowed'
         >
-          <Plus className='w-4 h-4' />
+          <Icon name='Plus' size='md' />
           生成密钥
         </Button>
       </div>
 
       {profile.apiKeys.length === 0 ? (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
-          <Key className='w-12 h-12 theme-text-muted mx-auto mb-4' />
+          <Icon name='Key' size={48} className='theme-text-muted mx-auto mb-4' />
           <p className='theme-text-secondary mb-2'>暂无 API 密钥</p>
           <p className='text-sm theme-text-muted mb-4'>创建 API 密钥以通过编程方式访问您的数据</p>
           <Button
@@ -101,7 +101,7 @@ export function APIKeys() {
             disabled={isLoading}
             className='disabled:opacity-50'
           >
-            <Plus className='w-4 h-4' />
+            <Icon name='Plus' size='md' />
             生成密钥
           </Button>
         </div>
@@ -119,7 +119,7 @@ export function APIKeys() {
                 <div className='flex items-center gap-2'>
                   {showKey === apiKey.id ? (
                     <button onClick={() => setShowKey(null)} className='icon-btn' title='隐藏密钥'>
-                      <EyeOff className='w-4 h-4 theme-text-muted' />
+                      <Icon name='EyeOff' size='md' className='theme-text-muted' />
                     </button>
                   ) : (
                     <button
@@ -127,7 +127,7 @@ export function APIKeys() {
                       className='icon-btn'
                       title='显示密钥'
                     >
-                      <Eye className='w-4 h-4 theme-text-muted' />
+                      <Icon name='Eye' size='md' className='theme-text-muted' />
                     </button>
                   )}
                   <button
@@ -136,9 +136,9 @@ export function APIKeys() {
                     title='复制密钥'
                   >
                     {copiedKey === apiKey.id ? (
-                      <Eye className='w-4 h-4 text-green-400' />
+                      <Icon name='Eye' size='md' className='text-green-400' />
                     ) : (
-                      <Copy className='w-4 h-4 theme-text-muted' />
+                      <Icon name='Copy' size='md' className='theme-text-muted' />
                     )}
                   </button>
                   <button
@@ -146,7 +146,7 @@ export function APIKeys() {
                     className='icon-btn hover:text-red-400'
                     title='删除密钥'
                   >
-                    <Trash2 className='w-4 h-4 theme-text-muted' />
+                    <Icon name='Trash2' size='md' className='theme-text-muted' />
                   </button>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export function APIKeys() {
               {newKey ? (
                 <div className='space-y-4'>
                   <div className='flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30'>
-                    <AlertTriangle className='w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5' />
+                    <Icon name='AlertTriangle' size='lg' className='text-amber-500 flex-shrink-0 mt-0.5' />
                     <div>
                       <div className='text-sm font-semibold text-amber-600'>安全提醒</div>
                       <div className='text-xs text-amber-500'>
@@ -196,9 +196,9 @@ export function APIKeys() {
                     className='w-full flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-semibold'
                   >
                     {copiedKey === 'new' ? (
-                      <Eye className='w-4 h-4' />
+                      <Icon name='Eye' size='md' />
                     ) : (
-                      <Copy className='w-4 h-4' />
+                      <Icon name='Copy' size='md' />
                     )}
                     {copiedKey === 'new' ? '已复制' : '复制密钥'}
                   </button>
@@ -233,9 +233,9 @@ export function APIKeys() {
                       className='flex-1 flex items-center justify-center gap-2 px-4 py-2 theme-bg-accent-primary text-white rounded-lg hover:bg-[var(--accent-primary)]/80 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
                     >
                       {creatingKey ? (
-                        <Loader2 className='w-4 h-4 animate-spin' />
+                        <Icon name='Loader2' size='md' className='animate-spin' />
                       ) : (
-                        <Plus className='w-4 h-4' />
+                        <Icon name='Plus' size='md' />
                       )}
                       生成
                     </button>

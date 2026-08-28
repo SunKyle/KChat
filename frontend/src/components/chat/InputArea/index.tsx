@@ -1,19 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Send,
-  Square,
-  Paperclip,
-  Loader2,
-  Globe,
-  Cpu,
-  Sparkles,
-  X,
-  Undo2,
-  FileText,
-  Database,
-} from 'lucide-react'
+import { Icon, isIconName } from '../../../components/common/Icon'
 import { useChat } from '../../../context/ChatContext'
 import {
   images,
@@ -424,7 +412,7 @@ export function InputArea() {
                     className='absolute top-1 right-1 w-5 h-5 bg-black/40 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/preview:opacity-100 transition-all duration-200'
                     aria-label='移除图片'
                   >
-                    <X className='w-3 h-3 text-white' />
+                    <Icon name='X' size='xs' className='text-white' />
                   </button>
                 </div>
               ))}
@@ -441,7 +429,7 @@ export function InputArea() {
                   key={index}
                   className='relative flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-toolbar-hover)] transition-colors duration-200'
                 >
-                  <FileText className='w-4 h-4 text-[var(--text-toolbar)] shrink-0' />
+                  <Icon name='FileText' size='md' className='text-[var(--text-toolbar)] shrink-0' />
                   <span className='text-sm theme-text-primary max-w-[160px] truncate'>
                     {f.fileName}
                   </span>
@@ -450,7 +438,7 @@ export function InputArea() {
                     className='w-5 h-5 hover:bg-red-500 rounded-full flex items-center justify-center transition-all duration-200 text-[var(--text-muted)] hover:text-white'
                     aria-label='移除文件'
                   >
-                    <X className='w-3 h-3' />
+                    <Icon name='X' size='xs' />
                   </button>
                 </div>
               ))}
@@ -576,10 +564,11 @@ export function InputArea() {
                       <div
                         className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--accent-primary)]/25 bg-[var(--accent-primary)]/10'
                       >
-                        <Sparkles className='w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0' />
-                        {selectedSkill.icon && (
-                          <span className='text-xs leading-none shrink-0'>{selectedSkill.icon}</span>
-                        )}
+                        <Icon
+                          name={isIconName(selectedSkill.icon) ? selectedSkill.icon : 'Sparkles'}
+                          size='sm'
+                          className='text-[var(--accent-primary)] shrink-0'
+                        />
                         <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
                           {selectedSkill.name}
                         </span>
@@ -588,7 +577,7 @@ export function InputArea() {
                           className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
                           aria-label='移除技能引用'
                         >
-                          <X className='w-3 h-3' />
+                          <Icon name='X' size='xs' />
                         </button>
                       </div>
                     )}
@@ -597,7 +586,7 @@ export function InputArea() {
                         key={ref.id}
                         className='inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/10'
                       >
-                        <Database className='w-3.5 h-3.5 text-[var(--brand-primary)] shrink-0' />
+                        <Icon name='Database' size='sm' className='text-[var(--brand-primary)] shrink-0' />
                         <span className='text-sm font-medium theme-text-primary max-w-[160px] truncate'>
                           {ref.name}
                         </span>
@@ -606,7 +595,7 @@ export function InputArea() {
                           className='w-4 h-4 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-red-500 hover:text-white transition-all duration-200 ml-0.5'
                           aria-label='移除知识库引用'
                         >
-                          <X className='w-3 h-3' />
+                          <Icon name='X' size='xs' />
                         </button>
                       </div>
                     ))}
@@ -689,9 +678,9 @@ export function InputArea() {
                       aria-label='上传文件'
                     >
                       {uploading ? (
-                        <Loader2 className='w-4 h-4 theme-text-muted animate-spin' />
+                        <Icon name='Loader2' size='md' className='theme-text-muted animate-spin' />
                       ) : (
-                        <Paperclip className='w-4 h-4 text-[var(--text-toolbar)]' />
+                        <Icon name='Paperclip' size='md' className='text-[var(--text-toolbar)]' />
                       )}
                     </button>
                     <span className='tooltip-content'>上传文件</span>
@@ -724,11 +713,11 @@ export function InputArea() {
                       }
                     >
                       {isOptimizing ? (
-                        <Square className='w-4 h-4 fill-current' />
+                        <Icon name='Square' size='md' className='fill-current' />
                       ) : canUndoOptimize ? (
-                        <Undo2 className='w-4 h-4' />
+                        <Icon name='Undo2' size='md' />
                       ) : (
-                        <Sparkles className='w-4 h-4' />
+                        <Icon name='Sparkles' size='md' />
                       )}
                     </button>
                     <span className='tooltip-content'>
@@ -764,7 +753,7 @@ export function InputArea() {
                             transition: { type: 'spring', stiffness: 300, damping: 10 },
                           }}
                         >
-                          <Globe className='h-4 w-4' />
+                          <Icon name='Globe' size='md' />
                         </motion.div>
                       </div>
                       <AnimatePresence>
@@ -814,7 +803,7 @@ export function InputArea() {
                             transition: { type: 'spring', stiffness: 300, damping: 10 },
                           }}
                         >
-                          <Cpu className='h-4 w-4' />
+                          <Icon name='Cpu' size='md' />
                         </motion.div>
                       </div>
                       <AnimatePresence>
@@ -877,13 +866,13 @@ export function InputArea() {
                         isThinking
                           ? 'bg-[var(--accent-amber)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-amber)]/30 cursor-pointer'
                           : isOutputting
-                            ? 'bg-[var(--accent-primary)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-primary)]/30 cursor-pointer'
+                            ? 'bg-[var(--brand-primaryButton)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--brand-primaryButton)]/30 cursor-pointer'
                             : isOptimizing
                               ? 'bg-[var(--accent-emerald)] text-white hover:brightness-110 hover:scale-105 shadow-md shadow-[var(--accent-emerald)]/30 cursor-pointer'
                               : uploading
-                                ? 'bg-[var(--accent-primary)]/80 text-white cursor-wait'
+                                ? 'bg-[var(--brand-primaryButton)]/80 text-white cursor-wait'
                                 : hasContent && charCount <= maxChars
-                                  ? 'bg-[var(--accent-primary)] text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-xl hover:shadow-[var(--accent-primary)]/40 hover:scale-105 cursor-pointer'
+                                  ? 'bg-[var(--brand-primaryButton)] text-white shadow-lg shadow-[var(--brand-primaryButton)]/30 hover:shadow-xl hover:shadow-[var(--brand-primaryButton)]/40 hover:scale-105 cursor-pointer'
                                   : 'bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed'
                       }`}
                       aria-label={
@@ -909,14 +898,16 @@ export function InputArea() {
                       {/* 图标 — 透明度+缩放过渡以柔和切换 */}
                       <span className='relative flex items-center justify-center w-full h-full'>
                         {streamingState.isStreaming ? (
-                          <Square
-                            className='w-2.5 h-2.5 transition-all duration-300 ease-out'
+                          <Icon
+                            name='Square'
+                            size='xs'
+                            className='transition-all duration-300 ease-out'
                             fill='currentColor'
                           />
                         ) : uploading ? (
                           <div className='w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin transition-opacity duration-300' />
                         ) : (
-                          <Send className='w-3 h-3 transition-transform duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5' />
+                          <Icon name='Send' size='xs' className='transition-transform duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5' />
                         )}
                       </span>
                     </button>
@@ -931,7 +922,7 @@ export function InputArea() {
         })()}
         {uploading && (
           <div className='mt-3 text-xs theme-text-muted flex items-center gap-2'>
-            <Loader2 className='w-3 h-3 animate-spin' />
+            <Icon name='Loader2' size='xs' className='animate-spin' />
             正在上传...
           </div>
         )}

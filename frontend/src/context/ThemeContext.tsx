@@ -59,6 +59,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const colors = getThemeColors(theme)
     const root = document.documentElement
 
+    // 激活 tokens.css 中的 .light/.dark 样式块（--bg-code、--border-divider、
+    // --shadow-color-* 等暗色 token 以及 .dark/.light 组件样式都依赖这些类）
+    root.classList.toggle('light', theme === 'light')
+    root.classList.toggle('dark', theme === 'dark')
+
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(key, value)
     })

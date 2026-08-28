@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Monitor, Bell, Mail, Volume2, Smartphone, Languages, MessageSquare } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { useUser } from '../../context/UserContext'
 import { useTheme } from '../../context/ThemeContext'
 import { settingsApi } from '../../api/user'
@@ -122,7 +122,7 @@ export function Preferences() {
     <div className='space-y-6'>
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
-          <Monitor className='w-[18px] h-[18px] theme-text-muted' />
+          <Icon name='Monitor' size={18} className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>外观</h3>
         </div>
 
@@ -154,7 +154,7 @@ export function Preferences() {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         <div className='card-float-solid rounded-2xl p-6'>
           <div className='flex items-center gap-2 mb-4'>
-            <Languages className='w-[18px] h-[18px] theme-text-muted' />
+            <Icon name='Languages' size={18} className='theme-text-muted' />
             <h3 className='font-semibold theme-text-primary'>语言偏好</h3>
           </div>
 
@@ -180,7 +180,7 @@ export function Preferences() {
 
         <div className='card-float-solid rounded-2xl p-6'>
           <div className='flex items-center gap-2 mb-4'>
-            <Bell className='w-[18px] h-[18px] theme-text-muted' />
+            <Icon name='Bell' size={18} className='theme-text-muted' />
             <h3 className='font-semibold theme-text-primary'>通知设置</h3>
           </div>
 
@@ -188,7 +188,7 @@ export function Preferences() {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                  <Bell className='w-4 h-4 theme-text-muted' />
+                  <Icon name='Bell' size='md' className='theme-text-muted' />
                 </div>
                 <div>
                   <div className='text-sm font-semibold theme-text-primary'>消息通知</div>
@@ -206,7 +206,7 @@ export function Preferences() {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                  <Mail className='w-4 h-4 theme-text-muted' />
+                  <Icon name='Mail' size='md' className='theme-text-muted' />
                 </div>
                 <div>
                   <div className='text-sm font-semibold theme-text-primary'>邮件通知</div>
@@ -224,7 +224,7 @@ export function Preferences() {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                  <Smartphone className='w-4 h-4 theme-text-muted' />
+                  <Icon name='Smartphone' size='md' className='theme-text-muted' />
                 </div>
                 <div>
                   <div className='text-sm font-semibold theme-text-primary'>推送通知</div>
@@ -242,7 +242,7 @@ export function Preferences() {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                  <Volume2 className='w-4 h-4 theme-text-muted' />
+                  <Icon name='Volume2' size='md' className='theme-text-muted' />
                 </div>
                 <div>
                   <div className='text-sm font-semibold theme-text-primary'>通知声音</div>
@@ -262,7 +262,7 @@ export function Preferences() {
 
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
-          <MessageSquare className='w-[18px] h-[18px] theme-text-muted' />
+          <Icon name='MessageSquare' size={18} className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>对话设置</h3>
         </div>
 

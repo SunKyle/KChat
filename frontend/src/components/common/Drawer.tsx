@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { useEffect, useCallback, useState, useRef } from 'react'
-import { X } from 'lucide-react'
+import { Icon } from './Icon'
 
 interface DrawerProps {
   isOpen: boolean
@@ -163,7 +163,7 @@ export function Drawer({
               className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='关闭'
             >
-              <X className='w-5 h-5' aria-hidden='true' />
+              <Icon name='X' size='lg' aria-hidden='true' />
             </button>
           </div>
         )}

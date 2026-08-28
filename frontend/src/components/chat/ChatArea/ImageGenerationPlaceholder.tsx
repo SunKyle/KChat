@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Icon } from '../../common/Icon'
 
 export function ImageGenerationPlaceholder() {
   return (
@@ -22,7 +22,7 @@ export function ImageGenerationPlaceholder() {
                 transform: 'scale(2.8)',
               }}
             />
-            <Sparkles className='w-6 h-6 text-[var(--brand-primary)]/80 relative z-10' />
+            <Icon name='Sparkles' size='xl' className='text-[var(--brand-primary)]/80 relative z-10' />
           </div>
 
           <span className='text-sm font-medium tracking-[0.02em] text-[var(--text-secondary)]'>

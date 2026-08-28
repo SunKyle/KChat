@@ -1,4 +1,4 @@
-import { MessageSquare, Database, Network, User, Wand2 } from 'lucide-react'
+import { Icon, type IconName } from '../common/Icon'
 import { motion } from 'framer-motion'
 import { useUser } from '../../context/UserContext'
 
@@ -7,14 +7,14 @@ export type MenuId = 'chat' | 'knowledge' | 'graph' | 'skills'
 interface MenuConfig {
   id: MenuId
   label: string
-  icon: typeof MessageSquare
+  icon: IconName
 }
 
 const menus: MenuConfig[] = [
-  { id: 'chat', label: '对话', icon: MessageSquare },
-  { id: 'knowledge', label: '知识库', icon: Database },
-  { id: 'graph', label: '知识图谱', icon: Network },
-  { id: 'skills', label: '技能库', icon: Wand2 },
+  { id: 'chat', label: '对话', icon: 'MessageSquare' },
+  { id: 'knowledge', label: '知识库', icon: 'Database' },
+  { id: 'graph', label: '知识图谱', icon: 'Network' },
+  { id: 'skills', label: '技能库', icon: 'Wand2' },
 ]
 
 interface SidebarRailProps {
@@ -53,7 +53,7 @@ export function SidebarRail({
       {/* 一级菜单 */}
       <nav className='flex flex-col gap-1 w-full px-2 py-2 flex-1' aria-label='一级菜单'>
         {menus.map((menu) => {
-          const Icon = menu.icon
+          const icon = menu.icon
           // 设置模式打开时，主菜单不高亮
           const isActive = !showSettings && activeMenu === menu.id
           return (
@@ -71,7 +71,7 @@ export function SidebarRail({
                     isActive ? 'bg-brand-selected' : 'group-hover:theme-bg-hover'
                   }`}
                 >
-                  <Icon className='w-5 h-5' aria-hidden='true' />
+                  <Icon name={icon} size='lg' aria-hidden='true' />
                 </span>
                 {isActive && (
                   <motion.div
@@ -101,7 +101,7 @@ export function SidebarRail({
             {profile?.avatar ? (
               <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
             ) : (
-              <User className='w-4 h-4 text-[var(--text-muted)]' />
+              <Icon name='User' size='md' className='text-[var(--text-muted)]' />
             )}
           </div>
         </button>

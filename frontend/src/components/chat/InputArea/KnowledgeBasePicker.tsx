@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Database, FileText, Loader2 } from 'lucide-react'
+import { Icon } from '../../../components/common/Icon'
 import { knowledgeBaseApi, type KnowledgeBase } from '../../../api/knowledge'
 
 const DEFAULT_USER_ID = 'default'
@@ -89,18 +89,18 @@ export function KnowledgeBasePicker({
     >
       <div className='px-3 pt-2.5 pb-2'>
         <div className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted'>
-          <Database className='w-3.5 h-3.5' />
+          <Icon name='Database' size='sm' />
           引用知识库
         </div>
       </div>
       <div className='max-h-72 overflow-y-auto px-1.5 pb-1.5'>
         {loading ? (
           <div className='flex items-center justify-center py-8'>
-            <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
+            <Icon name='Loader2' size='lg' className='animate-spin theme-text-muted' />
           </div>
         ) : knowledgeBases.length === 0 ? (
           <div className='px-3 py-8 text-center'>
-            <Database className='w-8 h-8 theme-text-muted mx-auto mb-2' />
+            <Icon name='Database' size='2xl' className='theme-text-muted mx-auto mb-2' />
             <p className='text-sm theme-text-secondary'>暂无知识库，请先在侧边栏创建</p>
           </div>
         ) : filtered.length === 0 ? (
@@ -119,12 +119,12 @@ export function KnowledgeBasePicker({
                   className='w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left hover:theme-bg-hover transition-colors duration-150'
                 >
                   <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
-                    <Database className='w-4 h-4 theme-text-muted' />
+                    <Icon name='Database' size='md' className='theme-text-muted' />
                   </div>
                   <div className='flex-1 min-w-0'>
                     <p className='text-sm theme-text-primary truncate'>{kb.name}</p>
                     <p className='text-xs theme-text-muted flex items-center gap-1'>
-                      <FileText className='w-3 h-3' />
+                      <Icon name='FileText' size='xs' />
                       {kb.documentCount} 篇文档
                     </p>
                   </div>

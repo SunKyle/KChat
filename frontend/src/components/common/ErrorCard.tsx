@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { XCircle, AlertTriangle, Info, CheckCircle, X, RotateCcw } from 'lucide-react'
+import { Icon } from './Icon'
+import type { IconName } from './Icon'
 
 export type ErrorSeverity = 'error' | 'warning' | 'info' | 'success'
 
@@ -18,7 +19,7 @@ export interface ErrorCardProps {
 
 const severityConfig = {
   error: {
-    icon: XCircle,
+    icon: 'XCircle' as IconName,
     iconBg: 'bg-red-500/15',
     iconColor: 'text-red-400',
     titleColor: 'text-red-400',
@@ -29,7 +30,7 @@ const severityConfig = {
     shadowColor: 'shadow-red-500/15',
   },
   warning: {
-    icon: AlertTriangle,
+    icon: 'AlertTriangle' as IconName,
     iconBg: 'bg-amber-500/15',
     iconColor: 'text-amber-400',
     titleColor: 'text-amber-400',
@@ -40,7 +41,7 @@ const severityConfig = {
     shadowColor: 'shadow-[var(--accent-amber)]/15',
   },
   info: {
-    icon: Info,
+    icon: 'Info' as IconName,
     iconBg: 'bg-blue-500/15',
     iconColor: 'text-blue-400',
     titleColor: 'text-blue-400',
@@ -51,7 +52,7 @@ const severityConfig = {
     shadowColor: 'shadow-blue-500/15',
   },
   success: {
-    icon: CheckCircle,
+    icon: 'CheckCircle2' as IconName,
     iconBg: 'bg-green-500/15',
     iconColor: 'text-green-400',
     titleColor: 'text-green-400',
@@ -79,7 +80,6 @@ export function ErrorCard({
   const [isExiting, setIsExiting] = useState(false)
 
   const config = severityConfig[severity]
-  const IconComponent = config.icon
 
   useEffect(() => {
     if (isVisible && !isShowing) {
@@ -129,7 +129,7 @@ export function ErrorCard({
             flex items-center justify-center
           `}
           >
-            <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
+            <Icon name={config.icon} size='lg' className={`${config.iconColor}`} />
           </div>
 
           <div className='flex-1 min-w-0'>
@@ -138,7 +138,7 @@ export function ErrorCard({
 
               {showCloseButton && onClose && (
                 <button onClick={onClose} className='flex-shrink-0 icon-btn' aria-label='关闭'>
-                  <X className='w-4 h-4 text-[var(--text-muted)] hover:text-[var(--text-secondary)]' />
+                  <Icon name='X' size='md' className='text-[var(--text-muted)] hover:text-[var(--text-secondary)]' />
                 </button>
               )}
             </div>
@@ -155,7 +155,7 @@ export function ErrorCard({
                   transition-all hover:scale-[1.02] active:scale-[0.98]
                 `}
               >
-                <RotateCcw className='w-4 h-4' />
+                <Icon name='RotateCcw' size='md' />
                 重试
               </button>
             )}

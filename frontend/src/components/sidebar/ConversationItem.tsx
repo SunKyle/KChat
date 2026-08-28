@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo } from 'react'
-import { Pencil, Trash2, Check, X, Pin } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import type { Conversation } from '../../types'
 
 interface ConversationItemProps {
@@ -149,7 +149,7 @@ export const ConversationItem = memo(
           </div>
           {conversation.pinned && (
             <div className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--brand-primary)]/90 flex items-center justify-center shadow-sm'>
-              <Pin className='w-[7px] h-[7px] text-white' fill='currentColor' />
+              <Icon name='Pin' className='w-[7px] h-[7px] text-white' fill='currentColor' />
             </div>
           )}
         </div>
@@ -227,7 +227,7 @@ export const ConversationItem = memo(
                   aria-label='保存编辑'
                   className='sidebar-action-btn focus-ring'
                 >
-                  <Check className='w-3.5 h-3.5 theme-accent-emerald' aria-hidden='true' />
+                  <Icon name='Check' size='sm' className='theme-accent-emerald' aria-hidden='true' />
                 </button>
                 <button
                   onClick={(e) => {
@@ -237,7 +237,7 @@ export const ConversationItem = memo(
                   aria-label='取消编辑'
                   className='sidebar-action-btn focus-ring'
                 >
-                  <X className='w-3.5 h-3.5 theme-brand-danger' aria-hidden='true' />
+                  <Icon name='X' size='sm' className='theme-brand-danger' aria-hidden='true' />
                 </button>
               </>
             ) : !isStreaming ? (
@@ -251,8 +251,10 @@ export const ConversationItem = memo(
                   aria-pressed={conversation.pinned}
                   className='sidebar-action-btn focus-ring'
                 >
-                  <Pin
-                    className={`w-3.5 h-3.5 transition-colors ${
+                  <Icon
+                    name='Pin'
+                    size='sm'
+                    className={`transition-colors ${
                       conversation.pinned
                         ? 'theme-brand-primary'
                         : 'theme-text-muted hover:theme-text-secondary'
@@ -266,8 +268,10 @@ export const ConversationItem = memo(
                   aria-label='编辑会话标题'
                   className='sidebar-action-btn focus-ring'
                 >
-                  <Pencil
-                    className='w-3.5 h-3.5 theme-text-muted hover:theme-text-secondary'
+                  <Icon
+                    name='Pencil'
+                    size='sm'
+                    className='theme-text-muted hover:theme-text-secondary'
                     aria-hidden='true'
                   />
                 </button>
@@ -279,8 +283,10 @@ export const ConversationItem = memo(
                   aria-label='删除会话'
                   className='sidebar-action-btn focus-ring'
                 >
-                  <Trash2
-                    className='w-3.5 h-3.5 theme-text-muted hover:theme-brand-danger'
+                  <Icon
+                    name='Trash2'
+                    size='sm'
+                    className='theme-text-muted hover:theme-brand-danger'
                     aria-hidden='true'
                   />
                 </button>
@@ -304,7 +310,7 @@ export const ConversationItem = memo(
           }}
           className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
         >
-          <Pin className='w-3.5 h-3.5' fill={conversation.pinned ? 'currentColor' : 'none'} />{' '}
+          <Icon name='Pin' size='sm' fill={conversation.pinned ? 'currentColor' : 'none'} />{' '}
           {conversation.pinned ? '取消置顶' : '置顶'}
         </button>
         <button
@@ -314,7 +320,7 @@ export const ConversationItem = memo(
           }}
           className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--bg-dropdown-hover)] theme-text-secondary transition-colors'
         >
-          <Pencil className='w-3.5 h-3.5' /> 编辑标题
+          <Icon name='Pencil' size='sm' /> 编辑标题
         </button>
         <div className='my-0.5 h-px bg-[var(--border-divider)]' />
         <button
@@ -324,7 +330,7 @@ export const ConversationItem = memo(
           }}
           className='w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] transition-colors'
         >
-          <Trash2 className='w-3.5 h-3.5' /> 删除
+          <Icon name='Trash2' size='sm' /> 删除
         </button>
       </div>
     ) : null

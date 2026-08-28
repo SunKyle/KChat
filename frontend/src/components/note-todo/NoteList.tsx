@@ -1,4 +1,4 @@
-import { FileText, Pin, Edit3, Trash2, Download } from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import type { Note } from '../../types/note-todo'
 import { getCategoryStyles } from './categoryStyles'
 
@@ -60,8 +60,10 @@ function NoteListItem({
               className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
               aria-label={note.pinned ? '取消置顶' : '置顶'}
             >
-              <Pin
-                className={`w-3.5 h-3.5 transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
+              <Icon
+                name='Pin'
+                size='sm'
+                className={`transition-all ${note.pinned ? 'text-[var(--brand-primary)] fill-current' : 'text-[var(--text-secondary)]'}`}
               />
             </button>
             <button
@@ -69,7 +71,7 @@ function NoteListItem({
               className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='下载'
             >
-              <Download className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+              <Icon name='Download' size='sm' className='text-[var(--text-secondary)]' />
             </button>
             <button
               onClick={(e) => {
@@ -79,7 +81,7 @@ function NoteListItem({
               className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='编辑'
             >
-              <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+              <Icon name='Pencil' size='sm' className='text-[var(--text-secondary)]' />
             </button>
             <button
               onClick={(e) => {
@@ -89,7 +91,7 @@ function NoteListItem({
               className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='删除'
             >
-              <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+              <Icon name='Trash2' size='sm' className='text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
             </button>
           </div>
         </div>
@@ -149,7 +151,7 @@ export function NoteList({
     return (
       <div className='flex flex-col items-center justify-center py-16 px-4'>
         <div className='w-14 h-14 rounded-full bg-[var(--bg-hover)]/60 flex items-center justify-center mb-4'>
-          <FileText className='w-6 h-6 text-[var(--text-muted)]/50' />
+          <Icon name='FileText' size='xl' className='text-[var(--text-muted)]/50' />
         </div>
         <p className='text-sm text-[var(--text-muted)]'>暂无笔记</p>
         <button
@@ -167,7 +169,7 @@ export function NoteList({
       {pinnedNotes.length > 0 && (
         <div>
           <div className='flex items-center gap-1.5 px-0.5 pb-3'>
-            <Pin className='w-3.5 h-3.5 text-[var(--brand-primary)] fill-current' />
+            <Icon name='Pin' size='sm' className='text-[var(--brand-primary)] fill-current' />
             <span className='text-xs font-semibold text-[var(--brand-primary)]'>置顶</span>
           </div>
           <div className='space-y-3'>

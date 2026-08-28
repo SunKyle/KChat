@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Sparkles, Plus, RefreshCw, Loader2, AlertTriangle } from 'lucide-react'
+import { Icon, isIconName } from '../common/Icon'
 import { skills as skillsApi } from '../../api'
 import type { Skill, SkillRequest } from '../../api/skill'
 import { useToast } from '../../hooks/useToast'
@@ -12,7 +12,6 @@ interface SkillsPanelProps {
 }
 
 export function SkillsPanel({
-  onToggle,
   selectedSkillId,
   onSelectSkill,
   onCreateSkill,
@@ -81,14 +80,18 @@ export function SkillsPanel({
             className='icon-btn disabled:opacity-50'
             title='刷新'
           >
-            <RefreshCw className={`w-3.5 h-3.5 theme-text-muted ${loading ? 'animate-spin' : ''}`} />
+            <Icon
+              name='RefreshCw'
+              size='sm'
+              className={`theme-text-muted ${loading ? 'animate-spin' : ''}`}
+            />
           </button>
           <button
             onClick={() => onCreateSkill?.()}
             className='flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity'
             title='新建技能'
           >
-            <Plus className='w-3 h-3' />
+            <Icon name='Plus' size='xs' />
             新建
           </button>
         </div>
@@ -98,11 +101,11 @@ export function SkillsPanel({
       <div className='flex-1 overflow-y-auto py-1'>
         {loading ? (
           <div className='flex items-center justify-center py-12'>
-            <Loader2 className='w-5 h-5 theme-text-muted animate-spin' />
+            <Icon name='Loader2' size='lg' className='theme-text-muted animate-spin' />
           </div>
         ) : error ? (
           <div className='px-4 py-8 text-center'>
-            <AlertTriangle className='w-8 h-8 text-amber-500 mx-auto mb-2' />
+            <Icon name='AlertTriangle' size='2xl' className='text-amber-500 mx-auto mb-2' />
             <p className='text-xs theme-text-muted mb-2'>{error}</p>
             <button onClick={loadSkills} className='text-xs text-[var(--accent-primary)] hover:underline'>
               重试
@@ -110,7 +113,7 @@ export function SkillsPanel({
           </div>
         ) : skillList.length === 0 ? (
           <div className='px-4 py-8 text-center'>
-            <Sparkles className='w-8 h-8 theme-text-muted mx-auto mb-2' />
+            <Icon name='Sparkles' size='2xl' className='theme-text-muted mx-auto mb-2' />
             <p className='text-xs theme-text-muted'>暂无技能</p>
           </div>
         ) : (
@@ -127,7 +130,14 @@ export function SkillsPanel({
                       : 'hover:theme-bg-hover theme-text-secondary'
                   } ${!skill.isEnabled ? 'opacity-50' : ''}`}
                 >
-                  {/* 名称 + 描述 */}
+                  {/* 图标 + 名称 + 描述 */}
+                  <div className='w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
+                    <Icon
+                      name={isIconName(skill.icon) ? skill.icon : 'Sparkles'}
+                      size='sm'
+                      className='text-[var(--accent-primary)]'
+                    />
+                  </div>
                   <div className='flex-1 min-w-0'>
                     <div className='flex items-center gap-1.5'>
                       <span className='text-sm font-medium truncate'>{skill.name}</span>
@@ -165,7 +175,7 @@ export function SkillsPanel({
                       }`}
                     >
                       {togglingIds.has(skill.id) && (
-                        <Loader2 className='w-2.5 h-2.5 theme-text-muted animate-spin' />
+                        <Icon name='Loader2' className='w-2.5 h-2.5 theme-text-muted animate-spin' />
                       )}
                     </span>
                   </span>

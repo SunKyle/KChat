@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Camera, User, Save, X, Loader2 } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { useUser } from '../../context/UserContext'
 import { images } from '../../api'
 import { Button } from '../ui/Button'
@@ -102,11 +102,11 @@ export function ProfileInfo() {
             {profile.avatar ? (
               <img src={profile.avatar} alt='Avatar' className='w-full h-full object-cover' />
             ) : (
-              <User className='w-10 h-10 theme-text-muted' />
+              <Icon name='User' size={40} className='theme-text-muted' />
             )}
           </div>
           <label className='absolute -bottom-1 -right-1 w-7 h-7 theme-bg-accent-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-[var(--accent-primary)]/80 transition-colors'>
-            <Camera className='w-4 h-4 text-white' />
+            <Icon name='Camera' size='md' className='text-white' />
             <input
               type='file'
               accept='image/*'
@@ -117,7 +117,7 @@ export function ProfileInfo() {
           </label>
           {avatarUploading && (
             <div className='absolute inset-0 theme-bg-overlay rounded-full flex items-center justify-center'>
-              <Loader2 className='w-6 h-6 text-white animate-spin' />
+              <Icon name='Loader2' size='xl' className='text-white animate-spin' />
             </div>
           )}
         </div>
@@ -138,9 +138,9 @@ export function ProfileInfo() {
                 className='disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 {isLoading ? (
-                  <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                  <Icon name='Loader2' size='sm' className='animate-spin' />
                 ) : (
-                  <Save className='w-3.5 h-3.5' />
+                  <Icon name='Save' size='sm' />
                 )}
                 保存
               </Button>
@@ -157,7 +157,7 @@ export function ProfileInfo() {
                 }}
                 className='text-sm'
               >
-                <X className='w-3.5 h-3.5' />
+                <Icon name='X' size='sm' />
                 取消
               </Button>
             </div>

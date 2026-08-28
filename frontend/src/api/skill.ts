@@ -1,4 +1,5 @@
 import { request } from './client'
+import type { IconName } from '../components/common/Icon'
 
 /**
  * Skill 完成钩子类型（与后端 Skill.CompletionHookType 对应）
@@ -13,7 +14,8 @@ export interface Skill {
   userId: string
   name: string
   description?: string
-  icon?: string
+  /** 图标名（IconMap 中的合法名称，渲染时经 isIconName 校验并回退 Sparkles） */
+  icon?: IconName
 
   /** 专属 system prompt 模板（覆盖默认） */
   systemPromptTemplate?: string
@@ -51,7 +53,7 @@ export interface Skill {
 export interface SkillRequest {
   name: string
   description?: string
-  icon?: string
+  icon?: IconName
   systemPromptTemplate?: string
   systemPromptSupplement?: string
   allowedToolNames?: string[]

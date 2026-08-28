@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronRight, Share2, Loader2, Brain, Database, RefreshCw } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { motion } from 'framer-motion'
 import { cogneeMemory, type DatasetInfo } from '../../api/cognee'
 import { knowledgeBaseApi, type KnowledgeBase } from '../../api/knowledge'
@@ -99,14 +99,14 @@ export function GraphPanel({
             aria-label='刷新'
             className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200'
           >
-            <RefreshCw className='w-4 h-4' />
+            <Icon name='RefreshCw' size='md' />
           </button>
           <button
             onClick={onToggle}
             aria-label='收起侧边栏'
             className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200 focus-ring flex-shrink-0'
           >
-            <ChevronRight className='w-4 h-4 rotate-180' aria-hidden='true' />
+            <Icon name='ChevronRight' size='md' className='rotate-180' aria-hidden='true' />
           </button>
         </div>
       </div>
@@ -115,11 +115,11 @@ export function GraphPanel({
       <div className='flex-1 min-h-0 overflow-y-auto px-3 pb-3'>
         {loading ? (
           <div className='flex items-center justify-center h-full'>
-            <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
+            <Icon name='Loader2' size='lg' className='animate-spin theme-text-muted' />
           </div>
         ) : datasets.length === 0 ? (
           <div className='flex flex-col items-center justify-center h-full text-center px-4'>
-            <Share2 className='w-10 h-10 theme-text-muted mb-3' />
+            <Icon name='Share2' size='2xl' className='theme-text-muted mb-3' />
             <p className='text-sm theme-text-secondary mb-1 font-semibold'>暂无图谱数据</p>
             <p className='text-xs theme-text-muted'>在知识库中上传文档以生成图谱</p>
           </div>
@@ -144,9 +144,9 @@ export function GraphPanel({
                     }`}
                   >
                     {isMain ? (
-                      <Brain className='w-4 h-4 text-purple-400' />
+                      <Icon name='Brain' size='md' className='text-purple-400' />
                     ) : (
-                      <Database className='w-4 h-4 theme-text-muted' />
+                      <Icon name='Database' size='md' className='theme-text-muted' />
                     )}
                   </div>
                   <div className='flex-1 min-w-0'>
@@ -164,7 +164,11 @@ export function GraphPanel({
                       )}
                     </p>
                   </div>
-                  <Share2 className='w-3.5 h-3.5 theme-text-muted opacity-0 group-hover:opacity-60 flex-shrink-0' />
+                  <Icon
+                    name='Share2'
+                    size='sm'
+                    className='theme-text-muted opacity-0 group-hover:opacity-60 flex-shrink-0'
+                  />
                 </motion.div>
               )
             })}

@@ -1,17 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import {
-  FileText,
-  ListTodo,
-  Bell,
-  Plus,
-  Search,
-  ChevronDown,
-  Trash2,
-  ChevronRight,
-  ChevronLeft,
-  Loader2,
-  Network,
-} from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import { useDebounce } from '../../hooks/useDebounce'
 import type { Note, Todo, Reminder, NoteTodoMode, UpdateNoteRequest } from '../../types/note-todo'
 import { noteApi } from '../../api/note-todo'
@@ -59,15 +47,15 @@ function NoteTodoHeader({
   onClose: () => void
 }) {
   const tabs = [
-    { key: 'note' as const, icon: FileText, label: '笔记', count: notesCount },
-    { key: 'todo' as const, icon: ListTodo, label: '待办', count: pendingTodosCount },
-    { key: 'reminder' as const, icon: Bell, label: '提醒', count: pendingRemindersCount },
+    { key: 'note' as const, icon: 'FileText', label: '笔记', count: notesCount },
+    { key: 'todo' as const, icon: 'ListTodo', label: '待办', count: pendingTodosCount },
+    { key: 'reminder' as const, icon: 'Bell', label: '提醒', count: pendingRemindersCount },
   ]
   return (
     <div className='flex-shrink-0 flex items-center justify-between px-3 h-14 border-b border-[var(--border-divider)] bg-[var(--bg-sidebar)]'>
       <div className='relative flex items-center gap-1'>
         {tabs.map((tab) => {
-          const Icon = tab.icon
+          const iconName = tab.icon
           const active = mode === tab.key
           return (
             <button
@@ -75,7 +63,7 @@ function NoteTodoHeader({
               onClick={() => onModeChange(tab.key)}
               className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors duration-200 rounded-md ${active ? 'bg-[var(--brand-primary)] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
             >
-              <Icon className='w-3.5 h-3.5' />
+              <Icon name={iconName} size='sm' />
               {tab.label}
               <span
                 className={`ml-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 ${active ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}
@@ -91,7 +79,7 @@ function NoteTodoHeader({
         className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
         aria-label='收起'
       >
-        <ChevronRight className='w-4 h-4 text-[var(--text-muted)]' />
+        <Icon name='ChevronRight' size='md' className='text-[var(--text-muted)]' />
       </button>
     </div>
   )
@@ -128,7 +116,7 @@ function NoteTodoSearchBar({
     <div className='flex-shrink-0 p-3 border-b border-[var(--border-divider)]'>
       <div className='flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]' />
+          <Icon name='Search' size='sm' className='absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]' />
           <input
             type='text'
             value={searchQuery}
@@ -144,7 +132,7 @@ function NoteTodoSearchBar({
           className='flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:bg-primary-600 active:scale-95 transition-all duration-200'
           aria-label={mode === 'note' ? '新建笔记' : mode === 'todo' ? '新建待办' : '新建提醒'}
         >
-          <Plus className='w-4 h-4' />
+          <Icon name='Plus' size='md' />
         </button>
       </div>
 
@@ -176,8 +164,10 @@ function NoteTodoSearchBar({
             onClick={onFilterToggle}
             className='flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] mb-2.5 px-0.5 hover:text-[var(--text-secondary)] transition-colors'
           >
-            <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
+            <Icon
+              name='ChevronDown'
+              size='sm'
+              className={`transition-transform duration-200 ${filterExpanded ? '' : '-rotate-90'}`}
             />
             筛选标签
             {filterTags.length > 0 && (
@@ -559,27 +549,27 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
           {[
             {
               key: 'note' as const,
-              Icon: FileText,
+              icon: 'FileText',
               label: '笔记',
               count: notes.length,
               color: 'var(--accent-primary)',
             },
             {
               key: 'todo' as const,
-              Icon: ListTodo,
+              icon: 'ListTodo',
               label: '待办',
               count: pendingTodosCount,
               color: 'var(--accent-emerald)',
             },
             {
               key: 'reminder' as const,
-              Icon: Bell,
+              icon: 'Bell',
               label: '提醒',
               count: pendingRemindersCount,
               color: 'var(--accent-amber)',
             },
           ].map((item, idx, arr) => {
-            const { key, Icon, label, count, color } = item
+            const { key, icon, label, count, color } = item
             return (
               <div key={key} className='flex flex-col items-center'>
                 <button
@@ -589,7 +579,9 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
                   title={label}
                 >
                   <Icon
-                    className='w-5 h-5 transition-transform duration-200 group-hover:scale-110'
+                    name={icon}
+                    size='lg'
+                    className='transition-transform duration-200 group-hover:scale-110'
                     style={{ color }}
                   />
                   {count > 0 && (
@@ -627,7 +619,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
           <div className='flex-1 flex flex-col overflow-hidden'>
             {isLoading ? (
               <div className='flex-1 flex items-center justify-center'>
-                <Loader2 className='w-6 h-6 text-[var(--brand-primary)] animate-spin' />
+                <Icon name='Loader2' size='xl' className='text-[var(--brand-primary)] animate-spin' />
               </div>
             ) : selectedNote || selectedTodo ? (
               <DetailPreview
@@ -663,7 +655,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
                     onClick={cancelForm}
                     className='flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
                   >
-                    <ChevronLeft className='w-4 h-4' />
+                    <Icon name='ChevronLeft' size='md' />
                     返回
                   </button>
                   <span className='text-base font-semibold text-[var(--text-primary)]'>
@@ -767,7 +759,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
           <div className='relative bg-[var(--bg-sidebar)] rounded-xl shadow-xl p-5 w-full max-w-sm mx-4 animate-fade-in-up border border-[var(--border-divider)]'>
             <div className='flex items-start gap-3 mb-4'>
               <div className='w-9 h-9 bg-[var(--brand-danger)]/[0.08] rounded-full flex items-center justify-center flex-shrink-0'>
-                <Trash2 className='w-4 h-4 text-[var(--brand-danger)]' />
+                <Icon name='Trash2' size='md' className='text-[var(--brand-danger)]' />
               </div>
               <div className='flex-1'>
                 <h3 className='text-base font-semibold text-[var(--text-primary)]'>
@@ -840,7 +832,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
         <div className='fixed inset-0 z-[60] flex flex-col bg-[var(--bg-primary)]'>
           <div className='flex items-center justify-between px-4 py-3 border-b border-[var(--border-secondary)] bg-[var(--bg-card)]'>
             <div className='flex items-center gap-3'>
-              <Network className='w-5 h-5' style={{ color: 'var(--accent-purple, #8b5cf6)' }} />
+              <Icon name='Network' size='lg' style={{ color: 'var(--accent-purple, #8b5cf6)' }} />
               <span className='text-sm font-semibold theme-text-primary'>知识图谱</span>
               <span className='text-xs text-[var(--text-muted)]'>
                 {graphStats.nodes} 节点 · {graphStats.edges} 关系
@@ -851,9 +843,7 @@ export function NoteTodoPanel({ isOpen, onClose, onOpen, hideCapsule = false }: 
               className='p-2 rounded-lg hover:bg-[var(--bg-hover)] theme-text-muted hover:theme-text-primary transition-colors'
               aria-label='关闭'
             >
-              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-              </svg>
+              <Icon name='X' size='lg' />
             </button>
           </div>
           <div className='flex-1 p-4 overflow-hidden'>

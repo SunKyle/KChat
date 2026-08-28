@@ -1,24 +1,32 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import {
-  Sparkles,
-  Loader2,
-  RefreshCw,
-  AlertTriangle,
-  Plus,
-  Pencil,
-  Trash2,
-  Power,
-  X,
-  Save,
-  Wand2,
-  Shield,
-  FileText,
-} from 'lucide-react'
+import { Icon, isIconName, type IconName } from '../common/Icon'
 import { skills as skillsApi, tools as toolsApi } from '../../api'
 import type { Skill, SkillRequest, CompletionHookType } from '../../api/skill'
 import type { ToolInfo } from '../../types'
 import { Modal } from '../common/Modal'
 import { useToast } from '../../hooks/useToast'
+
+/** 可供技能选择的图标清单（均为 IconMap 中的合法名称） */
+const SKILL_ICON_OPTIONS: IconName[] = [
+  'Sparkles',
+  'Wand2',
+  'BookOpen',
+  'Brain',
+  'Bot',
+  'Globe',
+  'Database',
+  'Search',
+  'FileText',
+  'Code',
+  'Languages',
+  'Lightbulb',
+  'Network',
+  'Wrench',
+  'MessageSquare',
+  'Image',
+  'Star',
+  'Cpu',
+]
 
 /**
  * 技能中心 —— Skill 管理面板（CRUD）
@@ -139,7 +147,7 @@ export function SkillsPanel() {
       {/* 头部：标题 + 统计 + 新建 */}
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
-          <Sparkles className='w-5 h-5 theme-text-muted' />
+          <Icon name='Sparkles' size='lg' className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>技能中心</h3>
           {!loading && !error && (
             <span className='text-xs px-2 py-0.5 rounded-full theme-bg-hover theme-text-secondary'>
@@ -151,13 +159,13 @@ export function SkillsPanel() {
         </div>
         <div className='flex items-center gap-2'>
           <button onClick={loadSkills} disabled={loading} className='icon-btn disabled:opacity-50' title='刷新'>
-            <RefreshCw className={`w-4 h-4 theme-text-muted ${loading ? 'animate-spin' : ''}`} />
+            <Icon name='RefreshCw' size='md' className={`theme-text-muted ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleCreate}
             className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity'
           >
-            <Plus className='w-4 h-4' />
+            <Icon name='Plus' size='md' />
             新建技能
           </button>
         </div>
@@ -170,11 +178,11 @@ export function SkillsPanel() {
 
       {loading ? (
         <div className='flex items-center justify-center py-12'>
-          <Loader2 className='w-6 h-6 theme-text-muted animate-spin' />
+          <Icon name='Loader2' size='xl' className='theme-text-muted animate-spin' />
         </div>
       ) : error ? (
         <div className='card-float-solid rounded-2xl p-6 text-center'>
-          <AlertTriangle className='w-10 h-10 text-amber-500 mx-auto mb-3' />
+          <Icon name='AlertTriangle' size={40} className='text-amber-500 mx-auto mb-3' />
           <p className='font-semibold theme-text-primary mb-1'>加载失败</p>
           <p className='text-sm theme-text-muted mb-4'>{error}</p>
           <button onClick={loadSkills} className='text-sm text-[var(--accent-primary)] hover:underline'>
@@ -183,14 +191,14 @@ export function SkillsPanel() {
         </div>
       ) : skillList.length === 0 ? (
         <div className='card-float-solid rounded-2xl p-8 text-center'>
-          <Sparkles className='w-12 h-12 theme-text-muted mx-auto mb-4' />
+          <Icon name='Sparkles' size={48} className='theme-text-muted mx-auto mb-4' />
           <p className='theme-text-secondary mb-2'>暂无技能</p>
           <p className='text-sm theme-text-muted mb-4'>点击「新建技能」创建你的第一个能力包</p>
           <button
             onClick={handleCreate}
             className='inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity'
           >
-            <Plus className='w-4 h-4' />
+            <Icon name='Plus' size='md' />
             新建技能
           </button>
         </div>
@@ -263,6 +271,13 @@ function SkillCard({ skill, isToggling, onEdit, onDelete, onToggleEnabled }: Ski
     >
       <div className='p-4'>
         <div className='flex items-start gap-3'>
+          <div className='w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 theme-bg-hover'>
+            <Icon
+              name={isIconName(skill.icon) ? skill.icon : 'Sparkles'}
+              size='lg'
+              className='text-[var(--accent-primary)]'
+            />
+          </div>
           <div className='flex-1 min-w-0'>
             <div className='flex items-center gap-2 flex-wrap mb-1.5'>
               <span className='font-semibold theme-text-primary text-base'>{skill.name}</span>
@@ -273,7 +288,7 @@ function SkillCard({ skill, isToggling, onEdit, onDelete, onToggleEnabled }: Ski
               )}
               {skill.completionHookType !== 'NONE' && (
                 <span className='inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-semibold'>
-                  <FileText className='w-3 h-3' />
+                  <Icon name='FileText' size='xs' />
                   {hookLabel}
                 </span>
               )}
@@ -295,7 +310,7 @@ function SkillCard({ skill, isToggling, onEdit, onDelete, onToggleEnabled }: Ski
                     key={t}
                     className='inline-flex items-center gap-1 px-2 py-0.5 rounded theme-bg-hover theme-text-secondary font-mono'
                   >
-                    <Wand2 className='w-3 h-3' />
+                    <Icon name='Wand2' size='xs' />
                     {t}
                   </span>
                 ))
@@ -332,17 +347,17 @@ function SkillCard({ skill, isToggling, onEdit, onDelete, onToggleEnabled }: Ski
                 }`}
               >
                 {isToggling ? (
-                  <Loader2 className='w-3 h-3 theme-text-muted animate-spin' />
+                  <Icon name='Loader2' size='xs' className='theme-text-muted animate-spin' />
                 ) : (
-                  <Power className={`w-3 h-3 ${skill.isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
+                  <Icon name='Power' size='xs' className={`${skill.isEnabled ? 'text-green-500' : 'theme-text-muted'}`} />
                 )}
               </span>
             </button>
             <button onClick={onEdit} className='icon-btn' title='编辑'>
-              <Pencil className='w-4 h-4 theme-text-muted' />
+              <Icon name='Pencil' size='md' className='theme-text-muted' />
             </button>
             <button onClick={onDelete} className='icon-btn hover:text-red-500' title='删除'>
-              <Trash2 className='w-4 h-4 theme-text-muted' />
+              <Icon name='Trash2' size='md' className='theme-text-muted' />
             </button>
           </div>
         </div>
@@ -367,6 +382,7 @@ export const HOOK_TYPE_LABELS: Record<CompletionHookType, string> = {
 
 export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
+  const [icon, setIcon] = useState<IconName>(isIconName(initial?.icon) ? initial.icon : 'Sparkles')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [systemPromptTemplate, setSystemPromptTemplate] = useState(initial?.systemPromptTemplate ?? '')
   const [systemPromptSupplement, setSystemPromptSupplement] = useState(initial?.systemPromptSupplement ?? '')
@@ -402,6 +418,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
     if (!name.trim()) return
     onSubmit({
       name: name.trim(),
+      icon,
       description: description.trim() || undefined,
       systemPromptTemplate: systemPromptTemplate.trim() || undefined,
       systemPromptSupplement: systemPromptSupplement.trim() || undefined,
@@ -447,6 +464,28 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
         </div>
       </div>
 
+      {/* 图标选择 */}
+      <div>
+        <label className='block text-xs font-semibold theme-text-muted mb-1.5'>图标</label>
+        <div className='flex flex-wrap gap-1.5'>
+          {SKILL_ICON_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type='button'
+              onClick={() => setIcon(option)}
+              aria-label={option}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                icon === option
+                  ? 'bg-[var(--accent-primary)] text-white'
+                  : 'theme-bg-hover theme-text-secondary hover:theme-bg-card'
+              }`}
+            >
+              <Icon name={option} size='md' />
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className='block text-xs font-semibold theme-text-muted mb-1.5'>描述</label>
         <textarea
@@ -462,7 +501,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
       {/* System Prompt */}
       <div>
         <label className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted mb-1.5'>
-          <Wand2 className='w-3.5 h-3.5' />
+          <Icon name='Wand2' size='sm' />
           专属 System Prompt 模板
         </label>
         <textarea
@@ -493,7 +532,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
       {/* 工具白名单 */}
       <div>
         <label className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted mb-1.5'>
-          <Shield className='w-3.5 h-3.5' />
+          <Icon name='Shield' size='sm' />
           工具白名单（为空表示继承全局可用工具）
         </label>
         {toolList.length === 0 ? (
@@ -566,7 +605,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
             onClick={addKeyword}
             className='px-3 py-2 rounded-lg theme-bg-hover theme-text-secondary text-sm hover:theme-bg-hover'
           >
-            <Plus className='w-4 h-4' />
+            <Icon name='Plus' size='md' />
           </button>
         </div>
         {triggerKeywords.length > 0 && (
@@ -582,7 +621,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
                   onClick={() => setTriggerKeywords(triggerKeywords.filter((x) => x !== k))}
                   className='hover:bg-amber-500/20 rounded'
                 >
-                  <X className='w-3 h-3' />
+                  <Icon name='X' size='xs' />
                 </button>
               </span>
             ))}
@@ -593,7 +632,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
       {/* 完成钩子 */}
       <div>
         <label className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted mb-1.5'>
-          <FileText className='w-3.5 h-3.5' />
+          <Icon name='FileText' size='sm' />
           完成钩子（Skill 执行完后触发的副作用）
         </label>
         <select
@@ -648,7 +687,7 @@ export function SkillForm({ initial, toolList, onCancel, onSubmit }: SkillFormPr
           disabled={!name.trim()}
           className='flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50'
         >
-          <Save className='w-4 h-4' />
+          <Icon name='Save' size='md' />
           保存
         </button>
       </div>

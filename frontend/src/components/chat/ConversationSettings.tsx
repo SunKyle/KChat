@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Settings, ScrollText, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '../common/Icon'
 import { Drawer } from '../common/Drawer'
 import { useChat } from '../../context/ChatContext'
 
@@ -59,7 +59,7 @@ export function ConversationSettings() {
               transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
               className='block'
             >
-              <ScrollText className='w-[18px] h-[18px] theme-brand-primary' />
+              <Icon name='ScrollText' size='lg' className='theme-brand-primary' />
             </motion.span>
           ) : (
             <motion.span
@@ -70,7 +70,7 @@ export function ConversationSettings() {
               transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
               className='block theme-text-muted hover:theme-text-primary'
             >
-              <Settings className='w-[18px] h-[18px]' />
+              <Icon name='Settings' size='lg' />
             </motion.span>
           )}
         </AnimatePresence>
@@ -79,7 +79,7 @@ export function ConversationSettings() {
       <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title='会话设定' size='md'>
         <div className='p-6 flex flex-col gap-5 h-full'>
           <div className='flex items-start gap-3 p-3 rounded-lg bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/20'>
-            <ScrollText className='w-4 h-4 text-[var(--brand-primary)] mt-0.5 shrink-0' />
+            <Icon name='ScrollText' size='md' className='text-[var(--brand-primary)] mt-0.5 shrink-0' />
             <div className='text-xs theme-text-secondary leading-relaxed'>
               自定义指令仅对当前会话生效。模型会优先遵循这些指令，适用于设定输出格式、角色行为、风格偏好等场景。
             </div>
@@ -100,7 +100,7 @@ export function ConversationSettings() {
               <span>{customRules.length} 字</span>
               {customRules.length > 4000 && (
                 <span className='flex items-center gap-1 text-amber-500'>
-                  <AlertCircle className='w-3 h-3' />
+                  <Icon name='AlertCircle' size='xs' />
                   建议不超过 4000 字符
                 </span>
               )}

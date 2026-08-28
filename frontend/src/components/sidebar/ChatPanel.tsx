@@ -1,10 +1,4 @@
-import {
-  MessageSquare,
-  MessageSquarePlus,
-  ChevronRight,
-  Search,
-  X,
-} from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '../../context/ChatContext'
 import { useConversation } from '../../hooks/useConversation'
@@ -173,7 +167,7 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
           aria-label='收起侧边栏'
           className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200 focus-ring flex-shrink-0'
         >
-          <ChevronRight className='w-4 h-4 rotate-180' aria-hidden='true' />
+          <Icon name='ChevronRight' size='md' className='rotate-180' aria-hidden='true' />
         </button>
       </div>
 
@@ -187,8 +181,10 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
         >
           <div className='flex items-center gap-2 mt-2 px-4 relative z-10'>
             <div className='relative flex-1'>
-              <Search
-                className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]'
+              <Icon
+                name='Search'
+                size='sm'
+                className='absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]'
                 aria-hidden='true'
               />
               <input
@@ -220,7 +216,7 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
                     aria-label='清除搜索'
                     className='p-1 rounded hover:bg-[var(--bg-hover)] transition-colors'
                   >
-                    <X className='w-3 h-3 text-[var(--text-muted)]' aria-hidden='true' />
+                    <Icon name='X' size='xs' className='text-[var(--text-muted)]' aria-hidden='true' />
                   </button>
                 ) : (
                   <span className='search-kbd' aria-hidden='true'>
@@ -234,8 +230,10 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
               aria-label='创建新对话'
               className='group/btn flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 active:scale-95 transition-all duration-200 flex-shrink-0'
             >
-              <MessageSquarePlus
-                className='w-3.5 h-3.5 transition-transform duration-200'
+              <Icon
+                name='MessageSquarePlus'
+                size='sm'
+                className='transition-transform duration-200'
                 aria-hidden='true'
               />
             </button>
@@ -250,18 +248,18 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
         {conversations.length === 0 ? (
             <div className='text-center py-12 px-4'>
               <div className='w-12 h-12 mx-auto mb-4 rounded-full theme-bg-hover/50 flex items-center justify-center'>
-                <MessageSquare className='w-5 h-5 theme-text-muted' />
+                <Icon name='MessageSquare' size='lg' className='theme-text-muted' />
               </div>
               <p className='theme-text-secondary text-sm mb-1 font-semibold'>开始你的第一次对话</p>
               <p className='text-xs theme-text-muted mb-5'>选择模型，提出问题，获得答案</p>
               <button onClick={create} className='empty-state-cta'>
-                <MessageSquarePlus className='w-4 h-4' aria-hidden='true' />
+                <Icon name='MessageSquarePlus' size='md' aria-hidden='true' />
                 新建对话
               </button>
             </div>
           ) : filteredGrouped.length === 0 ? (
             <div className='text-center py-12 px-4'>
-              <Search className='w-8 h-8 mx-auto mb-3 theme-text-muted' aria-hidden='true' />
+              <Icon name='Search' size='2xl' className='mx-auto mb-3 theme-text-muted' aria-hidden='true' />
               <p className='text-sm theme-text-muted'>未找到匹配的会话</p>
               {searchQuery && (
                 <button
@@ -286,8 +284,10 @@ export function ChatPanel({ onToggle, onDeleteClick, onConversationClick }: Chat
                     className='group/header w-full flex items-center justify-between px-2.5 py-2 min-h-[36px] font-group-title theme-text-secondary hover:theme-bg-hover rounded-md transition-colors duration-200 focus-ring'
                   >
                     <span className='flex items-center gap-1.5'>
-                      <ChevronRight
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      <Icon
+                        name='ChevronRight'
+                        size='sm'
+                        className={`transition-transform duration-200 ${
                           expandedGroups.has(group) ? 'rotate-90' : ''
                         }`}
                         aria-hidden='true'

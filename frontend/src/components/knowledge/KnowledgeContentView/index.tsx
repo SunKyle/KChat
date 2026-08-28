@@ -1,16 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  Upload,
-  FileText,
-  Trash2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Download,
-  FileSearch,
-  RefreshCw,
-} from 'lucide-react'
+import { Icon } from '../../common/Icon'
 import { motion } from 'framer-motion'
 import { knowledgeBaseApi, type KnowledgeDocument } from '../../../api/knowledge'
 
@@ -143,12 +132,12 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
           >
             {uploading ? (
               <>
-                <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                <Icon name='Loader2' size='sm' className='animate-spin' />
                 上传中...
               </>
             ) : (
               <>
-                <Upload className='w-3.5 h-3.5' />
+                <Icon name='Upload' size='sm' />
                 上传文档
               </>
             )}
@@ -162,12 +151,12 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
           >
             {reindexing ? (
               <>
-                <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                <Icon name='Loader2' size='sm' className='animate-spin' />
                 索引中...
               </>
             ) : (
               <>
-                <RefreshCw className='w-3.5 h-3.5' />
+                <Icon name='RefreshCw' size='sm' />
                 重新索引
               </>
             )}
@@ -177,7 +166,7 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
         {error && (
           <div className='px-3 pb-2'>
             <p className='text-xs text-red-500 flex items-center gap-1'>
-              <AlertCircle className='w-3 h-3' />
+              <Icon name='AlertCircle' size='xs' />
               {error}
             </p>
           </div>
@@ -186,11 +175,11 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
         <div className='flex-1 min-h-0 overflow-y-auto px-2 pb-3'>
           {loading ? (
             <div className='flex items-center justify-center h-full'>
-              <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
+              <Icon name='Loader2' size='lg' className='animate-spin theme-text-muted' />
             </div>
           ) : documents.length === 0 ? (
             <div className='flex flex-col items-center justify-center h-full text-center px-3'>
-              <FileText className='w-8 h-8 theme-text-muted mb-2' />
+              <Icon name='FileText' size='2xl' className='theme-text-muted mb-2' />
               <p className='text-xs theme-text-muted'>暂无文档</p>
               <p className='text-xs theme-text-muted mt-1'>上传后即可查看提取内容</p>
             </div>
@@ -216,7 +205,7 @@ export function KnowledgeContentView({ kbId, onStatsChange }: KnowledgeContentVi
           <ExtractedContent doc={selectedDoc} onDownload={() => handleDownload(selectedDoc)} />
         ) : (
           <div className='flex flex-col items-center justify-center h-full text-center px-6'>
-            <FileSearch className='w-12 h-12 theme-text-muted mb-3 opacity-50' />
+            <Icon name='FileSearch' size={48} className='theme-text-muted mb-3 opacity-50' />
             <p className='text-sm theme-text-secondary font-medium mb-1'>
               {documents.length === 0 ? '上传文档以查看提取信息' : '选择左侧文档查看提取内容'}
             </p>
@@ -251,12 +240,12 @@ function DocListItem({
   const statusIcon = () => {
     switch (doc.status) {
       case 'INDEXED':
-        return <CheckCircle2 className='w-3 h-3 text-green-500' />
+        return <Icon name='CheckCircle2' size='xs' className='text-green-500' />
       case 'PROCESSING':
       case 'PENDING':
-        return <Loader2 className='w-3 h-3 animate-spin text-yellow-500' />
+        return <Icon name='Loader2' size='xs' className='animate-spin text-yellow-500' />
       case 'FAILED':
-        return <XCircle className='w-3 h-3 text-red-500' />
+        return <Icon name='XCircle' size='xs' className='text-red-500' />
     }
   }
 
@@ -268,7 +257,7 @@ function DocListItem({
         active ? 'bg-brand-selected theme-brand-primary' : 'hover:theme-bg-hover'
       }`}
     >
-      <FileText className='w-3.5 h-3.5 flex-shrink-0 theme-text-muted' />
+      <Icon name='FileText' size='sm' className='flex-shrink-0 theme-text-muted' />
       <div className='flex-1 min-w-0'>
         <p className='text-xs truncate font-medium'>{doc.fileName}</p>
         <div className='flex items-center gap-1.5'>
@@ -287,7 +276,7 @@ function DocListItem({
         aria-label='删除文档'
         className='p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-500/10 text-red-500 transition-all duration-200 flex-shrink-0'
       >
-        <Trash2 className='w-3 h-3' />
+        <Icon name='Trash2' size='xs' />
       </button>
     </motion.div>
   )
@@ -325,7 +314,7 @@ function ExtractedContent({
             className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border theme-border-primary hover:theme-bg-hover transition-all duration-200 text-xs theme-text-secondary flex-shrink-0'
             title='下载原始文件'
           >
-            <Download className='w-3.5 h-3.5' />
+            <Icon name='Download' size='sm' />
             <span className='hidden sm:inline'>原始文件</span>
           </button>
         )}
@@ -340,7 +329,7 @@ function ExtractedContent({
         ) : doc.status === 'PROCESSING' || doc.status === 'PENDING' ? (
           <div className='flex items-center justify-center h-full'>
             <div className='flex items-center gap-2 text-xs theme-text-muted'>
-              <Loader2 className='w-4 h-4 animate-spin' />
+              <Icon name='Loader2' size='md' className='animate-spin' />
               正在提取文本...
             </div>
           </div>

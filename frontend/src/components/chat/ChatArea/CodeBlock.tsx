@@ -1,7 +1,7 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState } from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Icon } from '../../../components/common/Icon'
 import { useTheme } from '../../../context/ThemeContext'
 
 interface CodeBlockProps {
@@ -65,12 +65,12 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
         >
           {copied ? (
             <>
-              <Check className='w-3.5 h-3.5' style={{ color: 'var(--accent-emerald)' }} />
+              <Icon name='Check' size='sm' style={{ color: 'var(--accent-emerald)' }} />
               <span style={{ color: 'var(--accent-emerald)' }}>已复制</span>
             </>
           ) : (
             <>
-              <Copy className='w-3.5 h-3.5' />
+              <Icon name='Copy' size='sm' />
               <span>复制</span>
             </>
           )}

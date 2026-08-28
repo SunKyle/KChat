@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { Icon } from '../common/Icon'
 
 interface TruncatableTextProps {
   text: string
@@ -52,8 +52,10 @@ export function TruncatableText({
             onClick={() => setExpanded(!expanded)}
             className='inline-flex items-center gap-0.5 text-xs font-medium text-[var(--accent-purple)] hover:text-[var(--accent-purple)]/80 transition-colors'
           >
-            <ChevronRight
-              className={`w-3 h-3 transition-transform duration-200 ${
+            <Icon
+              name='ChevronRight'
+              size='xs'
+              className={`transition-transform duration-200 ${
                 expanded ? 'rotate-90' : ''
               }`}
             />

@@ -1,4 +1,4 @@
-import { ListTodo, CheckCircle2, Circle, Edit3, Calendar, Clock, Trash2 } from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import type { Todo } from '../../types/note-todo'
 import { getCategoryStyles } from './categoryStyles'
 
@@ -59,14 +59,14 @@ function TodoListItem({
           aria-label={todo.status === 'completed' ? '标记为未完成' : '标记为完成'}
         >
           {todo.status === 'completed' ? (
-            <CheckCircle2 className='w-[20px] h-[20px] text-[var(--brand-primary)]' />
+            <Icon name='CheckCircle2' size='lg' className='text-[var(--brand-primary)]' />
           ) : (
-            <Circle className='w-[20px] h-[20px] text-[var(--text-muted)]/40 hover:text-[var(--brand-primary)]' />
+            <Icon name='Circle' size='lg' className='text-[var(--text-muted)]/40 hover:text-[var(--brand-primary)]' />
           )}
         </button>
         <div className='flex-1 min-w-0'>
           <h3
-            className={`text-base font-semibold leading-tight ${todo.status === 'completed' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
+            className={`text-base font-semibold leading-tight ${todo.status === 'completed' ? 'text-[var(--text-primary)] line-through' : 'text-[var(--text-primary)]'}`}
           >
             {todo.title}
           </h3>
@@ -89,13 +89,13 @@ function TodoListItem({
               </span>
               {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
                 <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs bg-[var(--bg-hover)] text-[var(--text-muted)]'>
-                  <Calendar className='w-3 h-3' />
+                  <Icon name='Calendar' size='xs' />
                   {formatDate(todo.dueDate)}
                 </span>
               )}
               {isOverdue(todo.dueDate, todo.status) && (
                 <span className='inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--brand-danger)]/5 text-[var(--brand-danger)]'>
-                  <Clock className='w-3 h-3' />
+                  <Icon name='Clock' size='xs' />
                   已过期
                 </span>
               )}
@@ -115,7 +115,7 @@ function TodoListItem({
           className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='编辑'
         >
-          <Edit3 className='w-3.5 h-3.5 text-[var(--text-secondary)]' />
+          <Icon name='Pencil' size='sm' className='text-[var(--text-secondary)]' />
         </button>
         <button
           onClick={(e) => {
@@ -125,7 +125,7 @@ function TodoListItem({
           className='p-1.5 rounded-md hover:bg-[var(--bg-hover)] transition-colors'
           aria-label='删除'
         >
-          <Trash2 className='w-3.5 h-3.5 text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
+          <Icon name='Trash2' size='sm' className='text-[var(--text-secondary)] hover:text-[var(--brand-danger)]' />
         </button>
       </div>
     </div>
@@ -165,7 +165,7 @@ export function TodoList({
     return (
       <div className='flex flex-col items-center justify-center py-16 px-4'>
         <div className='w-14 h-14 rounded-full bg-[var(--bg-hover)]/60 flex items-center justify-center mb-4'>
-          <ListTodo className='w-6 h-6 text-[var(--text-muted)]/50' />
+          <Icon name='ListTodo' size='xl' className='text-[var(--text-muted)]/50' />
         </div>
         <p className='text-sm text-[var(--text-muted)]'>暂无待办</p>
         <button

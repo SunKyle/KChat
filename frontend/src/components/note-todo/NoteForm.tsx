@@ -1,4 +1,4 @@
-import { X, Pin, Maximize2, Sparkles, Loader2 } from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import { useState } from 'react'
 import { useModel } from '../../hooks/useModel'
 import { useToast } from '../../hooks/useToast'
@@ -101,7 +101,7 @@ export function NoteForm({
               aria-label='全屏编辑'
               title='全屏 Markdown 编辑'
             >
-              <Maximize2 className='w-4 h-4 text-[var(--text-muted)]' />
+              <Icon name='Maximize2' size='md' className='text-[var(--text-muted)]' />
             </button>
             <div className='absolute right-9 top-2'>
               <button
@@ -111,9 +111,9 @@ export function NoteForm({
                 aria-label='AI 整理'
               >
                 {aiSummarizing ? (
-                  <Loader2 className='w-4 h-4 text-[var(--brand-primary)] animate-spin' />
+                  <Icon name='Loader2' size='md' className='text-[var(--brand-primary)] animate-spin' />
                 ) : (
-                  <Sparkles className='w-4 h-4 text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-colors' />
+                  <Icon name='Sparkles' size='md' className='text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-colors' />
                 )}
               </button>
               {!aiSummarizing && (
@@ -153,7 +153,7 @@ export function NoteForm({
                   : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]'
               }`}
             >
-              <Pin className={`w-3.5 h-3.5 ${formState.pinned ? 'fill-current' : ''}`} />
+              <Icon name='Pin' size='sm' className={formState.pinned ? 'fill-current' : ''} />
               置顶
             </button>
           </div>
@@ -174,7 +174,7 @@ export function NoteForm({
                     onClick={() => handleRemoveTag(tag)}
                     className='hover:opacity-70 transition-opacity'
                   >
-                    <X className='w-3 h-3' />
+                    <Icon name='X' size='xs' />
                   </button>
                 </span>
               ))}

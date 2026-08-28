@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  ChevronRight,
-  Database,
-  Plus,
-  Loader2,
-  Trash2,
-  RefreshCw,
-  FileText,
-} from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { knowledgeBaseApi, type KnowledgeBase } from '../../api/knowledge'
 
@@ -100,21 +92,21 @@ export function KnowledgePanel({
             aria-label='刷新'
             className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200'
           >
-            <RefreshCw className='w-4 h-4' />
+            <Icon name='RefreshCw' size='md' />
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
             aria-label='新建知识库'
             className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200'
           >
-            <Plus className='w-4 h-4' />
+            <Icon name='Plus' size='md' />
           </button>
           <button
             onClick={onToggle}
             aria-label='收起侧边栏'
             className='p-1.5 rounded-lg hover:theme-bg-hover theme-text-muted hover:theme-text-secondary transition-all duration-200 flex-shrink-0'
           >
-            <ChevronRight className='w-4 h-4 rotate-180' />
+            <Icon name='ChevronRight' size='md' className='rotate-180' />
           </button>
         </div>
       </div>
@@ -123,18 +115,18 @@ export function KnowledgePanel({
       <div className='flex-1 min-h-0 overflow-y-auto px-3 pb-3'>
         {loading ? (
           <div className='flex items-center justify-center h-full'>
-            <Loader2 className='w-5 h-5 animate-spin theme-text-muted' />
+            <Icon name='Loader2' size='lg' className='animate-spin theme-text-muted' />
           </div>
         ) : knowledgeBases.length === 0 ? (
           <div className='flex flex-col items-center justify-center h-full text-center px-4'>
-            <Database className='w-10 h-10 theme-text-muted mb-3' />
+            <Icon name='Database' size='2xl' className='theme-text-muted mb-3' />
             <p className='text-sm theme-text-secondary mb-1 font-semibold'>暂无知识库</p>
             <p className='text-xs theme-text-muted mb-4'>创建知识库并上传文档</p>
             <button
               onClick={() => setShowCreateModal(true)}
               className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[var(--brand-primary)] text-white hover:opacity-90 transition-opacity'
             >
-              <Plus className='w-3.5 h-3.5' />
+              <Icon name='Plus' size='sm' />
               新建知识库
             </button>
           </div>
@@ -206,7 +198,7 @@ export function KnowledgePanel({
                 >
                   {creating ? (
                     <>
-                      <Loader2 className='w-3.5 h-3.5 animate-spin mr-1.5' />
+                      <Icon name='Loader2' size='sm' className='animate-spin mr-1.5' />
                       创建中
                     </>
                   ) : (
@@ -244,7 +236,7 @@ function KnowledgeBaseItem({
       onClick={onSelect}
     >
       <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 theme-bg-hover'>
-        <Database className='w-4 h-4 theme-text-muted' />
+        <Icon name='Database' size='md' className='theme-text-muted' />
       </div>
       <div className='flex-1 min-w-0'>
         <p
@@ -255,7 +247,7 @@ function KnowledgeBaseItem({
           {kb.name}
         </p>
         <p className='text-xs theme-text-muted flex items-center gap-1'>
-          <FileText className='w-3 h-3' />
+          <Icon name='FileText' size='xs' />
           {kb.documentCount} 篇文档
           {kb.description && <span className='ml-1.5 truncate'>· {kb.description}</span>}
         </p>
@@ -265,7 +257,7 @@ function KnowledgeBaseItem({
         aria-label='删除知识库'
         className='p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/10 text-red-500 transition-all duration-200 flex-shrink-0'
       >
-        <Trash2 className='w-3.5 h-3.5' />
+        <Icon name='Trash2' size='sm' />
       </button>
     </motion.div>
   )

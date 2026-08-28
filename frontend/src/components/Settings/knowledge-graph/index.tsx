@@ -19,7 +19,7 @@ import {
   type NodeTypes,
 } from '@xyflow/react'
 import dagre from 'dagre'
-import { Database, X } from 'lucide-react'
+import { Icon } from '../../common/Icon'
 import { cogneeMemory, type GraphNode, type GraphEdge } from '../../../api/cognee'
 
 import '@xyflow/react/dist/style.css'
@@ -664,7 +664,7 @@ function GraphInner({
         <div className='absolute inset-0 flex items-center justify-center bg-[var(--bg-card)]/80 backdrop-blur-sm z-10'>
           <div className='text-center p-6 bg-[var(--bg-card)] rounded-2xl border border-red-500/30 shadow-xl max-w-md'>
             <div className='w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-3'>
-              <Database className='w-6 h-6 text-red-500' />
+              <Icon name='Database' size='xl' className='text-red-500' />
             </div>
             <h3 className='text-base font-semibold text-[var(--text-primary)] mb-1'>
               图谱加载失败
@@ -682,7 +682,7 @@ function GraphInner({
         <div className='absolute inset-0 flex items-center justify-center z-10'>
           <div className='text-center p-8 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-secondary)] shadow-xl'>
             <div className='w-14 h-14 rounded-full theme-bg-input flex items-center justify-center mx-auto mb-4'>
-              <Database className='w-7 h-7 theme-text-muted' />
+              <Icon name='Database' size='2xl' className='theme-text-muted' />
             </div>
             <h3 className='text-base font-semibold theme-text-primary mb-1'>暂无图谱数据</h3>
             <p className='theme-text-muted text-sm mb-4'>开始对话后，系统会自动构建知识图谱</p>
@@ -731,7 +731,7 @@ function GraphInner({
               }}
               className='p-1 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-muted)]'
             >
-              <X className='w-4 h-4' />
+              <Icon name='X' size='md' />
             </button>
           </div>
           <div className='flex-1 overflow-y-auto p-4 space-y-3'>

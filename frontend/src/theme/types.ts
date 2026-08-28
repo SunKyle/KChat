@@ -12,6 +12,8 @@ export interface ThemeConfig {
       input: string
       overlay: string
       pinned: string
+      dropdown: string
+      dropdownHover: string
     }
     text: {
       primary: string
@@ -30,6 +32,7 @@ export interface ThemeConfig {
       danger: string
       warning: string
       info: string
+      primaryButton: string
     }
     accent: {
       sky: string
@@ -54,6 +57,8 @@ export const darkTheme: ThemeConfig = {
       input: '#22303c',
       overlay: 'rgba(0, 0, 0, 0.6)',
       pinned: '#1a1500',
+      dropdown: '#17181c',
+      dropdownHover: 'rgba(255, 255, 255, 0.06)',
     },
     text: {
       primary: '#e7e9ea',
@@ -72,6 +77,7 @@ export const darkTheme: ThemeConfig = {
       danger: '#f4212e',
       warning: '#f7b928',
       info: '#1c9cf0',
+      primaryButton: '#1668b8',
     },
     accent: {
       sky: '#1c9cf0',
@@ -96,6 +102,8 @@ export const lightTheme: ThemeConfig = {
       input: '#f7f9fa',
       overlay: 'rgba(0, 0, 0, 0.4)',
       pinned: '#FFFCF6',
+      dropdown: '#ffffff',
+      dropdownHover: 'rgba(0, 0, 0, 0.04)',
     },
     text: {
       primary: '#0f1419',
@@ -114,6 +122,7 @@ export const lightTheme: ThemeConfig = {
       danger: '#f4212e',
       warning: '#f7b928',
       info: '#1e9df1',
+      primaryButton: '#1e9df1',
     },
     accent: {
       sky: '#1e9df1',
@@ -138,6 +147,8 @@ export const animalIslandTheme: ThemeConfig = {
       input: '#fff8f0',
       overlay: 'rgba(0, 0, 0, 0.5)',
       pinned: '#fff8e8',
+      dropdown: '#ffffff',
+      dropdownHover: 'rgba(0, 0, 0, 0.04)',
     },
     text: {
       primary: '#4a3728',
@@ -156,6 +167,7 @@ export const animalIslandTheme: ThemeConfig = {
       danger: '#d44a4a',
       warning: '#f4a460',
       info: '#4682b4',
+      primaryButton: '#ff8c42',
     },
     accent: {
       sky: '#87ceeb',

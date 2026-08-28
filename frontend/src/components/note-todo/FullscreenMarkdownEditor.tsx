@@ -1,22 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import {
-  X,
-  Eye,
-  Edit3,
-  Columns3,
-  Save,
-  Bold,
-  Italic,
-  Strikethrough,
-  Link,
-  Heading,
-  Quote,
-  Code,
-  FileCode,
-  List,
-  ListOrdered,
-  Image,
-} from 'lucide-react'
+import { Icon, type IconName } from '../../components/common/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -102,25 +85,25 @@ export function FullscreenMarkdownEditor({
     }, 0)
   }
 
-  const toolbarGroups = [
+  const toolbarGroups: { label: string; icon: IconName; action: () => void }[][] = [
     [
-      { label: '粗体', icon: Bold, action: () => insertText('**', '**') },
-      { label: '斜体', icon: Italic, action: () => insertText('*', '*') },
-      { label: '删除线', icon: Strikethrough, action: () => insertText('~~', '~~') },
+      { label: '粗体', icon: 'Bold', action: () => insertText('**', '**') },
+      { label: '斜体', icon: 'Italic', action: () => insertText('*', '*') },
+      { label: '删除线', icon: 'Strikethrough', action: () => insertText('~~', '~~') },
     ],
     [
-      { label: '标题', icon: Heading, action: () => insertText('## ') },
-      { label: '引用', icon: Quote, action: () => insertText('> ') },
-      { label: '链接', icon: Link, action: () => insertText('[', '](url)') },
+      { label: '标题', icon: 'Heading', action: () => insertText('## ') },
+      { label: '引用', icon: 'Quote', action: () => insertText('> ') },
+      { label: '链接', icon: 'Link', action: () => insertText('[', '](url)') },
     ],
     [
-      { label: '代码', icon: Code, action: () => insertText('`', '`') },
-      { label: '代码块', icon: FileCode, action: () => insertText('\n```\n', '\n```\n') },
+      { label: '代码', icon: 'Code', action: () => insertText('`', '`') },
+      { label: '代码块', icon: 'FileCode', action: () => insertText('\n```\n', '\n```\n') },
     ],
     [
-      { label: '无序列表', icon: List, action: () => insertText('- ') },
-      { label: '有序列表', icon: ListOrdered, action: () => insertText('1. ') },
-      { label: '图片', icon: Image, action: () => insertText('![', '](image-url)') },
+      { label: '无序列表', icon: 'List', action: () => insertText('- ') },
+      { label: '有序列表', icon: 'ListOrdered', action: () => insertText('1. ') },
+      { label: '图片', icon: 'Image', action: () => insertText('![', '](image-url)') },
     ],
   ]
 
@@ -128,14 +111,14 @@ export function FullscreenMarkdownEditor({
     <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm'>
       <div className='w-[90vw] h-[85vh] bg-[var(--bg-primary)] rounded-2xl shadow-2xl flex flex-col overflow-hidden'>
         {/* 工具栏 */}
-        <div className='flex items-center justify-between px-6 py-4 border-b border-[var(--border-divider)] bg-[var(--bg-secondary)]'>
+        <div className='flex items-center justify-between px-6 py-4 border-b border-[var(--border-divider)] bg-[var(--bg-card)]'>
           <div className='flex items-center gap-4'>
             <button
               onClick={onClose}
               className='p-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
               aria-label='关闭'
             >
-              <X className='w-5 h-5 text-[var(--text-muted)]' />
+              <Icon name='X' size='lg' className='text-[var(--text-muted)]' />
             </button>
             <h2 className='text-lg font-semibold text-[var(--text-primary)]'>Markdown 编辑器</h2>
           </div>
@@ -156,7 +139,7 @@ export function FullscreenMarkdownEditor({
                         className='h-8 w-8 flex items-center justify-center rounded-md transition-colors duration-200 hover:bg-[var(--bg-toolbar-hover)] hover:text-[var(--brand-primary)] text-[var(--text-muted)] focus:outline-none'
                         aria-label={btn.label}
                       >
-                        <btn.icon className='h-4 w-4' />
+                        <Icon name={btn.icon} size='md' />
                       </button>
                       <AnimatePresence>
                         {toolbarTooltip === btn.label && (
@@ -183,17 +166,17 @@ export function FullscreenMarkdownEditor({
             >
               {editorMode === 'preview' ? (
                 <>
-                  <Eye className='w-4 h-4' />
+                  <Icon name='Eye' size='md' />
                   预览
                 </>
               ) : editorMode === 'edit' ? (
                 <>
-                  <Edit3 className='w-4 h-4' />
+                  <Icon name='Pencil' size='md' />
                   编辑
                 </>
               ) : (
                 <>
-                  <Columns3 className='w-4 h-4' />
+                  <Icon name='Columns3' size='md' />
                   分屏
                 </>
               )}
@@ -202,7 +185,7 @@ export function FullscreenMarkdownEditor({
               onClick={handleSave}
               className='flex items-center gap-2 px-5 py-2 rounded-lg bg-[var(--brand-primary)] text-white hover:brightness-110 transition-all'
             >
-              <Save className='w-4 h-4' />
+              <Icon name='Save' size='md' />
               保存
             </button>
           </div>
@@ -354,7 +337,7 @@ export function FullscreenMarkdownEditor({
           )}
         </div>
 
-        <div className='px-6 py-3 border-t border-[var(--border-divider)] bg-[var(--bg-secondary)]'>
+        <div className='px-6 py-3 border-t border-[var(--border-divider)] bg-[var(--bg-card)]'>
           <div className='flex items-center justify-between text-xs text-[var(--text-muted)]'>
             <div className='flex items-center gap-4'>
               <span>支持 Markdown 语法</span>

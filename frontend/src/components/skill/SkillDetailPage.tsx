@@ -1,18 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Sparkles,
-  Loader2,
-  AlertTriangle,
-  Pencil,
-  Trash2,
-  Wand2,
-  Shield,
-  FileText,
-  Plus,
-  Save,
-  X,
-  Power,
-} from 'lucide-react'
+import { Icon, isIconName } from '../common/Icon'
 import { skills as skillsApi, tools as toolsApi } from '../../api'
 import type { Skill, SkillRequest } from '../../api/skill'
 import type { ToolInfo } from '../../types'
@@ -27,7 +14,7 @@ interface SkillDetailPageProps {
   onSaved?: () => void
 }
 
-export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: SkillDetailPageProps) {
+export function SkillDetailPage({ skillId, onDeleted, onSaved }: SkillDetailPageProps) {
   const [skill, setSkill] = useState<Skill | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -120,14 +107,14 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
       <>
         <div className='relative flex-1 min-h-0 flex items-center justify-center'>
           <div className='flex flex-col items-center text-center px-4'>
-            <Sparkles className='w-10 h-10 theme-text-muted mb-3' />
+            <Icon name='Sparkles' size={40} className='theme-text-muted mb-3' />
             <p className='text-sm theme-text-secondary font-medium mb-1'>选择一个技能查看详情</p>
             <p className='text-xs theme-text-muted mb-4'>或创建新技能</p>
             <button
               onClick={() => setIsCreateMode(true)}
               className='flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity'
             >
-              <Plus className='w-4 h-4' />
+              <Icon name='Plus' size='md' />
               新建技能
             </button>
           </div>
@@ -174,7 +161,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
   if (loading) {
     return (
       <div className='relative flex-1 min-h-0 flex items-center justify-center'>
-        <Loader2 className='w-6 h-6 theme-text-muted animate-spin' />
+        <Icon name='Loader2' size='xl' className='theme-text-muted animate-spin' />
       </div>
     )
   }
@@ -183,7 +170,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
     return (
       <div className='relative flex-1 min-h-0 flex items-center justify-center'>
         <div className='flex flex-col items-center text-center px-4'>
-          <AlertTriangle className='w-10 h-10 text-amber-500 mx-auto mb-3' />
+          <Icon name='AlertTriangle' size={40} className='text-amber-500 mx-auto mb-3' />
           <p className='text-sm theme-text-secondary mb-1'>{error ?? '加载失败'}</p>
           <button onClick={loadSkill} className='text-sm text-[var(--accent-primary)] hover:underline'>
             重试
@@ -201,7 +188,11 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
         {/* Header */}
         <header className='sticky top-0 z-10 h-14 flex items-center justify-between px-4 sm:px-5 lg:px-6 border-b theme-border-primary gap-3 bg-[var(--bg-card)]/80 backdrop-blur-sm'>
           <div className='flex items-center gap-2.5 min-w-0'>
-            <span className='text-xl flex-shrink-0'>{skill.icon || '⚡'}</span>
+            <Icon
+              name={isIconName(skill.icon) ? skill.icon : 'Sparkles'}
+              size='lg'
+              className='text-[var(--accent-primary)] flex-shrink-0'
+            />
             <h1 className='font-conversation-name font-semibold theme-text-primary truncate min-w-0'>
               {skill.name}
             </h1>
@@ -221,7 +212,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
               onClick={() => setIsFormOpen(true)}
               className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer'
             >
-              <Pencil className='w-3.5 h-3.5 theme-brand-primary' />
+              <Icon name='Pencil' size='sm' className='theme-brand-primary' />
               <span className='theme-text-primary hidden sm:inline'>编辑</span>
             </button>
             <button
@@ -230,9 +221,9 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
               className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/5 transition-all duration-200 cursor-pointer disabled:opacity-50'
             >
               {deleting ? (
-                <Loader2 className='w-3.5 h-3.5 text-red-500 animate-spin' />
+                <Icon name='Loader2' size='sm' className='text-red-500 animate-spin' />
               ) : (
-                <Trash2 className='w-3.5 h-3.5 text-red-500' />
+                <Icon name='Trash2' size='sm' className='text-red-500' />
               )}
               <span className='text-red-500 hidden sm:inline'>删除</span>
             </button>
@@ -265,7 +256,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
           {/* 工具白名单 */}
           <section className='card-float-solid rounded-2xl p-5 space-y-3'>
             <h2 className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted uppercase tracking-wide'>
-              <Shield className='w-3.5 h-3.5' />
+              <Icon name='Shield' size='sm' />
               工具白名单
             </h2>
             {skill.allowedToolNames && skill.allowedToolNames.length > 0 ? (
@@ -275,7 +266,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
                     key={t}
                     className='inline-flex items-center gap-1 px-2 py-1 rounded-md theme-bg-hover theme-text-secondary text-xs font-mono'
                   >
-                    <Wand2 className='w-3 h-3' />
+                    <Icon name='Wand2' size='xs' />
                     {t}
                   </span>
                 ))}
@@ -306,10 +297,10 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
           {skill.systemPromptTemplate && (
             <section className='card-float-solid rounded-2xl p-5 space-y-3'>
               <h2 className='flex items-center gap-1.5 text-xs font-semibold theme-text-muted uppercase tracking-wide'>
-                <Wand2 className='w-3.5 h-3.5' />
+                <Icon name='Wand2' size='sm' />
                 System Prompt 模板
               </h2>
-              <pre className='text-xs theme-text-secondary font-mono whitespace-pre-wrap leading-relaxed bg-[var(--bg-base)] p-3 rounded-lg overflow-x-auto max-h-96 overflow-y-auto'>
+              <pre className='text-xs theme-text-secondary font-mono whitespace-pre-wrap leading-relaxed bg-[var(--bg-code)] p-3 rounded-lg overflow-x-auto max-h-96 overflow-y-auto'>
                 {skill.systemPromptTemplate}
               </pre>
             </section>
@@ -319,7 +310,7 @@ export function SkillDetailPage({ skillId, onCreateNew, onDeleted, onSaved }: Sk
           {skill.systemPromptSupplement && (
             <section className='card-float-solid rounded-2xl p-5 space-y-3'>
               <h2 className='text-xs font-semibold theme-text-muted uppercase tracking-wide'>补充指令</h2>
-              <pre className='text-xs theme-text-secondary font-mono whitespace-pre-wrap leading-relaxed bg-[var(--bg-base)] p-3 rounded-lg overflow-x-auto max-h-96 overflow-y-auto'>
+              <pre className='text-xs theme-text-secondary font-mono whitespace-pre-wrap leading-relaxed bg-[var(--bg-code)] p-3 rounded-lg overflow-x-auto max-h-96 overflow-y-auto'>
                 {skill.systemPromptSupplement}
               </pre>
             </section>

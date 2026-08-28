@@ -1,16 +1,5 @@
 import { useState } from 'react'
-import {
-  ChevronLeft,
-  Edit3,
-  Trash2,
-  CheckCircle2,
-  Circle,
-  Calendar,
-  Clock,
-  Copy,
-  Check,
-  Maximize2,
-} from 'lucide-react'
+import { Icon } from '../../components/common/Icon'
 import type { Note, Todo } from '../../types/note-todo'
 import { MarkdownRenderer } from '../chat/ChatArea/MarkdownRenderer'
 import { getCategoryStyles } from './categoryStyles'
@@ -58,7 +47,7 @@ function NotePreview({
           onClick={onBack}
           className='flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
         >
-          <ChevronLeft className='w-4 h-4' />
+          <Icon name='ChevronLeft' size='md' />
           返回
         </button>
         <div className='flex items-center gap-0.5'>
@@ -68,7 +57,7 @@ function NotePreview({
             aria-label='全屏预览'
             title='全屏预览'
           >
-            <Maximize2 className='w-4 h-4 text-[var(--text-muted)]' />
+            <Icon name='Maximize2' size='md' className='text-[var(--text-muted)]' />
           </button>
           <button
             onClick={handleCopy}
@@ -77,9 +66,9 @@ function NotePreview({
             title={copied ? '已复制' : '复制'}
           >
             {copied ? (
-              <Check className='w-4 h-4 text-[var(--brand-success)]' />
+              <Icon name='Check' size='md' className='text-[var(--brand-success)]' />
             ) : (
-              <Copy className='w-4 h-4 text-[var(--text-muted)]' />
+              <Icon name='Copy' size='md' className='text-[var(--text-muted)]' />
             )}
           </button>
           <button
@@ -87,14 +76,14 @@ function NotePreview({
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
             aria-label='编辑'
           >
-            <Edit3 className='w-4 h-4 text-[var(--text-muted)]' />
+            <Icon name='Pencil' size='md' className='text-[var(--text-muted)]' />
           </button>
           <button
             onClick={onDelete}
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
             aria-label='删除'
           >
-            <Trash2 className='w-4 h-4 text-[var(--text-muted)]' />
+            <Icon name='Trash2' size='md' className='text-[var(--text-muted)]' />
           </button>
         </div>
       </div>
@@ -153,7 +142,7 @@ function TodoPreview({
           onClick={onBack}
           className='flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors'
         >
-          <ChevronLeft className='w-4 h-4' />
+          <Icon name='ChevronLeft' size='md' />
           返回
         </button>
         <div className='flex items-center gap-0.5'>
@@ -162,14 +151,14 @@ function TodoPreview({
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
             aria-label='编辑'
           >
-            <Edit3 className='w-4 h-4 text-[var(--text-muted)]' />
+            <Icon name='Pencil' size='md' className='text-[var(--text-muted)]' />
           </button>
           <button
             onClick={onDelete}
             className='p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors'
             aria-label='删除'
           >
-            <Trash2 className='w-4 h-4 text-[var(--text-muted)]' />
+            <Icon name='Trash2' size='md' className='text-[var(--text-muted)]' />
           </button>
         </div>
       </div>
@@ -181,9 +170,9 @@ function TodoPreview({
             className='mt-0.5 flex-shrink-0'
           >
             {todo.status === 'completed' ? (
-              <CheckCircle2 className='w-5 h-5 text-[var(--brand-primary)]' />
+              <Icon name='CheckCircle2' size='lg' className='text-[var(--brand-primary)]' />
             ) : (
-              <Circle className='w-5 h-5 text-[var(--text-muted)]' />
+              <Icon name='Circle' size='lg' className='text-[var(--text-muted)]' />
             )}
           </button>
           <h2
@@ -207,13 +196,13 @@ function TodoPreview({
           </span>
           {todo.dueDate && !isOverdue(todo.dueDate, todo.status) && (
             <span className='text-xs text-[var(--text-muted)] flex items-center gap-1'>
-              <Calendar className='w-3 h-3' />
+              <Icon name='Calendar' size='xs' />
               {formatDate(todo.dueDate)}
             </span>
           )}
           {isOverdue(todo.dueDate, todo.status) && (
             <span className='text-xs text-[var(--brand-danger)] flex items-center gap-1 font-semibold'>
-              <Clock className='w-3 h-3' />
+              <Icon name='Clock' size='xs' />
               已过期
             </span>
           )}

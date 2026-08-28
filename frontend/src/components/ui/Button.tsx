@@ -40,7 +40,7 @@ export function Button({
     'inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all'
 
   const variantStyles = {
-    primary: 'bg-[var(--accent-primary)] text-white hover:brightness-110 hover:shadow-lg',
+    primary: 'bg-[var(--brand-primaryButton)] text-white hover:brightness-110 hover:shadow-lg',
     ghost:
       'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
     secondary: 'bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]',

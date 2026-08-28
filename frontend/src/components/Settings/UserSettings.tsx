@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Icon } from '../common/Icon'
 import { ProfileInfo } from './ProfileInfo'
 import { Preferences } from './Preferences'
 import { Privacy } from './Privacy'
@@ -18,7 +18,7 @@ export function UserSettings({ activeTab }: UserSettingsProps) {
   if (isLoading) {
     return (
       <div className='flex items-center justify-center min-h-[400px]'>
-        <Loader2 className='w-6 h-6 theme-text-muted animate-spin' />
+        <Icon name='Loader2' size='xl' className='theme-text-muted animate-spin' />
       </div>
     )
   }

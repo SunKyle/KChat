@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ZoomIn, X, Download, Loader2, ImageOff } from 'lucide-react'
+import { Icon } from '../common/Icon'
 
 interface ImageProps {
   src: string
@@ -51,7 +51,7 @@ export function Image({
         className={`inline-flex items-center justify-center rounded-lg border border-[var(--border-divider)] theme-bg-hover/40 ${maxHeightClass} w-full ${className}`}
       >
         <span className='flex flex-col items-center gap-2 py-6 text-[var(--text-muted)]'>
-          <ImageOff className='w-5 h-5' />
+          <Icon name='ImageOff' size='lg' />
           <span className='text-xs'>图片加载失败</span>
         </span>
       </span>
@@ -68,7 +68,7 @@ export function Image({
             className={`absolute inset-0 flex items-center justify-center theme-bg-hover/30 z-10 ${maxHeightClass}`}
             style={{ minWidth: '12rem', minHeight: '9rem' }}
           >
-            <Loader2 className='w-5 h-5 animate-spin text-[var(--brand-primary)]' />
+            <Icon name='Loader2' size='lg' className='animate-spin text-[var(--brand-primary)]' />
           </span>
         )}
         <img
@@ -89,7 +89,7 @@ export function Image({
               title='查看大图'
               aria-label='查看大图'
             >
-              <ZoomIn className='w-3.5 h-3.5 theme-text-primary' />
+              <Icon name='ZoomIn' size='sm' className='theme-text-primary' />
             </button>
             <button
               onClick={handleDownload}
@@ -97,7 +97,7 @@ export function Image({
               title='下载图片'
               aria-label='下载图片'
             >
-              <Download className='w-3.5 h-3.5 theme-text-primary' />
+              <Icon name='Download' size='sm' className='theme-text-primary' />
             </button>
           </span>
         )}
@@ -118,7 +118,7 @@ export function Image({
               title='下载图片'
               aria-label='下载图片'
             >
-              <Download className='w-6 h-6 theme-text-primary' />
+              <Icon name='Download' size='xl' className='theme-text-primary' />
             </button>
             <button
               className='icon-btn'
@@ -129,7 +129,7 @@ export function Image({
               title='关闭'
               aria-label='关闭'
             >
-              <X className='w-6 h-6 theme-text-primary' />
+              <Icon name='X' size='xl' className='theme-text-primary' />
             </button>
           </div>
           <img

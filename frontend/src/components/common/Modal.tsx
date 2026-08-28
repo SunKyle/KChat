@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect, useCallback, useRef } from 'react'
-import { X } from 'lucide-react'
+import { Icon } from './Icon'
 
 interface ModalProps {
   isOpen: boolean
@@ -119,7 +119,7 @@ export function Modal({
             </h3>
             {!hasConfirm && (
               <button onClick={onClose} className='icon-btn' aria-label='关闭对话框'>
-                <X className='w-5 h-5' aria-hidden='true' />
+                <Icon name='X' size='lg' aria-hidden='true' />
               </button>
             )}
           </div>

@@ -8,23 +8,14 @@ import { InputArea } from './components/chat/InputArea'
 import { Header } from './components/chat/Header'
 import { Modal } from './components/common/Modal'
 import { ToastContainer } from './components/common/ToastContainer'
+import { ReminderNotification } from './components/common/ReminderNotification'
 import { UserSettings } from './components/settings/UserSettings'
 import { NoteTodoPanel } from './components/note-todo/NoteTodoPanel'
 import { KnowledgeGraph } from './components/settings/knowledge-graph'
 import { KnowledgeContentView } from './components/knowledge/KnowledgeContentView'
 import { SkillDetailPage } from './components/skill/SkillDetailPage'
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Menu,
-  X,
-  BarChart3,
-  RefreshCw,
-  Wrench,
-  Search,
-  ArrowLeftRight,
-  FileText,
-  Database,
-} from 'lucide-react'
+import { Icon } from './components/common/Icon'
 import { useSidebar } from './hooks/useSidebar'
 import { useSettings } from './hooks/useSettings'
 import { useConversation } from './hooks/useConversation'
@@ -229,9 +220,9 @@ function AppContent() {
           className='fixed top-[max(1rem,env(safe-area-inset-top))] left-4 z-30 p-2 rounded-lg theme-bg-card lg:hidden shadow-md hover:theme-bg-hover transition-colors'
         >
           {sidebarOpen ? (
-            <X className='w-5 h-5 theme-text-primary' />
+            <Icon name='X' size='lg' className='theme-text-primary' />
           ) : (
-            <Menu className='w-5 h-5 theme-text-primary' />
+            <Icon name='Menu' size='lg' className='theme-text-primary' />
           )}
         </button>
 
@@ -260,7 +251,7 @@ function AppContent() {
                     {graphViewDataset.displayName}
                   </h1>
                   <div className='flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-card border theme-border-primary text-xs flex-shrink-0'>
-                    <BarChart3 className='w-3 h-3 theme-brand-primary' />
+                    <Icon name='BarChart3' size='xs' className='theme-brand-primary' />
                     <span className='theme-text-primary font-medium whitespace-nowrap'>
                       {graphStats.nodes} 节点 · {graphStats.edges} 关系
                     </span>
@@ -270,7 +261,7 @@ function AppContent() {
                 <div className='flex items-center gap-2 flex-1 justify-end'>
                   {/* 搜索框 */}
                   <div className='flex items-center gap-1.5 bg-theme-bg-card rounded-lg border theme-border-primary px-2.5 py-1.5 shadow-sm w-48'>
-                    <Search className='w-3.5 h-3.5 theme-text-muted flex-shrink-0' />
+                    <Icon name='Search' size='sm' className='theme-text-muted flex-shrink-0' />
                     <input
                       type='text'
                       value={graphSearchQuery}
@@ -283,7 +274,7 @@ function AppContent() {
                         onClick={() => setGraphSearchQuery('')}
                         className='theme-text-muted hover:theme-text-primary flex-shrink-0'
                       >
-                        <X className='w-3 h-3' />
+                        <Icon name='X' size='xs' />
                       </button>
                     )}
                   </div>
@@ -294,7 +285,7 @@ function AppContent() {
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer'
                     title={`布局方向：${graphRankdir === 'LR' ? '从左到右' : '从上到下'}`}
                   >
-                    <ArrowLeftRight className='w-3.5 h-3.5 theme-brand-primary' />
+                    <Icon name='ArrowLeftRight' size='sm' className='theme-brand-primary' />
                     <span className='text-xs theme-text-primary hidden sm:inline'>
                       {graphRankdir === 'LR' ? '左→右' : '上→下'}
                     </span>
@@ -307,8 +298,10 @@ function AppContent() {
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
                     title='优化图谱：推导跨实体连接、重加权边'
                   >
-                    <Wrench
-                      className={`w-3.5 h-3.5 theme-brand-primary ${isImproving ? 'animate-spin' : ''}`}
+                    <Icon
+                      name='Wrench'
+                      size='sm'
+                      className={`theme-brand-primary ${isImproving ? 'animate-spin' : ''}`}
                     />
                     <span className='text-xs theme-text-primary hidden sm:inline'>
                       {isImproving ? '优化中...' : '优化图谱'}
@@ -321,7 +314,7 @@ function AppContent() {
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border theme-border-primary hover:border-[var(--brand-primary)]/40 hover:shadow-sm transition-all duration-200 cursor-pointer'
                     title='刷新图谱'
                   >
-                    <RefreshCw className='w-3.5 h-3.5 theme-brand-primary' />
+                    <Icon name='RefreshCw' size='sm' className='theme-brand-primary' />
                     <span className='text-xs theme-text-primary hidden sm:inline'>刷新</span>
                   </button>
                 </div>
@@ -336,7 +329,7 @@ function AppContent() {
                     {knowledgeViewKb.name}
                   </h1>
                   <div className='flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-card border theme-border-primary text-xs flex-shrink-0'>
-                    <FileText className='w-3 h-3 theme-brand-primary' />
+                    <Icon name='FileText' size='xs' className='theme-brand-primary' />
                     <span className='theme-text-primary font-medium whitespace-nowrap'>
                       {knowledgeDocCount} 篇文档
                     </span>
@@ -365,7 +358,7 @@ function AppContent() {
               ) : (
                 <div className='relative flex-1 min-h-0 flex items-center justify-center'>
                   <div className='flex flex-col items-center text-center px-4'>
-                    <BarChart3 className='w-10 h-10 theme-text-muted mb-3' />
+                    <Icon name='BarChart3' size={40} className='theme-text-muted mb-3' />
                     <p className='text-sm theme-text-secondary font-medium mb-1'>暂无图谱数据</p>
                     <p className='text-xs theme-text-muted'>在知识库中上传文档以生成图谱</p>
                   </div>
@@ -384,7 +377,7 @@ function AppContent() {
               ) : (
                 <div className='relative flex-1 min-h-0 flex items-center justify-center'>
                   <div className='flex flex-col items-center text-center px-4'>
-                    <Database className='w-10 h-10 theme-text-muted mb-3' />
+                    <Icon name='Database' size={40} className='theme-text-muted mb-3' />
                     <p className='text-sm theme-text-secondary font-medium mb-1'>暂无知识库</p>
                     <p className='text-xs theme-text-muted'>创建知识库并上传文档</p>
                   </div>
@@ -437,6 +430,7 @@ function AppContent() {
       />
 
       <ToastContainer />
+      <ReminderNotification />
     </div>
   )
 }

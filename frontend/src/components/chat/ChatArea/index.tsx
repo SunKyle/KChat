@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, useCallback } from 'react'
-import { MessageCircle, ArrowDown, Sparkles } from 'lucide-react'
+import { Icon } from '../../common/Icon'
 import { Virtuoso } from 'react-virtuoso'
 import type { VirtuosoHandle } from 'react-virtuoso'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -117,7 +117,7 @@ export function ChatArea() {
         <div className='text-center px-4'>
           <div className='mb-5'>
             <div className='w-12 h-12 rounded-xl bg-[var(--brand-primary)]/10 flex items-center justify-center mx-auto'>
-              <MessageCircle className='w-6 h-6 text-[var(--brand-primary)]' />
+              <Icon name='MessageCircle' size='xl' className='text-[var(--brand-primary)]' />
             </div>
           </div>
           <h2 className='text-lg font-semibold theme-text-primary mb-1.5'>选择或创建对话</h2>
@@ -166,7 +166,7 @@ export function ChatArea() {
             <div className='flex flex-col items-center justify-center h-full px-6 max-w-lg mx-auto'>
               <div className='mb-7'>
                 <div className='w-14 h-14 rounded-2xl bg-[var(--brand-primary)]/10 flex items-center justify-center'>
-                  <MessageCircle className='w-7 h-7 text-[var(--brand-primary)]' />
+                  <Icon name='MessageCircle' size='2xl' className='text-[var(--brand-primary)]' />
                 </div>
               </div>
               <h1 className='text-2xl font-semibold theme-text-primary mb-2 text-center'>
@@ -179,7 +179,7 @@ export function ChatArea() {
                 onClick={() => sendMessage('请帮我写一段代码', [], false)}
                 className='group flex items-center gap-2 px-4 py-2.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-card)]/60 text-sm theme-text-secondary hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary)]/5 transition-all duration-200 cursor-pointer'
               >
-                <Sparkles className='w-3.5 h-3.5 text-[var(--brand-primary)]/60 group-hover:text-[var(--brand-primary)]' />
+                <Icon name='Sparkles' size='sm' className='text-[var(--brand-primary)]/60 group-hover:text-[var(--brand-primary)]' />
                 <span>试试问：帮我写一段 Python 爬虫</span>
               </button>
             </div>
@@ -214,8 +214,10 @@ export function ChatArea() {
           }`}
           title='滚动到底部'
         >
-          <ArrowDown
-            className={`w-4 h-4 transition-colors duration-200 ${
+          <Icon
+            name='ArrowDown'
+            size='md'
+            className={`transition-colors duration-200 ${
               streamingState.isStreaming
                 ? 'theme-brand-primary'
                 : 'theme-text-secondary hover:text-[var(--brand-primary)]'

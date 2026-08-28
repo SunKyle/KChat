@@ -1,15 +1,6 @@
 import { useState, useMemo } from 'react'
-import {
-  ChevronDown,
-  ChevronRight,
-  CheckCircle,
-  XCircle,
-  Bell,
-  CheckSquare,
-  Wrench,
-  Sparkles,
-  Clock,
-} from 'lucide-react'
+import { Icon } from '../../common/Icon'
+import type { IconName } from '../../common/Icon'
 import type { AgentThinkingStep } from '../../../types'
 import { TruncatableText } from '../../ui/TruncatableText'
 
@@ -43,7 +34,7 @@ type SkillBlock = {
   kind: 'skill_block'
   id: string
   skillName: string
-  skillIcon: React.ReactNode
+  skillIcon: IconName
   inputArgs?: string
   success?: boolean
   durationMs?: number
@@ -82,18 +73,18 @@ type SpecialistNode =
 /*  Build flat timeline from raw steps             */
 /* ─────────────────────────────────────────────── */
 
-const SKILL_ICON_MAP: Record<string, React.ReactNode> = {
-  reminder: <Bell className='w-3 h-3' />,
-  todo: <CheckSquare className='w-3 h-3' />,
+const SKILL_ICON_MAP: Record<string, IconName> = {
+  reminder: 'Bell',
+  todo: 'CheckSquare',
 }
 
-function getSkillIcon(skillName?: string | null): React.ReactNode {
-  if (!skillName) return <Sparkles className='w-3 h-3' />
+function getSkillIcon(skillName?: string | null): IconName {
+  if (!skillName) return 'Sparkles'
   const lower = skillName.toLowerCase()
   for (const [key, icon] of Object.entries(SKILL_ICON_MAP)) {
     if (lower.includes(key)) return icon
   }
-  return <Sparkles className='w-3 h-3' />
+  return 'Sparkles'
 }
 
 function buildTree(steps: AgentThinkingStep[]): {
@@ -303,7 +294,7 @@ function SpecialistDecisionNode({
         </div>
         {hasThinking && (
           <div className='mt-1'>
-            <TruncatableText text={node.thinkingText} maxChars={200} />
+            <TruncatableText text={node.thinkingText ?? ''} maxChars={200} />
           </div>
         )}
         {node.hasToolCalls && node.toolNames.length > 0 && (
@@ -365,16 +356,18 @@ function ToolCallNode({ node }: { node: Extract<SpecialistNode, { kind: 'tool_ca
           className='flex items-center gap-1.5 cursor-pointer'
           onClick={() => setExpanded(!expanded)}
         >
-          <Wrench className='w-3 h-3 text-[var(--text-muted)] flex-shrink-0' />
+          <Icon name='Wrench' size='xs' className='text-[var(--text-muted)] flex-shrink-0' />
           <span className='text-xs text-[var(--text-secondary)]'>{node.toolName}</span>
           {success === true && (
-            <CheckCircle className='w-3 h-3 text-[var(--text-muted)] flex-shrink-0' />
+            <Icon name='CheckCircle2' size='xs' className='text-[var(--text-muted)] flex-shrink-0' />
           )}
           {success === false && (
-            <XCircle className='w-3 h-3 text-[var(--accent-rose)] flex-shrink-0' />
+            <Icon name='XCircle' size='xs' className='text-[var(--accent-rose)] flex-shrink-0' />
           )}
-          <ChevronRight
-            className={`w-3 h-3 text-[var(--text-muted)] transition-transform ${
+          <Icon
+            name='ChevronRight'
+            size='xs'
+            className={`text-[var(--text-muted)] transition-transform ${
               expanded ? 'rotate-90' : ''
             }`}
           />
@@ -471,22 +464,26 @@ function SkillRow({ block, isLast }: { block: SkillBlock; isLast: boolean }) {
           onClick={() => setOpen(!open)}
           className='w-full flex items-center gap-2 cursor-pointer'
         >
-          <span className='text-[var(--text-muted)] flex-shrink-0'>{block.skillIcon}</span>
+          <span className='text-[var(--text-muted)] flex-shrink-0'>
+            <Icon name={block.skillIcon} size='xs' />
+          </span>
           <span className='text-sm font-medium text-[var(--text-primary)]'>{block.skillName}</span>
           {block.durationMs !== undefined && (
             <span className='text-[11px] text-[var(--text-muted)] flex items-center gap-0.5'>
-              <Clock className='w-3 h-3' />
+              <Icon name='Clock' size='xs' />
               {(block.durationMs / 1000).toFixed(1)}s
             </span>
           )}
           {block.success === true && (
-            <CheckCircle className='w-3 h-3 text-[var(--text-muted)]' />
+            <Icon name='CheckCircle2' size='xs' className='text-[var(--text-muted)]' />
           )}
           {block.success === false && (
-            <XCircle className='w-3 h-3 text-[var(--accent-rose)]' />
+            <Icon name='XCircle' size='xs' className='text-[var(--accent-rose)]' />
           )}
-          <ChevronDown
-            className={`w-3 h-3 text-[var(--text-muted)] ml-auto transition-transform ${
+          <Icon
+            name='ChevronDown'
+            size='xs'
+            className={`text-[var(--text-muted)] ml-auto transition-transform ${
               open ? 'rotate-180' : ''
             }`}
           />
@@ -553,13 +550,15 @@ export function AgentThinkingPanel({ steps }: AgentThinkingPanelProps) {
           className='w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors'
           aria-expanded={expanded}
         >
-          <Sparkles className='w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0' />
+          <Icon name='Sparkles' size='sm' className='text-[var(--text-muted)] flex-shrink-0' />
           <span className='text-xs font-medium text-[var(--text-secondary)]'>
             AI 工作过程
           </span>
           <span className='text-[11px] text-[var(--text-muted)]'>{subtitle}</span>
-          <ChevronDown
-            className={`w-3.5 h-3.5 text-[var(--text-muted)] ml-auto transition-transform duration-200 ${
+          <Icon
+            name='ChevronDown'
+            size='sm'
+            className={`text-[var(--text-muted)] ml-auto transition-transform duration-200 ${
               expanded ? 'rotate-180' : ''
             }`}
           />

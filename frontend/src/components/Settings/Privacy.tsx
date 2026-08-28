@@ -1,4 +1,5 @@
-import { Eye, EyeOff, MessageSquare, CheckCircle2, Lock, Shield } from 'lucide-react'
+import { Icon } from '../common/Icon'
+import type { IconName } from '../common/Icon'
 import { useUser } from '../../context/UserContext'
 
 interface ToggleProps {
@@ -48,30 +49,35 @@ export function Privacy() {
 
   if (!profile) return null
 
-  const privacyOptions = [
+  const privacyOptions: {
+    key: keyof NonNullable<typeof profile>['privacy']
+    label: string
+    description: string
+    icon: IconName
+  }[] = [
     {
-      key: 'onlineStatus' as const,
+      key: 'onlineStatus',
       label: '在线状态',
       description: '向其他人显示您的在线状态',
-      icon: Eye,
+      icon: 'Eye',
     },
     {
-      key: 'readReceipts' as const,
+      key: 'readReceipts',
       label: '已读回执',
       description: '让对方知道您已阅读消息',
-      icon: CheckCircle2,
+      icon: 'CheckCircle2',
     },
     {
-      key: 'typingIndicator' as const,
+      key: 'typingIndicator',
       label: '输入状态',
       description: '向对方显示您正在输入',
-      icon: MessageSquare,
+      icon: 'MessageSquare',
     },
     {
-      key: 'messageHistory' as const,
+      key: 'messageHistory',
       label: '消息历史',
       description: '保存您的聊天记录',
-      icon: EyeOff,
+      icon: 'EyeOff',
     },
   ]
 
@@ -79,7 +85,7 @@ export function Privacy() {
     <div className='space-y-6'>
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
-          <Lock className='w-[18px] h-[18px] theme-text-muted' />
+          <Icon name='Lock' size={18} className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>隐私设置</h3>
         </div>
 
@@ -88,7 +94,7 @@ export function Privacy() {
             <div key={option.key} className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 rounded-lg theme-bg-hover flex items-center justify-center'>
-                  <option.icon className='w-4 h-4 theme-text-muted' />
+                  <Icon name={option.icon} size='md' className='theme-text-muted' />
                 </div>
                 <div>
                   <div className='text-sm font-semibold theme-text-primary'>{option.label}</div>
@@ -108,7 +114,7 @@ export function Privacy() {
 
       <div className='card-float-solid rounded-2xl p-6'>
         <div className='flex items-center gap-2 mb-4'>
-          <Shield className='w-[18px] h-[18px] theme-text-muted' />
+          <Icon name='Shield' size={18} className='theme-text-muted' />
           <h3 className='font-semibold theme-text-primary'>数据安全</h3>
         </div>
 
